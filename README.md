@@ -1,2 +1,0 @@
-# openapi-core
-OpenAPI core

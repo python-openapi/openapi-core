@@ -1,0 +1,21 @@
+import mock
+import pytest
+
+from openapi_core.request_bodies import RequestBody
+
+
+class TestRequestBodies(object):
+
+    @pytest.fixture
+    def request_body(self):
+        content = {
+            'application/json': mock.sentinel.application_json,
+            'text/csv': mock.sentinel.text_csv,
+        }
+        return RequestBody(content)
+
+    @property
+    def test_iteritems(self, request_body):
+        for content_type in request_body.content.keys():
+            assert request_body[content_type] ==\
+                request_body.content[content_type]
