@@ -1,8 +1,6 @@
 """OpenAPI core parameters module"""
 import logging
 
-from openapi_core.schemas import SchemaRegistry
-
 log = logging.getLogger(__name__)
 
 
@@ -32,8 +30,9 @@ class Parameter(object):
 
 class ParametersGenerator(object):
 
-    def __init__(self, dereferencer):
+    def __init__(self, dereferencer, schemas_registry):
         self.dereferencer = dereferencer
+        self.schemas_registry = schemas_registry
 
     def generate(self, paramters):
         for parameter in paramters:
@@ -45,7 +44,7 @@ class ParametersGenerator(object):
             schema_spec = parameter_deref.get('schema', None)
             schema = None
             if schema_spec:
-                schema = self._create_schema(schema_spec)
+                schema, _ = self.schemas_registry.get_or_create(schema_spec)
 
             yield (
                 parameter_deref['name'],
@@ -54,8 +53,3 @@ class ParametersGenerator(object):
                     schema=schema, default=default, required=required,
                 ),
             )
-
-    def _create_schema(self, schema_spec):
-        schema, _ = SchemaRegistry(self.dereferencer).get_or_create(
-            schema_spec)
-        return schema

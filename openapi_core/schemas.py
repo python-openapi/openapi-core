@@ -1,7 +1,8 @@
 """OpenAPI core schemas module"""
 import logging
-from distutils.util import strtobool
 from collections import defaultdict
+from distutils.util import strtobool
+from functools import lru_cache
 
 from json import loads
 from six import iteritems
@@ -114,7 +115,7 @@ class SchemaFactory(object):
 
         properties = None
         if properties_spec:
-            properties = self._generate_properties(properties_spec)
+            properties = self.properties_generator.generate(properties_spec)
 
         items = None
         if items_spec:
@@ -125,8 +126,10 @@ class SchemaFactory(object):
             required=required,
         )
 
-    def _generate_properties(self, properties_spec):
-        return PropertiesGenerator(self.dereferencer).generate(properties_spec)
+    @property
+    @lru_cache()
+    def properties_generator(self):
+        return PropertiesGenerator(self.dereferencer)
 
     def _create_items(self, items_spec):
         return self.create(items_spec)
@@ -147,24 +150,16 @@ class SchemaRegistry(SchemaFactory):
 
         return self.create(schema_deref), True
 
-    def _create_items(self, items_spec):
-        schema, _ = self.get_or_create(items_spec)
-        return schema
-
 
 class SchemasGenerator(object):
 
-    def __init__(self, dereferencer):
+    def __init__(self, dereferencer, schemas_registry):
         self.dereferencer = dereferencer
+        self.schemas_registry = schemas_registry
 
     def generate(self, schemas_spec):
         schemas_deref = self.dereferencer.dereference(schemas_spec)
 
         for schema_name, schema_spec in iteritems(schemas_deref):
-            schema = self._create_schema(schema_spec)
+            schema, _ = self.schemas_registry.get_or_create(schema_spec)
             yield schema_name, schema
-
-    def _create_schema(self, schema_spec):
-        schema, _ = SchemaRegistry(self.dereferencer).get_or_create(
-            schema_spec)
-        return schema

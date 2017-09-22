@@ -1,4 +1,6 @@
 """OpenAPI core requestBodies module"""
+from functools import lru_cache
+
 from openapi_core.media_types import MediaTypeGenerator
 
 
@@ -15,16 +17,19 @@ class RequestBody(object):
 
 class RequestBodyFactory(object):
 
-    def __init__(self, dereferencer):
+    def __init__(self, dereferencer, schemas_registry):
         self.dereferencer = dereferencer
+        self.schemas_registry = schemas_registry
 
     def create(self, request_body_spec):
         request_body_deref = self.dereferencer.dereference(
             request_body_spec)
         content = request_body_deref['content']
-        media_types = self._generate_media_types(content)
+        media_types = self.media_types_generator.generate(content)
         required = request_body_deref.get('required', False)
         return RequestBody(media_types, required=required)
 
-    def _generate_media_types(self, content):
-        return MediaTypeGenerator(self.dereferencer).generate(content)
+    @property
+    @lru_cache()
+    def media_types_generator(self):
+        return MediaTypeGenerator(self.dereferencer, self.schemas_registry)

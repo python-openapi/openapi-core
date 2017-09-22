@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from openapi_core.schemas import SchemasGenerator
 
 
@@ -15,8 +17,9 @@ class Components(object):
 
 class ComponentsFactory(object):
 
-    def __init__(self, dereferencer):
+    def __init__(self, dereferencer, schemas_registry):
         self.dereferencer = dereferencer
+        self.schemas_registry = schemas_registry
 
     def create(self, components_spec):
         components_deref = self.dereferencer.dereference(components_spec)
@@ -26,7 +29,7 @@ class ComponentsFactory(object):
         parameters_spec = components_deref.get('parameters', [])
         request_bodies_spec = components_deref.get('request_bodies', [])
 
-        schemas = self._generate_schemas(schemas_spec)
+        schemas = self.schemas_generator.generate(schemas_spec)
         responses = self._generate_response(responses_spec)
         parameters = self._generate_parameters(parameters_spec)
         request_bodies = self._generate_request_bodies(request_bodies_spec)
@@ -35,8 +38,10 @@ class ComponentsFactory(object):
             request_bodies=request_bodies,
         )
 
-    def _generate_schemas(self, schemas_spec):
-        return SchemasGenerator(self.dereferencer).generate(schemas_spec)
+    @property
+    @lru_cache()
+    def schemas_generator(self):
+        return SchemasGenerator(self.dereferencer, self.schemas_registry)
 
     def _generate_response(self, responses_spec):
         return responses_spec
