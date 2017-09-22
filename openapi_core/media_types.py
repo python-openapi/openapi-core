@@ -1,7 +1,7 @@
 """OpenAPI core mediaTypes module"""
 from six import iteritems
 
-from openapi_core.schemas import SchemaFactory
+from openapi_core.schemas import SchemaRegistry
 
 
 class MediaType(object):
@@ -34,4 +34,6 @@ class MediaTypeGenerator(object):
             yield content_type, MediaType(content_type, schema)
 
     def _create_schema(self, schema_spec):
-        return SchemaFactory(self.dereferencer).create(schema_spec)
+        schema, _ = SchemaRegistry(self.dereferencer).get_or_create(
+            schema_spec)
+        return schema
