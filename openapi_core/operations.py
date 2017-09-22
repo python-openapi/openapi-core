@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """OpenAPI core operations module"""
 import logging
+from functools import lru_cache
 
 from six import iteritems
 
@@ -30,8 +31,9 @@ class Operation(object):
 class OperationsGenerator(object):
     """Represents an OpenAPI Operation in a service."""
 
-    def __init__(self, dereferencer):
+    def __init__(self, dereferencer, schemas_registry):
         self.dereferencer = dereferencer
+        self.schemas_registry = schemas_registry
 
     def generate(self, path_name, path):
         path_deref = self.dereferencer.dereference(path)
@@ -42,12 +44,13 @@ class OperationsGenerator(object):
             operation_deref = self.dereferencer.dereference(operation)
             deprecated = operation_deref.get('deprecated', False)
             parameters_list = operation_deref.get('parameters', [])
-            parameters = self._generate_parameters(parameters_list)
+            parameters = self.parameters_generator.generate(parameters_list)
 
             request_body = None
             if 'requestBody' in operation_deref:
                 request_body_spec = operation_deref.get('requestBody')
-                request_body = self._create_request_body(request_body_spec)
+                request_body = self.request_body_factory.create(
+                    request_body_spec)
 
             yield (
                 http_method,
@@ -57,8 +60,12 @@ class OperationsGenerator(object):
                 ),
             )
 
-    def _generate_parameters(self, parameters):
-        return ParametersGenerator(self.dereferencer).generate(parameters)
+    @property
+    @lru_cache()
+    def parameters_generator(self):
+        return ParametersGenerator(self.dereferencer, self.schemas_registry)
 
-    def _create_request_body(self, request_body_spec):
-        return RequestBodyFactory(self.dereferencer).create(request_body_spec)
+    @property
+    @lru_cache()
+    def request_body_factory(self):
+        return RequestBodyFactory(self.dereferencer, self.schemas_registry)

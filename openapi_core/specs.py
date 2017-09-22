@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """OpenAPI core specs module"""
 import logging
-from functools import partialmethod
+from functools import partialmethod, lru_cache
 
 from openapi_spec_validator import openapi_v3_spec_validator
 
 from openapi_core.components import ComponentsFactory
 from openapi_core.infos import InfoFactory
 from openapi_core.paths import PathsGenerator
+from openapi_core.schemas import SchemaRegistry
 
 
 log = logging.getLogger(__name__)
@@ -62,17 +63,28 @@ class SpecFactory(object):
         paths = spec_dict_deref.get('paths', [])
         components_spec = spec_dict_deref.get('components', [])
 
-        info = self._create_info(info_spec)
-        paths = self._generate_paths(paths)
-        components = self._create_components(components_spec)
+        info = self.info_factory.create(info_spec)
+        paths = self.paths_generator.generate(paths)
+        components = self.components_factory.create(components_spec)
         spec = Spec(info, list(paths), servers=servers, components=components)
         return spec
 
-    def _create_info(self, info_spec):
-        return InfoFactory(self.dereferencer).create(info_spec)
+    @property
+    @lru_cache()
+    def schemas_registry(self):
+        return SchemaRegistry(self.dereferencer)
 
-    def _generate_paths(self, paths):
-        return PathsGenerator(self.dereferencer).generate(paths)
+    @property
+    @lru_cache()
+    def info_factory(self):
+        return InfoFactory(self.dereferencer)
 
-    def _create_components(self, components_spec):
-        return ComponentsFactory(self.dereferencer).create(components_spec)
+    @property
+    @lru_cache()
+    def paths_generator(self):
+        return PathsGenerator(self.dereferencer, self.schemas_registry)
+
+    @property
+    @lru_cache()
+    def components_factory(self):
+        return ComponentsFactory(self.dereferencer, self.schemas_registry)

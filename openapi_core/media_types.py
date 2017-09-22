@@ -1,8 +1,6 @@
 """OpenAPI core mediaTypes module"""
 from six import iteritems
 
-from openapi_core.schemas import SchemaRegistry
-
 
 class MediaType(object):
     """Represents an OpenAPI MediaType."""
@@ -20,8 +18,9 @@ class MediaType(object):
 
 class MediaTypeGenerator(object):
 
-    def __init__(self, dereferencer):
+    def __init__(self, dereferencer, schemas_registry):
         self.dereferencer = dereferencer
+        self.schemas_registry = schemas_registry
 
     def generate(self, content):
         for content_type, media_type in iteritems(content):
@@ -29,11 +28,6 @@ class MediaTypeGenerator(object):
 
             schema = None
             if schema_spec:
-                schema = self._create_schema(schema_spec)
+                schema, _ = self.schemas_registry.get_or_create(schema_spec)
 
             yield content_type, MediaType(content_type, schema)
-
-    def _create_schema(self, schema_spec):
-        schema, _ = SchemaRegistry(self.dereferencer).get_or_create(
-            schema_spec)
-        return schema
