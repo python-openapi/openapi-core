@@ -64,7 +64,7 @@ setup(
     packages=find_packages(include=('openapi_core*',)),
     include_package_data=True,
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         'Intended Audience :: Developers',
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",
