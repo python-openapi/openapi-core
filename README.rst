@@ -35,6 +35,27 @@ Alternatively you can download the code and install from the repository:
 
    $ pip install -e git+https://github.com/p1c2u/openapi-core.git#egg=openapi_core
 
+
+Usage
+=====
+
+Firstly create your specification:
+
+.. code-block:: python
+
+   from openapi_core import create_spec
+
+   spec = create_spec(spec_dict)
+
+Now you can use it to validate and unmarshal requests
+
+.. code-block:: python
+
+   from openapi_core import request_parameters_factory, request_body_factory
+
+   parameters = request_parameters_factory.create(request, spec)
+   body = request_body_factory.create(request, spec)
+
 Related projects
 ================
 * `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__
