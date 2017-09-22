@@ -44,6 +44,9 @@ class TestPetstore(object):
         return create_spec(spec_dict)
 
     def test_spec(self, spec, spec_dict):
+        assert spec.info.title == spec_dict['info']['title']
+        assert spec.info.version == spec_dict['info']['version']
+
         assert spec.servers == spec_dict['servers']
         assert spec.get_server_url() == spec_dict['servers'][0]['url']
 
@@ -88,6 +91,12 @@ class TestPetstore(object):
                     assert media_type.schema.type == schema_spec['type']
                     assert media_type.schema.required == schema_spec.get(
                         'required', False)
+
+        if not spec.components:
+            return
+
+        for schema_name, schema in iteritems(spec.components.schemas):
+            assert type(schema) == Schema
 
     def test_get_pets(self, spec):
         query_params = {
@@ -157,18 +166,34 @@ class TestPetstore(object):
             }
         }
 
-    def test_post_pets(self, spec):
+    def test_post_pets(self, spec, spec_dict):
+        pet_name = 'Cat'
+        pet_tag = 'cats'
+        pet_street = 'Piekna'
+        pet_city = 'Warsaw'
         data_json = {
-            'name': 'Cat',
-            'tag': 'cats',
+            'name': pet_name,
+            'tag': pet_tag,
+            'address': {
+                'street': pet_street,
+                'city': pet_city,
+            }
         }
         data = json.dumps(data_json)
 
         request = RequestMock('post', '/pets', data=data)
 
-        body = request.get_body(spec)
+        pet = request.get_body(spec)
 
-        assert body == data_json
+        schemas = spec_dict['components']['schemas']
+        pet_model = schemas['PetCreate']['x-model']
+        address_model = schemas['Address']['x-model']
+        assert pet.__class__.__name__ == pet_model
+        assert pet.name == pet_name
+        assert pet.tag == pet_tag
+        assert pet.address.__class__.__name__ == address_model
+        assert pet.address.street == pet_street
+        assert pet.address.city == pet_city
 
     def test_post_pets_raises_invalid_content_type(self, spec):
         data_json = {

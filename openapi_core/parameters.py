@@ -1,7 +1,7 @@
 """OpenAPI core parameters module"""
 import logging
 
-from openapi_core.schemas import SchemaFactory
+from openapi_core.schemas import SchemaRegistry
 
 log = logging.getLogger(__name__)
 
@@ -56,4 +56,6 @@ class ParametersGenerator(object):
             )
 
     def _create_schema(self, schema_spec):
-        return SchemaFactory(self.dereferencer).create(schema_spec)
+        schema, _ = SchemaRegistry(self.dereferencer).get_or_create(
+            schema_spec)
+        return schema
