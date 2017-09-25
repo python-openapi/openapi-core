@@ -42,7 +42,7 @@ class BaseRequestFactory(object):
         operation_pattern = request.full_url_pattern.replace(
             server.default_url, '')
 
-        return spec.get_operation(operation_pattern, request.method)
+        return spec.get_operation(operation_pattern, request.method.lower())
 
     def _get_server(self, request, spec):
         for server in spec.servers:
@@ -91,6 +91,9 @@ class RequestBodyFactory(BaseRequestFactory):
     def create(self, request, spec):
         operation = self.get_operation(request, spec)
 
+        if operation.request_body is None:
+            return None
+
         try:
             media_type = operation.request_body[request.content_type]
         except KeyError:
@@ -98,9 +101,6 @@ class RequestBodyFactory(BaseRequestFactory):
                 "Invalid Content-Type `{0}`".format(request.content_type))
 
         return media_type.unmarshal(request.data)
-
-    def _get_operation(self, request, spec):
-        return spec.get_operation(request.path_pattern, request.method)
 
 
 class BaseOpenAPIRequest(object):

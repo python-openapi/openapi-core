@@ -124,11 +124,12 @@ class TestPetstore(object):
         }
 
         request = RequestMock(
-            host_url, 'get', '/pets',
+            host_url, 'GET', '/pets',
             path_pattern=path_pattern, args=query_params,
         )
 
         parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
 
         assert parameters == {
             'query': {
@@ -136,17 +137,22 @@ class TestPetstore(object):
                 'ids': [12, 13],
             }
         }
+        assert body is None
 
     def test_get_pets_raises_missing_required_param(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         request = RequestMock(
-            host_url, 'get', '/pets',
+            host_url, 'GET', '/pets',
             path_pattern=path_pattern,
         )
 
         with pytest.raises(MissingParameterError):
             request.get_parameters(spec)
+
+        body = request.get_body(spec)
+
+        assert body is None
 
     def test_get_pets_failed_to_cast(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -156,17 +162,19 @@ class TestPetstore(object):
         }
 
         request = RequestMock(
-            host_url, 'get', '/pets',
+            host_url, 'GET', '/pets',
             path_pattern=path_pattern, args=query_params,
         )
 
         parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
 
         assert parameters == {
             'query': {
                 'limit': 'non_integer_value',
             }
         }
+        assert body is None
 
     def test_get_pets_empty_value(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -176,17 +184,19 @@ class TestPetstore(object):
         }
 
         request = RequestMock(
-            host_url, 'get', '/pets',
+            host_url, 'GET', '/pets',
             path_pattern=path_pattern, args=query_params,
         )
 
         parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
 
         assert parameters == {
             'query': {
                 'limit': None,
             }
         }
+        assert body is None
 
     def test_get_pets_none_value(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -196,7 +206,7 @@ class TestPetstore(object):
         }
 
         request = RequestMock(
-            host_url, 'get', '/pets',
+            host_url, 'GET', '/pets',
             path_pattern=path_pattern, args=query_params,
         )
 
@@ -207,6 +217,10 @@ class TestPetstore(object):
                 'limit': None,
             }
         }
+
+        body = request.get_body(spec)
+
+        assert body is None
 
     def test_post_pets(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -226,21 +240,25 @@ class TestPetstore(object):
         data = json.dumps(data_json)
 
         request = RequestMock(
-            host_url, 'post', '/pets',
+            host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
         )
 
-        pet = request.get_body(spec)
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {}
+
+        body = request.get_body(spec)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
         address_model = schemas['Address']['x-model']
-        assert pet.__class__.__name__ == pet_model
-        assert pet.name == pet_name
-        assert pet.tag == pet_tag
-        assert pet.address.__class__.__name__ == address_model
-        assert pet.address.street == pet_street
-        assert pet.address.city == pet_city
+        assert body.__class__.__name__ == pet_model
+        assert body.name == pet_name
+        assert body.tag == pet_tag
+        assert body.address.__class__.__name__ == address_model
+        assert body.address.street == pet_street
+        assert body.address.city == pet_city
 
     def test_post_pets_raises_invalid_content_type(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -252,9 +270,13 @@ class TestPetstore(object):
         data = json.dumps(data_json)
 
         request = RequestMock(
-            host_url, 'post', '/pets',
+            host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data, content_type='text/html',
         )
+
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {}
 
         with pytest.raises(InvalidContentTypeError):
             request.get_body(spec)
@@ -269,9 +291,12 @@ class TestPetstore(object):
         data = json.dumps(data_json)
 
         request = RequestMock(
-            host_url, 'post', '/pets',
+            host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data, content_type='text/html',
         )
+
+        with pytest.raises(InvalidServerError):
+            request.get_parameters(spec)
 
         with pytest.raises(InvalidServerError):
             request.get_body(spec)
@@ -283,7 +308,7 @@ class TestPetstore(object):
             'petId': '1',
         }
         request = RequestMock(
-            host_url, 'get', '/pets/1',
+            host_url, 'GET', '/pets/1',
             path_pattern=path_pattern, view_args=view_args,
         )
 
@@ -294,3 +319,7 @@ class TestPetstore(object):
                 'petId': 1,
             }
         }
+
+        body = request.get_body(spec)
+
+        assert body is None
