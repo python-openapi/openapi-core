@@ -7,6 +7,9 @@ from functools import lru_cache
 from json import loads
 from six import iteritems
 
+from openapi_core.exceptions import (
+    InvalidValueType, UndefinedSchemaProperty, MissingPropertyError,
+)
 from openapi_core.models import ModelFactory
 
 log = logging.getLogger(__name__)
@@ -23,13 +26,14 @@ class Schema(object):
 
     def __init__(
             self, schema_type, model=None, properties=None, items=None,
-            spec_format=None, required=False):
+            spec_format=None, required=False, default=None):
         self.type = schema_type
         self.model = model
         self.properties = properties and dict(properties) or {}
         self.items = items
         self.format = spec_format
         self.required = required
+        self.default = default
 
     def __getitem__(self, name):
         return self.properties[name]
@@ -57,10 +61,9 @@ class Schema(object):
         try:
             return cast_callable(value)
         except ValueError:
-            log.warning(
+            raise InvalidValueType(
                 "Failed to cast value of %s to %s", value, self.type,
             )
-            return value
 
     def unmarshal(self, value):
         """Unmarshal parameter from the value."""
@@ -78,9 +81,24 @@ class Schema(object):
         if isinstance(value, (str, bytes)):
             value = loads(value)
 
+        properties_keys = self.properties.keys()
+        value_keys = value.keys()
+
+        extra_props = set(value_keys) - set(properties_keys)
+
+        if extra_props:
+            raise UndefinedSchemaProperty(
+                "Undefined properties in schema: {0}".format(extra_props))
+
         properties = {}
         for prop_name, prop in iteritems(self.properties):
-            prop_value = value.get(prop_name)
+            try:
+                prop_value = value[prop_name]
+            except KeyError:
+                if prop_name in self.required:
+                    raise MissingPropertyError(
+                        "Missing schema property {0}".format(prop_name))
+                prop_value = prop.default
             properties[prop_name] = prop.unmarshal(prop_value)
         return ModelFactory().create(properties, name=self.model)
 
