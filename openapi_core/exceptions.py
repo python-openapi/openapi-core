@@ -15,3 +15,7 @@ class MissingParameterError(OpenAPIMappingError):
 
 class InvalidContentTypeError(OpenAPIMappingError):
     pass
+
+
+class InvalidServerError(OpenAPIMappingError):
+    pass

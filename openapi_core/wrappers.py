@@ -1,8 +1,10 @@
 """OpenAPI core wrappers module"""
 from six import iteritems
+from six.moves.urllib.parse import urljoin
 
 from openapi_core.exceptions import (
     OpenAPIMappingError, MissingParameterError, InvalidContentTypeError,
+    InvalidServerError,
 )
 
 SPEC_LOCATION_TO_REQUEST_LOCATION_MAPPING = {
@@ -32,13 +34,32 @@ class RequestParameters(dict):
                 "Unknown parameter location: {0}".format(str(location)))
 
 
-class RequestParametersFactory(object):
+class BaseRequestFactory(object):
+
+    def get_operation(self, request, spec):
+        server = self._get_server(request, spec)
+
+        operation_pattern = request.full_url_pattern.replace(
+            server.default_url, '')
+
+        return spec.get_operation(operation_pattern, request.method)
+
+    def _get_server(self, request, spec):
+        for server in spec.servers:
+            if server.default_url in request.full_url_pattern:
+                return server
+
+        raise InvalidServerError(
+            "Invalid request server {0}".format(request.full_url_pattern))
+
+
+class RequestParametersFactory(BaseRequestFactory):
 
     def __init__(self, attr_mapping=SPEC_LOCATION_TO_REQUEST_LOCATION_MAPPING):
         self.attr_mapping = attr_mapping
 
     def create(self, request, spec):
-        operation = spec.get_operation(request.path_pattern, request.method)
+        operation = self.get_operation(request, spec)
 
         params = RequestParameters()
         for param_name, param in iteritems(operation.parameters):
@@ -65,10 +86,10 @@ class RequestParametersFactory(object):
         return param.unmarshal(raw_value)
 
 
-class RequestBodyFactory(object):
+class RequestBodyFactory(BaseRequestFactory):
 
     def create(self, request, spec):
-        operation = spec.get_operation(request.path_pattern, request.method)
+        operation = self.get_operation(request, spec)
 
         try:
             media_type = operation.request_body[request.content_type]
@@ -78,9 +99,13 @@ class RequestBodyFactory(object):
 
         return media_type.unmarshal(request.data)
 
+    def _get_operation(self, request, spec):
+        return spec.get_operation(request.path_pattern, request.method)
+
 
 class BaseOpenAPIRequest(object):
 
+    host_url = NotImplemented
     path = NotImplemented
     path_pattern = NotImplemented
     method = NotImplemented
@@ -93,6 +118,10 @@ class BaseOpenAPIRequest(object):
     data = NotImplemented
 
     content_type = NotImplemented
+
+    @property
+    def full_url_pattern(self):
+        return urljoin(self.host_url, self.path_pattern)
 
     def get_parameters(self, spec):
         return RequestParametersFactory().create(self, spec)
