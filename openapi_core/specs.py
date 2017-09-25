@@ -9,6 +9,7 @@ from openapi_core.components import ComponentsFactory
 from openapi_core.infos import InfoFactory
 from openapi_core.paths import PathsGenerator
 from openapi_core.schemas import SchemaRegistry
+from openapi_core.servers import ServersGenerator
 
 
 log = logging.getLogger(__name__)
@@ -26,8 +27,12 @@ class Spec(object):
     def __getitem__(self, path_name):
         return self.paths[path_name]
 
+    @property
+    def default_url(self):
+        return self.servers[0].default_url
+
     def get_server_url(self, index=0):
-        return self.servers[index]['url']
+        return self.servers[index].default_url
 
     def get_operation(self, path_pattern, http_method):
         return self.paths[path_pattern].operations[http_method]
@@ -59,14 +64,16 @@ class SpecFactory(object):
         spec_dict_deref = self.dereferencer.dereference(spec_dict)
 
         info_spec = spec_dict_deref.get('info', [])
-        servers = spec_dict_deref.get('servers', [])
+        servers_spec = spec_dict_deref.get('servers', [])
         paths = spec_dict_deref.get('paths', [])
         components_spec = spec_dict_deref.get('components', [])
 
         info = self.info_factory.create(info_spec)
+        servers = self.servers_generator.generate(servers_spec)
         paths = self.paths_generator.generate(paths)
         components = self.components_factory.create(components_spec)
-        spec = Spec(info, list(paths), servers=servers, components=components)
+        spec = Spec(
+            info, list(paths), servers=list(servers), components=components)
         return spec
 
     @property
@@ -78,6 +85,11 @@ class SpecFactory(object):
     @lru_cache()
     def info_factory(self):
         return InfoFactory(self.dereferencer)
+
+    @property
+    @lru_cache()
+    def servers_generator(self):
+        return ServersGenerator(self.dereferencer)
 
     @property
     @lru_cache()
