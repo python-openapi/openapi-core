@@ -21,7 +21,7 @@ class RequestMock(BaseOpenAPIRequest):
     def __init__(
             self, host_url, method, path, path_pattern=None, args=None,
             view_args=None, headers=None, cookies=None, data=None,
-            content_type='application/json'):
+            mimetype='application/json'):
         self.host_url = host_url
         self.path = path
         self.path_pattern = path_pattern or path
@@ -33,7 +33,7 @@ class RequestMock(BaseOpenAPIRequest):
         self.cookies = cookies or {}
         self.data = data or ''
 
-        self.content_type = content_type
+        self.mimetype = mimetype
 
 
 class TestPetstore(object):
@@ -89,12 +89,12 @@ class TestPetstore(object):
                 assert bool(operation.request_body.required) ==\
                     request_body_spec.get('required', False)
 
-                for content_type, media_type in iteritems(
+                for mimetype, media_type in iteritems(
                         operation.request_body.content):
                     assert type(media_type) == MediaType
-                    assert media_type.content_type == content_type
+                    assert media_type.mimetype == mimetype
 
-                    content_spec = request_body_spec['content'][content_type]
+                    content_spec = request_body_spec['content'][mimetype]
                     schema_spec = content_spec.get('schema')
                     assert bool(schema_spec) == bool(media_type.schema)
 
@@ -351,7 +351,7 @@ class TestPetstore(object):
         with pytest.raises(InvalidValueType):
             request.get_body(spec)
 
-    def test_post_pets_raises_invalid_content_type(self, spec):
+    def test_post_pets_raises_invalid_mimetype(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         data_json = {
@@ -362,7 +362,7 @@ class TestPetstore(object):
 
         request = RequestMock(
             host_url, 'POST', '/pets',
-            path_pattern=path_pattern, data=data, content_type='text/html',
+            path_pattern=path_pattern, data=data, mimetype='text/html',
         )
 
         parameters = request.get_parameters(spec)
@@ -383,7 +383,7 @@ class TestPetstore(object):
 
         request = RequestMock(
             host_url, 'POST', '/pets',
-            path_pattern=path_pattern, data=data, content_type='text/html',
+            path_pattern=path_pattern, data=data, mimetype='text/html',
         )
 
         with pytest.raises(InvalidServerError):
