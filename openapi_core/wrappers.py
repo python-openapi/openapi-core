@@ -95,10 +95,10 @@ class RequestBodyFactory(BaseRequestFactory):
             return None
 
         try:
-            media_type = operation.request_body[request.content_type]
+            media_type = operation.request_body[request.mimetype]
         except KeyError:
             raise InvalidContentTypeError(
-                "Invalid Content-Type `{0}`".format(request.content_type))
+                "Invalid media type `{0}`".format(request.mimetype))
 
         return media_type.unmarshal(request.data)
 
@@ -117,7 +117,7 @@ class BaseOpenAPIRequest(object):
 
     data = NotImplemented
 
-    content_type = NotImplemented
+    mimetype = NotImplemented
 
     @property
     def full_url_pattern(self):

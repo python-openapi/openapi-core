@@ -11,8 +11,8 @@ class RequestBody(object):
         self.content = dict(content)
         self.required = required
 
-    def __getitem__(self, content_type):
-        return self.content[content_type]
+    def __getitem__(self, mimetype):
+        return self.content[mimetype]
 
 
 class RequestBodyFactory(object):
