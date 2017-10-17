@@ -1,4 +1,5 @@
 import mock
+import warnings
 import pytest
 
 from openapi_core.exceptions import InvalidValueType, InvalidValue
@@ -22,6 +23,15 @@ class TestSchemaIteritems(object):
 
 
 class TestSchemaUnmarshal(object):
+
+    def test_deprecated(self):
+        schema = Schema('string', deprecated=True)
+        value = 'test'
+
+        with pytest.warns(DeprecationWarning):
+            result = schema.unmarshal(value)
+
+        assert result == value
 
     def test_string_valid(self):
         schema = Schema('string')

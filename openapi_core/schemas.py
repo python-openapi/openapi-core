@@ -30,7 +30,7 @@ class Schema(object):
     def __init__(
             self, schema_type, model=None, properties=None, items=None,
             spec_format=None, required=False, default=None, nullable=False,
-            enum=None):
+            enum=None, deprecated=False):
         self.type = schema_type
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -40,6 +40,7 @@ class Schema(object):
         self.default = default
         self.nullable = nullable
         self.enum = enum
+        self.deprecated = deprecated
 
     def __getitem__(self, name):
         return self.properties[name]
@@ -77,6 +78,9 @@ class Schema(object):
 
     def unmarshal(self, value):
         """Unmarshal parameter from the value."""
+        if self.deprecated:
+            warnings.warn(
+                "The schema is deprecated", DeprecationWarning)
         casted = self.cast(value)
 
         if casted is None and not self.required:
@@ -149,6 +153,7 @@ class SchemaFactory(object):
         items_spec = schema_deref.get('items', None)
         nullable = schema_deref.get('nullable', False)
         enum = schema_deref.get('enum', None)
+        deprecated = schema_deref.get('deprecated', False)
 
         properties = None
         if properties_spec:
@@ -161,6 +166,7 @@ class SchemaFactory(object):
         return Schema(
             schema_type, model=model, properties=properties, items=items,
             required=required, nullable=nullable, enum=enum,
+            deprecated=deprecated,
         )
 
     @property
