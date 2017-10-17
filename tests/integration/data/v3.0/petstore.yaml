@@ -27,6 +27,7 @@ paths:
           schema:
             type: integer
             format: int32
+            nullable: true
         - name: ids
           in: query
           description: Filter pets with Ids

@@ -323,8 +323,8 @@ class TestPetstore(object):
         pet_model = schemas['PetCreate']['x-model']
         assert body.__class__.__name__ == pet_model
         assert body.name == pet_name
-        assert body.tag is None
-        assert body.address is None
+        assert not hasattr(body, 'tag')
+        assert not hasattr(body, 'address')
 
     def test_get_pets_wrong_body_type(self, spec):
         host_url = 'http://petstore.swagger.io/v1'

@@ -26,7 +26,7 @@ class Schema(object):
 
     def __init__(
             self, schema_type, model=None, properties=None, items=None,
-            spec_format=None, required=False, default=None):
+            spec_format=None, required=False, default=None, nullable=False):
         self.type = schema_type
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -34,6 +34,7 @@ class Schema(object):
         self.format = spec_format
         self.required = required
         self.default = default
+        self.nullable = nullable
 
     def __getitem__(self, name):
         return self.properties[name]
@@ -50,7 +51,11 @@ class Schema(object):
     def cast(self, value):
         """Cast value to schema type"""
         if value is None:
-            return None
+            if not self.nullable:
+                raise InvalidValueType(
+                    "Failed to cast value of %s to %s", value, self.type,
+                )
+            return self.default
 
         cast_mapping = self.get_cast_mapping()
 
@@ -98,6 +103,8 @@ class Schema(object):
                 if prop_name in self.required:
                     raise MissingPropertyError(
                         "Missing schema property {0}".format(prop_name))
+                if not prop.nullable and not prop.default:
+                    continue
                 prop_value = prop.default
             properties[prop_name] = prop.unmarshal(prop_value)
         return ModelFactory().create(properties, name=self.model)
@@ -130,6 +137,7 @@ class SchemaFactory(object):
         required = schema_deref.get('required', False)
         properties_spec = schema_deref.get('properties', None)
         items_spec = schema_deref.get('items', None)
+        nullable = schema_deref.get('nullable', False)
 
         properties = None
         if properties_spec:
@@ -141,7 +149,7 @@ class SchemaFactory(object):
 
         return Schema(
             schema_type, model=model, properties=properties, items=items,
-            required=required,
+            required=required, nullable=nullable,
         )
 
     @property
