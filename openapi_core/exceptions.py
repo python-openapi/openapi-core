@@ -29,5 +29,9 @@ class InvalidValueType(OpenAPIMappingError):
     pass
 
 
+class InvalidValue(OpenAPIMappingError):
+    pass
+
+
 class UndefinedSchemaProperty(OpenAPIMappingError):
     pass

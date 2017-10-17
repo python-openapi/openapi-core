@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from openapi_core.exceptions import InvalidValueType
+from openapi_core.exceptions import InvalidValueType, InvalidValue
 from openapi_core.schemas import Schema
 
 
@@ -58,6 +58,21 @@ class TestSchemaUnmarshal(object):
     def test_integer_valid(self):
         schema = Schema('integer')
         value = '123'
+
+        result = schema.unmarshal(value)
+
+        assert result == int(value)
+
+    def test_integer_enum_invalid(self):
+        schema = Schema('integer', enum=[1,2,3])
+        value = '123'
+
+        with pytest.raises(InvalidValue):
+            schema.unmarshal(value)
+
+    def test_integer_enum(self):
+        schema = Schema('integer', enum=[1,2,3])
+        value = '2'
 
         result = schema.unmarshal(value)
 

@@ -1,6 +1,8 @@
 """OpenAPI core schemas module"""
 import logging
 from collections import defaultdict
+import warnings
+
 from distutils.util import strtobool
 from functools import lru_cache
 
@@ -9,6 +11,7 @@ from six import iteritems
 
 from openapi_core.exceptions import (
     InvalidValueType, UndefinedSchemaProperty, MissingPropertyError,
+    InvalidValue,
 )
 from openapi_core.models import ModelFactory
 
@@ -26,7 +29,8 @@ class Schema(object):
 
     def __init__(
             self, schema_type, model=None, properties=None, items=None,
-            spec_format=None, required=False, default=None, nullable=False):
+            spec_format=None, required=False, default=None, nullable=False,
+            enum=None):
         self.type = schema_type
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -35,6 +39,7 @@ class Schema(object):
         self.required = required
         self.default = default
         self.nullable = nullable
+        self.enum = enum
 
     def __getitem__(self, name):
         return self.properties[name]
@@ -76,6 +81,11 @@ class Schema(object):
 
         if casted is None and not self.required:
             return None
+
+        if self.enum and casted not in self.enum:
+            raise InvalidValue(
+                "Value of %s not in enum choices: %s", value, str(self.enum),
+            )
 
         return casted
 
@@ -138,6 +148,7 @@ class SchemaFactory(object):
         properties_spec = schema_deref.get('properties', None)
         items_spec = schema_deref.get('items', None)
         nullable = schema_deref.get('nullable', False)
+        enum = schema_deref.get('enum', None)
 
         properties = None
         if properties_spec:
@@ -149,7 +160,7 @@ class SchemaFactory(object):
 
         return Schema(
             schema_type, model=model, properties=properties, items=items,
-            required=required, nullable=nullable,
+            required=required, nullable=nullable, enum=enum,
         )
 
     @property
