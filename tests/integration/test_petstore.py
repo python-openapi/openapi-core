@@ -230,6 +230,7 @@ class TestPetstore(object):
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
+            'position': '2',
             'address': {
                 'street': pet_street,
                 'city': pet_city,
@@ -254,6 +255,7 @@ class TestPetstore(object):
         assert body.__class__.__name__ == pet_model
         assert body.name == pet_name
         assert body.tag == pet_tag
+        assert body.position == 2
         assert body.address.__class__.__name__ == address_model
         assert body.address.street == pet_street
         assert body.address.city == pet_city

@@ -112,6 +112,18 @@ components:
           type: string
         city:
           type: string
+    Tag:
+      type: string
+      enum:
+        - Cat
+        - Dog
+        - Bird
+    Position:
+      type: integer
+      enum:
+        - 1
+        - 2
+        - 3
     Pet:
       type: object
       x-model: Pet
@@ -132,9 +144,11 @@ components:
         name:
           type: string
         tag:
-          type: string
+          type: "#/components/schemas/Tag"
         address:
           $ref: "#/components/schemas/Address"
+        position:
+          $ref: "#/components/schemas/Position"
     Pets:
       type: array
       items:
