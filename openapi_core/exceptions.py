@@ -33,5 +33,9 @@ class InvalidValue(OpenAPIMappingError):
     pass
 
 
+class EmptyValue(OpenAPIMappingError):
+    pass
+
+
 class UndefinedSchemaProperty(OpenAPIMappingError):
     pass

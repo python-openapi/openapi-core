@@ -149,6 +149,7 @@ class SchemaFactory(object):
         schema_type = schema_deref['type']
         model = schema_deref.get('x-model', None)
         required = schema_deref.get('required', False)
+        default = schema_deref.get('default', None)
         properties_spec = schema_deref.get('properties', None)
         items_spec = schema_deref.get('items', None)
         nullable = schema_deref.get('nullable', False)
@@ -165,7 +166,7 @@ class SchemaFactory(object):
 
         return Schema(
             schema_type, model=model, properties=properties, items=items,
-            required=required, nullable=nullable, enum=enum,
+            required=required, default=default, nullable=nullable, enum=enum,
             deprecated=deprecated,
         )
 

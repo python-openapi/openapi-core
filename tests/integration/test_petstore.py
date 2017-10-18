@@ -5,6 +5,7 @@ from six import iteritems
 from openapi_core.exceptions import (
     MissingParameterError, InvalidContentTypeError, InvalidServerError,
     InvalidValueType, UndefinedSchemaProperty, MissingPropertyError,
+    EmptyValue,
 )
 from openapi_core.media_types import MediaType
 from openapi_core.operations import Operation
@@ -135,6 +136,7 @@ class TestPetstore(object):
         assert parameters == {
             'query': {
                 'limit': 20,
+                'page': 1,
                 'ids': [12, 13],
             }
         }
@@ -186,14 +188,10 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = request.get_parameters(spec)
+        with pytest.raises(EmptyValue):
+            request.get_parameters(spec)
         body = request.get_body(spec)
 
-        assert parameters == {
-            'query': {
-                'limit': None,
-            }
-        }
         assert body is None
 
     def test_get_pets_none_value(self, spec):
@@ -213,6 +211,7 @@ class TestPetstore(object):
         assert parameters == {
             'query': {
                 'limit': None,
+                'page': 1,
             }
         }
 

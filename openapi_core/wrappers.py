@@ -64,26 +64,29 @@ class RequestParametersFactory(BaseRequestFactory):
         params = RequestParameters()
         for param_name, param in iteritems(operation.parameters):
             try:
-                value = self._unmarshal_param(request, param)
+                raw_value = self._get_raw_value(request, param)
             except MissingParameterError:
                 if param.required:
                     raise
-                continue
+
+                if not param.schema or not param.schema.default:
+                    continue
+                raw_value = param.schema.default
+
+            value = param.unmarshal(raw_value)
 
             params[param.location][param_name] = value
         return params
 
-    def _unmarshal_param(self, request, param):
+    def _get_raw_value(self, request, param):
         request_location = self.attr_mapping[param.location]
         request_attr = getattr(request, request_location)
 
         try:
-            raw_value = request_attr[param.name]
+            return request_attr[param.name]
         except KeyError:
             raise MissingParameterError(
                 "Missing required `{0}` parameter".format(param.name))
-
-        return param.unmarshal(raw_value)
 
 
 class RequestBodyFactory(BaseRequestFactory):

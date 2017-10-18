@@ -20,6 +20,12 @@ paths:
       tags:
         - pets
       parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 1
         - name: limit
           in: query
           description: How many items to return at one time (max 100)
