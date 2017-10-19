@@ -4,7 +4,7 @@ from openapi_core.wrappers import RequestParametersFactory, RequestBodyFactory
 
 __author__ = 'Artur Maciąg'
 __email__ = 'maciag.artur@gmail.com'
-__version__ = '0.2.0'
+__version__ = '0.2.2'
 __url__ = 'https://github.com/p1c2u/openapi-core'
 __license__ = 'BSD 3-Clause License'
 
