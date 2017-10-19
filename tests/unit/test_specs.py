@@ -10,14 +10,14 @@ class TestSpecs(object):
 
     @pytest.fixture
     def path1(self):
-        operations =  {
+        operations = {
             'get': mock.sentinel.path1_get,
         }
         return Path('path1', operations)
 
     @pytest.fixture
     def path2(self):
-        operations =  {
+        operations = {
             'post': mock.sentinel.path2_psot,
         }
         return Path('path2', operations)
