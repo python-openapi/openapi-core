@@ -21,6 +21,10 @@ class InvalidContentTypeError(OpenAPIMappingError):
     pass
 
 
+class InvalidOperationError(OpenAPIMappingError):
+    pass
+
+
 class InvalidServerError(OpenAPIMappingError):
     pass
 

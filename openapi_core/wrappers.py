@@ -41,8 +41,9 @@ class BaseRequestFactory(object):
 
         operation_pattern = request.full_url_pattern.replace(
             server.default_url, '')
+        method = request.method.lower()
 
-        return spec.get_operation(operation_pattern, request.method.lower())
+        return spec.get_operation(operation_pattern, method)
 
     def _get_server(self, request, spec):
         for server in spec.servers:

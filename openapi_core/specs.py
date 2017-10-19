@@ -6,6 +6,7 @@ from functools import partialmethod, lru_cache
 from openapi_spec_validator import openapi_v3_spec_validator
 
 from openapi_core.components import ComponentsFactory
+from openapi_core.exceptions import InvalidOperationError
 from openapi_core.infos import InfoFactory
 from openapi_core.paths import PathsGenerator
 from openapi_core.schemas import SchemaRegistry
@@ -35,7 +36,12 @@ class Spec(object):
         return self.servers[index].default_url
 
     def get_operation(self, path_pattern, http_method):
-        return self.paths[path_pattern].operations[http_method]
+        try:
+            return self.paths[path_pattern].operations[http_method]
+        except KeyError:
+            raise InvalidOperationError(
+                "Unknown operation path {0} with method {1}".format(
+                    path_pattern, http_method))
 
     def get_schema(self, name):
         return self.components.schemas[name]
