@@ -137,6 +137,7 @@ class TestPetstore(object):
             'query': {
                 'limit': 20,
                 'page': 1,
+                'search': '',
                 'ids': [12, 13],
             }
         }
@@ -212,6 +213,7 @@ class TestPetstore(object):
             'query': {
                 'limit': None,
                 'page': 1,
+                'search': '',
             }
         }
 

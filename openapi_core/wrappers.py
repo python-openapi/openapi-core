@@ -70,7 +70,7 @@ class RequestParametersFactory(BaseRequestFactory):
                 if param.required:
                     raise
 
-                if not param.schema or not param.schema.default:
+                if not param.schema or param.schema.default is None:
                     continue
                 raw_value = param.schema.default
 

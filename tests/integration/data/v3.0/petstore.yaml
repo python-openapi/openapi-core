@@ -34,6 +34,13 @@ paths:
             type: integer
             format: int32
             nullable: true
+        - name: search
+          in: query
+          description: Search query
+          schema:
+            type: string
+            default: ""
+          allowEmptyValue: true
         - name: ids
           in: query
           description: Filter pets with Ids
