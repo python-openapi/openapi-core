@@ -6,7 +6,7 @@ from functools import partialmethod, lru_cache
 from openapi_spec_validator import openapi_v3_spec_validator
 
 from openapi_core.components import ComponentsFactory
-from openapi_core.exceptions import InvalidOperationError
+from openapi_core.exceptions import InvalidOperationError, InvalidServerError
 from openapi_core.infos import InfoFactory
 from openapi_core.paths import PathsGenerator
 from openapi_core.schemas import SchemaRegistry
@@ -31,6 +31,14 @@ class Spec(object):
     @property
     def default_url(self):
         return self.servers[0].default_url
+
+    def get_server(self, full_url_pattern):
+        for spec_server in self.servers:
+            if spec_server.default_url in full_url_pattern:
+                return spec_server
+
+        raise InvalidServerError(
+            "Invalid request server {0}".format(full_url_pattern))
 
     def get_server_url(self, index=0):
         return self.servers[index].default_url

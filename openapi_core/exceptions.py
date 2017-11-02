@@ -13,6 +13,10 @@ class MissingParameterError(OpenAPIMappingError):
     pass
 
 
+class MissingBodyError(OpenAPIMappingError):
+    pass
+
+
 class MissingPropertyError(OpenAPIMappingError):
     pass
 
