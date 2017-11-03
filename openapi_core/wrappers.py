@@ -3,8 +3,7 @@ import warnings
 
 from six.moves.urllib.parse import urljoin
 
-from openapi_core.exceptions import OpenAPIParameterError, OpenAPIBodyError
-from openapi_core.validators import RequestValidator
+from openapi_core.shortcuts import validate_parameters, validate_body
 
 
 class BaseOpenAPIRequest(object):
@@ -30,14 +29,7 @@ class BaseOpenAPIRequest(object):
             DeprecationWarning,
         )
         # backward compatibility
-        validator = RequestValidator(spec)
-        result = validator.validate(self)
-        try:
-            result.validate()
-        except OpenAPIParameterError:
-            return result.body
-        else:
-            return result.body
+        return validate_body(spec, self)
 
     def get_parameters(self, spec):
         warnings.warn(
@@ -46,14 +38,7 @@ class BaseOpenAPIRequest(object):
             DeprecationWarning,
         )
         # backward compatibility
-        validator = RequestValidator(spec)
-        result = validator.validate(self)
-        try:
-            result.validate()
-        except OpenAPIBodyError:
-            return result.parameters
-        else:
-            return result.parameters
+        return validate_parameters(spec, self)
 
 
 class MockRequest(BaseOpenAPIRequest):
