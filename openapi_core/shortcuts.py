@@ -6,6 +6,7 @@ from openapi_spec_validator import default_handlers
 from openapi_core.exceptions import OpenAPIParameterError, OpenAPIBodyError
 from openapi_core.specs import SpecFactory
 from openapi_core.validators import RequestValidator
+from openapi_core.wrappers import FlaskOpenAPIRequest
 
 
 def create_spec(spec_dict, spec_url=''):
@@ -16,7 +17,10 @@ def create_spec(spec_dict, spec_url=''):
     return spec_factory.create(spec_dict, spec_url=spec_url)
 
 
-def validate_parameters(spec, request):
+def validate_parameters(spec, request, wrapper_class=FlaskOpenAPIRequest):
+    if wrapper_class:
+        request = wrapper_class(request)
+
     validator = RequestValidator(spec)
     result = validator.validate(request)
     try:
@@ -27,7 +31,10 @@ def validate_parameters(spec, request):
         return result.parameters
 
 
-def validate_body(spec, request):
+def validate_body(spec, request, wrapper_class=FlaskOpenAPIRequest):
+    if wrapper_class:
+        request = wrapper_class(request)
+
     validator = RequestValidator(spec)
     result = validator.validate(request)
     try:
