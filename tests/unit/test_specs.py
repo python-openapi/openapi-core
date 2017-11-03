@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from openapi_core.exceptions import InvalidOperationError
+from openapi_core.exceptions import InvalidOperation
 from openapi_core.paths import Path
 from openapi_core.specs import Spec
 
@@ -42,9 +42,9 @@ class TestSpecs(object):
         assert operation == mock.sentinel.path1_get
 
     def test_invalid_path(self, spec):
-        with pytest.raises(InvalidOperationError):
+        with pytest.raises(InvalidOperation):
             spec.get_operation('/path3', 'get')
 
     def test_invalid_method(self, spec):
-        with pytest.raises(InvalidOperationError):
+        with pytest.raises(InvalidOperation):
             spec.get_operation('/path1', 'post')

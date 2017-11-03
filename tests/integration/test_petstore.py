@@ -3,9 +3,9 @@ import pytest
 from six import iteritems
 
 from openapi_core.exceptions import (
-    MissingParameterError, InvalidContentTypeError, InvalidServerError,
-    InvalidValueType, UndefinedSchemaProperty, MissingPropertyError,
-    EmptyValue,
+    MissingParameter, InvalidContentType, InvalidServer,
+    UndefinedSchemaProperty, MissingProperty,
+    EmptyValue, InvalidMediaTypeValue, InvalidParameterValue,
 )
 from openapi_core.media_types import MediaType
 from openapi_core.operations import Operation
@@ -14,27 +14,7 @@ from openapi_core.request_bodies import RequestBody
 from openapi_core.schemas import Schema
 from openapi_core.servers import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
-from openapi_core.wrappers import BaseOpenAPIRequest
-
-
-class RequestMock(BaseOpenAPIRequest):
-
-    def __init__(
-            self, host_url, method, path, path_pattern=None, args=None,
-            view_args=None, headers=None, cookies=None, data=None,
-            mimetype='application/json'):
-        self.host_url = host_url
-        self.path = path
-        self.path_pattern = path_pattern or path
-        self.method = method
-
-        self.args = args or {}
-        self.view_args = view_args or {}
-        self.headers = headers or {}
-        self.cookies = cookies or {}
-        self.data = data or ''
-
-        self.mimetype = mimetype
+from openapi_core.wrappers import MockRequest
 
 
 class TestPetstore(object):
@@ -125,7 +105,7 @@ class TestPetstore(object):
             'ids': ['12', '13'],
         }
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'GET', '/pets',
             path_pattern=path_pattern, args=query_params,
         )
@@ -150,12 +130,12 @@ class TestPetstore(object):
             'limit': 'twenty',
         }
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'GET', '/pets',
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(InvalidValueType):
+        with pytest.raises(InvalidParameterValue):
             request.get_parameters(spec)
 
         body = request.get_body(spec)
@@ -165,12 +145,12 @@ class TestPetstore(object):
     def test_get_pets_raises_missing_required_param(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'GET', '/pets',
             path_pattern=path_pattern,
         )
 
-        with pytest.raises(MissingParameterError):
+        with pytest.raises(MissingParameter):
             request.get_parameters(spec)
 
         body = request.get_body(spec)
@@ -184,7 +164,7 @@ class TestPetstore(object):
             'limit': '',
         }
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'GET', '/pets',
             path_pattern=path_pattern, args=query_params,
         )
@@ -202,7 +182,7 @@ class TestPetstore(object):
             'limit': None,
         }
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'GET', '/pets',
             path_pattern=path_pattern, args=query_params,
         )
@@ -239,7 +219,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
         )
@@ -267,7 +247,7 @@ class TestPetstore(object):
         data_json = {}
         data = json.dumps(data_json)
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
         )
@@ -276,7 +256,7 @@ class TestPetstore(object):
 
         assert parameters == {}
 
-        with pytest.raises(MissingPropertyError):
+        with pytest.raises(MissingProperty):
             request.get_body(spec)
 
     def test_post_pets_extra_body_properties(self, spec, spec_dict):
@@ -290,7 +270,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
         )
@@ -311,7 +291,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
         )
@@ -342,7 +322,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
         )
@@ -351,7 +331,7 @@ class TestPetstore(object):
 
         assert parameters == {}
 
-        with pytest.raises(InvalidValueType):
+        with pytest.raises(InvalidMediaTypeValue):
             request.get_body(spec)
 
     def test_post_pets_raises_invalid_mimetype(self, spec):
@@ -363,7 +343,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data, mimetype='text/html',
         )
@@ -372,7 +352,7 @@ class TestPetstore(object):
 
         assert parameters == {}
 
-        with pytest.raises(InvalidContentTypeError):
+        with pytest.raises(InvalidContentType):
             request.get_body(spec)
 
     def test_post_pets_raises_invalid_server_error(self, spec):
@@ -384,15 +364,15 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
 
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data, mimetype='text/html',
         )
 
-        with pytest.raises(InvalidServerError):
+        with pytest.raises(InvalidServer):
             request.get_parameters(spec)
 
-        with pytest.raises(InvalidServerError):
+        with pytest.raises(InvalidServer):
             request.get_body(spec)
 
     def test_get_pet(self, spec):
@@ -401,7 +381,7 @@ class TestPetstore(object):
         view_args = {
             'petId': '1',
         }
-        request = RequestMock(
+        request = MockRequest(
             host_url, 'GET', '/pets/1',
             path_pattern=path_pattern, view_args=view_args,
         )

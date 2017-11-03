@@ -2,32 +2,12 @@ import json
 import pytest
 
 from openapi_core.exceptions import (
-    InvalidServerError, InvalidOperationError, MissingParameterError,
-    MissingBodyError, InvalidContentTypeError,
+    InvalidServer, InvalidOperation, MissingParameter,
+    MissingBody, InvalidContentType,
 )
 from openapi_core.shortcuts import create_spec
 from openapi_core.validators import RequestValidator
-from openapi_core.wrappers import BaseOpenAPIRequest
-
-
-class RequestMock(BaseOpenAPIRequest):
-
-    def __init__(
-            self, host_url, method, path, path_pattern=None, args=None,
-            view_args=None, headers=None, cookies=None, data=None,
-            mimetype='application/json'):
-        self.host_url = host_url
-        self.path = path
-        self.path_pattern = path_pattern or path
-        self.method = method
-
-        self.args = args or {}
-        self.view_args = view_args or {}
-        self.headers = headers or {}
-        self.cookies = cookies or {}
-        self.data = data or ''
-
-        self.mimetype = mimetype
+from openapi_core.wrappers import MockRequest
 
 
 class TestRequestValidator(object):
@@ -47,31 +27,31 @@ class TestRequestValidator(object):
         return RequestValidator(spec)
 
     def test_request_server_error(self, validator):
-        request = RequestMock('http://petstore.invalid.net/v1', 'get', '/')
+        request = MockRequest('http://petstore.invalid.net/v1', 'get', '/')
 
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidServerError
+        assert type(result.errors[0]) == InvalidServer
         assert result.body is None
         assert result.parameters == {}
 
     def test_invalid_operation(self, validator):
-        request = RequestMock(self.host_url, 'get', '/v1')
+        request = MockRequest(self.host_url, 'get', '/v1')
 
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidOperationError
+        assert type(result.errors[0]) == InvalidOperation
         assert result.body is None
         assert result.parameters == {}
 
     def test_missing_parameter(self, validator):
-        request = RequestMock(self.host_url, 'get', '/v1/pets')
+        request = MockRequest(self.host_url, 'get', '/v1/pets')
 
         result = validator.validate(request)
 
-        assert type(result.errors[0]) == MissingParameterError
+        assert type(result.errors[0]) == MissingParameter
         assert result.body is None
         assert result.parameters == {
             'query': {
@@ -81,7 +61,7 @@ class TestRequestValidator(object):
         }
 
     def test_get_pets(self, validator):
-        request = RequestMock(
+        request = MockRequest(
             self.host_url, 'get', '/v1/pets',
             path_pattern='/v1/pets', args={'limit': '10'},
         )
@@ -99,7 +79,7 @@ class TestRequestValidator(object):
         }
 
     def test_missing_body(self, validator):
-        request = RequestMock(
+        request = MockRequest(
             self.host_url, 'post', '/v1/pets',
             path_pattern='/v1/pets',
         )
@@ -107,12 +87,12 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == MissingBodyError
+        assert type(result.errors[0]) == MissingBody
         assert result.body is None
         assert result.parameters == {}
 
     def test_invalid_content_type(self, validator):
-        request = RequestMock(
+        request = MockRequest(
             self.host_url, 'post', '/v1/pets',
             path_pattern='/v1/pets', mimetype='text/csv',
         )
@@ -120,7 +100,7 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidContentTypeError
+        assert type(result.errors[0]) == InvalidContentType
         assert result.body is None
         assert result.parameters == {}
 
@@ -139,7 +119,7 @@ class TestRequestValidator(object):
             }
         }
         data = json.dumps(data_json)
-        request = RequestMock(
+        request = MockRequest(
             self.host_url, 'post', '/v1/pets',
             path_pattern='/v1/pets', data=data,
         )
@@ -161,7 +141,7 @@ class TestRequestValidator(object):
         assert result.body.address.city == pet_city
 
     def test_get_pet(self, validator):
-        request = RequestMock(
+        request = MockRequest(
             self.host_url, 'get', '/v1/pets/1',
             path_pattern='/v1/pets/{petId}', view_args={'petId': '1'},
         )

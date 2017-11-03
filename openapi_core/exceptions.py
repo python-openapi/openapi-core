@@ -9,27 +9,11 @@ class OpenAPIMappingError(OpenAPIError):
     pass
 
 
-class MissingParameterError(OpenAPIMappingError):
+class OpenAPIServerError(OpenAPIMappingError):
     pass
 
 
-class MissingBodyError(OpenAPIMappingError):
-    pass
-
-
-class MissingPropertyError(OpenAPIMappingError):
-    pass
-
-
-class InvalidContentTypeError(OpenAPIMappingError):
-    pass
-
-
-class InvalidOperationError(OpenAPIMappingError):
-    pass
-
-
-class InvalidServerError(OpenAPIMappingError):
+class OpenAPIOperationError(OpenAPIMappingError):
     pass
 
 
@@ -37,13 +21,53 @@ class InvalidValueType(OpenAPIMappingError):
     pass
 
 
+class OpenAPIParameterError(OpenAPIMappingError):
+    pass
+
+
+class OpenAPIBodyError(OpenAPIMappingError):
+    pass
+
+
+class InvalidServer(OpenAPIServerError):
+    pass
+
+
+class InvalidOperation(OpenAPIOperationError):
+    pass
+
+
+class EmptyValue(OpenAPIParameterError):
+    pass
+
+
+class MissingParameter(OpenAPIParameterError):
+    pass
+
+
+class InvalidParameterValue(OpenAPIParameterError):
+    pass
+
+
+class MissingBody(OpenAPIBodyError):
+    pass
+
+
+class InvalidMediaTypeValue(OpenAPIBodyError):
+    pass
+
+
+class UndefinedSchemaProperty(OpenAPIBodyError):
+    pass
+
+
+class MissingProperty(OpenAPIBodyError):
+    pass
+
+
+class InvalidContentType(OpenAPIBodyError):
+    pass
+
+
 class InvalidValue(OpenAPIMappingError):
-    pass
-
-
-class EmptyValue(OpenAPIMappingError):
-    pass
-
-
-class UndefinedSchemaProperty(OpenAPIMappingError):
     pass

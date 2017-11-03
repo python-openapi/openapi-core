@@ -1,110 +1,10 @@
 """OpenAPI core wrappers module"""
-from six import iteritems
+import warnings
+
 from six.moves.urllib.parse import urljoin
 
-from openapi_core.exceptions import (
-    OpenAPIMappingError, MissingParameterError, InvalidContentTypeError,
-    InvalidServerError,
-)
-
-SPEC_LOCATION_TO_REQUEST_LOCATION_MAPPING = {
-    'path': 'view_args',
-    'query': 'args',
-    'headers': 'headers',
-    'cookies': 'cookies',
-}
-
-
-class RequestParameters(dict):
-
-    valid_locations = ['path', 'query', 'headers', 'cookies']
-
-    def __getitem__(self, location):
-        self.validate_location(location)
-
-        return self.setdefault(location, {})
-
-    def __setitem__(self, location, value):
-        raise NotImplementedError
-
-    @classmethod
-    def validate_location(cls, location):
-        if location not in cls.valid_locations:
-            raise OpenAPIMappingError(
-                "Unknown parameter location: {0}".format(str(location)))
-
-
-class BaseRequestFactory(object):
-
-    def get_operation(self, request, spec):
-        server = self._get_server(request, spec)
-
-        operation_pattern = request.full_url_pattern.replace(
-            server.default_url, '')
-        method = request.method.lower()
-
-        return spec.get_operation(operation_pattern, method)
-
-    def _get_server(self, request, spec):
-        for server in spec.servers:
-            if server.default_url in request.full_url_pattern:
-                return server
-
-        raise InvalidServerError(
-            "Invalid request server {0}".format(request.full_url_pattern))
-
-
-class RequestParametersFactory(BaseRequestFactory):
-
-    def __init__(self, attr_mapping=SPEC_LOCATION_TO_REQUEST_LOCATION_MAPPING):
-        self.attr_mapping = attr_mapping
-
-    def create(self, request, spec):
-        operation = self.get_operation(request, spec)
-
-        params = RequestParameters()
-        for param_name, param in iteritems(operation.parameters):
-            try:
-                raw_value = self._get_raw_value(request, param)
-            except MissingParameterError:
-                if param.required:
-                    raise
-
-                if not param.schema or param.schema.default is None:
-                    continue
-                raw_value = param.schema.default
-
-            value = param.unmarshal(raw_value)
-
-            params[param.location][param_name] = value
-        return params
-
-    def _get_raw_value(self, request, param):
-        request_location = self.attr_mapping[param.location]
-        request_attr = getattr(request, request_location)
-
-        try:
-            return request_attr[param.name]
-        except KeyError:
-            raise MissingParameterError(
-                "Missing required `{0}` parameter".format(param.name))
-
-
-class RequestBodyFactory(BaseRequestFactory):
-
-    def create(self, request, spec):
-        operation = self.get_operation(request, spec)
-
-        if operation.request_body is None:
-            return None
-
-        try:
-            media_type = operation.request_body[request.mimetype]
-        except KeyError:
-            raise InvalidContentTypeError(
-                "Invalid media type `{0}`".format(request.mimetype))
-
-        return media_type.unmarshal(request.data)
+from openapi_core.exceptions import OpenAPIParameterError, OpenAPIBodyError
+from openapi_core.validators import RequestValidator
 
 
 class BaseOpenAPIRequest(object):
@@ -114,12 +14,8 @@ class BaseOpenAPIRequest(object):
     path_pattern = NotImplemented
     method = NotImplemented
 
-    args = NotImplemented
-    view_args = NotImplemented
-    headers = NotImplemented
-    cookies = NotImplemented
-
-    data = NotImplemented
+    parameters = NotImplemented
+    body = NotImplemented
 
     mimetype = NotImplemented
 
@@ -127,8 +23,96 @@ class BaseOpenAPIRequest(object):
     def full_url_pattern(self):
         return urljoin(self.host_url, self.path_pattern)
 
-    def get_parameters(self, spec):
-        return RequestParametersFactory().create(self, spec)
-
     def get_body(self, spec):
-        return RequestBodyFactory().create(self, spec)
+        warnings.warn(
+            "`get_body` method is deprecated. "
+            "Use RequestValidator instead.",
+            DeprecationWarning,
+        )
+        # backward compatibility
+        validator = RequestValidator(spec)
+        result = validator.validate(self)
+        try:
+            result.validate()
+        except OpenAPIParameterError:
+            return result.body
+        else:
+            return result.body
+
+    def get_parameters(self, spec):
+        warnings.warn(
+            "`get_parameters` method is deprecated. "
+            "Use RequestValidator instead.",
+            DeprecationWarning,
+        )
+        # backward compatibility
+        validator = RequestValidator(spec)
+        result = validator.validate(self)
+        try:
+            result.validate()
+        except OpenAPIBodyError:
+            return result.parameters
+        else:
+            return result.parameters
+
+
+class MockRequest(BaseOpenAPIRequest):
+
+    def __init__(
+            self, host_url, method, path, path_pattern=None, args=None,
+            view_args=None, headers=None, cookies=None, data=None,
+            mimetype='application/json'):
+        self.host_url = host_url
+        self.path = path
+        self.path_pattern = path_pattern or path
+        self.method = method.lower()
+
+        self.parameters = {
+            'path': view_args or {},
+            'query': args or {},
+            'headers': headers or {},
+            'cookies': cookies or {},
+        }
+
+        self.body = data or ''
+
+        self.mimetype = mimetype
+
+
+class WerkzeugOpenAPIRequest(BaseOpenAPIRequest):
+
+    def __init__(self, request):
+        self.request = request
+
+    @property
+    def host_url(self):
+        return self.request.host_url
+
+    @property
+    def path(self):
+        return self.request.path
+
+    @property
+    def method(self):
+        return self.request.method.lower()
+
+    @property
+    def path_pattern(self):
+        return self.request.url_rule.rule
+
+    @property
+    def parameters(self):
+        return {
+            'path': self.request['view_args'],
+            'query': self.request['args'],
+            'headers': self.request['headers'],
+            'cookies': self.request['cookies'],
+        }
+
+    @property
+    def body(self):
+        return self.request.data
+
+    @property
+    def mimetype(self):
+        return self.request.mimetype

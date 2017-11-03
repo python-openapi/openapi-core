@@ -2,7 +2,9 @@
 import logging
 import warnings
 
-from openapi_core.exceptions import EmptyValue
+from openapi_core.exceptions import (
+    EmptyValue, InvalidValueType, InvalidParameterValue,
+)
 
 log = logging.getLogger(__name__)
 
@@ -35,12 +37,15 @@ class Parameter(object):
         if (self.location == "query" and value == "" and
                 not self.allow_empty_value):
             raise EmptyValue(
-                "Value of {0} parameter cannot be empty.".format(self.name))
+                "Value of {0} parameter cannot be empty".format(self.name))
 
         if not self.schema:
             return value
 
-        return self.schema.unmarshal(value)
+        try:
+            return self.schema.unmarshal(value)
+        except InvalidValueType as exc:
+            raise InvalidParameterValue(str(exc))
 
 
 class ParametersGenerator(object):

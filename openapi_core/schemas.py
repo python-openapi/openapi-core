@@ -10,8 +10,7 @@ from json import loads
 from six import iteritems
 
 from openapi_core.exceptions import (
-    InvalidValueType, UndefinedSchemaProperty, MissingPropertyError,
-    InvalidValue,
+    InvalidValueType, UndefinedSchemaProperty, MissingProperty, InvalidValue,
 )
 from openapi_core.models import ModelFactory
 
@@ -59,7 +58,8 @@ class Schema(object):
         if value is None:
             if not self.nullable:
                 raise InvalidValueType(
-                    "Failed to cast value of %s to %s", value, self.type,
+                    "Failed to cast value of {0} to {1}".format(
+                        value, self.type)
                 )
             return self.default
 
@@ -73,7 +73,7 @@ class Schema(object):
             return cast_callable(value)
         except ValueError:
             raise InvalidValueType(
-                "Failed to cast value of %s to %s", value, self.type,
+                "Failed to cast value of {0} to {1}".format(value, self.type)
             )
 
     def unmarshal(self, value):
@@ -88,7 +88,8 @@ class Schema(object):
 
         if self.enum and casted not in self.enum:
             raise InvalidValue(
-                "Value of %s not in enum choices: %s", value, str(self.enum),
+                "Value of {0} not in enum choices: {1}".format(
+                    value, self.enum)
             )
 
         return casted
@@ -115,7 +116,7 @@ class Schema(object):
                 prop_value = value[prop_name]
             except KeyError:
                 if prop_name in self.required:
-                    raise MissingPropertyError(
+                    raise MissingProperty(
                         "Missing schema property {0}".format(prop_name))
                 if not prop.nullable and not prop.default:
                     continue

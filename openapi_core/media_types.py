@@ -1,6 +1,8 @@
 """OpenAPI core mediaTypes module"""
 from six import iteritems
 
+from openapi_core.exceptions import InvalidValueType, InvalidMediaTypeValue
+
 
 class MediaType(object):
     """Represents an OpenAPI MediaType."""
@@ -13,7 +15,10 @@ class MediaType(object):
         if not self.schema:
             return value
 
-        return self.schema.unmarshal(value)
+        try:
+            return self.schema.unmarshal(value)
+        except InvalidValueType as exc:
+            raise InvalidMediaTypeValue(str(exc))
 
 
 class MediaTypeGenerator(object):
