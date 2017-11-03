@@ -6,7 +6,7 @@ from functools import partialmethod, lru_cache
 from openapi_spec_validator import openapi_v3_spec_validator
 
 from openapi_core.components import ComponentsFactory
-from openapi_core.exceptions import InvalidOperationError
+from openapi_core.exceptions import InvalidOperation, InvalidServer
 from openapi_core.infos import InfoFactory
 from openapi_core.paths import PathsGenerator
 from openapi_core.schemas import SchemaRegistry
@@ -32,6 +32,14 @@ class Spec(object):
     def default_url(self):
         return self.servers[0].default_url
 
+    def get_server(self, full_url_pattern):
+        for spec_server in self.servers:
+            if spec_server.default_url in full_url_pattern:
+                return spec_server
+
+        raise InvalidServer(
+            "Invalid request server {0}".format(full_url_pattern))
+
     def get_server_url(self, index=0):
         return self.servers[index].default_url
 
@@ -39,7 +47,7 @@ class Spec(object):
         try:
             return self.paths[path_pattern].operations[http_method]
         except KeyError:
-            raise InvalidOperationError(
+            raise InvalidOperation(
                 "Unknown operation path {0} with method {1}".format(
                     path_pattern, http_method))
 

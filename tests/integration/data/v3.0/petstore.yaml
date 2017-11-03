@@ -73,6 +73,7 @@ paths:
       tags:
         - pets
       requestBody:
+        required: true
         content:
           application/json:
             schema:

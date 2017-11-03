@@ -51,10 +51,31 @@ Now you can use it to validate and unmarshal requests
 
 .. code-block:: python
 
-   from openapi_core import request_parameters_factory, request_body_factory
+   from openapi_core.validators import RequestValidator
 
-   parameters = request_parameters_factory.create(request, spec)
-   body = request_body_factory.create(request, spec)
+   validator = RequestValidator(spec)
+   result = validator.validate(request)
+
+   # raise errors if request invalid
+   result.validate()
+
+   # get parameters
+   path_params = result.parameters['path']
+   query_params = result.parameters['query']
+
+   # get body
+   body = result.body
+
+Request object should implement BaseOpenAPIRequest interface. You can use FlaskOpenAPIRequest a Flask/Werkzeug request wrapper implementation:
+
+.. code-block:: python
+
+   from openapi_core.validators import RequestValidator
+   from openapi_core.wrappers import FlaskOpenAPIRequest
+
+   openapi_request = FlaskOpenAPIRequest(flask_request)
+   validator = RequestValidator(spec)
+   result = validator.validate(openapi_request)
 
 Related projects
 ================
