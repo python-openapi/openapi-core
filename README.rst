@@ -72,6 +72,15 @@ and unmarshal request data from validation result
    # get body
    validated_body = result.body
 
+or use shortcuts for simple validation
+
+.. code-block:: python
+
+   from openapi_core import validate_parameters, validate_body
+
+   validated_params = validate_parameters(spec, request)
+   validated_body = validate_body(spec, request)
+
 Request object should implement BaseOpenAPIRequest interface. You can use FlaskOpenAPIRequest a Flask/Werkzeug request wrapper implementation:
 
 .. code-block:: python
