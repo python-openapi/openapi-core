@@ -47,7 +47,7 @@ Firstly create your specification:
 
    spec = create_spec(spec_dict)
 
-Now you can use it to validate and unmarshal requests
+Now you can use it to validate requests
 
 .. code-block:: python
 
@@ -59,12 +59,18 @@ Now you can use it to validate and unmarshal requests
    # raise errors if request invalid
    result.validate()
 
-   # get parameters
-   path_params = result.parameters['path']
-   query_params = result.parameters['query']
+   # get list of errors
+   errors = result.errors
+
+and unmarshal request data from validation result
+
+.. code-block:: python
+
+   # get parameters dictionary with path, query, cookies and headers parameters
+   validated_params = result.parameters
 
    # get body
-   body = result.body
+   validated_body = result.body
 
 Request object should implement BaseOpenAPIRequest interface. You can use FlaskOpenAPIRequest a Flask/Werkzeug request wrapper implementation:
 
