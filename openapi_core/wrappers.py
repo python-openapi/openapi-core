@@ -64,7 +64,7 @@ class MockRequest(BaseOpenAPIRequest):
         self.mimetype = mimetype
 
 
-class WerkzeugOpenAPIRequest(BaseOpenAPIRequest):
+class FlaskOpenAPIRequest(BaseOpenAPIRequest):
 
     def __init__(self, request):
         self.request = request
@@ -83,15 +83,18 @@ class WerkzeugOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def path_pattern(self):
+        if self.request.url_rule is None:
+            return self.path
+
         return self.request.url_rule.rule
 
     @property
     def parameters(self):
         return {
-            'path': self.request['view_args'],
-            'query': self.request['args'],
-            'headers': self.request['headers'],
-            'cookies': self.request['cookies'],
+            'path': self.request.view_args,
+            'query': self.request.args,
+            'headers': self.request.headers,
+            'cookies': self.request.cookies,
         }
 
     @property
