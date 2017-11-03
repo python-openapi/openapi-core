@@ -57,7 +57,7 @@ Now you can use it to validate requests
    result = validator.validate(request)
 
    # raise errors if request invalid
-   result.validate()
+   result.raise_for_errors()
 
    # get list of errors
    errors = result.errors

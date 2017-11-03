@@ -20,7 +20,7 @@ def validate_parameters(spec, request):
     validator = RequestValidator(spec)
     result = validator.validate(request)
     try:
-        result.validate()
+        result.raise_for_errors()
     except OpenAPIBodyError:
         return result.parameters
     else:
@@ -31,7 +31,7 @@ def validate_body(spec, request):
     validator = RequestValidator(spec)
     result = validator.validate(request)
     try:
-        result.validate()
+        result.raise_for_errors()
     except OpenAPIParameterError:
         return result.body
     else:
