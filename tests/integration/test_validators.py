@@ -3,11 +3,11 @@ import pytest
 
 from openapi_core.exceptions import (
     InvalidServer, InvalidOperation, MissingParameter,
-    MissingBody, InvalidContentType,
+    MissingBody, InvalidContentType, InvalidResponse, InvalidMediaTypeValue,
 )
 from openapi_core.shortcuts import create_spec
-from openapi_core.validators import RequestValidator
-from openapi_core.wrappers import MockRequest
+from openapi_core.validators import RequestValidator, ResponseValidator
+from openapi_core.wrappers import MockRequest, MockResponse
 
 
 class TestRequestValidator(object):
@@ -155,3 +155,104 @@ class TestRequestValidator(object):
                 'petId': 1,
             },
         }
+
+
+class TestResponseValidator(object):
+
+    host_url = 'http://petstore.swagger.io'
+
+    @pytest.fixture
+    def spec_dict(self, factory):
+        return factory.spec_from_file("data/v3.0/petstore.yaml")
+
+    @pytest.fixture
+    def spec(self, spec_dict):
+        return create_spec(spec_dict)
+
+    @pytest.fixture
+    def validator(self, spec):
+        return ResponseValidator(spec)
+
+    def test_invalid_server(self, validator):
+        request = MockRequest('http://petstore.invalid.net/v1', 'get', '/')
+        response = MockResponse('Not Found', status=404)
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidServer
+        assert result.data is None
+        assert result.headers == {}
+
+    def test_invalid_operation(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1')
+        response = MockResponse('Not Found', status=404)
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidOperation
+        assert result.data is None
+        assert result.headers == {}
+
+    def test_invalid_response(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1/pets')
+        response = MockResponse('Not Found', status=409)
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidResponse
+        assert result.data is None
+        assert result.headers == {}
+
+    def test_invalid_content_type(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1/pets')
+        response = MockResponse('Not Found', mimetype='text/csv')
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidContentType
+        assert result.data is None
+        assert result.headers == {}
+
+    def test_missing_body(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1/pets')
+        response = MockResponse(None)
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == MissingBody
+        assert result.data is None
+        assert result.headers == {}
+
+    def test_invalid_media_type_value(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1/pets')
+        response = MockResponse('\{\}')
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidMediaTypeValue
+        assert result.data is None
+        assert result.headers == {}
+
+    def test_get_pets(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1/pets')
+        response_json = {
+            'data': [
+                {
+                    'id': 1,
+                },
+            ],
+        }
+        response_data = json.dumps(response_json)
+        response = MockResponse(response_data)
+
+        result = validator.validate(request, response)
+
+        assert result.errors == []
+        assert result.data == response_json
+        assert result.headers == {}

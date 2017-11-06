@@ -9,8 +9,10 @@ from openapi_core.exceptions import (
 )
 from openapi_core.media_types import MediaType
 from openapi_core.operations import Operation
+from openapi_core.parameters import Parameter
 from openapi_core.paths import Path
 from openapi_core.request_bodies import RequestBody
+from openapi_core.responses import Response
 from openapi_core.schemas import Schema
 from openapi_core.servers import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
@@ -59,6 +61,60 @@ class TestPetstore(object):
                 assert operation.http_method == http_method
 
                 operation_spec = spec_dict['paths'][path_name][http_method]
+
+                responses_spec = operation_spec.get('responses')
+
+                for http_status, response in iteritems(operation.responses):
+                    assert type(response) == Response
+                    assert response.http_status == http_status
+
+                    response_spec = responses_spec[http_status]
+                    description_spec = response_spec['description']
+
+                    assert response.description == description_spec
+
+                    for mimetype, media_type in iteritems(response.content):
+                        assert type(media_type) == MediaType
+                        assert media_type.mimetype == mimetype
+
+                        content_spec = response_spec['content'][mimetype]
+                        schema_spec = content_spec.get('schema')
+                        assert bool(schema_spec) == bool(media_type.schema)
+
+                        if not schema_spec:
+                            continue
+
+                        # @todo: test with defererence
+                        if '$ref' in schema_spec:
+                            continue
+
+                        assert type(media_type.schema) == Schema
+                        assert media_type.schema.type == schema_spec['type']
+                        assert media_type.schema.required == schema_spec.get(
+                            'required', False)
+
+                    for parameter_name, parameter in iteritems(
+                            response.headers):
+                        assert type(parameter) == Parameter
+                        assert parameter.name == parameter_name
+
+                        headers_spec = response_spec['headers']
+                        parameter_spec = headers_spec[parameter_name]
+                        schema_spec = parameter_spec.get('schema')
+                        assert bool(schema_spec) == bool(parameter.schema)
+
+                        if not schema_spec:
+                            continue
+
+                        # @todo: test with defererence
+                        if '$ref' in schema_spec:
+                            continue
+
+                        assert type(parameter.schema) == Schema
+                        assert parameter.schema.type == schema_spec['type']
+                        assert parameter.schema.required == schema_spec.get(
+                            'required', False)
+
                 request_body_spec = operation_spec.get('requestBody')
 
                 assert bool(request_body_spec) == bool(operation.request_body)

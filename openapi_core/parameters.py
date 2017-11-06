@@ -2,6 +2,8 @@
 import logging
 import warnings
 
+from six import iteritems
+
 from openapi_core.exceptions import (
     EmptyValue, InvalidValueType, InvalidParameterValue,
 )
@@ -54,9 +56,11 @@ class ParametersGenerator(object):
         self.dereferencer = dereferencer
         self.schemas_registry = schemas_registry
 
-    def generate(self, paramters):
-        for parameter in paramters:
+    def generate(self, parameters):
+        for parameter_name, parameter in iteritems(parameters):
             parameter_deref = self.dereferencer.dereference(parameter)
+
+            parameter_in = parameter_deref.get('in', 'header')
 
             allow_empty_value = parameter_deref.get('allowEmptyValue')
             required = parameter_deref.get('required', False)
@@ -67,9 +71,33 @@ class ParametersGenerator(object):
                 schema, _ = self.schemas_registry.get_or_create(schema_spec)
 
             yield (
-                parameter_deref['name'],
+                parameter_name,
                 Parameter(
-                    parameter_deref['name'], parameter_deref['in'],
+                    parameter_name, parameter_in,
+                    schema=schema, required=required,
+                    allow_empty_value=allow_empty_value,
+                ),
+            )
+
+    def generate_from_list(self, parameters_list):
+        for parameter in parameters_list:
+            parameter_deref = self.dereferencer.dereference(parameter)
+
+            parameter_name = parameter_deref['name']
+            parameter_in = parameter_deref.get('in', 'header')
+
+            allow_empty_value = parameter_deref.get('allowEmptyValue')
+            required = parameter_deref.get('required', False)
+
+            schema_spec = parameter_deref.get('schema', None)
+            schema = None
+            if schema_spec:
+                schema, _ = self.schemas_registry.get_or_create(schema_spec)
+
+            yield (
+                parameter_name,
+                Parameter(
+                    parameter_name, parameter_in,
                     schema=schema, required=required,
                     allow_empty_value=allow_empty_value,
                 ),

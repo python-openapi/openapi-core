@@ -104,3 +104,38 @@ class FlaskOpenAPIRequest(BaseOpenAPIRequest):
     @property
     def mimetype(self):
         return self.request.mimetype
+
+
+class BaseOpenAPIResponse(object):
+
+    body = NotImplemented
+    status = NotImplemented
+
+    mimetype = NotImplemented
+
+
+class MockResponse(BaseOpenAPIRequest):
+
+    def __init__(self, data, status=200, mimetype='application/json'):
+        self.data = data
+
+        self.status = status
+        self.mimetype = mimetype
+
+
+class FlaskOpenAPIResponse(BaseOpenAPIResponse):
+
+    def __init__(self, response):
+        self.response = response
+
+    @property
+    def data(self):
+        return self.response.data
+
+    @property
+    def status(self):
+        return self.response.status
+
+    @property
+    def mimetype(self):
+        return self.response.mimetype

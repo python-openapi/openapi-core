@@ -61,12 +61,6 @@ paths:
             application/json:    
               schema:
                 $ref: "#/components/schemas/Pets"
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     post:
       summary: Create a pet
       operationId: createPets
@@ -164,9 +158,12 @@ components:
         position:
           $ref: "#/components/schemas/Position"
     Pets:
-      type: array
-      items:
-        $ref: "#/components/schemas/Pet"
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pet"
     Error:
       type: object
       required:
