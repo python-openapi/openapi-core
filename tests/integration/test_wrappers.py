@@ -92,7 +92,7 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.mimetype == request.mimetype
 
 
-class TetsFlaskOpenAPIResponse(object):
+class TestFlaskOpenAPIResponse(object):
 
     @pytest.fixture
     def response_factory(self):
@@ -105,6 +105,7 @@ class TetsFlaskOpenAPIResponse(object):
 
         openapi_response = FlaskOpenAPIResponse(response)
 
-        assert openapi_response.body == response.text
+        assert openapi_response.response == response
+        assert openapi_response.data == response.data
         assert openapi_response.status == response.status
         assert openapi_response.mimetype == response.mimetype

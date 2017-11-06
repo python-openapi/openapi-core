@@ -116,8 +116,8 @@ class BaseOpenAPIResponse(object):
 
 class MockResponse(BaseOpenAPIRequest):
 
-    def __init__(self, body, status=200, mimetype='application/json'):
-        self.body = body
+    def __init__(self, data, status=200, mimetype='application/json'):
+        self.data = data
 
         self.status = status
         self.mimetype = mimetype
@@ -129,8 +129,8 @@ class FlaskOpenAPIResponse(BaseOpenAPIResponse):
         self.response = response
 
     @property
-    def body(self):
-        return self.response.text
+    def data(self):
+        return self.response.data
 
     @property
     def status(self):

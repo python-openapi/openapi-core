@@ -181,7 +181,7 @@ class TestResponseValidator(object):
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidServer
-        assert result.body is None
+        assert result.data is None
         assert result.headers == {}
 
     def test_invalid_operation(self, validator):
@@ -192,7 +192,7 @@ class TestResponseValidator(object):
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidOperation
-        assert result.body is None
+        assert result.data is None
         assert result.headers == {}
 
     def test_invalid_response(self, validator):
@@ -203,7 +203,7 @@ class TestResponseValidator(object):
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidResponse
-        assert result.body is None
+        assert result.data is None
         assert result.headers == {}
 
     def test_invalid_content_type(self, validator):
@@ -214,7 +214,7 @@ class TestResponseValidator(object):
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidContentType
-        assert result.body is None
+        assert result.data is None
         assert result.headers == {}
 
     def test_missing_body(self, validator):
@@ -225,7 +225,7 @@ class TestResponseValidator(object):
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingBody
-        assert result.body is None
+        assert result.data is None
         assert result.headers == {}
 
     def test_invalid_media_type_value(self, validator):
@@ -236,7 +236,7 @@ class TestResponseValidator(object):
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidMediaTypeValue
-        assert result.body is None
+        assert result.data is None
         assert result.headers == {}
 
     def test_get_pets(self, validator):
@@ -254,5 +254,5 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert result.errors == []
-        assert result.body == response_json
+        assert result.data == response_json
         assert result.headers == {}
