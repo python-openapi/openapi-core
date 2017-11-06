@@ -206,6 +206,17 @@ class TestResponseValidator(object):
         assert result.body is None
         assert result.headers == {}
 
+    def test_invalid_content_type(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1/pets')
+        response = MockResponse('Not Found', mimetype='text/csv')
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidContentType
+        assert result.body is None
+        assert result.headers == {}
+
     def test_missing_body(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
         response = MockResponse(None)

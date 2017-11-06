@@ -167,7 +167,7 @@ class ResponseValidator(object):
 
         if operation_response.content:
             try:
-                media_type = operation_response.content[response.mimetype]
+                media_type = operation_response[response.mimetype]
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:

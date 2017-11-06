@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from six import iteritems
 
+from openapi_core.exceptions import InvalidContentType
 from openapi_core.media_types import MediaTypeGenerator
 from openapi_core.parameters import ParametersGenerator
 
@@ -17,6 +18,13 @@ class Response(object):
         self.headers = headers and dict(headers) or {}
         self.content = content and dict(content) or {}
         self.links = links and dict(links) or {}
+
+    def __getitem__(self, mimetype):
+        try:
+            return self.content[mimetype]
+        except KeyError:
+            raise InvalidContentType(
+                "Invalid mime type `{0}`".format(mimetype))
 
 
 class ResponsesGenerator(object):
