@@ -96,16 +96,16 @@ class TestFlaskOpenAPIResponse(object):
 
     @pytest.fixture
     def response_factory(self):
-        def create_response(body, status=200):
-            return Response('Not Found', status=404)
+        def create_response(data, status_code=200):
+            return Response(data, status=status_code)
         return create_response
 
     def test_invalid_server(self, response_factory):
-        response = response_factory('Not Found', status=404)
+        response = response_factory('Not Found', status_code=404)
 
         openapi_response = FlaskOpenAPIResponse(response)
 
         assert openapi_response.response == response
         assert openapi_response.data == response.data
-        assert openapi_response.status == response.status
+        assert openapi_response.status_code == response._status_code
         assert openapi_response.mimetype == response.mimetype

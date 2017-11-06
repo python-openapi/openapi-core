@@ -159,7 +159,8 @@ class ResponseValidator(object):
             return ResponseValidationResult(errors, data, headers)
 
         try:
-            operation_response = operation.get_response(str(response.status))
+            operation_response = operation.get_response(
+                str(response.status_code))
         # don't process if invalid response status code
         except InvalidResponse as exc:
             errors.append(exc)

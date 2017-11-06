@@ -175,7 +175,7 @@ class TestResponseValidator(object):
 
     def test_invalid_server(self, validator):
         request = MockRequest('http://petstore.invalid.net/v1', 'get', '/')
-        response = MockResponse('Not Found', status=404)
+        response = MockResponse('Not Found', status_code=404)
 
         result = validator.validate(request, response)
 
@@ -186,7 +186,7 @@ class TestResponseValidator(object):
 
     def test_invalid_operation(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1')
-        response = MockResponse('Not Found', status=404)
+        response = MockResponse('Not Found', status_code=404)
 
         result = validator.validate(request, response)
 
@@ -197,7 +197,7 @@ class TestResponseValidator(object):
 
     def test_invalid_response(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
-        response = MockResponse('Not Found', status=409)
+        response = MockResponse('Not Found', status_code=409)
 
         result = validator.validate(request, response)
 
