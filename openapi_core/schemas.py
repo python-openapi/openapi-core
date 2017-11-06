@@ -28,21 +28,31 @@ class Schema(object):
 
     def __init__(
             self, schema_type, model=None, properties=None, items=None,
-            spec_format=None, required=False, default=None, nullable=False,
-            enum=None, deprecated=False):
+            spec_format=None, required=None, default=None, nullable=False,
+            enum=None, deprecated=False, all_of=None):
         self.type = schema_type
         self.model = model
         self.properties = properties and dict(properties) or {}
         self.items = items
         self.format = spec_format
-        self.required = required
+        self.required = required or []
         self.default = default
         self.nullable = nullable
         self.enum = enum
         self.deprecated = deprecated
+        self.all_of = all_of and list(all_of) or []
 
     def __getitem__(self, name):
         return self.properties[name]
+
+    def get_all_properties(self):
+        properties = self.properties.copy()
+
+        for subschema in self.all_of:
+            subschema_props = subschema.get_all_properties()
+            properties.update(subschema_props)
+
+        return properties
 
     def get_cast_mapping(self):
         mapping = DEFAULT_CAST_CALLABLE_GETTER.copy()
@@ -101,17 +111,18 @@ class Schema(object):
         if isinstance(value, (str, bytes)):
             value = loads(value)
 
-        properties_keys = self.properties.keys()
+        all_properties = self.get_all_properties()
+        all_properties_keys = all_properties.keys()
         value_keys = value.keys()
 
-        extra_props = set(value_keys) - set(properties_keys)
+        extra_props = set(value_keys) - set(all_properties_keys)
 
         if extra_props:
             raise UndefinedSchemaProperty(
                 "Undefined properties in schema: {0}".format(extra_props))
 
         properties = {}
-        for prop_name, prop in iteritems(self.properties):
+        for prop_name, prop in iteritems(all_properties):
             try:
                 prop_value = value[prop_name]
             except KeyError:
@@ -156,10 +167,15 @@ class SchemaFactory(object):
         nullable = schema_deref.get('nullable', False)
         enum = schema_deref.get('enum', None)
         deprecated = schema_deref.get('deprecated', False)
+        all_of_spec = schema_deref.get('allOf', None)
 
         properties = None
         if properties_spec:
             properties = self.properties_generator.generate(properties_spec)
+
+        all_of = []
+        if all_of_spec:
+            all_of = map(self.create, all_of_spec)
 
         items = None
         if items_spec:
@@ -168,7 +184,7 @@ class SchemaFactory(object):
         return Schema(
             schema_type, model=model, properties=properties, items=items,
             required=required, default=default, nullable=nullable, enum=enum,
-            deprecated=deprecated,
+            deprecated=deprecated, all_of=all_of,
         )
 
     @property

@@ -60,7 +60,7 @@ paths:
           content:
             application/json:    
               schema:
-                $ref: "#/components/schemas/Pets"
+                $ref: "#/components/schemas/PetsData"
     post:
       summary: Create a pet
       operationId: createPets
@@ -101,7 +101,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Pets"
+                $ref: "#/components/schemas/PetData"
         default:
           $ref: "#/components/responses/ErrorResponse"
 components:
@@ -154,12 +154,23 @@ components:
         position:
           $ref: "#/components/schemas/Position"
     Pets:
+      type: array
+      items:
+        $ref: "#/components/schemas/Pet"
+    PetsData:
       type: object
+      required:
+        - data
       properties:
         data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Pet"
+          $ref: "#/components/schemas/Pets"
+    PetData:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/Pet"
     Error:
       type: object
       required:
