@@ -1,11 +1,11 @@
 import pytest
 
-from flask.wrappers import Request
+from flask.wrappers import Request, Response
 from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
 from werkzeug.routing import Map, Rule, Subdomain
 from werkzeug.test import create_environ
 
-from openapi_core.wrappers import FlaskOpenAPIRequest
+from openapi_core.wrappers import FlaskOpenAPIRequest, FlaskOpenAPIResponse
 
 
 class TestFlaskOpenAPIRequest(object):
@@ -90,3 +90,21 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.path_pattern == request.url_rule.rule
         assert openapi_request.body == request.data
         assert openapi_request.mimetype == request.mimetype
+
+
+class TetsFlaskOpenAPIResponse(object):
+
+    @pytest.fixture
+    def response_factory(self):
+        def create_response(body, status=200):
+            return Response('Not Found', status=404)
+        return create_response
+
+    def test_invalid_server(self, response_factory):
+        response = response_factory('Not Found', status=404)
+
+        openapi_response = FlaskOpenAPIResponse(response)
+
+        assert openapi_response.body == response.text
+        assert openapi_response.status == response.status
+        assert openapi_response.mimetype == response.mimetype
