@@ -5,7 +5,7 @@ from openapi_core.shortcuts import (
 
 __author__ = 'Artur Maciąg'
 __email__ = 'maciag.artur@gmail.com'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 __url__ = 'https://github.com/p1c2u/openapi-core'
 __license__ = 'BSD 3-Clause License'
 
