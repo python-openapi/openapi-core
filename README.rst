@@ -128,6 +128,34 @@ and unmarshal response data from validation result
    # get data
    validated_data = result.data
 
+or use shortcuts for simple validation
+
+.. code-block:: python
+
+   from openapi_core import validate_data
+
+   validated_data = validate_data(spec, request, response)
+
+Response object should implement BaseOpenAPIResponse interface. You can use FlaskOpenAPIResponse a Flask/Werkzeug response wrapper implementation:
+
+.. code-block:: python
+
+   from openapi_core.validators import ResponseValidator
+   from openapi_core.wrappers import FlaskOpenAPIResponse
+
+   openapi_response = FlaskOpenAPIResponse(flask_response)
+   validator = ResponseValidator(spec)
+   result = validator.validate(openapi_request, openapi_response)
+
+or specify response wrapper class for shortcuts
+
+.. code-block:: python
+
+   from openapi_core import validate_parameters, validate_body
+
+   validated_data = validate_data(
+       spec, request, response, response_wrapper_class=FlaskOpenAPIResponse)
+
 Related projects
 ================
 * `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__
