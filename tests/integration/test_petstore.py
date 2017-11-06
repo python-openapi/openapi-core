@@ -69,6 +69,14 @@ class TestPetstore(object):
                     assert response.http_status == http_status
 
                     response_spec = responses_spec[http_status]
+
+                    if not response_spec:
+                        continue
+
+                    # @todo: test with defererence
+                    if '$ref' in response_spec:
+                        continue
+
                     description_spec = response_spec['description']
 
                     assert response.description == description_spec

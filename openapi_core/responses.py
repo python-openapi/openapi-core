@@ -35,9 +35,10 @@ class ResponsesGenerator(object):
 
     def generate(self, responses):
         for http_status, response in iteritems(responses):
-            description = response['description']
-            headers = response.get('headers')
-            content = response.get('content')
+            response_deref = self.dereferencer.dereference(response)
+            description = response_deref['description']
+            headers = response_deref.get('headers')
+            content = response_deref.get('content')
 
             media_types = None
             if content:

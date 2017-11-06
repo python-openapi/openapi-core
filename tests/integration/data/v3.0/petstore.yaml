@@ -103,11 +103,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Pets"
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/ErrorResponse"
 components:
   schemas:
     Address:
@@ -175,3 +171,10 @@ components:
           format: int32
         message:
           type: string
+  responses:
+      ErrorResponse:
+        description: unexpected error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Error"
