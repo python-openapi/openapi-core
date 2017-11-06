@@ -16,7 +16,8 @@ from openapi_core.responses import Response
 from openapi_core.schemas import Schema
 from openapi_core.servers import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
-from openapi_core.wrappers import MockRequest
+from openapi_core.validators import RequestValidator, ResponseValidator
+from openapi_core.wrappers import MockRequest, MockResponse
 
 
 class TestPetstore(object):
@@ -28,6 +29,14 @@ class TestPetstore(object):
     @pytest.fixture
     def spec(self, spec_dict):
         return create_spec(spec_dict)
+
+    @pytest.fixture
+    def request_validator(self, spec):
+        return RequestValidator(spec)
+
+    @pytest.fixture
+    def response_validator(self, spec):
+        return ResponseValidator(spec)
 
     def test_spec(self, spec, spec_dict):
         url = 'http://petstore.swagger.io/v1'
@@ -99,7 +108,7 @@ class TestPetstore(object):
                         assert type(media_type.schema) == Schema
                         assert media_type.schema.type == schema_spec['type']
                         assert media_type.schema.required == schema_spec.get(
-                            'required', False)
+                            'required', [])
 
                     for parameter_name, parameter in iteritems(
                             response.headers):
@@ -121,7 +130,7 @@ class TestPetstore(object):
                         assert type(parameter.schema) == Schema
                         assert parameter.schema.type == schema_spec['type']
                         assert parameter.schema.required == schema_spec.get(
-                            'required', False)
+                            'required', [])
 
                 request_body_spec = operation_spec.get('requestBody')
 
@@ -161,7 +170,7 @@ class TestPetstore(object):
         for schema_name, schema in iteritems(spec.components.schemas):
             assert type(schema) == Schema
 
-    def test_get_pets(self, spec):
+    def test_get_pets(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         query_params = {
@@ -186,6 +195,17 @@ class TestPetstore(object):
             }
         }
         assert body is None
+
+        data_json = {
+            'data': [],
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data_json
 
     def test_get_pets_wrong_parameter_type(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -439,7 +459,7 @@ class TestPetstore(object):
         with pytest.raises(InvalidServer):
             request.get_body(spec)
 
-    def test_get_pet(self, spec):
+    def test_get_pet(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets/{petId}'
         view_args = {
@@ -461,3 +481,17 @@ class TestPetstore(object):
         body = request.get_body(spec)
 
         assert body is None
+
+        data_json = {
+            'data': {
+                'id': 1,
+                'name': 'test',
+            },
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data_json
