@@ -69,5 +69,9 @@ class InvalidContentType(OpenAPIBodyError):
     pass
 
 
+class InvalidResponse(OpenAPIMappingError):
+    pass
+
+
 class InvalidValue(OpenAPIMappingError):
     pass
