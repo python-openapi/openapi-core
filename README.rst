@@ -103,6 +103,31 @@ or specify request wrapper class for shortcuts
    validated_body = validate_body(
        spec, request, wrapper_class=FlaskOpenAPIRequest)
 
+You can also validate responses
+
+.. code-block:: python
+
+   from openapi_core.validators import ResponseValidator
+
+   validator = ResponseValidator(spec)
+   result = validator.validate(request, response)
+
+   # raise errors if response invalid
+   result.raise_for_errors()
+
+   # get list of errors
+   errors = result.errors
+
+and unmarshal response data from validation result
+
+.. code-block:: python
+
+   # get headers
+   validated_headers = result.headers
+
+   # get data
+   validated_data = result.data
+
 Related projects
 ================
 * `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__
