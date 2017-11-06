@@ -34,6 +34,12 @@ class Operation(object):
         try:
             return self.responses[http_status]
         except KeyError:
+            # try range
+            http_status_range = '{0}XX'.format(http_status[0])
+            if http_status_range in self.responses:
+                return self.responses[http_status_range]
+
+
             if 'default' not in self.responses:
                 raise InvalidResponse(
                     "Unknown response http status {0}".format(http_status))
