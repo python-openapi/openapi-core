@@ -1,14 +1,13 @@
 """OpenAPI core validators module"""
 from six import iteritems
 
+from openapi_core.enums import ParameterLocation
 from openapi_core.exceptions import (
     OpenAPIMappingError, MissingParameter, MissingBody, InvalidResponse,
 )
 
 
 class RequestParameters(dict):
-
-    valid_locations = ['path', 'query', 'headers', 'cookies']
 
     def __getitem__(self, location):
         self.validate_location(location)
@@ -20,7 +19,7 @@ class RequestParameters(dict):
 
     @classmethod
     def validate_location(cls, location):
-        if location not in cls.valid_locations:
+        if not ParameterLocation.has_value(location):
             raise OpenAPIMappingError(
                 "Unknown parameter location: {0}".format(str(location)))
 
@@ -95,7 +94,7 @@ class RequestValidator(object):
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:
-                parameters[param.location][param_name] = value
+                parameters[param.location.value][param_name] = value
 
         if operation.request_body is not None:
             try:
@@ -118,7 +117,7 @@ class RequestValidator(object):
 
     def _get_raw_value(self, request, param):
         try:
-            return request.parameters[param.location][param.name]
+            return request.parameters[param.location.value][param.name]
         except KeyError:
             raise MissingParameter(
                 "Missing required `{0}` parameter".format(param.name))

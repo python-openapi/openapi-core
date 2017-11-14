@@ -4,6 +4,7 @@ import warnings
 
 from six import iteritems
 
+from openapi_core.enums import ParameterLocation, ParameterStyle
 from openapi_core.exceptions import (
     EmptyValue, InvalidValueType, InvalidParameterValue,
 )
@@ -17,17 +18,32 @@ class Parameter(object):
     def __init__(
             self, name, location, schema=None, required=False,
             deprecated=False, allow_empty_value=False,
-            items=None, collection_format=None):
+            items=None, style=None, explode=None):
         self.name = name
-        self.location = location
+        self.location = ParameterLocation(location)
         self.schema = schema
-        self.required = True if self.location == "path" else required
+        self.required = (
+            True if self.location == ParameterLocation.PATH else required
+        )
         self.deprecated = deprecated
         self.allow_empty_value = (
-            allow_empty_value if self.location == "query" else False
+            allow_empty_value if self.location == ParameterLocation.QUERY
+            else False
         )
         self.items = items
-        self.collection_format = collection_format
+        self.style = ParameterStyle(style or self.default_style)
+        self.explode = explode or self.default_explode
+
+    @property
+    def default_style(self):
+        simple_locations = [ParameterLocation.PATH, ParameterLocation.HEADER]
+        return (
+            'simple' if self.location in simple_locations else "form"
+        )
+
+    @property
+    def default_explode(self):
+        return self.style == ParameterStyle.FORM
 
     def unmarshal(self, value):
         if self.deprecated:
@@ -36,7 +52,7 @@ class Parameter(object):
                 DeprecationWarning,
             )
 
-        if (self.location == "query" and value == "" and
+        if (self.location == ParameterLocation.QUERY and value == "" and
                 not self.allow_empty_value):
             raise EmptyValue(
                 "Value of {0} parameter cannot be empty".format(self.name))
@@ -89,6 +105,9 @@ class ParametersGenerator(object):
             allow_empty_value = parameter_deref.get('allowEmptyValue')
             required = parameter_deref.get('required', False)
 
+            style = parameter_deref.get('style')
+            explode = parameter_deref.get('explode')
+
             schema_spec = parameter_deref.get('schema', None)
             schema = None
             if schema_spec:
@@ -100,5 +119,6 @@ class ParametersGenerator(object):
                     parameter_name, parameter_in,
                     schema=schema, required=required,
                     allow_empty_value=allow_empty_value,
+                    style=style, explode=explode,
                 ),
             )
