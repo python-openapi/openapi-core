@@ -120,7 +120,7 @@ class RequestValidator(object):
         location = request.parameters[param.location.value]
 
         try:
-            raw = request.parameters[param.location.value][param.name]
+            raw = location[param.name]
         except KeyError:
             raise MissingParameter(
                 "Missing required `{0}` parameter".format(param.name))
