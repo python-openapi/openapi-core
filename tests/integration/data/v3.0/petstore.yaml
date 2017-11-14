@@ -119,9 +119,9 @@ components:
     Tag:
       type: string
       enum:
-        - Cat
-        - Dog
-        - Bird
+        - cats
+        - dogs
+        - birds
     Position:
       type: integer
       enum:
@@ -148,7 +148,7 @@ components:
         name:
           type: string
         tag:
-          type: "#/components/schemas/Tag"
+          $ref: "#/components/schemas/Tag"
         address:
           $ref: "#/components/schemas/Address"
         position:
