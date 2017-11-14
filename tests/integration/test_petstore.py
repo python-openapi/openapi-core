@@ -128,7 +128,10 @@ class TestPetstore(object):
                             continue
 
                         assert type(parameter.schema) == Schema
-                        assert parameter.schema.type == schema_spec['type']
+                        assert parameter.schema.type.value ==\
+                            schema_spec['type']
+                        assert parameter.schema.format.value ==\
+                            schema_spec.get('format')
                         assert parameter.schema.required == schema_spec.get(
                             'required', [])
 
@@ -160,7 +163,10 @@ class TestPetstore(object):
                         continue
 
                     assert type(media_type.schema) == Schema
-                    assert media_type.schema.type == schema_spec['type']
+                    assert media_type.schema.type.value ==\
+                        schema_spec['type']
+                    assert media_type.schema.format.value ==\
+                        schema_spec.get('format')
                     assert media_type.schema.required == schema_spec.get(
                         'required', False)
 
@@ -171,6 +177,41 @@ class TestPetstore(object):
             assert type(schema) == Schema
 
     def test_get_pets(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = {
+            'limit': '20',
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {
+            'query': {
+                'limit': 20,
+                'page': 1,
+                'search': '',
+            }
+        }
+        assert body is None
+
+        data_json = {
+            'data': [],
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data_json
+
+    def test_get_pets_ids_param(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         query_params = {
@@ -192,6 +233,43 @@ class TestPetstore(object):
                 'page': 1,
                 'search': '',
                 'ids': [12, 13],
+            }
+        }
+        assert body is None
+
+        data_json = {
+            'data': [],
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data_json
+
+    def test_get_pets_tags_param(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = [
+            ('limit', '20'),
+            ('tags', 'cats,dogs'),
+        ]
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {
+            'query': {
+                'limit': 20,
+                'page': 1,
+                'search': '',
+                'tags': ['cats', 'dogs'],
             }
         }
         assert body is None

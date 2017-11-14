@@ -2,6 +2,7 @@
 import warnings
 
 from six.moves.urllib.parse import urljoin
+from werkzeug.datastructures import ImmutableMultiDict
 
 
 class BaseOpenAPIRequest(object):
@@ -54,9 +55,9 @@ class MockRequest(BaseOpenAPIRequest):
 
         self.parameters = {
             'path': view_args or {},
-            'query': args or {},
-            'headers': headers or {},
-            'cookies': cookies or {},
+            'query': ImmutableMultiDict(args or []),
+            'header': headers or {},
+            'cookie': cookies or {},
         }
 
         self.body = data or ''

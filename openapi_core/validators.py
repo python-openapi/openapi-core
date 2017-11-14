@@ -95,7 +95,7 @@ class RequestValidator(object):
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:
-                parameters[param.location][param_name] = value
+                parameters[param.location.value][param_name] = value
 
         if operation.request_body is not None:
             try:
@@ -117,11 +117,18 @@ class RequestValidator(object):
         return RequestValidationResult(errors, body, parameters)
 
     def _get_raw_value(self, request, param):
+        location = request.parameters[param.location.value]
+
         try:
-            return request.parameters[param.location][param.name]
+            raw = request.parameters[param.location.value][param.name]
         except KeyError:
             raise MissingParameter(
                 "Missing required `{0}` parameter".format(param.name))
+
+        if param.aslist and param.explode:
+            return location.getlist(param.name)
+
+        return raw
 
     def _get_raw_body(self, request):
         if not request.body:

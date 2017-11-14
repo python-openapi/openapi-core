@@ -9,6 +9,7 @@ from functools import lru_cache
 from json import loads
 from six import iteritems
 
+from openapi_core.enums import SchemaType, SchemaFormat
 from openapi_core.exceptions import (
     InvalidValueType, UndefinedSchemaProperty, MissingProperty, InvalidValue,
 )
@@ -17,9 +18,9 @@ from openapi_core.models import ModelFactory
 log = logging.getLogger(__name__)
 
 DEFAULT_CAST_CALLABLE_GETTER = {
-    'integer': int,
-    'number': float,
-    'boolean': lambda x: bool(strtobool(x)),
+    SchemaType.INTEGER: int,
+    SchemaType.NUMBER: float,
+    SchemaType.BOOLEAN: lambda x: bool(strtobool(x)),
 }
 
 
@@ -28,13 +29,13 @@ class Schema(object):
 
     def __init__(
             self, schema_type, model=None, properties=None, items=None,
-            spec_format=None, required=None, default=None, nullable=False,
+            schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None):
-        self.type = schema_type
+        self.type = SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
         self.items = items
-        self.format = spec_format
+        self.format = SchemaFormat(schema_format)
         self.required = required or []
         self.default = default
         self.nullable = nullable
@@ -57,8 +58,8 @@ class Schema(object):
     def get_cast_mapping(self):
         mapping = DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update({
-            'array': self._unmarshal_collection,
-            'object': self._unmarshal_object,
+            SchemaType.ARRAY: self._unmarshal_collection,
+            SchemaType.OBJECT: self._unmarshal_object,
         })
 
         return defaultdict(lambda: lambda x: x, mapping)
@@ -159,6 +160,7 @@ class SchemaFactory(object):
         schema_deref = self.dereferencer.dereference(schema_spec)
 
         schema_type = schema_deref['type']
+        schema_format = schema_deref.get('format')
         model = schema_deref.get('x-model', None)
         required = schema_deref.get('required', False)
         default = schema_deref.get('default', None)
@@ -183,8 +185,8 @@ class SchemaFactory(object):
 
         return Schema(
             schema_type, model=model, properties=properties, items=items,
-            required=required, default=default, nullable=nullable, enum=enum,
-            deprecated=deprecated, all_of=all_of,
+            schema_format=schema_format, required=required, default=default,
+            nullable=nullable, enum=enum, deprecated=deprecated, all_of=all_of,
         )
 
     @property

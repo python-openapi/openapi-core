@@ -13,8 +13,8 @@ class TestFlaskOpenAPIRequest(object):
     server_name = 'localhost'
 
     @pytest.fixture
-    def environ(self):
-        return create_environ()
+    def environ_factory(self):
+        return create_environ
 
     @pytest.fixture
     def map(self):
@@ -33,8 +33,9 @@ class TestFlaskOpenAPIRequest(object):
         ], default_subdomain='www')
 
     @pytest.fixture
-    def request_factory(self, map, environ):
-        def create_request(method, path, subdomain=None):
+    def request_factory(self, map, environ_factory):
+        def create_request(method, path, subdomain=None, query_string=None):
+            environ = environ_factory(query_string=query_string)
             req = Request(environ)
             urls = map.bind_to_environ(
                 environ, server_name=self.server_name, subdomain=subdomain)
@@ -47,14 +48,14 @@ class TestFlaskOpenAPIRequest(object):
     def openapi_request(self, request):
         return FlaskOpenAPIRequest(request)
 
-    def test_simple(self, request_factory, environ, request):
+    def test_simple(self, request_factory, request):
         request = request_factory('GET', '/', subdomain='www')
 
         openapi_request = FlaskOpenAPIRequest(request)
 
         path = {}
         query = ImmutableMultiDict([])
-        headers = EnvironHeaders(environ)
+        headers = EnvironHeaders(request.environ)
         cookies = {}
         assert openapi_request.parameters == {
             'path': path,
@@ -69,14 +70,39 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.body == request.data
         assert openapi_request.mimetype == request.mimetype
 
-    def test_url_rule(self, request_factory, environ, request):
+    def test_multiple_values(self, request_factory, request):
+        request = request_factory(
+            'GET', '/', subdomain='www', query_string='a=b&a=c')
+
+        openapi_request = FlaskOpenAPIRequest(request)
+
+        path = {}
+        query = ImmutableMultiDict([
+            ('a', 'b'), ('a', 'c'),
+        ])
+        headers = EnvironHeaders(request.environ)
+        cookies = {}
+        assert openapi_request.parameters == {
+            'path': path,
+            'query': query,
+            'headers': headers,
+            'cookies': cookies,
+        }
+        assert openapi_request.host_url == request.host_url
+        assert openapi_request.path == request.path
+        assert openapi_request.method == request.method.lower()
+        assert openapi_request.path_pattern == request.path
+        assert openapi_request.body == request.data
+        assert openapi_request.mimetype == request.mimetype
+
+    def test_url_rule(self, request_factory, request):
         request = request_factory('GET', '/browse/12/', subdomain='kb')
 
         openapi_request = FlaskOpenAPIRequest(request)
 
         path = {'id': 12}
         query = ImmutableMultiDict([])
-        headers = EnvironHeaders(environ)
+        headers = EnvironHeaders(request.environ)
         cookies = {}
         assert openapi_request.parameters == {
             'path': path,

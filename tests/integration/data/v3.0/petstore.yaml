@@ -49,6 +49,14 @@ paths:
             items:
               type: integer
               format: int32
+        - name: tags
+          in: query
+          description: Filter pets with tags
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Tag"
+          explode: false
       responses:
         '200':
           description: An paged array of pets
@@ -119,9 +127,9 @@ components:
     Tag:
       type: string
       enum:
-        - Cat
-        - Dog
-        - Bird
+        - cats
+        - dogs
+        - birds
     Position:
       type: integer
       enum:
@@ -148,7 +156,7 @@ components:
         name:
           type: string
         tag:
-          type: "#/components/schemas/Tag"
+          $ref: "#/components/schemas/Tag"
         address:
           $ref: "#/components/schemas/Address"
         position:
