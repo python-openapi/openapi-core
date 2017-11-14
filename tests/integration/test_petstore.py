@@ -181,6 +181,41 @@ class TestPetstore(object):
         path_pattern = '/v1/pets'
         query_params = {
             'limit': '20',
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {
+            'query': {
+                'limit': 20,
+                'page': 1,
+                'search': '',
+            }
+        }
+        assert body is None
+
+        data_json = {
+            'data': [],
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data_json
+
+    def test_get_pets_ids_param(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = {
+            'limit': '20',
             'ids': ['12', '13'],
         }
 
@@ -213,13 +248,13 @@ class TestPetstore(object):
         assert response_result.errors == []
         assert response_result.data == data_json
 
-    def test_get_pets_tag_param(self, spec, response_validator):
+    def test_get_pets_tags_param(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
-        query_params = {
-            'limit': '20',
-            'ids': ['12', '13'],
-        }
+        query_params = [
+            ('limit', '20'),
+            ('tags', 'cats,dogs'),
+        ]
 
         request = MockRequest(
             host_url, 'GET', '/pets',
@@ -234,7 +269,7 @@ class TestPetstore(object):
                 'limit': 20,
                 'page': 1,
                 'search': '',
-                'ids': [12, 13],
+                'tags': ['cats', 'dogs'],
             }
         }
         assert body is None
