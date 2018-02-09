@@ -4,6 +4,7 @@ import logging
 from functools import lru_cache
 
 from six import iteritems
+from openapi_spec_validator.validators import PathItemValidator
 
 from openapi_core.exceptions import InvalidResponse
 from openapi_core.parameters import ParametersGenerator
@@ -56,7 +57,7 @@ class OperationsGenerator(object):
     def generate(self, path_name, path):
         path_deref = self.dereferencer.dereference(path)
         for http_method, operation in iteritems(path_deref):
-            if http_method.startswith('x-') or http_method == 'parameters':
+            if http_method not in PathItemValidator.OPERATIONS:
                 continue
 
             operation_deref = self.dereferencer.dereference(operation)
