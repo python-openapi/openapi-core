@@ -66,7 +66,7 @@ class ServerVariablesGenerator(object):
         variables_deref = self.dereferencer.dereference(variables_spec)
 
         if not variables_deref:
-            return [Server('/'), ]
+            return
 
         for variable_name, variable_spec in iteritems(variables_deref):
             default = variable_spec['default']
