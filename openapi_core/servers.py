@@ -41,6 +41,9 @@ class ServersGenerator(object):
 
     def generate(self, servers_spec):
         servers_deref = self.dereferencer.dereference(servers_spec)
+        if not servers_deref:
+            yield Server('/')
+            return
         for server_spec in servers_deref:
             url = server_spec['url']
             variables_spec = server_spec.get('variables', {})
@@ -64,9 +67,6 @@ class ServerVariablesGenerator(object):
 
     def generate(self, variables_spec):
         variables_deref = self.dereferencer.dereference(variables_spec)
-
-        if not variables_deref:
-            return
 
         for variable_name, variable_spec in iteritems(variables_deref):
             default = variable_spec['default']
