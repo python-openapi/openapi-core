@@ -370,6 +370,7 @@ class TestPetstore(object):
         pet_tag = 'cats'
         pet_street = 'Piekna'
         pet_city = 'Warsaw'
+        pet_healthy = False
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
@@ -377,7 +378,8 @@ class TestPetstore(object):
             'address': {
                 'street': pet_street,
                 'city': pet_city,
-            }
+            },
+            'healthy': pet_healthy,
         }
         data = json.dumps(data_json)
 
@@ -402,6 +404,50 @@ class TestPetstore(object):
         assert body.address.__class__.__name__ == address_model
         assert body.address.street == pet_street
         assert body.address.city == pet_city
+        assert body.healthy == pet_healthy
+
+    def test_post_pets_boolean_string(self, spec, spec_dict):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        pet_name = 'Cat'
+        pet_tag = 'cats'
+        pet_street = 'Piekna'
+        pet_city = 'Warsaw'
+        pet_healthy = 'false'
+        data_json = {
+            'name': pet_name,
+            'tag': pet_tag,
+            'position': '2',
+            'address': {
+                'street': pet_street,
+                'city': pet_city,
+            },
+            'healthy': pet_healthy,
+        }
+        data = json.dumps(data_json)
+
+        request = MockRequest(
+            host_url, 'POST', '/pets',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {}
+
+        body = request.get_body(spec)
+
+        schemas = spec_dict['components']['schemas']
+        pet_model = schemas['PetCreate']['x-model']
+        address_model = schemas['Address']['x-model']
+        assert body.__class__.__name__ == pet_model
+        assert body.name == pet_name
+        assert body.tag == pet_tag
+        assert body.position == 2
+        assert body.address.__class__.__name__ == address_model
+        assert body.address.street == pet_street
+        assert body.address.city == pet_city
+        assert body.healthy is False
 
     def test_post_pets_empty_body(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
