@@ -77,10 +77,10 @@ class SpecFactory(object):
 
         spec_dict_deref = self.dereferencer.dereference(spec_dict)
 
-        info_spec = spec_dict_deref.get('info', [])
+        info_spec = spec_dict_deref.get('info', {})
         servers_spec = spec_dict_deref.get('servers', [])
-        paths = spec_dict_deref.get('paths', [])
-        components_spec = spec_dict_deref.get('components', [])
+        paths = spec_dict_deref.get('paths', {})
+        components_spec = spec_dict_deref.get('components', {})
 
         info = self.info_factory.create(info_spec)
         servers = self.servers_generator.generate(servers_spec)

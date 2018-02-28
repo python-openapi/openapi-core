@@ -24,10 +24,10 @@ class ComponentsFactory(object):
     def create(self, components_spec):
         components_deref = self.dereferencer.dereference(components_spec)
 
-        schemas_spec = components_deref.get('schemas', [])
-        responses_spec = components_deref.get('responses', [])
-        parameters_spec = components_deref.get('parameters', [])
-        request_bodies_spec = components_deref.get('request_bodies', [])
+        schemas_spec = components_deref.get('schemas', {})
+        responses_spec = components_deref.get('responses', {})
+        parameters_spec = components_deref.get('parameters', {})
+        request_bodies_spec = components_deref.get('request_bodies', {})
 
         schemas = self.schemas_generator.generate(schemas_spec)
         responses = self._generate_response(responses_spec)
