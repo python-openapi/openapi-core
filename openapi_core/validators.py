@@ -1,5 +1,6 @@
 """OpenAPI core validators module"""
 from six import iteritems
+from yarl import URL
 
 from openapi_core.exceptions import (
     OpenAPIMappingError, MissingParameter, MissingBody, InvalidResponse,
@@ -51,6 +52,16 @@ class ResponseValidationResult(BaseValidationResult):
         self.headers = headers
 
 
+def get_operation_pattern(server_url, request_url_pattern):
+    """Return an updated request URL pattern with the server URL removed."""
+    if server_url[-1] == "/":
+        # operations have to start with a slash, so do not remove it
+        server_url = server_url[:-1]
+    if URL(server_url).is_absolute():
+        return request_url_pattern.replace(server_url, "", 1)
+    return URL(request_url_pattern).path_qs.replace(server_url, "", 1)
+
+
 class RequestValidator(object):
 
     def __init__(self, spec):
@@ -68,8 +79,9 @@ class RequestValidator(object):
             errors.append(exc)
             return RequestValidationResult(errors, body, parameters)
 
-        operation_pattern = request.full_url_pattern.replace(
-            server.default_url, '')
+        operation_pattern = get_operation_pattern(
+            server.default_url, request.full_url_pattern
+        )
 
         try:
             operation = self.spec.get_operation(
@@ -154,8 +166,9 @@ class ResponseValidator(object):
             errors.append(exc)
             return ResponseValidationResult(errors, data, headers)
 
-        operation_pattern = request.full_url_pattern.replace(
-            server.default_url, '')
+        operation_pattern = get_operation_pattern(
+            server.default_url, request.full_url_pattern
+        )
 
         try:
             operation = self.spec.get_operation(
