@@ -161,6 +161,8 @@ components:
           $ref: "#/components/schemas/Address"
         position:
           $ref: "#/components/schemas/Position"
+        healthy:
+          type: boolean
     Pets:
       type: array
       items:

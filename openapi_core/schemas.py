@@ -17,10 +17,18 @@ from openapi_core.models import ModelFactory
 
 log = logging.getLogger(__name__)
 
+
+def forcebool(val):
+    if isinstance(val, str):
+        val = strtobool(val)
+
+    return bool(val)
+
+
 DEFAULT_CAST_CALLABLE_GETTER = {
     SchemaType.INTEGER: int,
     SchemaType.NUMBER: float,
-    SchemaType.BOOLEAN: lambda x: bool(strtobool(x)),
+    SchemaType.BOOLEAN: forcebool,
 }
 
 
