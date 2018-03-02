@@ -75,6 +75,9 @@ setup(
     ],
     install_requires=read_requirements('requirements.txt'),
     tests_require=read_requirements('requirements_dev.txt'),
+    extras_require={
+        'flask':  ["werkzeug"],
+    },
     cmdclass={'test': PyTest},
     zip_safe=False,
 )

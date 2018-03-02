@@ -6,7 +6,6 @@ from openapi_spec_validator import default_handlers
 from openapi_core.exceptions import OpenAPIParameterError, OpenAPIBodyError
 from openapi_core.specs import SpecFactory
 from openapi_core.validators import RequestValidator, ResponseValidator
-from openapi_core.wrappers import FlaskOpenAPIRequest, FlaskOpenAPIResponse
 
 
 def create_spec(spec_dict, spec_url=''):
@@ -17,12 +16,13 @@ def create_spec(spec_dict, spec_url=''):
     return spec_factory.create(spec_dict, spec_url=spec_url)
 
 
-def validate_parameters(spec, request, wrapper_class=FlaskOpenAPIRequest):
-    if wrapper_class:
+def validate_parameters(spec, request, wrapper_class=None):
+    if wrapper_class is not None:
         request = wrapper_class(request)
 
     validator = RequestValidator(spec)
     result = validator.validate(request)
+
     try:
         result.raise_for_errors()
     except OpenAPIBodyError:
@@ -31,12 +31,13 @@ def validate_parameters(spec, request, wrapper_class=FlaskOpenAPIRequest):
         return result.parameters
 
 
-def validate_body(spec, request, wrapper_class=FlaskOpenAPIRequest):
-    if wrapper_class:
+def validate_body(spec, request, wrapper_class=None):
+    if wrapper_class is not None:
         request = wrapper_class(request)
 
     validator = RequestValidator(spec)
     result = validator.validate(request)
+
     try:
         result.raise_for_errors()
     except OpenAPIParameterError:
@@ -47,11 +48,12 @@ def validate_body(spec, request, wrapper_class=FlaskOpenAPIRequest):
 
 def validate_data(
         spec, request, response,
-        request_wrapper_class=FlaskOpenAPIRequest,
-        response_wrapper_class=FlaskOpenAPIResponse):
-    if request_wrapper_class:
+        request_wrapper_class=None,
+        response_wrapper_class=None):
+    if request_wrapper_class is not None:
         request = request_wrapper_class(request)
-    if response_wrapper_class:
+
+    if response_wrapper_class is not None:
         response = response_wrapper_class(response)
 
     validator = ResponseValidator(spec)
