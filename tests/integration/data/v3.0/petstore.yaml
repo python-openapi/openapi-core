@@ -144,8 +144,13 @@ components:
           type: integer
           format: int64
     PetCreate:
-      type: object
       x-model: PetCreate
+      allOf:
+        - $ref: "#/components/schemas/PetCreatePartOne"
+        - $ref: "#/components/schemas/PetCreatePartTwo"
+    PetCreatePartOne:
+      type: object
+      x-model: PetCreatePartOne
       required:
         - name
       properties:
@@ -155,6 +160,10 @@ components:
           $ref: "#/components/schemas/Tag"
         address:
           $ref: "#/components/schemas/Address"
+    PetCreatePartTwo:
+      type: object
+      x-model: PetCreatePartTwo
+      properties:
         position:
           $ref: "#/components/schemas/Position"
         healthy:

@@ -245,6 +245,7 @@ class TestResponseValidator(object):
             'data': [
                 {
                     'id': 1,
+                    'name': 'Sparky'
                 },
             ],
         }
