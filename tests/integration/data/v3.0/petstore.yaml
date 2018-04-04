@@ -84,11 +84,7 @@ paths:
         '201':
           description: Null response
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/ErrorResponse"
   /pets/{petId}:
     get:
       summary: Info for a specific pet
@@ -192,10 +188,19 @@ components:
           format: int32
         message:
           type: string
+    ExtendedError:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required:
+            - rootCause
+          properties:
+            rootCause:
+              type: string
   responses:
       ErrorResponse:
         description: unexpected error
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Error"
+              $ref: "#/components/schemas/ExtendedError"
