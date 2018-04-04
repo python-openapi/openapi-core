@@ -619,3 +619,39 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert response_result.data == data_json
+
+    def test_get_pet_not_found(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets/{petId}'
+        view_args = {
+            'petId': '1',
+        }
+        request = MockRequest(
+            host_url, 'GET', '/pets/1',
+            path_pattern=path_pattern, view_args=view_args,
+        )
+
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {
+            'path': {
+                'petId': 1,
+            }
+        }
+
+        body = request.get_body(spec)
+
+        assert body is None
+
+        data_json = {
+            'code': 404,
+            'message': 'Not found',
+            'rootCause': 'Pet not found',
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data, status_code=404)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data

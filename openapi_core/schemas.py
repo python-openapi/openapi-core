@@ -36,10 +36,10 @@ class Schema(object):
     """Represents an OpenAPI Schema."""
 
     def __init__(
-            self, schema_type, model=None, properties=None, items=None,
+            self, schema_type=None, model=None, properties=None, items=None,
             schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None):
-        self.type = SchemaType(schema_type)
+        self.type = schema_type and SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
         self.items = items
@@ -76,11 +76,11 @@ class Schema(object):
         """Cast value to schema type"""
         if value is None:
             if not self.nullable:
-                raise InvalidValueType(
-                    "Failed to cast value of {0} to {1}".format(
-                        value, self.type)
-                )
+                raise InvalidValueType("Null value for non-nullable schema")
             return self.default
+
+        if self.type is None:
+            return value
 
         cast_mapping = self.get_cast_mapping()
 
@@ -167,7 +167,7 @@ class SchemaFactory(object):
     def create(self, schema_spec):
         schema_deref = self.dereferencer.dereference(schema_spec)
 
-        schema_type = schema_deref['type']
+        schema_type = schema_deref.get('type')
         schema_format = schema_deref.get('format')
         model = schema_deref.get('x-model', None)
         required = schema_deref.get('required', False)
@@ -192,9 +192,10 @@ class SchemaFactory(object):
             items = self._create_items(items_spec)
 
         return Schema(
-            schema_type, model=model, properties=properties, items=items,
-            schema_format=schema_format, required=required, default=default,
-            nullable=nullable, enum=enum, deprecated=deprecated, all_of=all_of,
+            schema_type=schema_type, model=model, properties=properties,
+            items=items, schema_format=schema_format, required=required,
+            default=default, nullable=nullable, enum=enum,
+            deprecated=deprecated, all_of=all_of,
         )
 
     @property
