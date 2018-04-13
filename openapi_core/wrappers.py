@@ -183,3 +183,21 @@ class FlaskOpenAPIResponse(BaseOpenAPIResponse):
     @property
     def mimetype(self):
         return self.response.mimetype
+
+
+class RequestsOpenAPIResponse(BaseOpenAPIResponse):
+
+    def __init__(self, response):
+        self.response = response
+
+    @property
+    def data(self):
+        return self.response.text
+
+    @property
+    def status_code(self):
+        return self.response.status_code
+
+    @property
+    def mimetype(self):
+        return self.response.headers.get('content-type')
