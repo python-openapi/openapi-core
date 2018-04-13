@@ -131,12 +131,8 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
     @property
     def parameters(self):
         return {
-            # List of parameters from path (url string)
             'path': [],
-
-            # MultiDict, список параметров после ? в url
             'query': [],
-
             'headers': self.request.headers,
             'cookies': self.request.cookies,
         }
