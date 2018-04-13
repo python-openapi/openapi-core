@@ -63,6 +63,15 @@ class Schema(object):
 
         return properties
 
+    def get_all_required_properties(self):
+        required = self.required.copy()
+
+        for subschema in self.all_of:
+            subschema_req = subschema.get_all_required_properties()
+            required += subschema_req
+
+        return required
+
     def get_cast_mapping(self):
         mapping = DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update({
@@ -121,6 +130,7 @@ class Schema(object):
             value = loads(value)
 
         all_properties = self.get_all_properties()
+        all_required_properties = self.get_all_required_properties()
         all_properties_keys = all_properties.keys()
         value_keys = value.keys()
 
@@ -135,7 +145,7 @@ class Schema(object):
             try:
                 prop_value = value[prop_name]
             except KeyError:
-                if prop_name in self.required:
+                if prop_name in all_required_properties:
                     raise MissingProperty(
                         "Missing schema property {0}".format(prop_name))
                 if not prop.nullable and not prop.default:
@@ -167,7 +177,7 @@ class SchemaFactory(object):
     def create(self, schema_spec):
         schema_deref = self.dereferencer.dereference(schema_spec)
 
-        schema_type = schema_deref.get('type')
+        schema_type = schema_deref.get('type', 'object')
         schema_format = schema_deref.get('format')
         model = schema_deref.get('x-model', None)
         required = schema_deref.get('required', False)

@@ -654,4 +654,4 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data
+        assert response_result.data == data_json
