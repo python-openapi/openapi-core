@@ -1,7 +1,7 @@
 """OpenAPI core wrappers module"""
 import warnings
 
-from six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urljoin, urlparse
 from werkzeug.datastructures import ImmutableMultiDict
 
 
@@ -105,6 +105,49 @@ class FlaskOpenAPIRequest(BaseOpenAPIRequest):
     @property
     def mimetype(self):
         return self.request.mimetype
+
+
+class RequestsOpenAPIRequest(BaseOpenAPIRequest):
+    def __init__(self, request):
+        self.request = request
+        self.url = urlparse(request.url)
+
+    @property
+    def host_url(self):
+        return self.url.scheme + '://' + self.url.netloc
+
+    @property
+    def path(self):
+        return self.url.path
+
+    @property
+    def method(self):
+        return self.request.method.lower()
+
+    @property
+    def path_pattern(self):
+        return self.url.path
+
+    @property
+    def parameters(self):
+        return {
+            # List of parameters from path (url string)
+            'path': [],
+
+            # MultiDict, список параметров после ? в url
+            'query': [],
+
+            'headers': self.request.headers,
+            'cookies': self.request.cookies,
+        }
+
+    @property
+    def body(self):
+        return ''
+
+    @property
+    def mimetype(self):
+        return ''
 
 
 class BaseOpenAPIResponse(object):
