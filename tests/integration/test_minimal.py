@@ -3,7 +3,7 @@ import pytest
 from openapi_core.exceptions import InvalidOperation
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.wrappers import MockRequest
+from openapi_core.wrappers.mock import MockRequest
 
 
 class TestMinimal(object):

@@ -9,7 +9,7 @@ from openapi_core.exceptions import (
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
-from openapi_core.wrappers import MockRequest, MockResponse
+from openapi_core.wrappers.mock import MockRequest, MockResponse
 
 
 class TestRequestValidator(object):
