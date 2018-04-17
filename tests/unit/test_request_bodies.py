@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from openapi_core.request_bodies import RequestBody
+from openapi_core.schema.request_bodies.models import RequestBody
 
 
 class TestRequestBodies(object):

@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from openapi_core.paths import Path
+from openapi_core.schema.paths.models import Path
 
 
 class TestPaths(object):

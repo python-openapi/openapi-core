@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from openapi_core.operations import Operation
+from openapi_core.schema.operations.models import Operation
 
 
 class TestSchemas(object):

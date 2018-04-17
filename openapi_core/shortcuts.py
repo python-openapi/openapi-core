@@ -4,7 +4,7 @@ from openapi_spec_validator.validators import Dereferencer
 from openapi_spec_validator import default_handlers
 
 from openapi_core.exceptions import OpenAPIParameterError, OpenAPIBodyError
-from openapi_core.specs import SpecFactory
+from openapi_core.schema.specs.factories import SpecFactory
 from openapi_core.validators import RequestValidator, ResponseValidator
 
 

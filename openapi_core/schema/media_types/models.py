@@ -1,4 +1,4 @@
-"""OpenAPI core mediaTypes module"""
+"""OpenAPI core media types models module"""
 from collections import defaultdict
 
 from json import loads
@@ -44,20 +44,3 @@ class MediaType(object):
             return self.schema.unmarshal(deserialized)
         except InvalidValueType as exc:
             raise InvalidMediaTypeValue(str(exc))
-
-
-class MediaTypeGenerator(object):
-
-    def __init__(self, dereferencer, schemas_registry):
-        self.dereferencer = dereferencer
-        self.schemas_registry = schemas_registry
-
-    def generate(self, content):
-        for mimetype, media_type in iteritems(content):
-            schema_spec = media_type.get('schema')
-
-            schema = None
-            if schema_spec:
-                schema, _ = self.schemas_registry.get_or_create(schema_spec)
-
-            yield mimetype, MediaType(mimetype, schema)

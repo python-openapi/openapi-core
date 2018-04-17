@@ -1,18 +1,7 @@
 from functools import lru_cache
 
-from openapi_core.schemas import SchemasGenerator
-
-
-class Components(object):
-    """Represents an OpenAPI Components in a service."""
-
-    def __init__(
-            self, schemas=None, responses=None, parameters=None,
-            request_bodies=None):
-        self.schemas = schemas and dict(schemas) or {}
-        self.responses = responses and dict(responses) or {}
-        self.parameters = parameters and dict(parameters) or {}
-        self.request_bodies = request_bodies and dict(request_bodies) or {}
+from openapi_core.schema.components.models import Components
+from openapi_core.schema.schemas.generators import SchemasGenerator
 
 
 class ComponentsFactory(object):

@@ -1,38 +1,28 @@
-"""OpenAPI core schemas module"""
+"""OpenAPI core schemas models module"""
 import logging
 from collections import defaultdict
 import warnings
 
-from distutils.util import strtobool
-from functools import lru_cache
-
 from six import iteritems
 
-from openapi_core.enums import SchemaType, SchemaFormat
 from openapi_core.exceptions import (
     InvalidValueType, UndefinedSchemaProperty, MissingProperty, InvalidValue,
 )
-from openapi_core.models import ModelFactory
+from openapi_core.extensions.models.factories import ModelFactory
+from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
+from openapi_core.schema.schemas.util import forcebool
 
 log = logging.getLogger(__name__)
 
 
-def forcebool(val):
-    if isinstance(val, str):
-        val = strtobool(val)
-
-    return bool(val)
-
-
-DEFAULT_CAST_CALLABLE_GETTER = {
-    SchemaType.INTEGER: int,
-    SchemaType.NUMBER: float,
-    SchemaType.BOOLEAN: forcebool,
-}
-
-
 class Schema(object):
     """Represents an OpenAPI Schema."""
+
+    DEFAULT_CAST_CALLABLE_GETTER = {
+        SchemaType.INTEGER: int,
+        SchemaType.NUMBER: float,
+        SchemaType.BOOLEAN: forcebool,
+    }
 
     def __init__(
             self, schema_type=None, model=None, properties=None, items=None,
@@ -72,7 +62,7 @@ class Schema(object):
         return required
 
     def get_cast_mapping(self):
-        mapping = DEFAULT_CAST_CALLABLE_GETTER.copy()
+        mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update({
             SchemaType.ARRAY: self._unmarshal_collection,
             SchemaType.OBJECT: self._unmarshal_object,
@@ -152,95 +142,3 @@ class Schema(object):
                 prop_value = prop.default
             properties[prop_name] = prop.unmarshal(prop_value)
         return ModelFactory().create(properties, name=self.model)
-
-
-class PropertiesGenerator(object):
-
-    def __init__(self, dereferencer):
-        self.dereferencer = dereferencer
-
-    def generate(self, properties):
-        for property_name, schema_spec in iteritems(properties):
-            schema = self._create_schema(schema_spec)
-            yield property_name, schema
-
-    def _create_schema(self, schema_spec):
-        return SchemaFactory(self.dereferencer).create(schema_spec)
-
-
-class SchemaFactory(object):
-
-    def __init__(self, dereferencer):
-        self.dereferencer = dereferencer
-
-    def create(self, schema_spec):
-        schema_deref = self.dereferencer.dereference(schema_spec)
-
-        schema_type = schema_deref.get('type', 'object')
-        schema_format = schema_deref.get('format')
-        model = schema_deref.get('x-model', None)
-        required = schema_deref.get('required', False)
-        default = schema_deref.get('default', None)
-        properties_spec = schema_deref.get('properties', None)
-        items_spec = schema_deref.get('items', None)
-        nullable = schema_deref.get('nullable', False)
-        enum = schema_deref.get('enum', None)
-        deprecated = schema_deref.get('deprecated', False)
-        all_of_spec = schema_deref.get('allOf', None)
-
-        properties = None
-        if properties_spec:
-            properties = self.properties_generator.generate(properties_spec)
-
-        all_of = []
-        if all_of_spec:
-            all_of = map(self.create, all_of_spec)
-
-        items = None
-        if items_spec:
-            items = self._create_items(items_spec)
-
-        return Schema(
-            schema_type=schema_type, model=model, properties=properties,
-            items=items, schema_format=schema_format, required=required,
-            default=default, nullable=nullable, enum=enum,
-            deprecated=deprecated, all_of=all_of,
-        )
-
-    @property
-    @lru_cache()
-    def properties_generator(self):
-        return PropertiesGenerator(self.dereferencer)
-
-    def _create_items(self, items_spec):
-        return self.create(items_spec)
-
-
-class SchemaRegistry(SchemaFactory):
-
-    def __init__(self, dereferencer):
-        super(SchemaRegistry, self).__init__(dereferencer)
-        self._schemas = {}
-
-    def get_or_create(self, schema_spec):
-        schema_deref = self.dereferencer.dereference(schema_spec)
-        model = schema_deref.get('x-model', None)
-
-        if model and model in self._schemas:
-            return self._schemas[model], False
-
-        return self.create(schema_deref), True
-
-
-class SchemasGenerator(object):
-
-    def __init__(self, dereferencer, schemas_registry):
-        self.dereferencer = dereferencer
-        self.schemas_registry = schemas_registry
-
-    def generate(self, schemas_spec):
-        schemas_deref = self.dereferencer.dereference(schemas_spec)
-
-        for schema_name, schema_spec in iteritems(schemas_deref):
-            schema, _ = self.schemas_registry.get_or_create(schema_spec)
-            yield schema_name, schema

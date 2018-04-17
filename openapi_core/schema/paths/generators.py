@@ -1,20 +1,10 @@
-"""OpenAPI core paths module"""
+"""OpenAPI core paths generators module"""
 from functools import lru_cache
 
 from six import iteritems
 
-from openapi_core.operations import OperationsGenerator
-
-
-class Path(object):
-    """Represents an OpenAPI Path."""
-
-    def __init__(self, name, operations):
-        self.name = name
-        self.operations = dict(operations)
-
-    def __getitem__(self, http_method):
-        return self.operations[http_method]
+from openapi_core.schema.operations.generators import OperationsGenerator
+from openapi_core.schema.paths.models import Path
 
 
 class PathsGenerator(object):

@@ -1,27 +1,25 @@
-"""OpenAPI core parameters module"""
+"""OpenAPI core parameters models module"""
 import logging
 import warnings
 
-from functools import lru_cache
-from six import iteritems
-
-from openapi_core.enums import ParameterLocation, ParameterStyle, SchemaType
 from openapi_core.exceptions import (
     EmptyValue, InvalidValueType, InvalidParameterValue,
 )
+from openapi_core.schema.parameters.enums import ParameterLocation, ParameterStyle
+from openapi_core.schema.schemas.enums import SchemaType
 
 log = logging.getLogger(__name__)
-
-PARAMETER_STYLE_DESERIALIZERS = {
-    ParameterStyle.FORM: lambda x: x.split(','),
-    ParameterStyle.SIMPLE: lambda x: x.split(','),
-    ParameterStyle.SPACE_DELIMITED: lambda x: x.split(' '),
-    ParameterStyle.PIPE_DELIMITED: lambda x: x.split('|'),
-}
 
 
 class Parameter(object):
     """Represents an OpenAPI operation Parameter."""
+
+    PARAMETER_STYLE_DESERIALIZERS = {
+        ParameterStyle.FORM: lambda x: x.split(','),
+        ParameterStyle.SIMPLE: lambda x: x.split(','),
+        ParameterStyle.SPACE_DELIMITED: lambda x: x.split(' '),
+        ParameterStyle.PIPE_DELIMITED: lambda x: x.split('|'),
+    }
 
     def __init__(
             self, name, location, schema=None, required=False,
@@ -61,7 +59,7 @@ class Parameter(object):
         return self.style == ParameterStyle.FORM
 
     def get_dererializer(self):
-        return PARAMETER_STYLE_DESERIALIZERS[self.style]
+        return self.PARAMETER_STYLE_DESERIALIZERS[self.style]
 
     def deserialize(self, value):
         if not self.aslist or self.explode:
@@ -91,59 +89,3 @@ class Parameter(object):
             return self.schema.unmarshal(deserialized)
         except InvalidValueType as exc:
             raise InvalidParameterValue(str(exc))
-
-
-class ParameterFactory(object):
-
-    def __init__(self, dereferencer, schemas_registry):
-        self.dereferencer = dereferencer
-        self.schemas_registry = schemas_registry
-
-    def create(self, parameter_spec, parameter_name=None):
-        parameter_deref = self.dereferencer.dereference(parameter_spec)
-
-        parameter_name = parameter_name or parameter_deref['name']
-        parameter_in = parameter_deref.get('in', 'header')
-
-        allow_empty_value = parameter_deref.get('allowEmptyValue')
-        required = parameter_deref.get('required', False)
-
-        style = parameter_deref.get('style')
-        explode = parameter_deref.get('explode')
-
-        schema_spec = parameter_deref.get('schema', None)
-        schema = None
-        if schema_spec:
-            schema, _ = self.schemas_registry.get_or_create(schema_spec)
-
-        return Parameter(
-            parameter_name, parameter_in,
-            schema=schema, required=required,
-            allow_empty_value=allow_empty_value,
-            style=style, explode=explode,
-        )
-
-
-class ParametersGenerator(object):
-
-    def __init__(self, dereferencer, schemas_registry):
-        self.dereferencer = dereferencer
-        self.schemas_registry = schemas_registry
-
-    def generate(self, parameters):
-        for parameter_name, parameter_spec in iteritems(parameters):
-            parameter = self.parameter_factory.create(
-                parameter_spec, parameter_name=parameter_name)
-
-            yield (parameter_name, parameter)
-
-    def generate_from_list(self, parameters_list):
-        for parameter_spec in parameters_list:
-            parameter = self.parameter_factory.create(parameter_spec)
-
-            yield (parameter.name, parameter)
-
-    @property
-    @lru_cache()
-    def parameter_factory(self):
-        return ParameterFactory(self.dereferencer, self.schemas_registry)

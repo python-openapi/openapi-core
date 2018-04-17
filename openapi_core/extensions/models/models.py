@@ -1,8 +1,8 @@
-"""OpenAPI core models module"""
+"""OpenAPI X-Model extension models module"""
 
 
 class BaseModel(dict):
-    """Base class for OpenAPI models."""
+    """Base class for OpenAPI X-Model."""
 
     def __getattr__(self, attr_name):
         """Only search through properties if attribute not found normally.
@@ -15,13 +15,3 @@ class BaseModel(dict):
                 'type object {0!r} has no attribute {1!r}'
                 .format(type(self).__name__, attr_name)
             )
-
-
-class ModelFactory(object):
-
-    def create(self, properties, name=None):
-        model = BaseModel
-        if name is not None:
-            model = type(name, (BaseModel, ), {})
-
-        return model(**properties)

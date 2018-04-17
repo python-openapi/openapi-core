@@ -1,30 +1,11 @@
-"""OpenAPI core responses module"""
+"""OpenAPI core responses generators module"""
 from functools import lru_cache
 
 from six import iteritems
 
-from openapi_core.exceptions import InvalidContentType
-from openapi_core.media_types import MediaTypeGenerator
-from openapi_core.parameters import ParametersGenerator
-
-
-class Response(object):
-
-    def __init__(
-            self, http_status, description, headers=None, content=None,
-            links=None):
-        self.http_status = http_status
-        self.description = description
-        self.headers = headers and dict(headers) or {}
-        self.content = content and dict(content) or {}
-        self.links = links and dict(links) or {}
-
-    def __getitem__(self, mimetype):
-        try:
-            return self.content[mimetype]
-        except KeyError:
-            raise InvalidContentType(
-                "Invalid mime type `{0}`".format(mimetype))
+from openapi_core.schema.media_types.generators import MediaTypeGenerator
+from openapi_core.schema.parameters.generators import ParametersGenerator
+from openapi_core.schema.responses.models import Response
 
 
 class ResponsesGenerator(object):

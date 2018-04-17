@@ -2,7 +2,7 @@ import mock
 import pytest
 
 from openapi_core.exceptions import InvalidValueType, InvalidValue
-from openapi_core.schemas import Schema
+from openapi_core.schema.schemas.models import Schema
 
 
 class TestSchemaIteritems(object):

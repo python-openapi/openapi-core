@@ -1,8 +1,5 @@
-class Info(object):
-
-    def __init__(self, title, version):
-        self.title = title
-        self.version = version
+"""OpenAPI core infos factories module"""
+from openapi_core.schema.infos.models import Info
 
 
 class InfoFactory(object):

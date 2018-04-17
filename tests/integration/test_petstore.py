@@ -7,14 +7,14 @@ from openapi_core.exceptions import (
     UndefinedSchemaProperty, MissingProperty,
     EmptyValue, InvalidMediaTypeValue, InvalidParameterValue,
 )
-from openapi_core.media_types import MediaType
-from openapi_core.operations import Operation
-from openapi_core.parameters import Parameter
-from openapi_core.paths import Path
-from openapi_core.request_bodies import RequestBody
-from openapi_core.responses import Response
-from openapi_core.schemas import Schema
-from openapi_core.servers import Server, ServerVariable
+from openapi_core.schema.media_types.models import MediaType
+from openapi_core.schema.operations.models import Operation
+from openapi_core.schema.parameters.models import Parameter
+from openapi_core.schema.paths.models import Path
+from openapi_core.schema.request_bodies.models import RequestBody
+from openapi_core.schema.responses.models import Response
+from openapi_core.schema.schemas.models import Schema
+from openapi_core.schema.servers.models import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
 from openapi_core.validators import RequestValidator, ResponseValidator
 from openapi_core.wrappers import MockRequest, MockResponse

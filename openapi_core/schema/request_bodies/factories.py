@@ -1,23 +1,8 @@
-"""OpenAPI core requestBodies module"""
+"""OpenAPI core request bodies factories module"""
 from functools import lru_cache
 
-from openapi_core.exceptions import InvalidContentType
-from openapi_core.media_types import MediaTypeGenerator
-
-
-class RequestBody(object):
-    """Represents an OpenAPI RequestBody."""
-
-    def __init__(self, content, required=False):
-        self.content = dict(content)
-        self.required = required
-
-    def __getitem__(self, mimetype):
-        try:
-            return self.content[mimetype]
-        except KeyError:
-            raise InvalidContentType(
-                "Invalid mime type `{0}`".format(mimetype))
+from openapi_core.schema.media_types.generators import MediaTypeGenerator
+from openapi_core.schema.request_bodies.models import RequestBody
 
 
 class RequestBodyFactory(object):

@@ -1,8 +1,8 @@
 import pytest
 
-from openapi_core.enums import ParameterStyle
 from openapi_core.exceptions import EmptyValue
-from openapi_core.parameters import Parameter
+from openapi_core.schema.parameters.enums import ParameterStyle
+from openapi_core.schema.parameters.models import Parameter
 
 
 class TestParameterInit(object):
