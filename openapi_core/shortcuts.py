@@ -5,7 +5,8 @@ from openapi_spec_validator import default_handlers
 
 from openapi_core.exceptions import OpenAPIParameterError, OpenAPIBodyError
 from openapi_core.schema.specs.factories import SpecFactory
-from openapi_core.validators import RequestValidator, ResponseValidator
+from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.response.validators import ResponseValidator
 
 
 def create_spec(spec_dict, spec_url=''):

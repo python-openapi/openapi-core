@@ -7,7 +7,8 @@ from openapi_core.exceptions import (
     InvalidValue,
 )
 from openapi_core.shortcuts import create_spec
-from openapi_core.validators import RequestValidator, ResponseValidator
+from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.response.validators import ResponseValidator
 from openapi_core.wrappers import MockRequest, MockResponse
 
 
