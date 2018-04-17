@@ -1,7 +1,7 @@
 """OpenAPI core wrappers module"""
 import warnings
 
-from six.moves.urllib.parse import urljoin, urlparse
+from six.moves.urllib.parse import urljoin, urlparse, parse_qsl
 from werkzeug.datastructures import ImmutableMultiDict
 
 
@@ -131,8 +131,8 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
     @property
     def parameters(self):
         return {
-            'path': [],
-            'query': [],
+            'path': self.url.path,
+            'query': ImmutableMultiDict(parse_qsl(self.url.query)),
             'headers': self.request.headers,
             'cookies': self.request.cookies,
         }
