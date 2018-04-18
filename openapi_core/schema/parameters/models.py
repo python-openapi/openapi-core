@@ -2,7 +2,9 @@
 import logging
 import warnings
 
-from openapi_core.schema.parameters.enums import ParameterLocation, ParameterStyle
+from openapi_core.schema.parameters.enums import (
+    ParameterLocation, ParameterStyle,
+)
 from openapi_core.schema.parameters.exceptions import (
     MissingRequiredParameter, MissingParameter, InvalidParameterValue,
     EmptyParameterValue,
@@ -83,7 +85,7 @@ class Parameter(object):
             if not self.schema or self.schema.default is None:
                 raise MissingParameter(
                     "Missing `{0}` parameter".format(self.name))
-            
+
             raw = self.schema.default
 
         if self.aslist and self.explode:
