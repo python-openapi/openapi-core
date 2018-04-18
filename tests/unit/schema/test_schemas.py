@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from openapi_core.exceptions import InvalidValueType, InvalidValue
+from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
 from openapi_core.schema.schemas.models import Schema
 
 
@@ -44,7 +44,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string')
         value = None
 
-        with pytest.raises(InvalidValueType):
+        with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
 
     def test_string_default(self):
@@ -52,7 +52,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', default=default_value)
         value = None
 
-        with pytest.raises(InvalidValueType):
+        with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
 
     def test_string_default_nullable(self):
@@ -76,7 +76,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer', enum=[1, 2, 3])
         value = '123'
 
-        with pytest.raises(InvalidValue):
+        with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
 
     def test_integer_enum(self):
@@ -92,7 +92,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer', default=default_value)
         value = None
 
-        with pytest.raises(InvalidValueType):
+        with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
 
     def test_integer_default_nullable(self):
@@ -108,5 +108,5 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer')
         value = 'abc'
 
-        with pytest.raises(InvalidValueType):
+        with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)

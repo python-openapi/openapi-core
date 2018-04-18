@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from openapi_core.exceptions import InvalidOperation
+from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.paths.models import Path
 from openapi_core.schema.specs.models import Spec
 

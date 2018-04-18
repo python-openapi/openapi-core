@@ -1,5 +1,7 @@
 """OpenAPI core request bodies models module"""
-from openapi_core.exceptions import InvalidContentType
+
+from openapi_core.schema.media_types.exceptions import InvalidContentType
+from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 
 
 class RequestBody(object):
@@ -15,3 +17,9 @@ class RequestBody(object):
         except KeyError:
             raise InvalidContentType(
                 "Invalid mime type `{0}`".format(mimetype))
+
+    def get_value(self, request):
+        if not request.body and self.required:
+            raise MissingRequestBody("Missing required request body")
+
+        return request.body

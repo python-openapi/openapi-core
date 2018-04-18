@@ -5,11 +5,11 @@ import warnings
 
 from six import iteritems
 
-from openapi_core.exceptions import (
-    InvalidValueType, UndefinedSchemaProperty, MissingProperty, InvalidValue,
-)
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
+from openapi_core.schema.schemas.exceptions import (
+    InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
+)
 from openapi_core.schema.schemas.util import forcebool
 
 log = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ class Schema(object):
         """Cast value to schema type"""
         if value is None:
             if not self.nullable:
-                raise InvalidValueType("Null value for non-nullable schema")
+                raise InvalidSchemaValue("Null value for non-nullable schema")
             return self.default
 
         if self.type is None:
@@ -89,7 +89,7 @@ class Schema(object):
         try:
             return cast_callable(value)
         except ValueError:
-            raise InvalidValueType(
+            raise InvalidSchemaValue(
                 "Failed to cast value of {0} to {1}".format(value, self.type)
             )
 
@@ -104,7 +104,7 @@ class Schema(object):
             return None
 
         if self.enum and casted not in self.enum:
-            raise InvalidValue(
+            raise InvalidSchemaValue(
                 "Value of {0} not in enum choices: {1}".format(
                     value, self.enum)
             )
@@ -116,7 +116,8 @@ class Schema(object):
 
     def _unmarshal_object(self, value):
         if not isinstance(value, (dict, )):
-            raise InvalidValueType("Value of {0} not an object".format(value))
+            raise InvalidSchemaValue(
+                "Value of {0} not an object".format(value))
 
         all_properties = self.get_all_properties()
         all_required_properties = self.get_all_required_properties()
@@ -135,7 +136,7 @@ class Schema(object):
                 prop_value = value[prop_name]
             except KeyError:
                 if prop_name in all_required_properties:
-                    raise MissingProperty(
+                    raise MissingSchemaProperty(
                         "Missing schema property {0}".format(prop_name))
                 if not prop.nullable and not prop.default:
                     continue

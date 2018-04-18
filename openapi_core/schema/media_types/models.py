@@ -2,9 +2,9 @@
 from collections import defaultdict
 
 from json import loads
-from six import iteritems
 
-from openapi_core.exceptions import InvalidValueType, InvalidMediaTypeValue
+from openapi_core.schema.media_types.exceptions import InvalidMediaTypeValue
+from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
 
 
 MEDIA_TYPE_DESERIALIZERS = {
@@ -42,5 +42,5 @@ class MediaType(object):
 
         try:
             return self.schema.unmarshal(deserialized)
-        except InvalidValueType as exc:
+        except InvalidSchemaValue as exc:
             raise InvalidMediaTypeValue(str(exc))

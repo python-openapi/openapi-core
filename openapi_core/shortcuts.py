@@ -3,7 +3,12 @@ from jsonschema.validators import RefResolver
 from openapi_spec_validator.validators import Dereferencer
 from openapi_spec_validator import default_handlers
 
-from openapi_core.exceptions import OpenAPIParameterError, OpenAPIBodyError
+from openapi_core.schema.media_types.exceptions import OpenAPIMediaTypeError
+from openapi_core.schema.parameters.exceptions import OpenAPIParameterError
+from openapi_core.schema.request_bodies.exceptions import (
+    OpenAPIRequestBodyError,
+)
+from openapi_core.schema.schemas.exceptions import OpenAPISchemaError
 from openapi_core.schema.specs.factories import SpecFactory
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -26,7 +31,10 @@ def validate_parameters(spec, request, wrapper_class=None):
 
     try:
         result.raise_for_errors()
-    except OpenAPIBodyError:
+    except (
+            OpenAPIRequestBodyError, OpenAPIMediaTypeError,
+            OpenAPISchemaError,
+    ):
         return result.parameters
     else:
         return result.parameters

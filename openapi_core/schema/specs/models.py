@@ -3,7 +3,8 @@
 import logging
 from functools import partialmethod
 
-from openapi_core.exceptions import InvalidOperation, InvalidServer
+from openapi_core.schema.operations.exceptions import InvalidOperation
+from openapi_core.schema.servers.exceptions import InvalidServer
 
 
 log = logging.getLogger(__name__)

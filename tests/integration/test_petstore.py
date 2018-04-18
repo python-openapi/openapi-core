@@ -2,18 +2,23 @@ import json
 import pytest
 from six import iteritems
 
-from openapi_core.exceptions import (
-    MissingParameter, InvalidContentType, InvalidServer,
-    UndefinedSchemaProperty, MissingProperty,
-    EmptyValue, InvalidMediaTypeValue, InvalidParameterValue,
+from openapi_core.schema.media_types.exceptions import (
+    InvalidContentType, InvalidMediaTypeValue,
 )
 from openapi_core.schema.media_types.models import MediaType
 from openapi_core.schema.operations.models import Operation
+from openapi_core.schema.parameters.exceptions import (
+    MissingRequiredParameter, InvalidParameterValue, EmptyParameterValue,
+)
 from openapi_core.schema.parameters.models import Parameter
 from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
+from openapi_core.schema.schemas.exceptions import (
+    UndefinedSchemaProperty, MissingSchemaProperty,
+)
 from openapi_core.schema.schemas.models import Schema
+from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.schema.servers.models import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.validators import RequestValidator
@@ -313,7 +318,7 @@ class TestPetstore(object):
             path_pattern=path_pattern,
         )
 
-        with pytest.raises(MissingParameter):
+        with pytest.raises(MissingRequiredParameter):
             request.get_parameters(spec)
 
         body = request.get_body(spec)
@@ -332,7 +337,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(EmptyValue):
+        with pytest.raises(EmptyParameterValue):
             request.get_parameters(spec)
         body = request.get_body(spec)
 
@@ -465,7 +470,7 @@ class TestPetstore(object):
 
         assert parameters == {}
 
-        with pytest.raises(MissingProperty):
+        with pytest.raises(MissingSchemaProperty):
             request.get_body(spec)
 
     def test_post_pets_extra_body_properties(self, spec, spec_dict):

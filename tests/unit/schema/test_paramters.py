@@ -1,6 +1,6 @@
 import pytest
 
-from openapi_core.exceptions import EmptyValue
+from openapi_core.schema.parameters.exceptions import EmptyParameterValue
 from openapi_core.schema.parameters.enums import ParameterStyle
 from openapi_core.schema.parameters.models import Parameter
 
@@ -59,7 +59,7 @@ class TestParameterUnmarshal(object):
         param = Parameter('param', 'query')
         value = ''
 
-        with pytest.raises(EmptyValue):
+        with pytest.raises(EmptyParameterValue):
             param.unmarshal(value)
 
     def test_query_allow_empty_value(self):

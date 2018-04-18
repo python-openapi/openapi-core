@@ -1,5 +1,5 @@
 """OpenAPI core validation request models module"""
-from openapi_core.exceptions import OpenAPIMappingError
+from openapi_core.schema.exceptions import OpenAPIMappingError
 
 from openapi_core.validation.models import BaseValidationResult
 

@@ -1,9 +1,8 @@
 """OpenAPI core validation request validators module"""
 from six import iteritems
 
-from openapi_core.exceptions import (
-    OpenAPIMappingError, MissingParameter, MissingBody,
-)
+from openapi_core.schema.exceptions import OpenAPIMappingError
+from openapi_core.schema.parameters.exceptions import MissingParameter
 from openapi_core.validation.request.models import (
     RequestParameters, RequestValidationResult,
 )
@@ -16,16 +15,11 @@ class RequestValidator(object):
         self.spec = spec
 
     def validate(self, request):
-        errors = []
-        body = None
-        parameters = RequestParameters()
-
         try:
             server = self.spec.get_server(request.full_url_pattern)
         # don't process if server errors
         except OpenAPIMappingError as exc:
-            errors.append(exc)
-            return RequestValidationResult(errors, body, parameters)
+            return RequestValidationResult([exc, ], None, None)
 
         operation_pattern = get_operation_pattern(
             server.default_url, request.full_url_pattern
@@ -36,19 +30,26 @@ class RequestValidator(object):
                 operation_pattern, request.method)
         # don't process if operation errors
         except OpenAPIMappingError as exc:
-            errors.append(exc)
-            return RequestValidationResult(errors, body, parameters)
+            return RequestValidationResult([exc, ], None, None)
 
+        params, params_errors = self._get_parameters(request, operation)
+        body, body_errors = self._get_body(request, operation)
+
+        errors = params_errors + body_errors
+        return RequestValidationResult(errors, body, params)
+
+    def _get_parameters(self, request, operation):
+        errors = []
+
+        parameters = RequestParameters()
         for param_name, param in iteritems(operation.parameters):
             try:
-                raw_value = self._get_raw_value(request, param)
-            except MissingParameter as exc:
-                if param.required:
-                    errors.append(exc)
-
-                if not param.schema or param.schema.default is None:
-                    continue
-                raw_value = param.schema.default
+                raw_value = param.get_value(request)
+            except MissingParameter:
+                continue
+            except OpenAPIMappingError as exc:
+                errors.append(exc)
+                continue
 
             try:
                 value = param.unmarshal(raw_value)
@@ -57,41 +58,28 @@ class RequestValidator(object):
             else:
                 parameters[param.location.value][param_name] = value
 
-        if operation.request_body is not None:
+        return parameters, errors
+
+    def _get_body(self, request, operation):
+        errors = []
+
+        if operation.request_body is None:
+            return None, errors
+
+        body = None
+        try:
+            media_type = operation.request_body[request.mimetype]
+        except OpenAPIMappingError as exc:
+            errors.append(exc)
+        else:
             try:
-                media_type = operation.request_body[request.mimetype]
+                raw_body = operation.request_body.get_value(request)
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:
                 try:
-                    raw_body = self._get_raw_body(request)
-                except MissingBody as exc:
-                    if operation.request_body.required:
-                        errors.append(exc)
-                else:
-                    try:
-                        body = media_type.unmarshal(raw_body)
-                    except OpenAPIMappingError as exc:
-                        errors.append(exc)
+                    body = media_type.unmarshal(raw_body)
+                except OpenAPIMappingError as exc:
+                    errors.append(exc)
 
-        return RequestValidationResult(errors, body, parameters)
-
-    def _get_raw_value(self, request, param):
-        location = request.parameters[param.location.value]
-
-        try:
-            raw = location[param.name]
-        except KeyError:
-            raise MissingParameter(
-                "Missing required `{0}` parameter".format(param.name))
-
-        if param.aslist and param.explode:
-            return location.getlist(param.name)
-
-        return raw
-
-    def _get_raw_body(self, request):
-        if not request.body:
-            raise MissingBody("Missing required request body")
-
-        return request.body
+        return body, errors

@@ -2,11 +2,13 @@
 import logging
 import warnings
 
-from openapi_core.exceptions import (
-    EmptyValue, InvalidValueType, InvalidParameterValue,
-)
 from openapi_core.schema.parameters.enums import ParameterLocation, ParameterStyle
+from openapi_core.schema.parameters.exceptions import (
+    MissingRequiredParameter, MissingParameter, InvalidParameterValue,
+    EmptyParameterValue,
+)
 from openapi_core.schema.schemas.enums import SchemaType
+from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
 
 log = logging.getLogger(__name__)
 
@@ -68,6 +70,27 @@ class Parameter(object):
         deserializer = self.get_dererializer()
         return deserializer(value)
 
+    def get_value(self, request):
+        location = request.parameters[self.location.value]
+
+        try:
+            raw = location[self.name]
+        except KeyError:
+            if self.required:
+                raise MissingRequiredParameter(
+                    "Missing required `{0}` parameter".format(self.name))
+
+            if not self.schema or self.schema.default is None:
+                raise MissingParameter(
+                    "Missing `{0}` parameter".format(self.name))
+            
+            raw = self.schema.default
+
+        if self.aslist and self.explode:
+            return location.getlist(self.name)
+
+        return raw
+
     def unmarshal(self, value):
         if self.deprecated:
             warnings.warn(
@@ -77,7 +100,7 @@ class Parameter(object):
 
         if (self.location == ParameterLocation.QUERY and value == "" and
                 not self.allow_empty_value):
-            raise EmptyValue(
+            raise EmptyParameterValue(
                 "Value of {0} parameter cannot be empty".format(self.name))
 
         if not self.schema:
@@ -87,5 +110,5 @@ class Parameter(object):
 
         try:
             return self.schema.unmarshal(deserialized)
-        except InvalidValueType as exc:
+        except InvalidSchemaValue as exc:
             raise InvalidParameterValue(str(exc))

@@ -1,7 +1,5 @@
 """OpenAPI core validation response validators module"""
-from openapi_core.exceptions import (
-    OpenAPIMappingError, MissingBody, InvalidResponse,
-)
+from openapi_core.schema.exceptions import OpenAPIMappingError
 from openapi_core.validation.response.models import ResponseValidationResult
 from openapi_core.validation.util import get_operation_pattern
 
@@ -12,16 +10,11 @@ class ResponseValidator(object):
         self.spec = spec
 
     def validate(self, request, response):
-        errors = []
-        data = None
-        headers = {}
-
         try:
             server = self.spec.get_server(request.full_url_pattern)
         # don't process if server errors
         except OpenAPIMappingError as exc:
-            errors.append(exc)
-            return ResponseValidationResult(errors, data, headers)
+            return ResponseValidationResult([exc, ], None, None)
 
         operation_pattern = get_operation_pattern(
             server.default_url, request.full_url_pattern
@@ -32,37 +25,51 @@ class ResponseValidator(object):
                 operation_pattern, request.method)
         # don't process if operation errors
         except OpenAPIMappingError as exc:
-            errors.append(exc)
-            return ResponseValidationResult(errors, data, headers)
+            return ResponseValidationResult([exc, ], None, None)
 
         try:
             operation_response = operation.get_response(
                 str(response.status_code))
-        # don't process if invalid response status code
-        except InvalidResponse as exc:
-            errors.append(exc)
-            return ResponseValidationResult(errors, data, headers)
+        # don't process if operation response errors
+        except OpenAPIMappingError as exc:
+            return ResponseValidationResult([exc, ], None, None)
 
-        if operation_response.content:
+        data, data_errors = self._get_data(response, operation_response)
+
+        headers, headers_errors = self._get_headers(
+            response, operation_response)
+
+        errors = data_errors + headers_errors
+        return ResponseValidationResult(errors, data, headers)
+
+    def _get_data(self, response, operation_response):
+        errors = []
+
+        if not operation_response.content:
+            return None, errors
+
+        data = None
+        try:
+            media_type = operation_response[response.mimetype]
+        except OpenAPIMappingError as exc:
+            errors.append(exc)
+        else:
             try:
-                media_type = operation_response[response.mimetype]
+                raw_data = operation_response.get_value(response)
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:
                 try:
-                    raw_data = self._get_raw_data(response)
-                except MissingBody as exc:
+                    data = media_type.unmarshal(raw_data)
+                except OpenAPIMappingError as exc:
                     errors.append(exc)
-                else:
-                    try:
-                        data = media_type.unmarshal(raw_data)
-                    except OpenAPIMappingError as exc:
-                        errors.append(exc)
 
-        return ResponseValidationResult(errors, data, headers)
+        return data, errors
 
-    def _get_raw_data(self, response):
-        if not response.data:
-            raise MissingBody("Missing required response data")
+    def _get_headers(self, response, operation_response):
+        errors = []
 
-        return response.data
+        # @todo: implement
+        headers = {}
+
+        return headers, errors

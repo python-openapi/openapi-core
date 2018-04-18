@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """OpenAPI core operations models module"""
-from openapi_core.exceptions import InvalidResponse
+from openapi_core.schema.responses.exceptions import InvalidResponse
 
 
 class Operation(object):
@@ -21,6 +21,7 @@ class Operation(object):
         return self.parameters[name]
 
     def get_response(self, http_status='default'):
+        # @todo: move to Responses object
         try:
             return self.responses[http_status]
         except KeyError:
