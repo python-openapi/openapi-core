@@ -655,3 +655,27 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert response_result.data == data_json
+
+    def test_get_tags(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+
+        request = MockRequest(
+            host_url, 'GET', '/tags',
+            path_pattern=path_pattern,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {}
+        assert body is None
+
+        data_json = []
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data_json

@@ -4,6 +4,7 @@ import pytest
 from openapi_core.exceptions import (
     InvalidServer, InvalidOperation, MissingParameter,
     MissingBody, InvalidContentType, InvalidResponse, InvalidMediaTypeValue,
+    InvalidValue,
 )
 from openapi_core.shortcuts import create_spec
 from openapi_core.validators import RequestValidator, ResponseValidator
@@ -236,6 +237,26 @@ class TestResponseValidator(object):
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidMediaTypeValue
+        assert result.data is None
+        assert result.headers == {}
+
+    def test_invalid_value(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1/tags')
+        response_json = {
+            'data': [
+                {
+                    'id': 1,
+                    'name': 'Sparky'
+                },
+            ],
+        }
+        response_data = json.dumps(response_json)
+        response = MockResponse(response_data)
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidValue
         assert result.data is None
         assert result.headers == {}
 
