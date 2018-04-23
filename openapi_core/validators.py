@@ -205,7 +205,7 @@ class ResponseValidator(object):
         return ResponseValidationResult(errors, data, headers)
 
     def _get_raw_data(self, response):
-        if not response.data:
+        if not response.data and type(response.data) != list:
             raise MissingBody("Missing required response data")
 
         return response.data
