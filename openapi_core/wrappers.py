@@ -140,7 +140,7 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def host_url(self):
-        return re.match(self._server_pattern, self.response.url)[0]
+        return re.match(self._server_pattern, self.response.url).group(0)
 
     @property
     def path(self):
@@ -164,7 +164,7 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
         groups = re.match(self._regex_pattern, self.path).groups()
         # Get the names of path parameters
         names = [fname[1] for fname in Formatter()
-            .parse(self.path_pattern) if fname]
+                 .parse(self.path_pattern) if fname]
         return {name: group for name, group in zip(names, groups)}
 
     @property

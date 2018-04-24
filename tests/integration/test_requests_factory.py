@@ -148,7 +148,9 @@ def pets_mock_post():
         return response
 
 
-def test_mock_get_request_converts_correctly(requests_factory, pets_path_mock_get):
+def test_mock_get_request_converts_correctly(
+        requests_factory,
+        pets_path_mock_get):
     """
     Verifies that a GET request is correctly converted.
 
@@ -182,7 +184,9 @@ def test_mock_get_request_converts_correctly(requests_factory, pets_path_mock_ge
     assert response.mimetype == 'application/json'
 
 
-def test_mock_post_request_converts_correctly(requests_factory, pets_mock_post):
+def test_mock_post_request_converts_correctly(
+        requests_factory,
+        pets_mock_post):
     """
     Verifies that a POST request is correctly converted.
 

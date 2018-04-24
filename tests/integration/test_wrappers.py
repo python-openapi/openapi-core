@@ -1,14 +1,10 @@
 import pytest
-from requests.models import Request, Response
 from flask.wrappers import Request, Response
 from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
 from werkzeug.routing import Map, Rule, Subdomain
 from werkzeug.test import create_environ
 
-from openapi_core.wrappers import FlaskOpenAPIRequest, \
-    FlaskOpenAPIResponse, \
-    RequestsOpenAPIRequest, \
-    RequestsOpenAPIResponse
+from openapi_core.wrappers import FlaskOpenAPIRequest, FlaskOpenAPIResponse
 
 
 class TestFlaskOpenAPIRequest(object):
