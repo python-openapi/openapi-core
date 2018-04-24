@@ -139,11 +139,11 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def body(self):
-        return ''
+        return self.request.data
 
     @property
     def mimetype(self):
-        return ''
+        return self.request.headers.get('content-type')
 
 
 class BaseOpenAPIResponse(object):
