@@ -59,23 +59,39 @@ def server_requests_factory(server_spec):
     return RequestsFactory(server_spec)
 
 
-@pytest.fixture(scope='session')
-def pets_path_mock_get():
-    mock_resp = {
+@pytest.fixture('session')
+def pets_get_response_body():
+    return {
         "data": {
             "id": 12345,
             "name": "Sparky",
             "tag": "dogs",
             "address": {"street": "1234 Someplace",
                         "city": "Atlanta"},
-            "position": 1
-
+            "position": 1,
+            "healthy": True
         }
     }
+
+
+@pytest.fixture('session')
+def pets_post_body():
+    return {
+        "tag": "dogs",
+        "name": "Sparky",
+        "address": {"street": "1234 Someplace",
+                    "city": "Atlanta"},
+        "position": 1,
+        "healthy": True
+    }
+
+
+@pytest.fixture(scope='session')
+def pets_path_mock_get(pets_get_response_body):
     with requests_mock.mock() as m:
         url = 'http://petstore.swagger.io/v1/pets/12345?page=3'
         m.get(url,
-              text=json.dumps(mock_resp),
+              text=json.dumps(pets_get_response_body),
               headers={'Authorization': 'Bearer 123456',
                        'Content-Type': 'application/json'},
               cookies={}
@@ -87,21 +103,10 @@ def pets_path_mock_get():
 
 
 @pytest.fixture(scope='session')
-def pets_mock_get():
-    mock_resp = {
-        "data": {
-            "id": 12345,
-            "name": "Sparky",
-            "tag": "dogs",
-            "address": {"street": "1234 Someplace",
-                        "city": "Atlanta"},
-            "position": 1
-
-        }
-    }
+def pets_mock_get(pets_get_response_body):
     with requests_mock.mock() as m:
         m.get('http://petstore.swagger.io/v1/pets/12345',
-              text=json.dumps(mock_resp),
+              text=json.dumps(pets_get_response_body),
               headers={'Authorization': 'Bearer 123456',
                        'Content-Type': 'application/json'},
               cookies={}
@@ -113,30 +118,11 @@ def pets_mock_get():
 
 
 @pytest.fixture(scope='session')
-def pets_mock_post():
-    mock_resp = {
-        "data": {
-            "id": 12345,
-            "name": "Sparky",
-            "tag": "dogs",
-            "address": {"street": "1234 Someplace",
-                        "city": "Atlanta"},
-            "position": 1,
-            "healthy": True
-        }
-    }
-    mock_body = {
-        "tag": "dogs",
-        "name": "Sparky",
-        "address": {"street": "1234 Someplace",
-                    "city": "Atlanta"},
-        "position": 1,
-        "healthy": True
-    }
+def pets_mock_post(pets_get_response_body, pets_post_body):
     url = 'http://petstore.swagger.io/v1/pets'
     with requests_mock.mock() as m:
         m.post(url,
-               text=json.dumps(mock_resp),
+               text=json.dumps(pets_get_response_body),
                headers={'Authorization': 'Bearer 123456',
                         'Content-Type': 'application/json'},
                cookies={}
@@ -144,13 +130,14 @@ def pets_mock_post():
         response = requests.post(url=url,
                                  headers={'Authorization': 'Bearer 123456',
                                           'Accept': 'application/json'},
-                                 data=json.dumps(mock_body))
+                                 data=json.dumps(pets_post_body))
         return response
 
 
 def test_mock_get_request_converts_correctly(
         requests_factory,
-        pets_path_mock_get):
+        pets_path_mock_get,
+        pets_get_response_body):
     """
     Verifies that a GET request is correctly converted.
 
@@ -173,20 +160,16 @@ def test_mock_get_request_converts_correctly(
     assert request.mimetype == 'application/json'
 
     response = requests_factory.create_response(pets_path_mock_get)
-    assert response.data == '{"data": {"id": 12345, ' \
-                            '"name": "Sparky", ' \
-                            '"tag": "dogs", ' \
-                            '"address": {' \
-                            '"street": "1234 Someplace", ' \
-                            '"city": "Atlanta"}, ' \
-                            '"position": 1}}'
+    assert json.loads(response.data) == pets_get_response_body
     assert response.status_code == 200
     assert response.mimetype == 'application/json'
 
 
 def test_mock_post_request_converts_correctly(
         requests_factory,
-        pets_mock_post):
+        pets_mock_post,
+        pets_post_body,
+        pets_get_response_body):
     """
     Verifies that a POST request is correctly converted.
 
@@ -203,25 +186,11 @@ def test_mock_post_request_converts_correctly(
     assert request.path_pattern == "/pets"
     assert request.parameters['headers']['Authorization'] == 'Bearer 123456'
     assert not request.parameters['cookies']
-    assert request.body == '{"tag": "dogs", ' \
-                           '"name": "Sparky", ' \
-                           '"address": {' \
-                           '"street": "1234 Someplace", ' \
-                           '"city": "Atlanta"}, ' \
-                           '"position": 1, ' \
-                           '"healthy": true}'
+    assert json.loads(request.body) == pets_post_body
     assert request.mimetype == 'application/json'
 
     response = requests_factory.create_response(pets_mock_post)
-    assert response.data == '{"data": {' \
-                            '"id": 12345, ' \
-                            '"name": "Sparky", ' \
-                            '"tag": "dogs", ' \
-                            '"address": {' \
-                            '"street": "1234 Someplace", ' \
-                            '"city": "Atlanta"}, ' \
-                            '"position": 1, ' \
-                            '"healthy": true}}'
+    assert json.loads(response.data) == pets_get_response_body
     assert response.status_code == 200
     assert response.mimetype == 'application/json'
 
