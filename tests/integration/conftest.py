@@ -1,5 +1,4 @@
 from os import path
-
 import pytest
 from six.moves.urllib import request
 from yaml import safe_load

@@ -1,0 +1,21 @@
+openapi: "3.0.0"
+info:
+  title: Minimal valid OpenAPI specification with explicit 'servers' array
+  version: "0.1"
+servers:
+  - url: https://{customerId}.saas-app.com:{port}/v2
+    variables:
+      customerId:
+        default: demo
+        description: Customer ID assigned by the service provider
+      port:
+        enum:
+          - '443'
+          - '8443'
+        default: '443'
+paths:
+  /status:
+    get:
+      responses:
+        default:
+          description: Return the API status.
