@@ -6,7 +6,6 @@ import warnings
 from distutils.util import strtobool
 from functools import lru_cache
 
-from json import loads
 from six import iteritems
 
 from openapi_core.enums import SchemaType, SchemaFormat
@@ -126,8 +125,8 @@ class Schema(object):
         return list(map(self.items.unmarshal, value))
 
     def _unmarshal_object(self, value):
-        if isinstance(value, (str, bytes)):
-            value = loads(value)
+        if not isinstance(value, (dict, )):
+            raise InvalidValueType("Value of {0} not an object".format(value))
 
         all_properties = self.get_all_properties()
         all_required_properties = self.get_all_required_properties()

@@ -114,6 +114,21 @@ paths:
                 $ref: "#/components/schemas/PetData"
         default:
           $ref: "#/components/responses/ErrorResponse"
+  /tags:
+    get:
+      summary: List all tags
+      operationId: listTags
+      tags:
+        - tags
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagList"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
 components:
   schemas:
     Address:
@@ -192,6 +207,10 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/Pet"
+    TagList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Tag"
     Error:
       type: object
       required:
