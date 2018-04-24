@@ -81,6 +81,12 @@ paths:
             schema:
               $ref: '#/components/schemas/PetCreate'
       responses:
+        '200':
+          description: Pet Created Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PetData"
         '201':
           description: Null response
         default:
@@ -213,3 +219,5 @@ components:
           application/json:
             schema:
               $ref: "#/components/schemas/ExtendedError"
+
+

@@ -112,26 +112,26 @@ class FlaskOpenAPIRequest(BaseOpenAPIRequest):
 
 class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
-    def __init__(self, request, path_pattern, regex_pattern, server_pattern):
+    def __init__(self, response, path_pattern, regex_pattern, server_pattern):
         """
 
-        :param request: The Requests Request Object
-        :type request: requests.models.PreparedRequest
+        :param response: The Requests Responce Object
+        :type response: requests.models.Response
         :param path_pattern: The path pattern determined by the factory
         :type path_pattern: str
         :param regex_pattern: The regex pattern that matched the path. Used to extract path params.
         :type regex_pattern: str
         """
-        self.request = request
-        self.url = urlparse(self.request.url)
+        self.response = response
+        self.url = urlparse(self.response.url)
         self._path_pattern = path_pattern
         self._regex_pattern = regex_pattern
         self._server_pattern = server_pattern
         self._parameters = {
             'path': self._extract_path_params(),
-            'query': self.request.qs,
-            'headers': self.request.headers,
-            'cookies': self.request._cookies,
+            'query': self.response.request.qs,
+            'headers': self.response.request.headers,
+            'cookies': self.response.cookies,
         }
 
     @property
@@ -140,7 +140,7 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def host_url(self):
-        return re.match(self._server_pattern, self.request.url)[0]
+        return re.match(self._server_pattern, self.response.url)[0]
 
     @property
     def path(self):
@@ -148,7 +148,7 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def method(self):
-        return self.request.method.lower()
+        return self.response.request.method.lower()
 
     @property
     def path_pattern(self):
@@ -167,11 +167,11 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def body(self):
-        return self.request.text
+        return self.response.request.text
 
     @property
     def mimetype(self):
-        return self.request.headers.get('Accept')
+        return self.response.request.headers.get('Accept') or self.response.headers.get('Content-Type')
 
 
 class BaseOpenAPIResponse(object):
@@ -202,7 +202,7 @@ class FlaskOpenAPIResponse(BaseOpenAPIResponse):
 
     @property
     def status_code(self):
-        return self.response._status_code
+        return self.response.status_code
 
     @property
     def mimetype(self):
@@ -270,30 +270,25 @@ class RequestsFactory(object):
                 return expr
         return None
 
-    def create_request(self, request):
+    def create_request(self, response):
         """
         Creates an OpenApi compatible request out of the raw requests request
 
         :param request: requests.models.Request
         :return: RequestsOpenApiRequest
         """
-        url = request.url
-        server_pattern = self._match_server(request.url)
-        path = re.sub(server_pattern, '', request.url)
+        url = response.url
+        server_pattern = self._match_server(response.url)
+        path = re.sub(server_pattern, '', response.url)
         pattern = self._match_operation(path)
-        request = RequestsOpenAPIRequest(request, self.paths_regex[pattern], pattern, server_pattern)
-        return request
+        response = RequestsOpenAPIRequest(response, self.paths_regex[pattern], pattern, server_pattern)
+        return response
 
     def create_response(self, response):
         """
 
         :param request:
-        :type request: requests.models.Request
+        :type request: requests.models.PreparedRequest
         :return: RequestsOpenAPIResponse
         """
         return RequestsOpenAPIResponse(response)
-
-    def create_validation_pair(self, request):
-        return None, None
-
-
