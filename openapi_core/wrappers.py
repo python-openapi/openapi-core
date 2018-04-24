@@ -119,7 +119,7 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
         :type response: requests.models.Response
         :param path_pattern: The path pattern determined by the factory
         :type path_pattern: str
-        :param regex_pattern: The regex pattern that matched the path. Used to extract path params.
+        :param regex_pattern: Used to extract path params.
         :type regex_pattern: str
         """
         self.response = response
@@ -144,7 +144,8 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def path(self):
-        return re.sub(self._server_pattern, '', urljoin(self.host_url, self.url.path))
+        return re.sub(self._server_pattern, '', urljoin(self.host_url,
+                                                        self.url.path))
 
     @property
     def method(self):
@@ -162,7 +163,8 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
         # Get the values of the path parameters
         groups = re.match(self._regex_pattern, self.path).groups()
         # Get the names of path parameters
-        names = [fname[1] for fname in Formatter().parse(self.path_pattern) if fname]
+        names = [fname[1] for fname in Formatter()
+            .parse(self.path_pattern) if fname]
         return {name: group for name, group in zip(names, groups)}
 
     @property
@@ -171,7 +173,8 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def mimetype(self):
-        return self.response.request.headers.get('Accept') or self.response.headers.get('Content-Type')
+        return self.response.request.headers.get('Accept') or\
+               self.response.headers.get('Content-Type')
 
 
 class BaseOpenAPIResponse(object):
@@ -232,7 +235,8 @@ class RequestsFactory(object):
 
     def __init__(self, spec):
         """
-        Creates the request factory. A spec is required for path_pattern parsing.
+        Creates the request factory. A spec is required.
+
         :param spec: The openapi spec to use for decoding the request
         :type spec: openapi_core.specs.Spec
         """
@@ -245,7 +249,8 @@ class RequestsFactory(object):
             var_map = {}
             for var in server.variables:
                 if server.variables[var].enum:
-                    var_map[var] = "(" + "|".join(server.variables[var].enum) + ")"
+                    var_map[var] = "(" +\
+                                   "|".join(server.variables[var].enum) + ")"
                 else:
                     var_map[var] = "(.*)"
             server_regex.append(server.url.format_map(var_map))
@@ -277,11 +282,11 @@ class RequestsFactory(object):
         :param request: requests.models.Request
         :return: RequestsOpenApiRequest
         """
-        url = response.url
         server_pattern = self._match_server(response.url)
         path = re.sub(server_pattern, '', response.url)
         pattern = self._match_operation(path)
-        response = RequestsOpenAPIRequest(response, self.paths_regex[pattern], pattern, server_pattern)
+        response = RequestsOpenAPIRequest(
+            response, self.paths_regex[pattern], pattern, server_pattern)
         return response
 
     def create_response(self, response):

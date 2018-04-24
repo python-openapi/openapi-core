@@ -18,7 +18,9 @@ def create_mock_session():
 
 @pytest.fixture(scope='session')
 def server_spec(factory):
-    server_spec_dict = factory.spec_from_file("data/v3.0/server_path_variations.yaml")
+    server_spec_dict = factory.spec_from_file(
+        "data/v3.0/server_path_variations.yaml"
+    )
     return create_spec(server_spec_dict)
 
 
@@ -172,7 +174,9 @@ def test_mock_get_request_converts_correctly(requests_factory, pets_path_mock_ge
     assert response.data == '{"data": {"id": 12345, ' \
                             '"name": "Sparky", ' \
                             '"tag": "dogs", ' \
-                            '"address": {"street": "1234 Someplace", "city": "Atlanta"}, ' \
+                            '"address": {' \
+                            '"street": "1234 Someplace", ' \
+                            '"city": "Atlanta"}, ' \
                             '"position": 1}}'
     assert response.status_code == 200
     assert response.mimetype == 'application/json'
@@ -197,7 +201,9 @@ def test_mock_post_request_converts_correctly(requests_factory, pets_mock_post):
     assert not request.parameters['cookies']
     assert request.body == '{"tag": "dogs", ' \
                            '"name": "Sparky", ' \
-                           '"address": {"street": "1234 Someplace", "city": "Atlanta"}, ' \
+                           '"address": {' \
+                           '"street": "1234 Someplace", ' \
+                           '"city": "Atlanta"}, ' \
                            '"position": 1, ' \
                            '"healthy": true}'
     assert request.mimetype == 'application/json'
@@ -207,23 +213,33 @@ def test_mock_post_request_converts_correctly(requests_factory, pets_mock_post):
                             '"id": 12345, ' \
                             '"name": "Sparky", ' \
                             '"tag": "dogs", ' \
-                            '"address": {"street": "1234 Someplace", "city": "Atlanta"}, ' \
+                            '"address": {' \
+                            '"street": "1234 Someplace", ' \
+                            '"city": "Atlanta"}, ' \
                             '"position": 1, ' \
                             '"healthy": true}}'
     assert response.status_code == 200
     assert response.mimetype == 'application/json'
 
 
-def test_server_regex_for_server_wildcards(server_requests_factory, server_request_validator):
+def test_server_regex_for_server_wildcards(
+        server_requests_factory,
+        server_request_validator):
     with requests_mock.mock() as m:
         m.get('https://123456.saas-app.com:443/v2/status')
-        response = requests.get(url='https://123456.saas-app.com:443/v2/status')
+        response = requests.get(
+            url='https://123456.saas-app.com:443/v2/status')
         request = server_requests_factory.create_request(response)
-        assert request._server_pattern == 'https://(.*).saas-app.com:(443|8443)/v2'
+        expected_server_pattern = 'https://(.*).saas-app.com:(443|8443)/v2'
+        assert request._server_pattern == expected_server_pattern
         server_request_validator.validate(request)
 
 
-def test_get_validation(requests_factory, request_validator, response_validator, pets_mock_get):
+def test_get_validation(
+        requests_factory,
+        request_validator,
+        response_validator,
+        pets_mock_get):
     """
     Verifies that a GET request is correctly validated.
 
@@ -244,7 +260,10 @@ def test_get_validation(requests_factory, request_validator, response_validator,
     assert not results.errors
 
 
-def test_post_validation(requests_factory, request_validator, response_validator, pets_mock_post):
+def test_post_validation(requests_factory,
+                         request_validator,
+                         response_validator,
+                         pets_mock_post):
     """
     Verifies that a POST request is correctly validated.
 
