@@ -272,10 +272,11 @@ def test_invalid_server(requests_factory, pets_get_response_body):
                            'Content-Type': 'application/json'},
                   cookies={}
                   )
-            response = requests.get(url='http://petstore.swagger.io.derp/v1/pets/12345',
-                                    headers={'Authorization': 'Bearer 123456',
-                                             'Accept': 'application/json'})
-            request = requests_factory.create_request(response)
+            response = requests.get(
+                url='http://petstore.swagger.io.derp/v1/pets/12345',
+                headers={'Authorization': 'Bearer 123456',
+                         'Accept': 'application/json'})
+            requests_factory.create_request(response)
 
 
 def test_invalid_operation(requests_factory, pets_get_response_body):
@@ -292,7 +293,8 @@ def test_invalid_operation(requests_factory, pets_get_response_body):
                            'Content-Type': 'application/json'},
                   cookies={}
                   )
-            response = requests.get(url='http://petstore.swagger.io/v1/petters/12345',
-                                    headers={'Authorization': 'Bearer 123456',
-                                             'Accept': 'application/json'})
-            request = requests_factory.create_request(response)
+            response = requests.get(
+                url='http://petstore.swagger.io/v1/petters/12345',
+                headers={'Authorization': 'Bearer 123456',
+                         'Accept': 'application/json'})
+            requests_factory.create_request(response)
