@@ -7,6 +7,8 @@ from urllib.parse import urlparse
 from six.moves.urllib.parse import urljoin
 from werkzeug.datastructures import ImmutableMultiDict
 
+from openapi_core.exceptions import InvalidServer, InvalidOperation
+
 
 class BaseOpenAPIRequest(object):
 
@@ -283,8 +285,12 @@ class RequestsFactory(object):
         :return: RequestsOpenApiRequest
         """
         server_pattern = self._match_server(response.url)
+        if not server_pattern:
+            raise InvalidServer("Url server not in spec.")
         path = re.sub(server_pattern, '', response.url)
         pattern = self._match_operation(path)
+        if not pattern:
+            raise InvalidOperation("Operation not in spec.")
         response = RequestsOpenAPIRequest(
             response, self.paths_regex[pattern], pattern, server_pattern)
         return response

@@ -7,6 +7,7 @@ import requests_mock
 from openapi_core.wrappers import RequestsFactory
 from openapi_core.shortcuts import create_spec
 from openapi_core.validators import ResponseValidator, RequestValidator
+from openapi_core.exceptions import InvalidServer, InvalidOperation
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -255,3 +256,43 @@ def test_post_validation(requests_factory,
     response = requests_factory.create_response(pets_mock_post)
     results = response_validator.validate(request, response)
     assert not results.errors
+
+
+def test_invalid_server(requests_factory, pets_get_response_body):
+    """
+    Verifies that an invalid server will throw an error
+
+    :param requests_factory:
+    """
+    with pytest.raises(InvalidServer):
+        with requests_mock.mock() as m:
+            m.get('http://petstore.swagger.io.derp/v1/pets/12345',
+                  text=json.dumps(pets_get_response_body),
+                  headers={'Authorization': 'Bearer 123456',
+                           'Content-Type': 'application/json'},
+                  cookies={}
+                  )
+            response = requests.get(url='http://petstore.swagger.io.derp/v1/pets/12345',
+                                    headers={'Authorization': 'Bearer 123456',
+                                             'Accept': 'application/json'})
+            request = requests_factory.create_request(response)
+
+
+def test_invalid_operation(requests_factory, pets_get_response_body):
+    """
+    Verifies that an invalid server will throw an error
+
+    :param requests_factory:
+    """
+    with pytest.raises(InvalidOperation):
+        with requests_mock.mock() as m:
+            m.get('http://petstore.swagger.io/v1/petters/12345',
+                  text=json.dumps(pets_get_response_body),
+                  headers={'Authorization': 'Bearer 123456',
+                           'Content-Type': 'application/json'},
+                  cookies={}
+                  )
+            response = requests.get(url='http://petstore.swagger.io/v1/petters/12345',
+                                    headers={'Authorization': 'Bearer 123456',
+                                             'Accept': 'application/json'})
+            request = requests_factory.create_request(response)
