@@ -131,7 +131,7 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
         self._server_pattern = server_pattern
         self._parameters = {
             'path': self._extract_path_params(),
-            'query': self.response.request.qs,
+            'query': self._extract_query_params(),
             'headers': self.response.request.headers,
             'cookies': self.response.cookies,
         }
@@ -161,6 +161,16 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
     def parameters(self):
         return self._parameters
 
+    def _extract_body(self):
+        if hasattr(self.response.request, 'text'):
+            return self.response.request.text
+        return ''
+
+    def _extract_query_params(self):
+        if hasattr(self.response.request, 'qs'):
+            return self.response.request.qs
+        return {}
+
     def _extract_path_params(self):
         # Get the values of the path parameters
         groups = re.match(self._regex_pattern, self.path).groups()
@@ -171,7 +181,7 @@ class RequestsOpenAPIRequest(BaseOpenAPIRequest):
 
     @property
     def body(self):
-        return self.response.request.text
+        return self._extract_body()
 
     @property
     def mimetype(self):
@@ -221,7 +231,7 @@ class RequestsOpenAPIResponse(BaseOpenAPIResponse):
 
     @property
     def data(self):
-        return self.response.text
+        return self._extract_data()
 
     @property
     def status_code(self):
@@ -230,6 +240,11 @@ class RequestsOpenAPIResponse(BaseOpenAPIResponse):
     @property
     def mimetype(self):
         return self.response.headers.get('Content-Type')
+
+    def _extract_data(self):
+        if hasattr(self.response, 'text'):
+            return self.response.text
+        return ''
 
 
 class RequestsFactory(object):
