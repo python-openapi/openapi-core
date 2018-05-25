@@ -1,14 +1,20 @@
 import json
 import pytest
 
-from openapi_core.exceptions import (
-    InvalidServer, InvalidOperation, MissingParameter,
-    MissingBody, InvalidContentType, InvalidResponse, InvalidMediaTypeValue,
-    InvalidValue,
+from openapi_core.schema.media_types.exceptions import (
+    InvalidContentType, InvalidMediaTypeValue,
 )
+from openapi_core.schema.operations.exceptions import InvalidOperation
+from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
+from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
+from openapi_core.schema.responses.exceptions import (
+    MissingResponseContent, InvalidResponse,
+)
+from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.shortcuts import create_spec
-from openapi_core.validators import RequestValidator, ResponseValidator
-from openapi_core.wrappers import MockRequest, MockResponse
+from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.wrappers.mock import MockRequest, MockResponse
 
 
 class TestRequestValidator(object):
@@ -52,7 +58,7 @@ class TestRequestValidator(object):
 
         result = validator.validate(request)
 
-        assert type(result.errors[0]) == MissingParameter
+        assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
         assert result.parameters == {
             'query': {
@@ -88,7 +94,7 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == MissingBody
+        assert type(result.errors[0]) == MissingRequestBody
         assert result.body is None
         assert result.parameters == {}
 
@@ -183,7 +189,7 @@ class TestResponseValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidServer
         assert result.data is None
-        assert result.headers == {}
+        assert result.headers is None
 
     def test_invalid_operation(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1')
@@ -194,7 +200,7 @@ class TestResponseValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidOperation
         assert result.data is None
-        assert result.headers == {}
+        assert result.headers is None
 
     def test_invalid_response(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
@@ -205,7 +211,7 @@ class TestResponseValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidResponse
         assert result.data is None
-        assert result.headers == {}
+        assert result.headers is None
 
     def test_invalid_content_type(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
@@ -225,7 +231,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == MissingBody
+        assert type(result.errors[0]) == MissingResponseContent
         assert result.data is None
         assert result.headers == {}
 
@@ -256,7 +262,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidValue
+        assert type(result.errors[0]) == InvalidMediaTypeValue
         assert result.data is None
         assert result.headers == {}
 
