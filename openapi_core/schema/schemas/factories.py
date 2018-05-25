@@ -27,6 +27,7 @@ class SchemaFactory(object):
         enum = schema_deref.get('enum', None)
         deprecated = schema_deref.get('deprecated', False)
         all_of_spec = schema_deref.get('allOf', None)
+        one_of_spec = schema_deref.get('oneOf', None)
 
         properties = None
         if properties_spec:
@@ -36,6 +37,10 @@ class SchemaFactory(object):
         if all_of_spec:
             all_of = map(self.create, all_of_spec)
 
+        one_of = []
+        if one_of_spec:
+            one_of = map(self.create, one_of_spec)
+
         items = None
         if items_spec:
             items = self._create_items(items_spec)
@@ -44,7 +49,7 @@ class SchemaFactory(object):
             schema_type=schema_type, model=model, properties=properties,
             items=items, schema_format=schema_format, required=required,
             default=default, nullable=nullable, enum=enum,
-            deprecated=deprecated, all_of=all_of,
+            deprecated=deprecated, all_of=all_of, one_of=one_of,
         )
 
     @property
