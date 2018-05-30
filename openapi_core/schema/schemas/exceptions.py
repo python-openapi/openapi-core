@@ -15,3 +15,11 @@ class UndefinedSchemaProperty(OpenAPISchemaError):
 
 class MissingSchemaProperty(OpenAPISchemaError):
     pass
+
+
+class NoOneOfSchema(OpenAPISchemaError):
+    pass
+
+
+class MultipleOneOfSchema(OpenAPISchemaError):
+    pass

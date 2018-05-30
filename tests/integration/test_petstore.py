@@ -15,7 +15,7 @@ from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
 from openapi_core.schema.schemas.exceptions import (
-    UndefinedSchemaProperty, MissingSchemaProperty,
+    UndefinedSchemaProperty, MissingSchemaProperty, NoOneOfSchema,
 )
 from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.servers.exceptions import InvalidServer
@@ -369,7 +369,7 @@ class TestPetstore(object):
 
         assert body is None
 
-    def test_post_pets(self, spec, spec_dict):
+    def test_post_birds(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
@@ -386,6 +386,9 @@ class TestPetstore(object):
                 'city': pet_city,
             },
             'healthy': pet_healthy,
+            'wings': {
+                'healthy': pet_healthy,
+            }
         }
         data = json.dumps(data_json)
 
@@ -412,7 +415,53 @@ class TestPetstore(object):
         assert body.address.city == pet_city
         assert body.healthy == pet_healthy
 
-    def test_post_pets_boolean_string(self, spec, spec_dict):
+    def test_post_cats(self, spec, spec_dict):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        pet_name = 'Cat'
+        pet_tag = 'cats'
+        pet_street = 'Piekna'
+        pet_city = 'Warsaw'
+        pet_healthy = False
+        data_json = {
+            'name': pet_name,
+            'tag': pet_tag,
+            'position': '2',
+            'address': {
+                'street': pet_street,
+                'city': pet_city,
+            },
+            'healthy': pet_healthy,
+            'ears': {
+                'healthy': pet_healthy,
+            }
+        }
+        data = json.dumps(data_json)
+
+        request = MockRequest(
+            host_url, 'POST', '/pets',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {}
+
+        body = request.get_body(spec)
+
+        schemas = spec_dict['components']['schemas']
+        pet_model = schemas['PetCreate']['x-model']
+        address_model = schemas['Address']['x-model']
+        assert body.__class__.__name__ == pet_model
+        assert body.name == pet_name
+        assert body.tag == pet_tag
+        assert body.position == 2
+        assert body.address.__class__.__name__ == address_model
+        assert body.address.street == pet_street
+        assert body.address.city == pet_city
+        assert body.healthy == pet_healthy
+
+    def test_post_cats_boolean_string(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
@@ -429,6 +478,9 @@ class TestPetstore(object):
                 'city': pet_city,
             },
             'healthy': pet_healthy,
+            'ears': {
+                'healthy': pet_healthy,
+            }
         }
         data = json.dumps(data_json)
 
@@ -455,25 +507,7 @@ class TestPetstore(object):
         assert body.address.city == pet_city
         assert body.healthy is False
 
-    def test_post_pets_empty_body(self, spec, spec_dict):
-        host_url = 'http://petstore.swagger.io/v1'
-        path_pattern = '/v1/pets'
-        data_json = {}
-        data = json.dumps(data_json)
-
-        request = MockRequest(
-            host_url, 'POST', '/pets',
-            path_pattern=path_pattern, data=data,
-        )
-
-        parameters = request.get_parameters(spec)
-
-        assert parameters == {}
-
-        with pytest.raises(MissingSchemaProperty):
-            request.get_body(spec)
-
-    def test_post_pets_extra_body_properties(self, spec, spec_dict):
+    def test_post_no_one_of_schema(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
@@ -493,15 +527,19 @@ class TestPetstore(object):
 
         assert parameters == {}
 
-        with pytest.raises(UndefinedSchemaProperty):
+        with pytest.raises(NoOneOfSchema):
             request.get_body(spec)
 
-    def test_post_pets_only_required_body(self, spec, spec_dict):
+    def test_post_cats_only_required_body(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
+        pet_healthy = True
         data_json = {
             'name': pet_name,
+            'ears': {
+                'healthy': pet_healthy,
+            }
         }
         data = json.dumps(data_json)
 
@@ -522,31 +560,6 @@ class TestPetstore(object):
         assert body.name == pet_name
         assert not hasattr(body, 'tag')
         assert not hasattr(body, 'address')
-
-    def test_get_pets_wrong_body_type(self, spec):
-        host_url = 'http://petstore.swagger.io/v1'
-        path_pattern = '/v1/pets'
-        pet_name = 'Cat'
-        pet_tag = 'cats'
-        pet_address = 'address text'
-        data_json = {
-            'name': pet_name,
-            'tag': pet_tag,
-            'address': pet_address,
-        }
-        data = json.dumps(data_json)
-
-        request = MockRequest(
-            host_url, 'POST', '/pets',
-            path_pattern=path_pattern, data=data,
-        )
-
-        parameters = request.get_parameters(spec)
-
-        assert parameters == {}
-
-        with pytest.raises(InvalidMediaTypeValue):
-            request.get_body(spec)
 
     def test_post_pets_raises_invalid_mimetype(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -685,3 +698,62 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert response_result.data == data_json
+
+    def test_post_tags_extra_body_properties(self, spec, spec_dict):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        pet_name = 'Dog'
+        alias = 'kitty'
+        data_json = {
+            'name': pet_name,
+            'alias': alias,
+        }
+        data = json.dumps(data_json)
+
+        request = MockRequest(
+            host_url, 'POST', '/tags',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {}
+
+        with pytest.raises(UndefinedSchemaProperty):
+            request.get_body(spec)
+
+    def test_post_tags_empty_body(self, spec, spec_dict):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        data_json = {}
+        data = json.dumps(data_json)
+
+        request = MockRequest(
+            host_url, 'POST', '/tags',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {}
+
+        with pytest.raises(MissingSchemaProperty):
+            request.get_body(spec)
+
+    def test_post_tags_wrong_property_type(self, spec):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        tag_name = 123
+        data = json.dumps(tag_name)
+
+        request = MockRequest(
+            host_url, 'POST', '/tags',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {}
+
+        with pytest.raises(InvalidMediaTypeValue):
+            request.get_body(spec)

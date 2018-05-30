@@ -123,6 +123,9 @@ class TestRequestValidator(object):
             'address': {
                 'street': pet_street,
                 'city': pet_city,
+            },
+            'ears': {
+                'healthy': True,
             }
         }
         data = json.dumps(data_json)

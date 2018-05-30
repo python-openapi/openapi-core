@@ -123,6 +123,22 @@ paths:
                 $ref: "#/components/schemas/TagList"
         default:
           $ref: "#/components/responses/ErrorResponse"
+    post:
+      summary: Create new tag
+      operationId: createTag
+      tags:
+        - tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreate'
+      responses:
+        '200':
+          description: Null response
+        default:
+          $ref: "#/components/responses/ErrorResponse"
 components:
   schemas:
     Address:
@@ -163,6 +179,9 @@ components:
       allOf:
         - $ref: "#/components/schemas/PetCreatePartOne"
         - $ref: "#/components/schemas/PetCreatePartTwo"
+      oneOf:
+        - $ref: "#/components/schemas/Cat"
+        - $ref: "#/components/schemas/Bird"
     PetCreatePartOne:
       type: object
       x-model: PetCreatePartOne
@@ -183,6 +202,38 @@ components:
           $ref: "#/components/schemas/Position"
         healthy:
           type: boolean
+    Bird:
+      type: object
+      x-model: Bird
+      required:
+        - wings
+      properties:
+        wings:
+          $ref: "#/components/schemas/Wings"
+    Wings:
+      type: object
+      x-model: Wings
+      required:
+        - healthy
+      properties:
+        healthy:
+          type: boolean
+    Cat:
+      type: object
+      x-model: Cat
+      required:
+        - ears
+      properties:
+        ears:
+          $ref: "#/components/schemas/Ears"
+    Ears:
+      type: object
+      x-model: Ears
+      required:
+        - healthy
+      properties:
+        healthy:
+          type: boolean
     Pets:
       type: array
       items:
@@ -201,6 +252,13 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/Pet"
+    TagCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
     TagList:
       type: array
       items:

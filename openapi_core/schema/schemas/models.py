@@ -9,6 +9,7 @@ from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
+    OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema,
 )
 from openapi_core.schema.schemas.util import forcebool
 
@@ -27,7 +28,7 @@ class Schema(object):
     def __init__(
             self, schema_type=None, model=None, properties=None, items=None,
             schema_format=None, required=None, default=None, nullable=False,
-            enum=None, deprecated=False, all_of=None):
+            enum=None, deprecated=False, all_of=None, one_of=None):
         self.type = schema_type and SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -39,6 +40,10 @@ class Schema(object):
         self.enum = enum
         self.deprecated = deprecated
         self.all_of = all_of and list(all_of) or []
+        self.one_of = one_of and list(one_of) or []
+
+        self._all_required_properties_cache = None
+        self._all_optional_properties_cache = None
 
     def __getitem__(self, name):
         return self.properties[name]
@@ -52,14 +57,35 @@ class Schema(object):
 
         return properties
 
+    def get_all_properties_names(self):
+        all_properties = self.get_all_properties()
+        return set(all_properties.keys())
+
     def get_all_required_properties(self):
+        if self._all_required_properties_cache is None:
+            self._all_required_properties_cache =\
+                self._get_all_required_properties()
+
+        return self._all_required_properties_cache
+
+    def _get_all_required_properties(self):
+        all_properties = self.get_all_properties()
+        required = self.get_all_required_properties_names()
+
+        return dict(
+            (prop_name, val)
+            for prop_name, val in all_properties.items()
+            if prop_name in required
+        )
+
+    def get_all_required_properties_names(self):
         required = self.required.copy()
 
         for subschema in self.all_of:
             subschema_req = subschema.get_all_required_properties()
             required += subschema_req
 
-        return required
+        return set(required)
 
     def get_cast_mapping(self):
         mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
@@ -119,27 +145,58 @@ class Schema(object):
             raise InvalidSchemaValue(
                 "Value of {0} not an object".format(value))
 
-        all_properties = self.get_all_properties()
-        all_required_properties = self.get_all_required_properties()
-        all_properties_keys = all_properties.keys()
-        value_keys = value.keys()
+        if self.one_of:
+            properties = None
+            for one_of_schema in self.one_of:
+                try:
+                    found_props = self._unmarshal_properties(
+                        value, one_of_schema)
+                except OpenAPISchemaError:
+                    pass
+                else:
+                    if properties is not None:
+                        raise MultipleOneOfSchema(
+                            "Exactly one schema should be valid,"
+                            "multiple found")
+                    properties = found_props
 
-        extra_props = set(value_keys) - set(all_properties_keys)
+            if properties is None:
+                raise NoOneOfSchema(
+                    "Exactly one valid schema should be valid, None found.")
 
+        else:
+            properties = self._unmarshal_properties(value)
+
+        return ModelFactory().create(properties, name=self.model)
+
+    def _unmarshal_properties(self, value, one_of_schema=None):
+        all_props = self.get_all_properties()
+        all_props_names = self.get_all_properties_names()
+        all_req_props_names = self.get_all_required_properties_names()
+
+        if one_of_schema is not None:
+            all_props.update(one_of_schema.get_all_properties())
+            all_props_names |= one_of_schema.\
+                get_all_properties_names()
+            all_req_props_names |= one_of_schema.\
+                get_all_required_properties_names()
+
+        value_props_names = value.keys()
+        extra_props = set(value_props_names) - set(all_props_names)
         if extra_props:
             raise UndefinedSchemaProperty(
                 "Undefined properties in schema: {0}".format(extra_props))
 
         properties = {}
-        for prop_name, prop in iteritems(all_properties):
+        for prop_name, prop in iteritems(all_props):
             try:
                 prop_value = value[prop_name]
             except KeyError:
-                if prop_name in all_required_properties:
+                if prop_name in all_req_props_names:
                     raise MissingSchemaProperty(
                         "Missing schema property {0}".format(prop_name))
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
             properties[prop_name] = prop.unmarshal(prop_value)
-        return ModelFactory().create(properties, name=self.model)
+        return properties
