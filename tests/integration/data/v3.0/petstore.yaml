@@ -285,7 +285,7 @@ components:
             rootCause:
               type: string
       additionalProperties:
-        type: string
+        description: Any type of information
   responses:
       ErrorResponse:
         description: unexpected error
