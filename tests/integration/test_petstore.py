@@ -136,7 +136,7 @@ class TestPetstore(object):
                         assert type(parameter.schema) == Schema
                         assert parameter.schema.type.value ==\
                             schema_spec['type']
-                        assert parameter.schema.format.value ==\
+                        assert parameter.schema.format ==\
                             schema_spec.get('format')
                         assert parameter.schema.required == schema_spec.get(
                             'required', [])
@@ -171,7 +171,7 @@ class TestPetstore(object):
                     assert type(media_type.schema) == Schema
                     assert media_type.schema.type.value ==\
                         schema_spec['type']
-                    assert media_type.schema.format.value ==\
+                    assert media_type.schema.format ==\
                         schema_spec.get('format')
                     assert media_type.schema.required == schema_spec.get(
                         'required', False)
@@ -690,7 +690,7 @@ class TestPetstore(object):
         assert parameters == {}
         assert body is None
 
-        data_json = []
+        data_json = ['cats', 'birds']
         data = json.dumps(data_json)
         response = MockResponse(data)
 

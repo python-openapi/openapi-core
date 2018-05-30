@@ -259,6 +259,7 @@ components:
       properties:
         name:
           type: string
+          format: custom
     TagList:
       type: array
       items:
