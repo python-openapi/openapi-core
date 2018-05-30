@@ -757,3 +757,38 @@ class TestPetstore(object):
 
         with pytest.raises(InvalidMediaTypeValue):
             request.get_body(spec)
+
+    def test_post_tags_additional_properties(
+            self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        pet_name = 'Dog'
+        data_json = {
+            'name': pet_name,
+        }
+        data = json.dumps(data_json)
+
+        request = MockRequest(
+            host_url, 'POST', '/tags',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {}
+        assert body == data_json
+
+        data_json = {
+            'code': 400,
+            'message': 'Bad request',
+            'rootCause': 'Tag already exist',
+            'additionalinfo': 'Tag Dog already exist',
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data, status_code=404)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data_json

@@ -28,6 +28,7 @@ class SchemaFactory(object):
         deprecated = schema_deref.get('deprecated', False)
         all_of_spec = schema_deref.get('allOf', None)
         one_of_spec = schema_deref.get('oneOf', None)
+        additional_properties_spec = schema_deref.get('additionalProperties')
 
         properties = None
         if properties_spec:
@@ -45,11 +46,16 @@ class SchemaFactory(object):
         if items_spec:
             items = self._create_items(items_spec)
 
+        additional_properties = None
+        if additional_properties_spec:
+            additional_properties = self.create(additional_properties_spec)
+
         return Schema(
             schema_type=schema_type, model=model, properties=properties,
             items=items, schema_format=schema_format, required=required,
             default=default, nullable=nullable, enum=enum,
             deprecated=deprecated, all_of=all_of, one_of=one_of,
+            additional_properties=additional_properties,
         )
 
     @property
