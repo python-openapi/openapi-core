@@ -6,7 +6,7 @@ import warnings
 from six import iteritems
 
 from openapi_core.extensions.models.factories import ModelFactory
-from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
+from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema,
@@ -33,7 +33,7 @@ class Schema(object):
         self.model = model
         self.properties = properties and dict(properties) or {}
         self.items = items
-        self.format = SchemaFormat(schema_format)
+        self.format = schema_format
         self.required = required or []
         self.default = default
         self.nullable = nullable
