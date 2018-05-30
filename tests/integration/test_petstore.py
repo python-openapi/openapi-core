@@ -112,7 +112,8 @@ class TestPetstore(object):
                             continue
 
                         assert type(media_type.schema) == Schema
-                        assert media_type.schema.type == schema_spec['type']
+                        assert media_type.schema.type.value ==\
+                            schema_spec['type']
                         assert media_type.schema.required == schema_spec.get(
                             'required', [])
 
@@ -674,6 +675,37 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert response_result.data == data_json
+
+    def test_get_pet_wildcard(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets/{petId}'
+        view_args = {
+            'petId': '1',
+        }
+        request = MockRequest(
+            host_url, 'GET', '/pets/1',
+            path_pattern=path_pattern, view_args=view_args,
+        )
+
+        parameters = request.get_parameters(spec)
+
+        assert parameters == {
+            'path': {
+                'petId': 1,
+            }
+        }
+
+        body = request.get_body(spec)
+
+        assert body is None
+
+        data = b'imagedata'
+        response = MockResponse(data, mimetype='image/png')
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data
 
     def test_get_tags(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
