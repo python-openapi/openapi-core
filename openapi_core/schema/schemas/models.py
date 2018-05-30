@@ -28,7 +28,8 @@ class Schema(object):
     def __init__(
             self, schema_type=None, model=None, properties=None, items=None,
             schema_format=None, required=None, default=None, nullable=False,
-            enum=None, deprecated=False, all_of=None, one_of=None):
+            enum=None, deprecated=False, all_of=None, one_of=None,
+            additional_properties=None):
         self.type = schema_type and SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -41,6 +42,7 @@ class Schema(object):
         self.deprecated = deprecated
         self.all_of = all_of and list(all_of) or []
         self.one_of = one_of and list(one_of) or []
+        self.additional_properties = additional_properties
 
         self._all_required_properties_cache = None
         self._all_optional_properties_cache = None
@@ -183,11 +185,16 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props:
+        if extra_props and self.additional_properties is None:
             raise UndefinedSchemaProperty(
                 "Undefined properties in schema: {0}".format(extra_props))
 
         properties = {}
+        for prop_name in extra_props:
+            prop_value = value[prop_name]
+            properties[prop_name] = self.additional_properties.unmarshal(
+                prop_value)
+
         for prop_name, prop in iteritems(all_props):
             try:
                 prop_value = value[prop_name]

@@ -284,6 +284,8 @@ components:
           properties:
             rootCause:
               type: string
+      additionalProperties:
+        type: string
   responses:
       ErrorResponse:
         description: unexpected error
