@@ -86,7 +86,7 @@ Request object should implement BaseOpenAPIRequest interface. You can use FlaskO
 .. code-block:: python
 
    from openapi_core.validators import RequestValidator
-   from openapi_core.wrappers import FlaskOpenAPIRequest
+   from openapi_core.wrappers.flask import FlaskOpenAPIRequest
 
    openapi_request = FlaskOpenAPIRequest(flask_request)
    validator = RequestValidator(spec)
@@ -141,7 +141,7 @@ Response object should implement BaseOpenAPIResponse interface. You can use Flas
 .. code-block:: python
 
    from openapi_core.validators import ResponseValidator
-   from openapi_core.wrappers import FlaskOpenAPIResponse
+   from openapi_core.wrappers.flask import FlaskOpenAPIResponse
 
    openapi_response = FlaskOpenAPIResponse(flask_response)
    validator = ResponseValidator(spec)
