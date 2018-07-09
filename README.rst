@@ -51,7 +51,7 @@ Now you can use it to validate requests
 
 .. code-block:: python
 
-   from openapi_core.validators import RequestValidator
+   from openapi_core.shortcuts import RequestValidator
 
    validator = RequestValidator(spec)
    result = validator.validate(request)
@@ -140,7 +140,7 @@ Response object should implement BaseOpenAPIResponse interface. You can use Flas
 
 .. code-block:: python
 
-   from openapi_core.validators import ResponseValidator
+   from openapi_core.shortcuts import ResponseValidator
    from openapi_core.wrappers.flask import FlaskOpenAPIResponse
 
    openapi_response = FlaskOpenAPIResponse(flask_response)
