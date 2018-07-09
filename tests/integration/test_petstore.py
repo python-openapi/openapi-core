@@ -392,15 +392,29 @@ class TestPetstore(object):
             }
         }
         data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
 
         request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
+            headers=headers, cookies=cookies,
         )
 
         parameters = request.get_parameters(spec)
 
-        assert parameters == {}
+        assert parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
         body = request.get_body(spec)
 
@@ -438,15 +452,29 @@ class TestPetstore(object):
             }
         }
         data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
 
         request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
+            headers=headers, cookies=cookies,
         )
 
         parameters = request.get_parameters(spec)
 
-        assert parameters == {}
+        assert parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
         body = request.get_body(spec)
 
@@ -484,15 +512,29 @@ class TestPetstore(object):
             }
         }
         data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
 
         request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
+            headers=headers, cookies=cookies,
         )
 
         parameters = request.get_parameters(spec)
 
-        assert parameters == {}
+        assert parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
         body = request.get_body(spec)
 
@@ -518,15 +560,29 @@ class TestPetstore(object):
             'alias': alias,
         }
         data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
 
         request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
+            headers=headers, cookies=cookies,
         )
 
         parameters = request.get_parameters(spec)
 
-        assert parameters == {}
+        assert parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
         with pytest.raises(NoOneOfSchema):
             request.get_body(spec)
@@ -543,15 +599,29 @@ class TestPetstore(object):
             }
         }
         data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
 
         request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data,
+            headers=headers, cookies=cookies,
         )
 
         parameters = request.get_parameters(spec)
 
-        assert parameters == {}
+        assert parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
         body = request.get_body(spec)
 
@@ -570,18 +640,100 @@ class TestPetstore(object):
             'tag': 'cats',
         }
         data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
 
         request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data, mimetype='text/html',
+            headers=headers, cookies=cookies,
         )
 
         parameters = request.get_parameters(spec)
 
-        assert parameters == {}
+        assert parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
         with pytest.raises(InvalidContentType):
             request.get_body(spec)
+
+    def test_post_pets_missing_cookie(self, spec, spec_dict):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        pet_name = 'Cat'
+        pet_healthy = True
+        data_json = {
+            'name': pet_name,
+            'ears': {
+                'healthy': pet_healthy,
+            }
+        }
+        data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+
+        request = MockRequest(
+            host_url, 'POST', '/pets',
+            path_pattern=path_pattern, data=data,
+            headers=headers,
+        )
+
+        with pytest.raises(MissingRequiredParameter):
+            request.get_parameters(spec)
+
+        body = request.get_body(spec)
+
+        schemas = spec_dict['components']['schemas']
+        pet_model = schemas['PetCreate']['x-model']
+        assert body.__class__.__name__ == pet_model
+        assert body.name == pet_name
+        assert not hasattr(body, 'tag')
+        assert not hasattr(body, 'address')
+
+    def test_post_pets_missing_header(self, spec, spec_dict):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        pet_name = 'Cat'
+        pet_healthy = True
+        data_json = {
+            'name': pet_name,
+            'ears': {
+                'healthy': pet_healthy,
+            }
+        }
+        data = json.dumps(data_json)
+        cookies = {
+            'user': '123',
+        }
+
+        request = MockRequest(
+            host_url, 'POST', '/pets',
+            path_pattern=path_pattern, data=data,
+            cookies=cookies,
+        )
+
+        with pytest.raises(MissingRequiredParameter):
+            request.get_parameters(spec)
+
+        body = request.get_body(spec)
+
+        schemas = spec_dict['components']['schemas']
+        pet_model = schemas['PetCreate']['x-model']
+        assert body.__class__.__name__ == pet_model
+        assert body.name == pet_name
+        assert not hasattr(body, 'tag')
+        assert not hasattr(body, 'address')
 
     def test_post_pets_raises_invalid_server_error(self, spec):
         host_url = 'http://flowerstore.swagger.io/v1'
@@ -591,10 +743,17 @@ class TestPetstore(object):
             'tag': 'cats',
         }
         data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
 
         request = MockRequest(
             host_url, 'POST', '/pets',
             path_pattern=path_pattern, data=data, mimetype='text/html',
+            headers=headers, cookies=cookies,
         )
 
         with pytest.raises(InvalidServer):
