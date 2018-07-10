@@ -159,3 +159,4 @@ or specify response wrapper class for shortcuts
 Related projects
 ================
 * `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__
+* `pyramid_openapi3 <https://github.com/niteoweb/pyramid_openapi3>`__
