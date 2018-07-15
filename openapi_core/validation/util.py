@@ -1,5 +1,21 @@
 """OpenAPI core validation util module"""
-from yarl import URL
+try:
+    from urllib.parse import urlparse
+
+except ImportError:
+    from urlparse import urlparse
+
+
+def is_absolute(url):
+    return url.startswith('//') or '://' in url
+
+
+def path_qs(url):
+    pr = urlparse(url)
+    result = pr.path
+    if pr.query:
+        result += '?' + pr.query
+    return result
 
 
 def get_operation_pattern(server_url, request_url_pattern):
@@ -7,6 +23,6 @@ def get_operation_pattern(server_url, request_url_pattern):
     if server_url[-1] == "/":
         # operations have to start with a slash, so do not remove it
         server_url = server_url[:-1]
-    if URL(server_url).is_absolute():
+    if is_absolute(server_url):
         return request_url_pattern.replace(server_url, "", 1)
-    return URL(request_url_pattern).path_qs.replace(server_url, "", 1)
+    return path_qs(request_url_pattern).replace(server_url, "", 1)
