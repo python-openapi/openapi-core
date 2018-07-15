@@ -1,0 +1,5 @@
+openapi-spec-validator
+six
+backports.functools-lru-cache
+backports.functools-partialmethod
+enum34

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+"""Python 2.7 backward compatibility"""
+import openapi_core._python27_patch
+
 """OpenAPI core module"""
 from openapi_core.shortcuts import (
     create_spec, validate_parameters, validate_body, validate_data,
