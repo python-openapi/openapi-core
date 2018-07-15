@@ -1,3 +1,2 @@
 openapi-spec-validator
 six
-yarl<1.2.0
