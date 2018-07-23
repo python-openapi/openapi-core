@@ -74,6 +74,7 @@ class TestPetstore(object):
                 assert type(operation) == Operation
                 assert operation.path_name == path_name
                 assert operation.http_method == http_method
+                assert operation.operation_id is not None
 
                 operation_spec = spec_dict['paths'][path_name][http_method]
 
