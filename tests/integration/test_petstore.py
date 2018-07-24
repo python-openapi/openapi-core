@@ -102,6 +102,10 @@ class TestPetstore(object):
                         assert media_type.mimetype == mimetype
 
                         content_spec = response_spec['content'][mimetype]
+
+                        example_spec = content_spec.get('example')
+                        assert media_type.example == example_spec
+
                         schema_spec = content_spec.get('schema')
                         assert bool(schema_spec) == bool(media_type.schema)
 
