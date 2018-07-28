@@ -298,6 +298,8 @@ components:
           properties:
             rootCause:
               type: string
+            suberror:
+              $ref: "#/components/schemas/ExtendedError"
       additionalProperties:
         type: string
   responses:
