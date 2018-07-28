@@ -169,7 +169,11 @@ class Schema(object):
         else:
             properties = self._unmarshal_properties(value)
 
-        return ModelFactory().create(properties, name=self.model)
+        return self.model_factory(**properties)
+
+    @property
+    def model_factory(self):
+        return ModelFactory(self.model)
 
     def _unmarshal_properties(self, value, one_of_schema=None):
         all_props = self.get_all_properties()

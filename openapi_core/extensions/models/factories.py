@@ -4,9 +4,15 @@ from openapi_core.extensions.models.models import BaseModel
 
 class ModelFactory(object):
 
-    def create(self, properties, name=None):
-        model = BaseModel
-        if name is not None:
-            model = type(name, (BaseModel, ), {})
+    base_class = BaseModel
+    default_name = 'Model'
 
-        return model(**properties)
+    def __init__(self, name=None):
+        self.name = name or self.default_name
+
+    def __call__(self, **properties):
+        model_class = self._get_model_class(**properties)
+        return model_class()
+
+    def _get_model_class(self, **attrs):
+        return type(self.name, (self.base_class, ), attrs)

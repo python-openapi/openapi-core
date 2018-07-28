@@ -638,7 +638,7 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data_json
+        assert list(response_result.data.keys()) == ['data', ]
 
     def test_get_pet_not_found(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
