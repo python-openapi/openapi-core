@@ -61,7 +61,7 @@ class SchemaFactory(object):
     @property
     @lru_cache()
     def properties_generator(self):
-        return PropertiesGenerator(self.dereferencer)
+        return PropertiesGenerator(self.dereferencer, self)
 
     def _create_items(self, items_spec):
         return self.create(items_spec)
