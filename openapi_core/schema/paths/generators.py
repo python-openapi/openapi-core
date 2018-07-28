@@ -1,8 +1,7 @@
 """OpenAPI core paths generators module"""
-from functools import lru_cache
-
 from six import iteritems
 
+from openapi_core.compat import lru_cache
 from openapi_core.schema.operations.generators import OperationsGenerator
 from openapi_core.schema.paths.models import Path
 

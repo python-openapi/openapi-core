@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """OpenAPI core specs factories module"""
-from functools import lru_cache
 
 from openapi_spec_validator import openapi_v3_spec_validator
 
+from openapi_core.compat import lru_cache
 from openapi_core.schema.components.factories import ComponentsFactory
 from openapi_core.schema.infos.factories import InfoFactory
 from openapi_core.schema.paths.generators import PathsGenerator

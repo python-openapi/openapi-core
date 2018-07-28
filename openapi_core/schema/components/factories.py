@@ -1,5 +1,4 @@
-from functools import lru_cache
-
+from openapi_core.compat import lru_cache
 from openapi_core.schema.components.models import Components
 from openapi_core.schema.schemas.generators import SchemasGenerator
 

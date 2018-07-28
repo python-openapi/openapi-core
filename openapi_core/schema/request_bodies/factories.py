@@ -1,6 +1,5 @@
 """OpenAPI core request bodies factories module"""
-from functools import lru_cache
-
+from openapi_core.compat import lru_cache
 from openapi_core.schema.media_types.generators import MediaTypeGenerator
 from openapi_core.schema.request_bodies.models import RequestBody
 

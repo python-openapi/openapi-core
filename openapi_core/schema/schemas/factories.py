@@ -1,7 +1,7 @@
 """OpenAPI core schemas factories module"""
 import logging
-from functools import lru_cache
 
+from openapi_core.compat import lru_cache
 from openapi_core.schema.properties.generators import PropertiesGenerator
 from openapi_core.schema.schemas.models import Schema
 

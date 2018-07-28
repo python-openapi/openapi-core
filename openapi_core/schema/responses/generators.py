@@ -1,8 +1,7 @@
 """OpenAPI core responses generators module"""
-from functools import lru_cache
-
 from six import iteritems
 
+from openapi_core.compat import lru_cache
 from openapi_core.schema.media_types.generators import MediaTypeGenerator
 from openapi_core.schema.parameters.generators import ParametersGenerator
 from openapi_core.schema.responses.models import Response

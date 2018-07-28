@@ -81,7 +81,7 @@ class Schema(object):
         )
 
     def get_all_required_properties_names(self):
-        required = self.required.copy()
+        required = self.required[:]
 
         for subschema in self.all_of:
             subschema_req = subschema.get_all_required_properties()

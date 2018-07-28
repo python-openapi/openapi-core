@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """OpenAPI core specs models module"""
 import logging
-from functools import partialmethod
 
+from openapi_core.compat import partialmethod
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.servers.exceptions import InvalidServer
 
