@@ -66,7 +66,7 @@ paths:
               schema:
                 type: string
           content:
-            application/json:    
+            application/json:
               schema:
                 $ref: "#/components/schemas/PetsData"
     post:
@@ -80,6 +80,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PetCreate'
+            example:
+              name: "Pet"
+              wings: []
       responses:
         '201':
           description: Null response
@@ -106,6 +109,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PetData"
+              example: |
+                {
+                  "data": []
+                }
             image/*:
               schema:
                 type: string
@@ -125,6 +132,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TagList"
+              example:
+                - dogs
+                - cats
         default:
           $ref: "#/components/responses/ErrorResponse"
     post:

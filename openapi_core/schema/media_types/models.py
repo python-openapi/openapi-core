@@ -15,9 +15,10 @@ MEDIA_TYPE_DESERIALIZERS = {
 class MediaType(object):
     """Represents an OpenAPI MediaType."""
 
-    def __init__(self, mimetype, schema=None):
+    def __init__(self, mimetype, schema=None, example=None):
         self.mimetype = mimetype
         self.schema = schema
+        self.example = example
 
     def get_deserializer_mapping(self):
         mapping = MEDIA_TYPE_DESERIALIZERS.copy()
