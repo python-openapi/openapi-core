@@ -25,6 +25,11 @@ def get_metadata(init_file):
     return dict(re.findall("__([a-z]+)__ = '([^']+)'", init_file))
 
 
+def install_requires():
+    py27 = '_2.7' if sys.version_info < (3,) else ''
+    return read_requirements('requirements{}.txt'.format(py27))
+
+
 class PyTest(TestCommand):
 
     """Command to run unit tests after in-place build."""
@@ -53,8 +58,6 @@ init_path = os.path.join('openapi_core', '__init__.py')
 init_py = read_file(init_path)
 metadata = get_metadata(init_py)
 
-py27 = '_2.7' if sys.version_info < (3,) else ''
-
 
 setup(
     name='openapi-core',
@@ -70,13 +73,13 @@ setup(
         'Intended Audience :: Developers',
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries',
     ],
-    install_requires=read_requirements('requirements{}.txt'.format(py27)),
+    install_requires=install_requires(),
     tests_require=read_requirements('requirements_dev.txt'),
     extras_require={
         'flask':  ["werkzeug"],

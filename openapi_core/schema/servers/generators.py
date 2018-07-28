@@ -1,8 +1,7 @@
 """OpenAPI core servers generators module"""
-from functools import lru_cache
-
 from six import iteritems
 
+from openapi_core.compat import lru_cache
 from openapi_core.schema.servers.models import Server, ServerVariable
 
 

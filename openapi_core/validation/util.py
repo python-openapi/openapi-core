@@ -1,9 +1,5 @@
 """OpenAPI core validation util module"""
-try:
-    from urllib.parse import urlparse
-
-except ImportError:
-    from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 
 
 def is_absolute(url):

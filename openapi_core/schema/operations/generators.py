@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """OpenAPI core operations models module"""
-from functools import lru_cache
-
 from six import iteritems
 from openapi_spec_validator.validators import PathItemValidator
 
+from openapi_core.compat import lru_cache
 from openapi_core.schema.operations.models import Operation
 from openapi_core.schema.parameters.generators import ParametersGenerator
 from openapi_core.schema.request_bodies.factories import RequestBodyFactory
