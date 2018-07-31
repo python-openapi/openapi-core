@@ -4,7 +4,7 @@ from openapi_core.shortcuts import (
     create_spec, validate_parameters, validate_body, validate_data,
 )
 
-__author__ = 'Artur Maciąg'
+__author__ = 'Artur Maciag'
 __email__ = 'maciag.artur@gmail.com'
 __version__ = '0.5.0'
 __url__ = 'https://github.com/p1c2u/openapi-core'
