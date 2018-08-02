@@ -10,6 +10,7 @@ from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema,
+    NoValidSchema,
 )
 from openapi_core.schema.schemas.util import forcebool
 
@@ -30,7 +31,7 @@ class Schema(object):
             schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None, one_of=None,
             additional_properties=None):
-        self.type = schema_type and SchemaType(schema_type)
+        self.type = SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
         self.items = items
@@ -42,10 +43,12 @@ class Schema(object):
         self.deprecated = deprecated
         self.all_of = all_of and list(all_of) or []
         self.one_of = one_of and list(one_of) or []
+        self.any_of = []
         self.additional_properties = additional_properties
 
         self._all_required_properties_cache = None
         self._all_optional_properties_cache = None
+        self._schemas_permutations_cache = None
 
     def __getitem__(self, name):
         return self.properties[name]
@@ -76,7 +79,7 @@ class Schema(object):
 
         return dict(
             (prop_name, val)
-            for prop_name, val in all_properties.items()
+            for prop_name, val in iteritems(all_properties)
             if prop_name in required
         )
 
@@ -92,6 +95,7 @@ class Schema(object):
     def get_cast_mapping(self):
         mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update({
+            SchemaType.ANY: self._unmarshal_any,
             SchemaType.ARRAY: self._unmarshal_collection,
             SchemaType.OBJECT: self._unmarshal_object,
         })
@@ -104,9 +108,6 @@ class Schema(object):
             if not self.nullable:
                 raise InvalidSchemaValue("Null value for non-nullable schema")
             return self.default
-
-        if self.type is None:
-            return value
 
         cast_mapping = self.get_cast_mapping()
 
@@ -138,6 +139,38 @@ class Schema(object):
             )
 
         return casted
+
+    def get_schemas_permutations(self):
+        if self._schemas_permutations_cache is None:
+            self._schemas_permutations_cache =\
+                self._get_schemas_permutations()
+
+        return self._schemas_permutations_cache
+
+    def _get_schemas_permutations(self):
+        if not self.one_of and not self.any_of:
+            return [self.all_of, ]
+
+        if self.one_of:
+            for one_of_schema in self.one_of:
+                if self.any_of:
+                    for any_of_schema in self.any_of:
+                        yield self.all_of + [one_of_schema, any_of_schema]
+                else:
+                    yield self.all_of + [one_of_schema, ]
+        else:
+            for any_of_schema in self.any_of:
+                yield self.all_of + [any_of_schema, ]
+
+    def _unmarshal_any(self, value):
+        cast_mapping = self.get_cast_mapping()
+        for schema_type, cast_callable in iteritems(cast_mapping):
+            try:
+                return cast_callable(value)
+            except TypeError:
+                pass
+        raise NoValidSchema(
+            "No valid schema found for value {0}".format(value))
 
     def _unmarshal_collection(self, value):
         return list(map(self.items.unmarshal, value))

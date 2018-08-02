@@ -301,7 +301,7 @@ components:
             suberror:
               $ref: "#/components/schemas/ExtendedError"
       additionalProperties:
-        type: string
+        description: Any type of information
   responses:
       ErrorResponse:
         description: unexpected error

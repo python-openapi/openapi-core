@@ -5,6 +5,10 @@ class OpenAPISchemaError(OpenAPIMappingError):
     pass
 
 
+class NoValidSchema(OpenAPISchemaError):
+    pass
+
+
 class InvalidSchemaValue(OpenAPISchemaError):
     pass
 
