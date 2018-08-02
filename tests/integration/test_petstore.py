@@ -1032,3 +1032,79 @@ class TestPetstore(object):
         assert response_result.data.message == message
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo
+
+    def test_post_tags_created_now(
+            self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        pet_name = 'Dog'
+        data_json = {
+            'created': 'now',
+            'name': pet_name,
+        }
+        data = json.dumps(data_json)
+
+        request = MockRequest(
+            host_url, 'POST', '/tags',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {}
+        assert body == data_json
+
+        data_json = {
+            'code': 400,
+            'message': 'Bad request',
+            'rootCause': 'Tag already exist',
+            'additionalinfo': 'Tag Dog already exist',
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data, status_code=404)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data_json
+
+    def test_post_tags_created_datetime(
+            self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        pet_name = 'Dog'
+        data_json = {
+            'created': '2016-04-16T16:06:05Z',
+            'name': pet_name,
+        }
+        data = json.dumps(data_json)
+
+        request = MockRequest(
+            host_url, 'POST', '/tags',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {}
+        assert body == data_json
+
+        data_json = {
+            'code': 400,
+            'message': 'Bad request',
+            'rootCause': 'Tag already exist',
+            'additionalinfo': 'Tag Dog already exist',
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data, status_code=404)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert isinstance(response_result.data, BaseModel)
+        assert response_result.data.code == code
+        assert response_result.data.message == message
+        assert response_result.data.rootCause == rootCause
+        assert response_result.data.additionalinfo == additionalinfo

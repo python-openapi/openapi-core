@@ -16,7 +16,7 @@ class SchemaFactory(object):
     def create(self, schema_spec):
         schema_deref = self.dereferencer.dereference(schema_spec)
 
-        schema_type = schema_deref.get('type', 'object')
+        schema_type = schema_deref.get('type', None)
         schema_format = schema_deref.get('format')
         model = schema_deref.get('x-model', None)
         required = schema_deref.get('required', False)

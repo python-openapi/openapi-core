@@ -26,6 +26,7 @@ class Schema(object):
     """Represents an OpenAPI Schema."""
 
     DEFAULT_CAST_CALLABLE_GETTER = {
+        SchemaType.ANY: lambda x: x,
         SchemaType.INTEGER: int,
         SchemaType.NUMBER: float,
         SchemaType.BOOLEAN: forcebool,
@@ -61,7 +62,7 @@ class Schema(object):
             schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None, one_of=None,
             additional_properties=None):
-        self.type = schema_type and SchemaType(schema_type)
+        self.type = SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
         self.items = items
@@ -136,9 +137,6 @@ class Schema(object):
             if not self.nullable:
                 raise InvalidSchemaValue("Null value for non-nullable schema")
             return self.default
-
-        if self.type is None:
-            return value
 
         cast_mapping = self.get_cast_mapping()
 
