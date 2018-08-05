@@ -17,6 +17,7 @@ from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
 from openapi_core.schema.schemas.exceptions import (
     UndefinedSchemaProperty, MissingSchemaProperty, NoOneOfSchema,
+    NoValidSchema,
 )
 from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.servers.exceptions import InvalidServer
@@ -1037,9 +1038,10 @@ class TestPetstore(object):
             self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/tags'
+        created = 'now'
         pet_name = 'Dog'
         data_json = {
-            'created': 'now',
+            'created': created,
             'name': pet_name,
         }
         data = json.dumps(data_json)
@@ -1053,8 +1055,14 @@ class TestPetstore(object):
         body = request.get_body(spec)
 
         assert parameters == {}
-        assert body == data_json
+        assert isinstance(body, BaseModel)
+        assert body.created == created
+        assert body.name == pet_name
 
+        code = 400
+        message = 'Bad request'
+        rootCause = 'Tag already exist'
+        additionalinfo = 'Tag Dog already exist'
         data_json = {
             'code': 400,
             'message': 'Bad request',
@@ -1067,15 +1075,20 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data_json
+        assert isinstance(response_result.data, BaseModel)
+        assert response_result.data.code == code
+        assert response_result.data.message == message
+        assert response_result.data.rootCause == rootCause
+        assert response_result.data.additionalinfo == additionalinfo
 
     def test_post_tags_created_datetime(
             self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/tags'
+        created = '2016-04-16T16:06:05Z'
         pet_name = 'Dog'
         data_json = {
-            'created': '2016-04-16T16:06:05Z',
+            'created': created,
             'name': pet_name,
         }
         data = json.dumps(data_json)
@@ -1089,13 +1102,65 @@ class TestPetstore(object):
         body = request.get_body(spec)
 
         assert parameters == {}
-        assert body == data_json
+        assert isinstance(body, BaseModel)
+        assert body.created == created
+        assert body.name == pet_name
 
+        code = 400
+        message = 'Bad request'
+        rootCause = 'Tag already exist'
+        additionalinfo = 'Tag Dog already exist'
         data_json = {
-            'code': 400,
-            'message': 'Bad request',
-            'rootCause': 'Tag already exist',
-            'additionalinfo': 'Tag Dog already exist',
+            'code': code,
+            'message': message,
+            'rootCause': rootCause,
+            'additionalinfo': additionalinfo,
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data, status_code=404)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert isinstance(response_result.data, BaseModel)
+        assert response_result.data.code == code
+        assert response_result.data.message == message
+        assert response_result.data.rootCause == rootCause
+        assert response_result.data.additionalinfo == additionalinfo
+
+    @pytest.mark.xfail(reason='OneOf for string not supported atm')
+    def test_post_tags_created_invalid_type(
+            self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        created = 'long time ago'
+        pet_name = 'Dog'
+        data_json = {
+            'created': created,
+            'name': pet_name,
+        }
+        data = json.dumps(data_json)
+
+        request = MockRequest(
+            host_url, 'POST', '/tags',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = request.get_parameters(spec)
+        with pytest.raises(NoValidSchema):
+            request.get_body(spec)
+
+        assert parameters == {}
+
+        code = 400
+        message = 'Bad request'
+        rootCause = 'Tag already exist'
+        additionalinfo = 'Tag Dog already exist'
+        data_json = {
+            'code': code,
+            'message': message,
+            'rootCause': rootCause,
+            'additionalinfo': additionalinfo,
         }
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)

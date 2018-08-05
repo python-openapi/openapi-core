@@ -10,7 +10,8 @@ from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
-    OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema,
+    OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema, NoValidSchema,
+    UndefinedItemsSchema,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime,
@@ -26,7 +27,6 @@ class Schema(object):
     """Represents an OpenAPI Schema."""
 
     DEFAULT_CAST_CALLABLE_GETTER = {
-        SchemaType.ANY: lambda x: x,
         SchemaType.INTEGER: int,
         SchemaType.NUMBER: float,
         SchemaType.BOOLEAN: forcebool,
@@ -47,7 +47,7 @@ class Schema(object):
     }
 
     TYPE_VALIDATOR_CALLABLE_GETTER = {
-        None: lambda x: True,
+        SchemaType.ANY: lambda x: x,
         SchemaType.BOOLEAN: TypeValidator(bool),
         SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
         SchemaType.NUMBER: TypeValidator(integer_types, float, exclude=bool),
@@ -108,7 +108,7 @@ class Schema(object):
 
         return dict(
             (prop_name, val)
-            for prop_name, val in all_properties.items()
+            for prop_name, val in iteritems(all_properties)
             if prop_name in required
         )
 
@@ -125,6 +125,7 @@ class Schema(object):
         mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update({
             SchemaType.STRING: self._unmarshal_string,
+            SchemaType.ANY: self._unmarshal_any,
             SchemaType.ARRAY: self._unmarshal_collection,
             SchemaType.OBJECT: self._unmarshal_object,
         })
@@ -154,8 +155,8 @@ class Schema(object):
     def unmarshal(self, value):
         """Unmarshal parameter from the value."""
         if self.deprecated:
-            warnings.warn(
-                "The schema is deprecated", DeprecationWarning)
+            warnings.warn("The schema is deprecated", DeprecationWarning)
+
         casted = self.cast(value)
 
         if casted is None and not self.required:
@@ -188,7 +189,27 @@ class Schema(object):
                     value, self.format)
             )
 
+    def _unmarshal_any(self, value):
+        types_resolve_order = [
+            SchemaType.OBJECT, SchemaType.ARRAY, SchemaType.BOOLEAN,
+            SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
+        ]
+        cast_mapping = self.get_cast_mapping()
+        for schema_type in types_resolve_order:
+            cast_callable = cast_mapping[schema_type]
+            try:
+                return cast_callable(value)
+            # @todo: remove ValueError when validation separated
+            except (OpenAPISchemaError, TypeError, ValueError):
+                continue
+
+        raise NoValidSchema(
+            "No valid schema found for value {0}".format(value))
+
     def _unmarshal_collection(self, value):
+        if self.items is None:
+            raise UndefinedItemsSchema("Undefined items' schema")
+
         return list(map(self.items.unmarshal, value))
 
     def _unmarshal_object(self, value, model_factory=None):
