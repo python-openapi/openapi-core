@@ -6,7 +6,7 @@ from openapi_core.validation.models import BaseValidationResult
 
 class RequestParameters(dict):
 
-    valid_locations = ['path', 'query', 'headers', 'cookies']
+    valid_locations = ['path', 'query', 'header', 'cookie']
 
     def __getitem__(self, location):
         self.validate_location(location)

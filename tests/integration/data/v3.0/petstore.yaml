@@ -74,6 +74,19 @@ paths:
       operationId: createPets
       tags:
         - pets
+      parameters:
+        - name: api_key
+          in: header
+          schema:
+            type: integer
+            format: int32
+          required: true
+        - name: user
+          in: cookie
+          schema:
+            type: integer
+            format: int32
+          required: true
       requestBody:
         required: true
         content:

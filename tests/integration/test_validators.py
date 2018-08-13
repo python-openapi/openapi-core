@@ -86,9 +86,16 @@ class TestRequestValidator(object):
         }
 
     def test_missing_body(self, validator):
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
         request = MockRequest(
             self.host_url, 'post', '/v1/pets',
             path_pattern='/v1/pets',
+            headers=headers, cookies=cookies,
         )
 
         result = validator.validate(request)
@@ -96,12 +103,26 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequestBody
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
     def test_invalid_content_type(self, validator):
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
         request = MockRequest(
             self.host_url, 'post', '/v1/pets',
             path_pattern='/v1/pets', mimetype='text/csv',
+            headers=headers, cookies=cookies,
         )
 
         result = validator.validate(request)
@@ -109,7 +130,14 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidContentType
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
     def test_post_pets(self, validator, spec_dict):
         pet_name = 'Cat'
@@ -129,15 +157,29 @@ class TestRequestValidator(object):
             }
         }
         data = json.dumps(data_json)
+        headers = {
+            'api_key': '12345',
+        }
+        cookies = {
+            'user': '123',
+        }
         request = MockRequest(
             self.host_url, 'post', '/v1/pets',
             path_pattern='/v1/pets', data=data,
+            headers=headers, cookies=cookies,
         )
 
         result = validator.validate(request)
 
         assert result.errors == []
-        assert result.parameters == {}
+        assert result.parameters == {
+            'header': {
+                'api_key': 12345,
+            },
+            'cookie': {
+                'user': 123,
+            },
+        }
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']

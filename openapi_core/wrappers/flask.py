@@ -31,8 +31,8 @@ class FlaskOpenAPIRequest(BaseOpenAPIRequest):
         return {
             'path': self.request.view_args,
             'query': self.request.args,
-            'headers': self.request.headers,
-            'cookies': self.request.cookies,
+            'header': self.request.headers,
+            'cookie': self.request.cookies,
         }
 
     @property
