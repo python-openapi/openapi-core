@@ -57,6 +57,14 @@ paths:
             items:
               $ref: "#/components/schemas/Tag"
           explode: false
+        - name: header_id
+          in: header
+          schema:
+            type: integer
+        - name: cookie_id
+          in: cookie
+          schema:
+            type: integer
       responses:
         '200':
           description: An paged array of pets

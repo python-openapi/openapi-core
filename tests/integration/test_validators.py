@@ -71,6 +71,8 @@ class TestRequestValidator(object):
         request = MockRequest(
             self.host_url, 'get', '/v1/pets',
             path_pattern='/v1/pets', args={'limit': '10'},
+            headers={'header_id': 2},
+            cookies={'cookie_id': 3},
         )
 
         result = validator.validate(request)
@@ -82,6 +84,12 @@ class TestRequestValidator(object):
                 'limit': 10,
                 'page': 1,
                 'search': '',
+            },
+            'header': {
+                'header_id': 2,
+            },
+            'cookie': {
+                'cookie_id': 3,
             },
         }
 
