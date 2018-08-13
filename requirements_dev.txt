@@ -1,6 +1,6 @@
-mock
-pytest
+mock==2.0.0
+pytest==3.5.0
 pytest-pep8
 pytest-flakes
-pytest-cov
+pytest-cov==2.5.1
 flask
