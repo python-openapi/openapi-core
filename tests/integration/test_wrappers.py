@@ -62,8 +62,8 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.parameters == {
             'path': path,
             'query': query,
-            'headers': headers,
-            'cookies': cookies,
+            'header': headers,
+            'cookie': cookies,
         }
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
@@ -87,8 +87,8 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.parameters == {
             'path': path,
             'query': query,
-            'headers': headers,
-            'cookies': cookies,
+            'header': headers,
+            'cookie': cookies,
         }
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
@@ -109,8 +109,8 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.parameters == {
             'path': path,
             'query': query,
-            'headers': headers,
-            'cookies': cookies,
+            'header': headers,
+            'cookie': cookies,
         }
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
