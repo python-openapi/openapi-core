@@ -9,9 +9,9 @@ class PropertiesGenerator(object):
 
     def generate(self, properties):
         for property_name, schema_spec in iteritems(properties):
-            schema = self._create_schema(schema_spec)
+            schema = self._create_schema(schema_spec, property_name)
             yield property_name, schema
 
-    def _create_schema(self, schema_spec):
+    def _create_schema(self, schema_spec, property_name):
         from openapi_core.schema.schemas.factories import SchemaFactory
-        return SchemaFactory(self.dereferencer).create(schema_spec)
+        return SchemaFactory(self.dereferencer).create(schema_spec, property_name)

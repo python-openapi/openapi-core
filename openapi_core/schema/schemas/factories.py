@@ -13,7 +13,7 @@ class SchemaFactory(object):
     def __init__(self, dereferencer):
         self.dereferencer = dereferencer
 
-    def create(self, schema_spec):
+    def create(self, schema_spec, property_name=None):
         schema_deref = self.dereferencer.dereference(schema_spec)
 
         schema_type = schema_deref.get('type', 'object')
@@ -56,6 +56,7 @@ class SchemaFactory(object):
             default=default, nullable=nullable, enum=enum,
             deprecated=deprecated, all_of=all_of, one_of=one_of,
             additional_properties=additional_properties,
+            property_name=property_name,
         )
 
     @property

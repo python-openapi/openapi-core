@@ -29,7 +29,8 @@ class Schema(object):
             self, schema_type=None, model=None, properties=None, items=None,
             schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None, one_of=None,
-            additional_properties=None):
+            additional_properties=None, property_name=None):
+        self.property_name = property_name
         self.type = schema_type and SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -102,7 +103,7 @@ class Schema(object):
         """Cast value to schema type"""
         if value is None:
             if not self.nullable:
-                raise InvalidSchemaValue("Null value for non-nullable schema")
+                raise InvalidSchemaValue("Null value for non-nullable schema {0}".format(self.property_name))
             return self.default
 
         if self.type is None:
