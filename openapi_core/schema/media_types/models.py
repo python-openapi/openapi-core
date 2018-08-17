@@ -42,6 +42,11 @@ class MediaType(object):
             raise InvalidMediaTypeValue(str(exc))
 
         try:
-            return self.schema.unmarshal(deserialized)
+            unmarshalled = self.schema.unmarshal(deserialized)
+        except InvalidSchemaValue as exc:
+            raise InvalidMediaTypeValue(str(exc))
+
+        try:
+            return self.schema.validate(unmarshalled)
         except InvalidSchemaValue as exc:
             raise InvalidMediaTypeValue(str(exc))

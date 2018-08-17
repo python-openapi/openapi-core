@@ -155,3 +155,102 @@ class TestSchemaUnmarshal(object):
 
         with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
+
+
+class TestSchemaValidate(object):
+
+    @pytest.mark.parametrize('schema_type', [
+        'boolean', 'array', 'integer', 'number', 'string',
+    ])
+    def test_null(self, schema_type):
+        schema = Schema(schema_type)
+        value = None
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('schema_type', [
+        'boolean', 'array', 'integer', 'number', 'string',
+    ])
+    def test_nullable(self, schema_type):
+        schema = Schema(schema_type, nullable=True)
+        value = None
+
+        result = schema.validate(value)
+
+        assert result is None
+
+    @pytest.mark.parametrize('value', [False, True])
+    def test_boolean(self, value):
+        schema = Schema('boolean')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [1, 3.14, 'true', [True, False]])
+    def test_boolean_invalid(self, value):
+        schema = Schema('boolean')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [[1, 2], (3, 4)])
+    def test_array(self, value):
+        schema = Schema('array')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [False, 1, 3.14, 'true'])
+    def test_array_invalid(self, value):
+        schema = Schema('array')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [1, 3])
+    def test_integer(self, value):
+        schema = Schema('integer')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [False, 3.14, 'true', [1, 2]])
+    def test_integer_invalid(self, value):
+        schema = Schema('integer')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [1, 3.14])
+    def test_number(self, value):
+        schema = Schema('number')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [False, 'true', [1, 3]])
+    def test_number_invalid(self, value):
+        schema = Schema('number')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', ['true', b'true'])
+    def test_string(self, value):
+        schema = Schema('string')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [False, 1, 3.14, [1, 3]])
+    def test_string_invalid(self, value):
+        schema = Schema('string')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)

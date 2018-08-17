@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 import warnings
 
-from six import iteritems
+from six import iteritems, integer_types, binary_type, text_type
 
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
@@ -12,6 +12,9 @@ from openapi_core.schema.schemas.exceptions import (
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema,
 )
 from openapi_core.schema.schemas.util import forcebool, format_date
+from openapi_core.schema.schemas.validators import (
+    TypeValidator, AttributeValidator,
+)
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +31,16 @@ class Schema(object):
     FORMAT_CALLABLE_GETTER = defaultdict(lambda: lambda x: x, {
         SchemaFormat.DATE.value: format_date,
     })
+
+    VALIDATOR_CALLABLE_GETTER = {
+        None: lambda x: x,
+        SchemaType.BOOLEAN: TypeValidator(bool),
+        SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
+        SchemaType.NUMBER: TypeValidator(integer_types, float, exclude=bool),
+        SchemaType.STRING: TypeValidator(binary_type, text_type),
+        SchemaType.ARRAY: TypeValidator(list, tuple),
+        SchemaType.OBJECT: AttributeValidator('__class__'),
+    }
 
     def __init__(
             self, schema_type=None, model=None, properties=None, items=None,
@@ -222,3 +235,19 @@ class Schema(object):
                 prop_value = prop.default
             properties[prop_name] = prop.unmarshal(prop_value)
         return properties
+
+    def validate(self, value):
+        if value is None:
+            if not self.nullable:
+                raise InvalidSchemaValue("Null value for non-nullable schema")
+            return self.default
+
+        validator = self.VALIDATOR_CALLABLE_GETTER[self.type]
+
+        if not validator(value):
+            raise InvalidSchemaValue(
+                "Value of {0} not valid type of {1}".format(
+                    value, self.type.value)
+            )
+
+        return value
