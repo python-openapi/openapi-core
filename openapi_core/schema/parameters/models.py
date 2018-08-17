@@ -75,9 +75,7 @@ class Parameter(object):
     def get_value(self, request):
         location = request.parameters[self.location.value]
 
-        try:
-            raw = location[self.name]
-        except KeyError:
+        if self.name not in location:
             if self.required:
                 raise MissingRequiredParameter(
                     "Missing required `{0}` parameter".format(self.name))
@@ -86,12 +84,12 @@ class Parameter(object):
                 raise MissingParameter(
                     "Missing `{0}` parameter".format(self.name))
 
-            raw = self.schema.default
+            return self.schema.default
 
         if self.aslist and self.explode:
             return location.getlist(self.name)
 
-        return raw
+        return location[self.name]
 
     def unmarshal(self, value):
         if self.deprecated:
