@@ -108,7 +108,10 @@ class Parameter(object):
         if not self.schema:
             return value
 
-        deserialized = self.deserialize(value)
+        try:
+            deserialized = self.deserialize(value)
+        except (ValueError, AttributeError) as exc:
+            raise InvalidParameterValue(str(exc))
 
         try:
             return self.schema.unmarshal(deserialized)
