@@ -1,4 +1,5 @@
 """OpenAPI core schemas util module"""
+import datetime
 from distutils.util import strtobool
 from json import dumps
 from six import string_types
@@ -13,3 +14,7 @@ def forcebool(val):
 
 def dicthash(d):
     return hash(dumps(d, sort_keys=True))
+
+
+def format_date(value):
+    return datetime.datetime.strptime(value, '%Y-%m-%d').date()

@@ -1,3 +1,5 @@
+import datetime
+
 import mock
 import pytest
 
@@ -63,6 +65,49 @@ class TestSchemaUnmarshal(object):
         result = schema.unmarshal(value)
 
         assert result == default_value
+
+    def test_string_format_date(self):
+        schema = Schema('string', schema_format='date')
+        value = '2018-01-02'
+
+        result = schema.unmarshal(value)
+
+        assert result == datetime.date(2018, 1, 2)
+
+    def test_string_format_custom(self):
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+
+        with mock.patch.dict(
+            Schema.FORMAT_CALLABLE_GETTER,
+            {custom_format: lambda x: x + '-custom'},
+        ):
+            result = schema.unmarshal(value)
+
+        assert result == 'x-custom'
+
+    def test_string_format_unknown(self):
+        unknown_format = 'unknown'
+        schema = Schema('string', schema_format=unknown_format)
+        value = 'x'
+
+        result = schema.unmarshal(value)
+
+        assert result == 'x'
+
+    def test_string_format_invalid_value(self):
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+
+        with mock.patch.dict(
+            Schema.FORMAT_CALLABLE_GETTER,
+            {custom_format: mock.Mock(side_effect=ValueError())},
+        ), pytest.raises(
+            InvalidSchemaValue, message='Failed to format value'
+        ):
+            schema.unmarshal(value)
 
     def test_integer_valid(self):
         schema = Schema('integer')

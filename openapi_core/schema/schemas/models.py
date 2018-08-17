@@ -6,12 +6,12 @@ import warnings
 from six import iteritems
 
 from openapi_core.extensions.models.factories import ModelFactory
-from openapi_core.schema.schemas.enums import SchemaType
+from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema,
 )
-from openapi_core.schema.schemas.util import forcebool
+from openapi_core.schema.schemas.util import forcebool, format_date
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +24,10 @@ class Schema(object):
         SchemaType.NUMBER: float,
         SchemaType.BOOLEAN: forcebool,
     }
+
+    FORMAT_CALLABLE_GETTER = defaultdict(lambda: lambda x: x, {
+        SchemaFormat.DATE.value: format_date,
+    })
 
     def __init__(
             self, schema_type=None, model=None, properties=None, items=None,
@@ -92,6 +96,7 @@ class Schema(object):
     def get_cast_mapping(self):
         mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update({
+            SchemaType.STRING: self._unmarshal_string,
             SchemaType.ARRAY: self._unmarshal_collection,
             SchemaType.OBJECT: self._unmarshal_object,
         })
@@ -110,7 +115,7 @@ class Schema(object):
 
         cast_mapping = self.get_cast_mapping()
 
-        if self.type in cast_mapping and value == '':
+        if self.type is not SchemaType.STRING and value == '':
             return None
 
         cast_callable = cast_mapping[self.type]
@@ -138,6 +143,16 @@ class Schema(object):
             )
 
         return casted
+
+    def _unmarshal_string(self, value):
+        formatter = self.FORMAT_CALLABLE_GETTER[self.format]
+        try:
+            return formatter(value)
+        except ValueError:
+            raise InvalidSchemaValue(
+                "Failed to format value of {0} to {1}".format(
+                    value, self.format)
+            )
 
     def _unmarshal_collection(self, value):
         return list(map(self.items.unmarshal, value))
