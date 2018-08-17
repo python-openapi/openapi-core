@@ -297,6 +297,26 @@ class TestPetstore(object):
         assert response_result.errors == []
         assert response_result.data == data_json
 
+    def test_get_pets_parameter_deserialization_error(self, spec):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = {
+            'limit': 1,
+            'tags': 12,
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        with pytest.raises(InvalidParameterValue):
+            request.get_parameters(spec)
+
+        body = request.get_body(spec)
+
+        assert body is None
+
     def test_get_pets_wrong_parameter_type(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
