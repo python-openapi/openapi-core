@@ -112,6 +112,11 @@ class Parameter(object):
             raise InvalidParameterValue(str(exc))
 
         try:
-            return self.schema.unmarshal(deserialized)
+            unmarshalled = self.schema.unmarshal(deserialized)
+        except InvalidSchemaValue as exc:
+            raise InvalidParameterValue(str(exc))
+
+        try:
+            return self.schema.validate(unmarshalled)
         except InvalidSchemaValue as exc:
             raise InvalidParameterValue(str(exc))

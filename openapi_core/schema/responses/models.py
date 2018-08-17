@@ -17,6 +17,9 @@ class Response(object):
         self.links = links and dict(links) or {}
 
     def __getitem__(self, mimetype):
+        return self.get_content_type(mimetype)
+
+    def get_content_type(self, mimetype):
         try:
             return self.content[mimetype]
         except MimeTypeNotFound:
