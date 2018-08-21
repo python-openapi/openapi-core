@@ -170,10 +170,12 @@ class Schema(object):
     def _unmarshal_collection(self, value):
         return list(map(self.items.unmarshal, value))
 
-    def _unmarshal_object(self, value):
+    def _unmarshal_object(self, value, model_factory=None):
         if not isinstance(value, (dict, )):
             raise InvalidSchemaValue(
-                "Value of {0} not an object".format(value))
+                "Value of {0} not a dict".format(value))
+
+        model_factory = model_factory or ModelFactory()
 
         if self.one_of:
             properties = None
@@ -197,7 +199,7 @@ class Schema(object):
         else:
             properties = self._unmarshal_properties(value)
 
-        return ModelFactory().create(properties, name=self.model)
+        return model_factory.create(properties, name=self.model)
 
     def _unmarshal_properties(self, value, one_of_schema=None):
         all_props = self.get_all_properties()
@@ -234,7 +236,18 @@ class Schema(object):
                     continue
                 prop_value = prop.default
             properties[prop_name] = prop.unmarshal(prop_value)
+
+        self._validate_properties(properties, one_of_schema=one_of_schema)
+
         return properties
+
+    def get_validator_mapping(self):
+        mapping = self.VALIDATOR_CALLABLE_GETTER.copy()
+        mapping.update({
+            SchemaType.OBJECT: self._validate_object,
+        })
+
+        return defaultdict(lambda: lambda x: x, mapping)
 
     def validate(self, value):
         if value is None:
@@ -242,12 +255,80 @@ class Schema(object):
                 raise InvalidSchemaValue("Null value for non-nullable schema")
             return self.default
 
-        validator = self.VALIDATOR_CALLABLE_GETTER[self.type]
+        validator_mapping = self.get_validator_mapping()
+        validator_callable = validator_mapping[self.type]
 
-        if not validator(value):
+        if not validator_callable(value):
             raise InvalidSchemaValue(
                 "Value of {0} not valid type of {1}".format(
                     value, self.type.value)
             )
 
         return value
+
+    def _validate_object(self, value):
+        if not hasattr(value, '__dict__'):
+            raise InvalidSchemaValue(
+                "Value of {0} not an object".format(value))
+
+        properties = value.__dict__
+
+        if self.one_of:
+            valid_one_of_schema = None
+            for one_of_schema in self.one_of:
+                try:
+                    self._validate_properties(properties, one_of_schema)
+                except OpenAPISchemaError:
+                    pass
+                else:
+                    if valid_one_of_schema is not None:
+                        raise MultipleOneOfSchema(
+                            "Exactly one schema should be valid,"
+                            "multiple found")
+                    valid_one_of_schema = True
+
+            if valid_one_of_schema is None:
+                raise NoOneOfSchema(
+                    "Exactly one valid schema should be valid, None found.")
+
+        else:
+            self._validate_properties(properties)
+
+        return True
+
+    def _validate_properties(self, value, one_of_schema=None):
+        all_props = self.get_all_properties()
+        all_props_names = self.get_all_properties_names()
+        all_req_props_names = self.get_all_required_properties_names()
+
+        if one_of_schema is not None:
+            all_props.update(one_of_schema.get_all_properties())
+            all_props_names |= one_of_schema.\
+                get_all_properties_names()
+            all_req_props_names |= one_of_schema.\
+                get_all_required_properties_names()
+
+        value_props_names = value.keys()
+        extra_props = set(value_props_names) - set(all_props_names)
+        if extra_props and self.additional_properties is None:
+            raise UndefinedSchemaProperty(
+                "Undefined properties in schema: {0}".format(extra_props))
+
+        for prop_name in extra_props:
+            prop_value = value[prop_name]
+            self.additional_properties.validate(
+                prop_value)
+
+        for prop_name, prop in iteritems(all_props):
+            try:
+                prop_value = value[prop_name]
+            except KeyError:
+                if prop_name in all_req_props_names:
+                    raise MissingSchemaProperty(
+                        "Missing schema property {0}".format(prop_name))
+                if not prop.nullable and not prop.default:
+                    continue
+                prop_value = prop.default
+            prop.validate(prop_value)
+
+        return True

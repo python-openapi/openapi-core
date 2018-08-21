@@ -2,6 +2,7 @@ import json
 import pytest
 from six import iteritems
 
+from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.media_types.exceptions import (
     InvalidContentType, InvalidMediaTypeValue,
 )
@@ -221,7 +222,8 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data_json
+        assert isinstance(response_result.data, BaseModel)
+        assert response_result.data.data == []
 
     def test_get_pets_ids_param(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -258,7 +260,8 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data_json
+        assert isinstance(response_result.data, BaseModel)
+        assert response_result.data.data == []
 
     def test_get_pets_tags_param(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -295,7 +298,8 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data_json
+        assert isinstance(response_result.data, BaseModel)
+        assert response_result.data.data == []
 
     def test_get_pets_parameter_deserialization_error(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -810,10 +814,12 @@ class TestPetstore(object):
 
         assert body is None
 
+        data_id = 1
+        data_name = 'test'
         data_json = {
             'data': {
-                'id': 1,
-                'name': 'test',
+                'id': data_id,
+                'name': data_name,
             },
         }
         data = json.dumps(data_json)
@@ -822,7 +828,10 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data_json
+        assert isinstance(response_result.data, BaseModel)
+        assert isinstance(response_result.data.data, BaseModel)
+        assert response_result.data.data.id == data_id
+        assert response_result.data.data.name == data_name
 
     def test_get_pet_not_found(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -847,10 +856,13 @@ class TestPetstore(object):
 
         assert body is None
 
+        code = 404
+        message = 'Not found'
+        rootCause = 'Pet not found'
         data_json = {
             'code': 404,
-            'message': 'Not found',
-            'rootCause': 'Pet not found',
+            'message': message,
+            'rootCause': rootCause,
         }
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
@@ -858,7 +870,10 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data_json
+        assert isinstance(response_result.data, BaseModel)
+        assert response_result.data.code == code
+        assert response_result.data.message == message
+        assert response_result.data.rootCause == rootCause
 
     def test_get_pet_wildcard(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -993,13 +1008,18 @@ class TestPetstore(object):
         body = request.get_body(spec)
 
         assert parameters == {}
-        assert body == data_json
+        assert isinstance(body, BaseModel)
+        assert body.name == pet_name
 
+        code = 400
+        message = 'Bad request'
+        rootCause = 'Tag already exist'
+        additionalinfo = 'Tag Dog already exist'
         data_json = {
-            'code': 400,
-            'message': 'Bad request',
-            'rootCause': 'Tag already exist',
-            'additionalinfo': 'Tag Dog already exist',
+            'code': code,
+            'message': message,
+            'rootCause': rootCause,
+            'additionalinfo': additionalinfo,
         }
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
@@ -1007,4 +1027,8 @@ class TestPetstore(object):
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
-        assert response_result.data == data_json
+        assert isinstance(response_result.data, BaseModel)
+        assert response_result.data.code == code
+        assert response_result.data.message == message
+        assert response_result.data.rootCause == rootCause
+        assert response_result.data.additionalinfo == additionalinfo
