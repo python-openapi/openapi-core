@@ -31,7 +31,7 @@ class Schema(object):
     FORMAT_CALLABLE_GETTER = defaultdict(
         lambda: lambda x: x if isinstance(x, bytes) else str(x), {
             SchemaFormat.DATE.value: format_date,
-    })
+        })
 
     VALIDATOR_CALLABLE_GETTER = {
         None: lambda x: x,
