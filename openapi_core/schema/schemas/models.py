@@ -28,7 +28,7 @@ class Schema(object):
         SchemaType.BOOLEAN: forcebool,
     }
 
-    FORMAT_CALLABLE_GETTER = defaultdict(lambda: lambda x: str(x), {
+    FORMAT_CALLABLE_GETTER = defaultdict(lambda: lambda x: x if isinstance(x, bytes) else str(x), {
         SchemaFormat.DATE.value: format_date,
     })
 
