@@ -32,14 +32,14 @@ class Schema(object):
         SchemaFormat.DATE.value: format_date,
     })
 
-    VALIDATOR_CALLABLE_GETTER = {
+    TYPE_VALIDATOR_CALLABLE_GETTER = {
         None: lambda x: x,
         SchemaType.BOOLEAN: TypeValidator(bool),
         SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
         SchemaType.NUMBER: TypeValidator(integer_types, float, exclude=bool),
         SchemaType.STRING: TypeValidator(binary_type, text_type),
         SchemaType.ARRAY: TypeValidator(list, tuple),
-        SchemaType.OBJECT: AttributeValidator('__class__'),
+        SchemaType.OBJECT: AttributeValidator('__dict__'),
     }
 
     def __init__(
@@ -242,10 +242,9 @@ class Schema(object):
         return properties
 
     def get_validator_mapping(self):
-        mapping = self.VALIDATOR_CALLABLE_GETTER.copy()
-        mapping.update({
+        mapping = {
             SchemaType.OBJECT: self._validate_object,
-        })
+        }
 
         return defaultdict(lambda: lambda x: x, mapping)
 
@@ -253,24 +252,25 @@ class Schema(object):
         if value is None:
             if not self.nullable:
                 raise InvalidSchemaValue("Null value for non-nullable schema")
-            return self.default
+            return
 
-        validator_mapping = self.get_validator_mapping()
-        validator_callable = validator_mapping[self.type]
-
-        if not validator_callable(value):
+        # type validation
+        type_validator_callable = self.TYPE_VALIDATOR_CALLABLE_GETTER[
+            self.type]
+        if not type_validator_callable(value):
             raise InvalidSchemaValue(
                 "Value of {0} not valid type of {1}".format(
                     value, self.type.value)
             )
 
+        # structure validation
+        validator_mapping = self.get_validator_mapping()
+        validator_callable = validator_mapping[self.type]
+        validator_callable(value)
+
         return value
 
     def _validate_object(self, value):
-        if not hasattr(value, '__dict__'):
-            raise InvalidSchemaValue(
-                "Value of {0} not an object".format(value))
-
         properties = value.__dict__
 
         if self.one_of:
