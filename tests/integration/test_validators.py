@@ -4,6 +4,7 @@ import pytest
 from openapi_core.schema.media_types.exceptions import (
     InvalidContentType, InvalidMediaTypeValue,
 )
+from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
@@ -327,5 +328,8 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert result.errors == []
-        assert result.data == response_json
+        assert isinstance(result.data, BaseModel)
+        assert len(result.data.data) == 1
+        assert result.data.data[0].id == 1
+        assert result.data.data[0].name == 'Sparky'
         assert result.headers == {}

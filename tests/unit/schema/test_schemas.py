@@ -3,7 +3,10 @@ import datetime
 import mock
 import pytest
 
-from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
+from openapi_core.extensions.models.models import Model
+from openapi_core.schema.schemas.exceptions import (
+    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema,
+)
 from openapi_core.schema.schemas.models import Schema
 
 
@@ -254,3 +257,57 @@ class TestSchemaValidate(object):
 
         with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
+
+    @pytest.mark.parametrize('value', ['true', False, 1, 3.14, [1, 3]])
+    def test_object_not_an_object(self, value):
+        schema = Schema('object')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [Model(), ])
+    def test_object_multiple_one_of(self, value):
+        one_of = [
+            Schema('object'), Schema('object'),
+        ]
+        schema = Schema('object', one_of=one_of)
+
+        with pytest.raises(MultipleOneOfSchema):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [Model(), ])
+    def test_object_defferent_type_one_of(self, value):
+        one_of = [
+            Schema('integer'), Schema('string'),
+        ]
+        schema = Schema('object', one_of=one_of)
+
+        with pytest.raises(MultipleOneOfSchema):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [Model(), ])
+    def test_object_no_one_of(self, value):
+        one_of = [
+            Schema(
+                'object',
+                properties={'test1': Schema('string')},
+                required=['test1', ],
+            ),
+            Schema(
+                'object',
+                properties={'test2': Schema('string')},
+                required=['test2', ],
+            ),
+        ]
+        schema = Schema('object', one_of=one_of)
+
+        with pytest.raises(NoOneOfSchema):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [Model(), ])
+    def test_object_default_property(self, value):
+        schema = Schema('object', default='value1')
+
+        result = schema.validate(value)
+
+        assert result == value
