@@ -243,6 +243,7 @@ class Schema(object):
 
     def get_validator_mapping(self):
         mapping = {
+            SchemaType.ARRAY: self._validate_collection,
             SchemaType.OBJECT: self._validate_object,
         }
 
@@ -269,6 +270,12 @@ class Schema(object):
         validator_callable(value)
 
         return value
+
+    def _validate_collection(self, value):
+        if self.items is None:
+            raise OpenAPISchemaError("Schema for collection not defined")
+
+        return list(map(self.items.validate, value))
 
     def _validate_object(self, value):
         properties = value.__dict__
