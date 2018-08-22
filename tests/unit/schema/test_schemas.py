@@ -5,7 +5,7 @@ import pytest
 
 from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema,
+    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -199,8 +199,15 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [[1, 2], (3, 4)])
-    def test_array(self, value):
+    def test_array_no_schema(self, value):
         schema = Schema('array')
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [[1, 2], (3, 4)])
+    def test_array(self, value):
+        schema = Schema('array', items=Schema('integer'))
 
         result = schema.validate(value)
 
