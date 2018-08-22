@@ -9,6 +9,8 @@ from openapi_core.schema.schemas.exceptions import (
 )
 from openapi_core.schema.schemas.models import Schema
 
+from six import b, u
+
 
 class TestSchemaIteritems(object):
 
@@ -77,13 +79,22 @@ class TestSchemaUnmarshal(object):
 
         assert result == datetime.date(2018, 1, 2)
 
+    def test_string_format_datetime(self):
+        schema = Schema('string', schema_format='date-time')
+        value = '2018-01-02T00:00:00'
+
+        result = schema.unmarshal(value)
+
+        assert result == datetime.datetime(2018, 1, 2, 0, 0, 0)
+
+    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_custom(self):
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
         with mock.patch.dict(
-            Schema.FORMAT_CALLABLE_GETTER,
+            Schema.STRING_FORMAT_CAST_CALLABLE_GETTER,
             {custom_format: lambda x: x + '-custom'},
         ):
             result = schema.unmarshal(value)
@@ -95,17 +106,17 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', schema_format=unknown_format)
         value = 'x'
 
-        result = schema.unmarshal(value)
+        with pytest.raises(OpenAPISchemaError):
+            schema.unmarshal(value)
 
-        assert result == 'x'
-
+    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_invalid_value(self):
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
         with mock.patch.dict(
-            Schema.FORMAT_CALLABLE_GETTER,
+            Schema.STRING_FORMAT_CAST_CALLABLE_GETTER,
             {custom_format: mock.Mock(side_effect=ValueError())},
         ), pytest.raises(
             InvalidSchemaValue, message='Failed to format value'
@@ -191,7 +202,7 @@ class TestSchemaValidate(object):
 
         assert result == value
 
-    @pytest.mark.parametrize('value', [1, 3.14, 'true', [True, False]])
+    @pytest.mark.parametrize('value', [1, 3.14, u('true'), [True, False]])
     def test_boolean_invalid(self, value):
         schema = Schema('boolean')
 
@@ -213,7 +224,7 @@ class TestSchemaValidate(object):
 
         assert result == value
 
-    @pytest.mark.parametrize('value', [False, 1, 3.14, 'true'])
+    @pytest.mark.parametrize('value', [False, 1, 3.14, u('true')])
     def test_array_invalid(self, value):
         schema = Schema('array')
 
@@ -228,7 +239,7 @@ class TestSchemaValidate(object):
 
         assert result == value
 
-    @pytest.mark.parametrize('value', [False, 3.14, 'true', [1, 2]])
+    @pytest.mark.parametrize('value', [False, 3.14, u('true'), [1, 2]])
     def test_integer_invalid(self, value):
         schema = Schema('integer')
 
@@ -250,7 +261,7 @@ class TestSchemaValidate(object):
         with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
 
-    @pytest.mark.parametrize('value', ['true', b'true'])
+    @pytest.mark.parametrize('value', [u('true'), ])
     def test_string(self, value):
         schema = Schema('string')
 
@@ -258,11 +269,83 @@ class TestSchemaValidate(object):
 
         assert result == value
 
-    @pytest.mark.parametrize('value', [False, 1, 3.14, [1, 3]])
+    @pytest.mark.parametrize('value', [b('test'), False, 1, 3.14, [1, 3]])
     def test_string_invalid(self, value):
         schema = Schema('string')
 
         with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        b('true'), u('test'), False, 1, 3.14, [1, 3],
+        datetime.datetime(1989, 1, 2),
+    ])
+    def test_string_format_date_invalid(self, value):
+        schema = Schema('string', schema_format='date')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        datetime.date(1989, 1, 2), datetime.date(2018, 1, 2),
+    ])
+    def test_string_format_date(self, value):
+        schema = Schema('string', schema_format='date')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [
+        b('true'), u('true'), False, 1, 3.14, [1, 3],
+        datetime.date(1989, 1, 2),
+    ])
+    def test_string_format_datetime_invalid(self, value):
+        schema = Schema('string', schema_format='date-time')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        datetime.datetime(1989, 1, 2, 0, 0, 0),
+        datetime.datetime(2018, 1, 2, 23, 59, 59),
+    ])
+    def test_string_format_datetime(self, value):
+        schema = Schema('string', schema_format='date-time')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [
+        u('true'), False, 1, 3.14, [1, 3], datetime.date(1989, 1, 2),
+        datetime.datetime(1989, 1, 2, 0, 0, 0),
+    ])
+    def test_string_format_binary_invalid(self, value):
+        schema = Schema('string', schema_format='binary')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        b('stream'), b('text'),
+    ])
+    def test_string_format_binary(self, value):
+        schema = Schema('string', schema_format='binary')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [
+        u('test'), b('stream'), datetime.date(1989, 1, 2),
+        datetime.datetime(1989, 1, 2, 0, 0, 0),
+    ])
+    def test_string_format_unknown(self, value):
+        unknown_format = 'unknown'
+        schema = Schema('string', schema_format=unknown_format)
+
+        with pytest.raises(OpenAPISchemaError):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', ['true', False, 1, 3.14, [1, 3]])

@@ -18,3 +18,7 @@ def dicthash(d):
 
 def format_date(value):
     return datetime.datetime.strptime(value, '%Y-%m-%d').date()
+
+
+def format_datetime(value):
+    return datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
