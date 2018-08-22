@@ -1,6 +1,7 @@
 """OpenAPI core schemas models module"""
 import logging
 from collections import defaultdict
+from datetime import date, datetime
 import warnings
 
 from six import iteritems, integer_types, binary_type, text_type
@@ -11,7 +12,9 @@ from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema,
 )
-from openapi_core.schema.schemas.util import forcebool, format_date
+from openapi_core.schema.schemas.util import (
+    forcebool, format_date, format_datetime,
+)
 from openapi_core.schema.schemas.validators import (
     TypeValidator, AttributeValidator,
 )
@@ -28,16 +31,27 @@ class Schema(object):
         SchemaType.BOOLEAN: forcebool,
     }
 
-    FORMAT_CALLABLE_GETTER = defaultdict(lambda: lambda x: x, {
-        SchemaFormat.DATE.value: format_date,
-    })
+    STRING_FORMAT_CAST_CALLABLE_GETTER = {
+        SchemaFormat.NONE: text_type,
+        SchemaFormat.DATE: format_date,
+        SchemaFormat.DATETIME: format_datetime,
+        SchemaFormat.BINARY: binary_type,
+    }
+
+    STRING_FORMAT_VALIDATOR_CALLABLE_GETTER = {
+        SchemaFormat.NONE: TypeValidator(text_type),
+        SchemaFormat.DATE: TypeValidator(date, exclude=datetime),
+        SchemaFormat.DATETIME: TypeValidator(datetime),
+        SchemaFormat.BINARY: TypeValidator(binary_type),
+    }
 
     TYPE_VALIDATOR_CALLABLE_GETTER = {
-        None: lambda x: x,
+        None: lambda x: True,
         SchemaType.BOOLEAN: TypeValidator(bool),
         SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
         SchemaType.NUMBER: TypeValidator(integer_types, float, exclude=bool),
-        SchemaType.STRING: TypeValidator(binary_type, text_type),
+        SchemaType.STRING: TypeValidator(
+            text_type, date, datetime, binary_type),
         SchemaType.ARRAY: TypeValidator(list, tuple),
         SchemaType.OBJECT: AttributeValidator('__dict__'),
     }
@@ -158,7 +172,16 @@ class Schema(object):
         return casted
 
     def _unmarshal_string(self, value):
-        formatter = self.FORMAT_CALLABLE_GETTER[self.format]
+        try:
+            schema_format = SchemaFormat(self.format)
+        except ValueError:
+            # @todo: implement custom format unmarshalling support
+            raise OpenAPISchemaError(
+                "Unsupported {0} format unmarshalling".format(self.format)
+            )
+        else:
+            formatter = self.STRING_FORMAT_CAST_CALLABLE_GETTER[schema_format]
+
         try:
             return formatter(value)
         except ValueError:
@@ -244,6 +267,7 @@ class Schema(object):
     def get_validator_mapping(self):
         mapping = {
             SchemaType.ARRAY: self._validate_collection,
+            SchemaType.STRING: self._validate_string,
             SchemaType.OBJECT: self._validate_object,
         }
 
@@ -276,6 +300,26 @@ class Schema(object):
             raise OpenAPISchemaError("Schema for collection not defined")
 
         return list(map(self.items.validate, value))
+
+    def _validate_string(self, value):
+        try:
+            schema_format = SchemaFormat(self.format)
+        except ValueError:
+            # @todo: implement custom format validation support
+            raise OpenAPISchemaError(
+                "Unsupported {0} format validation".format(self.format)
+            )
+        else:
+            format_validator_callable =\
+                self.STRING_FORMAT_VALIDATOR_CALLABLE_GETTER[schema_format]
+
+        if not format_validator_callable(value):
+            raise InvalidSchemaValue(
+                "Value of {0} not valid format of {1}".format(
+                    value, self.format)
+            )
+
+        return True
 
     def _validate_object(self, value):
         properties = value.__dict__
