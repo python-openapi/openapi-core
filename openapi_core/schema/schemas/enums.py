@@ -4,6 +4,7 @@ from enum import Enum
 
 class SchemaType(Enum):
 
+    ANY = None
     INTEGER = 'integer'
     NUMBER = 'number'
     STRING = 'string'
