@@ -1,4 +1,6 @@
 """OpenAPI core schemas models module"""
+import attr
+import functools
 import logging
 from collections import defaultdict
 from datetime import date, datetime
@@ -23,6 +25,11 @@ from openapi_core.schema.schemas.validators import (
 
 log = logging.getLogger(__name__)
 
+@attr.s
+class StringFormat(object):
+    format = attr.ib()
+    validate = attr.ib()
+
 
 class Schema(object):
     """Represents an OpenAPI Schema."""
@@ -33,18 +40,11 @@ class Schema(object):
         SchemaType.BOOLEAN: forcebool,
     }
 
-    STRING_FORMAT_CAST_CALLABLE_GETTER = {
-        SchemaFormat.NONE: text_type,
-        SchemaFormat.DATE: format_date,
-        SchemaFormat.DATETIME: format_datetime,
-        SchemaFormat.BINARY: binary_type,
-    }
-
-    STRING_FORMAT_VALIDATOR_CALLABLE_GETTER = {
-        SchemaFormat.NONE: TypeValidator(text_type),
-        SchemaFormat.DATE: TypeValidator(date, exclude=datetime),
-        SchemaFormat.DATETIME: TypeValidator(datetime),
-        SchemaFormat.BINARY: TypeValidator(binary_type),
+    STRING_FORMAT_CALLABLE_GETTER = {
+        SchemaFormat.NONE: StringFormat(text_type, TypeValidator(text_type)),
+        SchemaFormat.DATE: StringFormat(format_date, TypeValidator(date, exclude=datetime)),
+        SchemaFormat.DATETIME: StringFormat(format_datetime, TypeValidator(datetime)),
+        SchemaFormat.BINARY: StringFormat(binary_type, TypeValidator(binary_type)),
     }
 
     TYPE_VALIDATOR_CALLABLE_GETTER = {
@@ -99,6 +99,7 @@ class Schema(object):
 
         self._all_required_properties_cache = None
         self._all_optional_properties_cache = None
+        self.custom_formatters = None
 
     def __getitem__(self, name):
         return self.properties[name]
@@ -173,10 +174,12 @@ class Schema(object):
                 "Failed to cast value of {0} to {1}".format(value, self.type)
             )
 
-    def unmarshal(self, value):
+    def unmarshal(self, value, custom_formatters=None):
         """Unmarshal parameter from the value."""
         if self.deprecated:
             warnings.warn("The schema is deprecated", DeprecationWarning)
+
+        self.custom_formatters = custom_formatters
 
         casted = self.cast(value)
 
@@ -195,15 +198,18 @@ class Schema(object):
         try:
             schema_format = SchemaFormat(self.format)
         except ValueError:
-            # @todo: implement custom format unmarshalling support
-            raise OpenAPISchemaError(
-                "Unsupported {0} format unmarshalling".format(self.format)
-            )
+            msg = "Unsupported {0} format unmarshalling".format(self.format)
+            if self.custom_formatters is not None:
+                formatstring = self.custom_formatters.get(self.format)
+                if formatstring is None:
+                    raise OpenAPISchemaError(msg)
+            else:
+                raise OpenAPISchemaError(msg)
         else:
-            formatter = self.STRING_FORMAT_CAST_CALLABLE_GETTER[schema_format]
+            formatstring = self.STRING_FORMAT_CALLABLE_GETTER[schema_format]
 
         try:
-            return formatter(value)
+            return formatstring.format(value)
         except ValueError:
             raise InvalidSchemaValue(
                 "Failed to format value of {0} to {1}".format(
@@ -231,7 +237,8 @@ class Schema(object):
         if self.items is None:
             raise UndefinedItemsSchema("Undefined items' schema")
 
-        return list(map(self.items.unmarshal, value))
+        f = functools.partial(self.items.unmarshal, custom_formatters=self.custom_formatters)
+        return list(map(f, value))
 
     def _unmarshal_object(self, value, model_factory=None):
         if not isinstance(value, (dict, )):
@@ -286,7 +293,7 @@ class Schema(object):
         for prop_name in extra_props:
             prop_value = value[prop_name]
             properties[prop_name] = self.additional_properties.unmarshal(
-                prop_value)
+                prop_value, self.custom_formatters)
 
         for prop_name, prop in iteritems(all_props):
             try:
@@ -298,7 +305,7 @@ class Schema(object):
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
-            properties[prop_name] = prop.unmarshal(prop_value)
+            properties[prop_name] = prop.unmarshal(prop_value, self.custom_formatters)
 
         self._validate_properties(properties, one_of_schema=one_of_schema)
 
@@ -405,15 +412,18 @@ class Schema(object):
         try:
             schema_format = SchemaFormat(self.format)
         except ValueError:
-            # @todo: implement custom format validation support
-            raise OpenAPISchemaError(
-                "Unsupported {0} format validation".format(self.format)
-            )
+            msg = "Unsupported {0} format validation".format(self.format)
+            if self.custom_formatters is not None:
+                formatstring = self.custom_formatters.get(self.format)
+                if formatstring is None:
+                    raise OpenAPISchemaError(msg)
+            else:
+                raise OpenAPISchemaError(msg)
         else:
-            format_validator_callable =\
-                self.STRING_FORMAT_VALIDATOR_CALLABLE_GETTER[schema_format]
+            formatstring =\
+                self.STRING_FORMAT_CALLABLE_GETTER[schema_format]
 
-        if not format_validator_callable(value):
+        if not formatstring.validate(value):
             raise InvalidSchemaValue(
                 "Value of {0} not valid format of {1}".format(
                     value, self.format)
