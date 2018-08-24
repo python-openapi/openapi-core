@@ -11,8 +11,9 @@ from openapi_core.validation.util import get_operation_pattern
 
 class RequestValidator(object):
 
-    def __init__(self, spec):
+    def __init__(self, spec, custom_formatters=None):
         self.spec = spec
+        self.custom_formatters = custom_formatters
 
     def validate(self, request):
         try:
@@ -52,7 +53,7 @@ class RequestValidator(object):
                 continue
 
             try:
-                value = param.unmarshal(raw_value)
+                value = param.unmarshal(raw_value, self.custom_formatters)
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:
@@ -78,7 +79,7 @@ class RequestValidator(object):
                 errors.append(exc)
             else:
                 try:
-                    body = media_type.unmarshal(raw_body)
+                    body = media_type.unmarshal(raw_body, self.custom_formatters)
                 except OpenAPIMappingError as exc:
                     errors.append(exc)
 

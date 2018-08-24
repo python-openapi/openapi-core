@@ -6,8 +6,9 @@ from openapi_core.validation.util import get_operation_pattern
 
 class ResponseValidator(object):
 
-    def __init__(self, spec):
+    def __init__(self, spec, custom_formatters=None):
         self.spec = spec
+        self.custom_formatters = custom_formatters
 
     def validate(self, request, response):
         try:
@@ -60,7 +61,7 @@ class ResponseValidator(object):
                 errors.append(exc)
             else:
                 try:
-                    data = media_type.unmarshal(raw_data)
+                    data = media_type.unmarshal(raw_data, self.custom_formatters)
                 except OpenAPIMappingError as exc:
                     errors.append(exc)
 
