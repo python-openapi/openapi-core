@@ -73,12 +73,13 @@ class TestPetstore(object):
             assert path.name == path_name
 
             for http_method, operation in iteritems(path.operations):
+                operation_spec = spec_dict['paths'][path_name][http_method]
+
                 assert type(operation) == Operation
                 assert operation.path_name == path_name
                 assert operation.http_method == http_method
                 assert operation.operation_id is not None
-
-                operation_spec = spec_dict['paths'][path_name][http_method]
+                assert operation.tags == operation_spec['tags']
 
                 responses_spec = operation_spec.get('responses')
 
