@@ -31,6 +31,7 @@ class OperationsGenerator(object):
             parameters = self.parameters_generator.generate_from_list(
                 parameters_list)
             operation_id = operation_deref.get('operationId')
+            tags_list = operation_deref.get('tags', [])
 
             request_body = None
             if 'requestBody' in operation_deref:
@@ -43,7 +44,7 @@ class OperationsGenerator(object):
                 Operation(
                     http_method, path_name, responses, list(parameters),
                     request_body=request_body, deprecated=deprecated,
-                    operation_id=operation_id,
+                    operation_id=operation_id, tags=list(tags_list)
                 ),
             )
 

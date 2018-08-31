@@ -8,7 +8,7 @@ class Operation(object):
 
     def __init__(
             self, http_method, path_name, responses, parameters,
-            request_body=None, deprecated=False, operation_id=None):
+            request_body=None, deprecated=False, operation_id=None, tags=None):
         self.http_method = http_method
         self.path_name = path_name
         self.responses = dict(responses)
@@ -16,6 +16,7 @@ class Operation(object):
         self.request_body = request_body
         self.deprecated = deprecated
         self.operation_id = operation_id
+        self.tags = tags
 
     def __getitem__(self, name):
         return self.parameters[name]
