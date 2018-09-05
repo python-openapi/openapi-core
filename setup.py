@@ -44,6 +44,7 @@ class PyTest(TestCommand):
             '--cov', 'openapi_core',
             '--cov-report', 'term-missing',
             '--cov-report', 'xml:reports/coverage.xml',
+            'tests',
         ]
         self.test_suite = True
 
