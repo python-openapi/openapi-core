@@ -32,7 +32,7 @@ class MediaType(object):
         deserializer = self.get_dererializer()
         return deserializer(value)
 
-    def unmarshal(self, value):
+    def unmarshal(self, value, custom_formatters=None):
         if not self.schema:
             return value
 
@@ -42,11 +42,11 @@ class MediaType(object):
             raise InvalidMediaTypeValue(str(exc))
 
         try:
-            unmarshalled = self.schema.unmarshal(deserialized)
+            unmarshalled = self.schema.unmarshal(deserialized, custom_formatters=custom_formatters)
         except InvalidSchemaValue as exc:
             raise InvalidMediaTypeValue(str(exc))
 
         try:
-            return self.schema.validate(unmarshalled)
+            return self.schema.validate(unmarshalled, custom_formatters=custom_formatters)
         except InvalidSchemaValue as exc:
             raise InvalidMediaTypeValue(str(exc))

@@ -91,7 +91,7 @@ class Parameter(object):
 
         return location[self.name]
 
-    def unmarshal(self, value):
+    def unmarshal(self, value, custom_formatters=None):
         if self.deprecated:
             warnings.warn(
                 "{0} parameter is deprecated".format(self.name),
@@ -112,11 +112,11 @@ class Parameter(object):
             raise InvalidParameterValue(str(exc))
 
         try:
-            unmarshalled = self.schema.unmarshal(deserialized)
+            unmarshalled = self.schema.unmarshal(deserialized, custom_formatters=custom_formatters)
         except InvalidSchemaValue as exc:
             raise InvalidParameterValue(str(exc))
 
         try:
-            return self.schema.validate(unmarshalled)
+            return self.schema.validate(unmarshalled, custom_formatters=custom_formatters)
         except InvalidSchemaValue as exc:
             raise InvalidParameterValue(str(exc))
