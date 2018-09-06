@@ -39,14 +39,14 @@ class MediaType(object):
         try:
             deserialized = self.deserialize(value)
         except ValueError as exc:
-            raise InvalidMediaTypeValue(str(exc))
+            raise InvalidMediaTypeValue(exc)
 
         try:
             unmarshalled = self.schema.unmarshal(deserialized, custom_formatters=custom_formatters)
         except InvalidSchemaValue as exc:
-            raise InvalidMediaTypeValue(str(exc))
+            raise InvalidMediaTypeValue(exc)
 
         try:
             return self.schema.validate(unmarshalled, custom_formatters=custom_formatters)
         except InvalidSchemaValue as exc:
-            raise InvalidMediaTypeValue(str(exc))
+            raise InvalidMediaTypeValue(exc)

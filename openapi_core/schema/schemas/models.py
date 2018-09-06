@@ -14,7 +14,7 @@ from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema, NoValidSchema,
-    UndefinedItemsSchema,
+    UndefinedItemsSchema, InvalidCustomFormatSchemaValue,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime,
@@ -160,7 +160,7 @@ class Schema(object):
         """Cast value to schema type"""
         if value is None:
             if not self.nullable:
-                raise InvalidSchemaValue("Null value for non-nullable schema")
+                raise InvalidSchemaValue("Null value for non-nullable schema", value, self.type)
             return self.default
 
         cast_mapping = self.get_cast_mapping(custom_formatters=custom_formatters)
@@ -173,8 +173,7 @@ class Schema(object):
             return cast_callable(value)
         except ValueError:
             raise InvalidSchemaValue(
-                "Failed to cast value of {0} to {1}".format(value, self.type)
-            )
+                "Failed to cast value {value} to type {type}", value, self.type)
 
     def unmarshal(self, value, custom_formatters=None):
         """Unmarshal parameter from the value."""
@@ -188,9 +187,7 @@ class Schema(object):
 
         if self.enum and casted not in self.enum:
             raise InvalidSchemaValue(
-                "Value of {0} not in enum choices: {1}".format(
-                    value, self.enum)
-            )
+                "Value {value} not in enum choices: {type}", value, self.enum)
 
         return casted
 
@@ -198,23 +195,21 @@ class Schema(object):
         try:
             schema_format = SchemaFormat(self.format)
         except ValueError:
-            msg = "Unsupported {0} format unmarshalling".format(self.format)
+            msg = "Unsupported format {type} unmarshalling for value {value}"
             if custom_formatters is not None:
                 formatstring = custom_formatters.get(self.format)
                 if formatstring is None:
-                    raise OpenAPISchemaError(msg)
+                    raise InvalidSchemaValue(msg, value, self.format)
             else:
-                raise OpenAPISchemaError(msg)
+                raise InvalidSchemaValue(msg, value, self.format)
         else:
             formatstring = self.STRING_FORMAT_CALLABLE_GETTER[schema_format]
 
         try:
             return formatstring.unmarshal(value)
-        except ValueError:
-            raise InvalidSchemaValue(
-                "Failed to format value of {0} to {1}".format(
-                    value, self.format)
-            )
+        except ValueError as exc:
+            raise InvalidCustomFormatSchemaValue(
+                "Failed to format value {value} to format {type}: {exception}", value, self.format, exc)
 
     def _unmarshal_any(self, value, custom_formatters=None):
         types_resolve_order = [
@@ -230,12 +225,11 @@ class Schema(object):
             except (OpenAPISchemaError, TypeError, ValueError):
                 continue
 
-        raise NoValidSchema(
-            "No valid schema found for value {0}".format(value))
+        raise NoValidSchema(value)
 
     def _unmarshal_collection(self, value, custom_formatters=None):
         if self.items is None:
-            raise UndefinedItemsSchema("Undefined items' schema")
+            raise UndefinedItemsSchema(self.type)
 
         f = functools.partial(self.items.unmarshal,
                               custom_formatters=custom_formatters)
@@ -244,8 +238,7 @@ class Schema(object):
     def _unmarshal_object(self, value, model_factory=None,
                           custom_formatters=None):
         if not isinstance(value, (dict, )):
-            raise InvalidSchemaValue(
-                "Value of {0} not a dict".format(value))
+            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
         model_factory = model_factory or ModelFactory()
 
@@ -259,14 +252,11 @@ class Schema(object):
                     pass
                 else:
                     if properties is not None:
-                        raise MultipleOneOfSchema(
-                            "Exactly one schema should be valid,"
-                            "multiple found")
+                        raise MultipleOneOfSchema(self.type)
                     properties = found_props
 
             if properties is None:
-                raise NoOneOfSchema(
-                    "Exactly one valid schema should be valid, None found.")
+                raise NoOneOfSchema(self.type)
 
         else:
             properties = self._unmarshal_properties(
@@ -290,8 +280,7 @@ class Schema(object):
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
         if extra_props and self.additional_properties is None:
-            raise UndefinedSchemaProperty(
-                "Undefined properties in schema: {0}".format(extra_props))
+            raise UndefinedSchemaProperty(extra_props)
 
         properties = {}
         for prop_name in extra_props:
@@ -304,8 +293,7 @@ class Schema(object):
                 prop_value = value[prop_name]
             except KeyError:
                 if prop_name in all_req_props_names:
-                    raise MissingSchemaProperty(
-                        "Missing schema property {0}".format(prop_name))
+                    raise MissingSchemaProperty(prop_name)
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
@@ -334,7 +322,7 @@ class Schema(object):
     def validate(self, value, custom_formatters=None):
         if value is None:
             if not self.nullable:
-                raise InvalidSchemaValue("Null value for non-nullable schema")
+                raise InvalidSchemaValue("Null value for non-nullable schema of type {type}", value, self.type)
             return
 
         # type validation
@@ -342,9 +330,7 @@ class Schema(object):
             self.type]
         if not type_validator_callable(value):
             raise InvalidSchemaValue(
-                "Value of {0} not valid type of {1}".format(
-                    value, self.type.value)
-            )
+                "Value {value} not valid type {type}", value, self.type.value)
 
         # structure validation
         validator_mapping = self.get_validator_mapping()
@@ -355,7 +341,7 @@ class Schema(object):
 
     def _validate_collection(self, value, custom_formatters=None):
         if self.items is None:
-            raise OpenAPISchemaError("Schema for collection not defined")
+            raise UndefinedItemsSchema(self.type)
 
         if self.min_items is not None:
             if self.min_items < 0:
@@ -436,9 +422,7 @@ class Schema(object):
 
         if not formatstring.validate(value):
             raise InvalidSchemaValue(
-                "Value of {0} not valid format of {1}".format(
-                    value, self.format)
-            )
+                "Value {value} not valid format {type}", value, self.format)
 
         if self.min_length is not None:
             if self.min_length < 0:
@@ -484,14 +468,11 @@ class Schema(object):
                     pass
                 else:
                     if valid_one_of_schema is not None:
-                        raise MultipleOneOfSchema(
-                            "Exactly one schema should be valid,"
-                            "multiple found")
+                        raise MultipleOneOfSchema(self.type)
                     valid_one_of_schema = True
 
             if valid_one_of_schema is None:
-                raise NoOneOfSchema(
-                    "Exactly one valid schema should be valid, None found.")
+                raise NoOneOfSchema(self.type)
 
         else:
             self._validate_properties(properties,
@@ -542,8 +523,7 @@ class Schema(object):
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
         if extra_props and self.additional_properties is None:
-            raise UndefinedSchemaProperty(
-                "Undefined properties in schema: {0}".format(extra_props))
+            raise UndefinedSchemaProperty(extra_props)
 
         for prop_name in extra_props:
             prop_value = value[prop_name]
@@ -555,8 +535,7 @@ class Schema(object):
                 prop_value = value[prop_name]
             except KeyError:
                 if prop_name in all_req_props_names:
-                    raise MissingSchemaProperty(
-                        "Missing schema property {0}".format(prop_name))
+                    raise MissingSchemaProperty(prop_name)
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default

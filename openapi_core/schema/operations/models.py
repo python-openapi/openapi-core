@@ -32,7 +32,6 @@ class Operation(object):
                 return self.responses[http_status_range]
 
             if 'default' not in self.responses:
-                raise InvalidResponse(
-                    "Unknown response http status {0}".format(http_status))
+                raise InvalidResponse(http_status, self.responses)
 
             return self.responses['default']

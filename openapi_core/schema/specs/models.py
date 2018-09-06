@@ -31,8 +31,7 @@ class Spec(object):
             if spec_server.default_url in full_url_pattern:
                 return spec_server
 
-        raise InvalidServer(
-            "Invalid request server {0}".format(full_url_pattern))
+        raise InvalidServer(full_url_pattern)
 
     def get_server_url(self, index=0):
         return self.servers[index].default_url
@@ -41,9 +40,7 @@ class Spec(object):
         try:
             return self.paths[path_pattern].operations[http_method]
         except KeyError:
-            raise InvalidOperation(
-                "Unknown operation path {0} with method {1}".format(
-                    path_pattern, http_method))
+            raise InvalidOperation(path_pattern, http_method)
 
     def get_schema(self, name):
         return self.components.schemas[name]
