@@ -246,6 +246,51 @@ class TestSchemaValidate(object):
         with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
 
+    @pytest.mark.parametrize('value', [0, 1, 2])
+    def test_integer_minimum_invalid(self, value):
+        schema = Schema('integer', minimum=3)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [4, 5, 6])
+    def test_integer_minimum(self, value):
+        schema = Schema('integer', minimum=3)
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [4, 5, 6])
+    def test_integer_maximum_invalid(self, value):
+        schema = Schema('integer', maximum=3)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [0, 1, 2])
+    def test_integer_maximum(self, value):
+        schema = Schema('integer', maximum=3)
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [1, 2, 4])
+    def test_integer_multiple_of_invalid(self, value):
+        schema = Schema('integer', multiple_of=3)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [3, 6, 18])
+    def test_integer_multiple_of(self, value):
+        schema = Schema('integer', multiple_of=3)
+
+        result = schema.validate(value)
+
+        assert result == value
+
     @pytest.mark.parametrize('value', [1, 3.14])
     def test_number(self, value):
         schema = Schema('number')
@@ -260,6 +305,81 @@ class TestSchemaValidate(object):
 
         with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
+
+    @pytest.mark.parametrize('value', [0, 1, 2])
+    def test_number_minimum_invalid(self, value):
+        schema = Schema('number', minimum=3)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [3, 4, 5])
+    def test_number_minimum(self, value):
+        schema = Schema('number', minimum=3)
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [1, 2, 3])
+    def test_number_exclusive_minimum_invalid(self, value):
+        schema = Schema('number', minimum=3, exclusive_minimum=3)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [4, 5, 6])
+    def test_number_exclusive_minimum(self, value):
+        schema = Schema('number', minimum=3)
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [4, 5, 6])
+    def test_number_maximum_invalid(self, value):
+        schema = Schema('number', maximum=3)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [1, 2, 3])
+    def test_number_maximum(self, value):
+        schema = Schema('number', maximum=3)
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [3, 4, 5])
+    def test_number_exclusive_maximum_invalid(self, value):
+        schema = Schema('number', maximum=3, exclusive_maximum=True)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [0, 1, 2])
+    def test_number_exclusive_maximum(self, value):
+        schema = Schema('number', maximum=3, exclusive_maximum=True)
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [1, 2, 4])
+    def test_number_multiple_of_invalid(self, value):
+        schema = Schema('number', multiple_of=3)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [3, 6, 18])
+    def test_number_multiple_of(self, value):
+        schema = Schema('number', multiple_of=3)
+
+        result = schema.validate(value)
+
+        assert result == value
 
     @pytest.mark.parametrize('value', [u('true'), ])
     def test_string(self, value):
@@ -348,6 +468,65 @@ class TestSchemaValidate(object):
         with pytest.raises(OpenAPISchemaError):
             schema.validate(value)
 
+    @pytest.mark.parametrize('value', [u(""), ])
+    def test_string_min_length_invalid_schema(self, value):
+        schema = Schema('string', min_length=-1)
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [u(""), u("a"), u("ab")])
+    def test_string_min_length_invalid(self, value):
+        schema = Schema('string', min_length=3)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [u("abc"), u("abcd")])
+    def test_string_min_length(self, value):
+        schema = Schema('string', min_length=3)
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [u(""), ])
+    def test_string_max_length_invalid_schema(self, value):
+        schema = Schema('string', max_length=-1)
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [u("ab"), u("abc")])
+    def test_string_max_length_invalid(self, value):
+        schema = Schema('string', max_length=1)
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [u(""), u("a")])
+    def test_string_max_length(self, value):
+        schema = Schema('string', max_length=1)
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [u("foo"), u("bar")])
+    def test_string_pattern_invalid(self, value):
+        schema = Schema('string', pattern='baz')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [u("bar"), u("foobar")])
+    def test_string_pattern(self, value):
+        schema = Schema('string', pattern='bar')
+
+        result = schema.validate(value)
+
+        assert result == value
+
     @pytest.mark.parametrize('value', ['true', False, 1, 3.14, [1, 3]])
     def test_object_not_an_object(self, value):
         schema = Schema('object')
@@ -401,3 +580,146 @@ class TestSchemaValidate(object):
         result = schema.validate(value)
 
         assert result == value
+
+    @pytest.mark.parametrize('value', [Model(), ])
+    def test_object_min_properties_invalid_schema(self, value):
+        schema = Schema('object', min_properties=-1)
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        Model({'a': 1}),
+        Model({'a': 1, 'b': 2}),
+        Model({'a': 1, 'b': 2, 'c': 3})])
+    def test_object_min_properties_invalid(self, value):
+        schema = Schema(
+            'object',
+            properties={k: Schema('number')
+                        for k in ['a', 'b', 'c']},
+            min_properties=4,
+        )
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        Model({'a': 1}),
+        Model({'a': 1, 'b': 2}),
+        Model({'a': 1, 'b': 2, 'c': 3})])
+    def test_object_min_properties(self, value):
+        schema = Schema(
+            'object',
+            properties={k: Schema('number')
+                        for k in ['a', 'b', 'c']},
+            min_properties=1,
+        )
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [Model(), ])
+    def test_object_max_properties_invalid_schema(self, value):
+        schema = Schema('object', max_properties=-1)
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        Model({'a': 1}),
+        Model({'a': 1, 'b': 2}),
+        Model({'a': 1, 'b': 2, 'c': 3})])
+    def test_object_max_properties_invalid(self, value):
+        schema = Schema(
+            'object',
+            properties={k: Schema('number')
+                        for k in ['a', 'b', 'c']},
+            max_properties=0,
+        )
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        Model({'a': 1}),
+        Model({'a': 1, 'b': 2}),
+        Model({'a': 1, 'b': 2, 'c': 3})])
+    def test_object_max_properties(self, value):
+        schema = Schema(
+            'object',
+            properties={k: Schema('number')
+                        for k in ['a', 'b', 'c']},
+            max_properties=3,
+        )
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [[], ])
+    def test_list_min_items_invalid_schema(self, value):
+        schema = Schema(
+            'array',
+            items=Schema('number'),
+            min_items=-1,
+        )
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [[], [1], [1, 2]])
+    def test_list_min_items_invalid(self, value):
+        schema = Schema(
+            'array',
+            items=Schema('number'),
+            min_items=3,
+        )
+
+        with pytest.raises(Exception):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [[], [1], [1, 2]])
+    def test_list_min_items(self, value):
+        schema = Schema(
+            'array',
+            items=Schema('number'),
+            min_items=0,
+        )
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [[], ])
+    def test_list_max_items_invalid_schema(self, value):
+        schema = Schema(
+            'array',
+            items=Schema('number'),
+            max_items=-1,
+        )
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [[1, 2], [2, 3, 4]])
+    def test_list_max_items_invalid(self, value):
+        schema = Schema(
+            'array',
+            items=Schema('number'),
+            max_items=1,
+        )
+
+        with pytest.raises(Exception):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [[1, 2, 1], [2, 2]])
+    def test_list_unique_items_invalid(self, value):
+        schema = Schema(
+            'array',
+            items=Schema('number'),
+            unique_items=True,
+        )
+
+        with pytest.raises(Exception):
+            schema.validate(value)

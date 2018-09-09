@@ -2,6 +2,7 @@
 import logging
 from collections import defaultdict
 from datetime import date, datetime
+import re
 import warnings
 
 from six import iteritems, integer_types, binary_type, text_type
@@ -61,7 +62,11 @@ class Schema(object):
             self, schema_type=None, model=None, properties=None, items=None,
             schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None, one_of=None,
-            additional_properties=None):
+            additional_properties=None, min_items=None, max_items=None,
+            min_length=None, max_length=None, pattern=None, unique_items=False,
+            minimum=None, maximum=None, multiple_of=None,
+            exclusive_minimum=False, exclusive_maximum=False,
+            min_properties=None, max_properties=None):
         self.type = SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -75,6 +80,22 @@ class Schema(object):
         self.all_of = all_of and list(all_of) or []
         self.one_of = one_of and list(one_of) or []
         self.additional_properties = additional_properties
+        self.min_items = int(min_items) if min_items is not None else None
+        self.max_items = int(max_items) if max_items is not None else None
+        self.min_length = int(min_length) if min_length is not None else None
+        self.max_length = int(max_length) if max_length is not None else None
+        self.pattern = pattern and re.compile(pattern) or None
+        self.unique_items = unique_items
+        self.minimum = int(minimum) if minimum is not None else None
+        self.maximum = int(maximum) if maximum is not None else None
+        self.multiple_of = int(multiple_of)\
+            if multiple_of is not None else None
+        self.exclusive_minimum = exclusive_minimum
+        self.exclusive_maximum = exclusive_maximum
+        self.min_properties = int(min_properties)\
+            if min_properties is not None else None
+        self.max_properties = int(max_properties)\
+            if max_properties is not None else None
 
         self._all_required_properties_cache = None
         self._all_optional_properties_cache = None
@@ -288,6 +309,8 @@ class Schema(object):
             SchemaType.ARRAY: self._validate_collection,
             SchemaType.STRING: self._validate_string,
             SchemaType.OBJECT: self._validate_object,
+            SchemaType.INTEGER: self._validate_number,
+            SchemaType.NUMBER: self._validate_number,
         }
 
         return defaultdict(lambda: lambda x: x, mapping)
@@ -318,7 +341,65 @@ class Schema(object):
         if self.items is None:
             raise OpenAPISchemaError("Schema for collection not defined")
 
+        if self.min_items is not None:
+            if self.min_items < 0:
+                raise OpenAPISchemaError(
+                    "Schema for collection invalid:"
+                    " minItems must be non-negative"
+                )
+            if len(value) < self.min_items:
+                raise InvalidSchemaValue(
+                    "Value must contain at least {0} item(s),"
+                    " {1} found".format(
+                        self.min_items, len(value))
+                )
+        if self.max_items is not None:
+            if self.max_items < 0:
+                raise OpenAPISchemaError(
+                    "Schema for collection invalid:"
+                    " maxItems must be non-negative"
+                )
+            if len(value) > self.max_items:
+                raise InvalidSchemaValue(
+                    "Value must contain at most {0} item(s),"
+                    " {1} found".format(
+                        self.max_items, len(value))
+                )
+        if self.unique_items and len(set(value)) != len(value):
+            raise InvalidSchemaValue("Value may not contain duplicate items")
+
         return list(map(self.items.validate, value))
+
+    def _validate_number(self, value):
+        if self.minimum is not None:
+            if self.exclusive_minimum and value <= self.minimum:
+                raise InvalidSchemaValue(
+                    "Value {0} is not less than or equal to {1}".format(
+                        value, self.minimum)
+                )
+            elif value < self.minimum:
+                raise InvalidSchemaValue(
+                    "Value {0} is not less than {1}".format(
+                        value, self.minimum)
+                )
+
+        if self.maximum is not None:
+            if self.exclusive_maximum and value >= self.maximum:
+                raise InvalidSchemaValue(
+                    "Value {0} is not greater than or equal to {1}".format(
+                        value, self.maximum)
+                )
+            elif value > self.maximum:
+                raise InvalidSchemaValue(
+                    "Value {0} is not greater than {1}".format(
+                        value, self.maximum)
+                )
+
+        if self.multiple_of is not None and value % self.multiple_of:
+            raise InvalidSchemaValue(
+                "Value {0} is not a multiple of {1}".format(
+                    value, self.multiple_of)
+            )
 
     def _validate_string(self, value):
         try:
@@ -336,6 +417,34 @@ class Schema(object):
             raise InvalidSchemaValue(
                 "Value of {0} not valid format of {1}".format(
                     value, self.format)
+            )
+
+        if self.min_length is not None:
+            if self.min_length < 0:
+                raise OpenAPISchemaError(
+                    "Schema for string invalid:"
+                    " minLength must be non-negative"
+                )
+            if len(value) < self.min_length:
+                raise InvalidSchemaValue(
+                    "Value is shorter than the minimum length of {0}".format(
+                        self.min_length)
+                )
+        if self.max_length is not None:
+            if self.max_length < 0:
+                raise OpenAPISchemaError(
+                    "Schema for string invalid:"
+                    " maxLength must be non-negative"
+                )
+            if len(value) > self.max_length:
+                raise InvalidSchemaValue(
+                    "Value is longer than the maximum length of {0}".format(
+                        self.max_length)
+                )
+        if self.pattern is not None and not self.pattern.search(value):
+            raise InvalidSchemaValue(
+                "Value {0} does not match the pattern {1}".format(
+                    value, self.pattern.pattern)
             )
 
         return True
@@ -363,6 +472,33 @@ class Schema(object):
 
         else:
             self._validate_properties(properties)
+
+        if self.min_properties is not None:
+            if self.min_properties < 0:
+                raise OpenAPISchemaError(
+                    "Schema for object invalid:"
+                    " minProperties must be non-negative"
+                )
+
+            if len(properties) < self.min_properties:
+                raise InvalidSchemaValue(
+                    "Value must contain at least {0} properties,"
+                    " {1} found".format(
+                        self.min_properties, len(properties))
+                )
+
+        if self.max_properties is not None:
+            if self.max_properties < 0:
+                raise OpenAPISchemaError(
+                    "Schema for object invalid:"
+                    " maxProperties must be non-negative"
+                )
+            if len(properties) > self.max_properties:
+                raise InvalidSchemaValue(
+                    "Value must contain at most {0} properties,"
+                    " {1} found".format(
+                        self.max_properties, len(properties))
+                )
 
         return True
 
