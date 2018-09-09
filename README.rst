@@ -85,7 +85,7 @@ Request object should implement BaseOpenAPIRequest interface. You can use FlaskO
 
 .. code-block:: python
 
-   from openapi_core.validators import RequestValidator
+   from openapi_core.shortcuts import RequestValidator
    from openapi_core.wrappers.flask import FlaskOpenAPIRequest
 
    openapi_request = FlaskOpenAPIRequest(flask_request)
