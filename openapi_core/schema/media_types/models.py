@@ -4,7 +4,7 @@ from collections import defaultdict
 from json import loads
 
 from openapi_core.schema.media_types.exceptions import InvalidMediaTypeValue
-from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
+from openapi_core.schema.schemas.exceptions import OpenAPISchemaError
 
 
 MEDIA_TYPE_DESERIALIZERS = {
@@ -43,10 +43,10 @@ class MediaType(object):
 
         try:
             unmarshalled = self.schema.unmarshal(deserialized, custom_formatters=custom_formatters)
-        except InvalidSchemaValue as exc:
+        except OpenAPISchemaError as exc:
             raise InvalidMediaTypeValue(exc)
 
         try:
             return self.schema.validate(unmarshalled, custom_formatters=custom_formatters)
-        except InvalidSchemaValue as exc:
+        except OpenAPISchemaError as exc:
             raise InvalidMediaTypeValue(exc)
