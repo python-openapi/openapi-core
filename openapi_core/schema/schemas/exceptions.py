@@ -47,6 +47,13 @@ class UndefinedSchemaProperty(OpenAPISchemaError):
     def __str__(self):
         return "Extra unexpected properties found in schema: {0}".format(self.extra_props)
 
+@attr.s
+class InvalidSchemaProperty(OpenAPISchemaError):
+    property_name = attr.ib()
+    original_exception = attr.ib()
+
+    def __str__(self):
+        return "Invalid schema property {0}: {1}".format(self.property_name, self.original_exception)
 
 @attr.s
 class MissingSchemaProperty(OpenAPISchemaError):

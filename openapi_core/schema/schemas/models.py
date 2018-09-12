@@ -14,7 +14,7 @@ from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema, NoValidSchema,
-    UndefinedItemsSchema, InvalidCustomFormatSchemaValue,
+    UndefinedItemsSchema, InvalidCustomFormatSchemaValue, InvalidSchemaProperty,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime,
@@ -297,8 +297,11 @@ class Schema(object):
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
-            properties[prop_name] = prop.unmarshal(
-              prop_value, custom_formatters=custom_formatters)
+            try:
+                properties[prop_name] = prop.unmarshal(
+                  prop_value, custom_formatters=custom_formatters)
+            except OpenAPISchemaError as exc:
+                raise InvalidSchemaProperty(prop_name, exc)
 
         self._validate_properties(properties, one_of_schema=one_of_schema,
                                   custom_formatters=custom_formatters)
@@ -539,6 +542,9 @@ class Schema(object):
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
-            prop.validate(prop_value, custom_formatters=custom_formatters)
+            try:
+                prop.validate(prop_value, custom_formatters=custom_formatters)
+            except OpenAPISchemaError as exc:
+                raise InvalidSchemaProperty(prop_name, original_exception=exc)
 
         return True
