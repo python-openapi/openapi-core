@@ -37,4 +37,4 @@ class InvalidParameterValue(OpenAPIParameterError):
     original_exception = attr.ib()
 
     def __str__(self):
-        return "Invalid parameter value for `{0}`: {1}".format(sef.name, self.original_exception)
+        return "Invalid parameter value for `{0}`: {1}".format(self.name, self.original_exception)
