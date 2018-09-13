@@ -354,10 +354,8 @@ class Schema(object):
                 )
             if len(value) < self.min_items:
                 raise InvalidSchemaValue(
-                    "Value must contain at least {0} item(s),"
-                    " {1} found".format(
-                        self.min_items, len(value))
-                )
+                    "Value must contain at least {type} item(s),"
+                    " {value} found", len(value), self.min_items)
         if self.max_items is not None:
             if self.max_items < 0:
                 raise OpenAPISchemaError(
@@ -366,47 +364,36 @@ class Schema(object):
                 )
             if len(value) > self.max_items:
                 raise InvalidSchemaValue(
-                    "Value must contain at most {0} item(s),"
-                    " {1} found".format(
-                        self.max_items, len(value))
-                )
+                    "Value must contain at most {value} item(s),"
+                    " {type} found", len(value), self.max_items)
         if self.unique_items and len(set(value)) != len(value):
-            raise InvalidSchemaValue("Value may not contain duplicate items")
+            raise OpenAPISchemaError("Value may not contain duplicate items")
 
         f = functools.partial(self.items.validate,
                               custom_formatters=custom_formatters)
         return list(map(f, value))
 
-    def _validate_number(self, value):
+    def _validate_number(self, value, custom_formatters=None):
         if self.minimum is not None:
             if self.exclusive_minimum and value <= self.minimum:
                 raise InvalidSchemaValue(
-                    "Value {0} is not less than or equal to {1}".format(
-                        value, self.minimum)
-                )
+                    "Value {value} is not less than or equal to {type}", value, self.minimum)
             elif value < self.minimum:
                 raise InvalidSchemaValue(
-                    "Value {0} is not less than {1}".format(
-                        value, self.minimum)
-                )
+                    "Value {value} is not less than {type}", value, self.minimum)
 
         if self.maximum is not None:
             if self.exclusive_maximum and value >= self.maximum:
                 raise InvalidSchemaValue(
-                    "Value {0} is not greater than or equal to {1}".format(
-                        value, self.maximum)
-                )
+                    "Value {value} is not greater than or equal to {type}", value, self.maximum)
             elif value > self.maximum:
                 raise InvalidSchemaValue(
-                    "Value {0} is not greater than {1}".format(
-                        value, self.maximum)
-                )
+                    "Value {value} is not greater than {type}", value, self.maximum)
 
         if self.multiple_of is not None and value % self.multiple_of:
             raise InvalidSchemaValue(
-                "Value {0} is not a multiple of {1}".format(
+                "Value {value} is not a multiple of {type}",
                     value, self.multiple_of)
-            )
 
     def _validate_string(self, value, custom_formatters=None):
         try:
@@ -435,8 +422,8 @@ class Schema(object):
                 )
             if len(value) < self.min_length:
                 raise InvalidSchemaValue(
-                    "Value is shorter than the minimum length of {0}".format(
-                        self.min_length)
+                    "Value is shorter ({value}) than the minimum length of {type}",
+                    len(value), self.min_length
                 )
         if self.max_length is not None:
             if self.max_length < 0:
@@ -446,13 +433,13 @@ class Schema(object):
                 )
             if len(value) > self.max_length:
                 raise InvalidSchemaValue(
-                    "Value is longer than the maximum length of {0}".format(
-                        self.max_length)
+                    "Value is longer ({value}) than the maximum length of {type}",
+                    len(value), self.max_length
                 )
         if self.pattern is not None and not self.pattern.search(value):
             raise InvalidSchemaValue(
-                "Value {0} does not match the pattern {1}".format(
-                    value, self.pattern.pattern)
+                "Value {value} does not match the pattern {type}",
+                    value, self.pattern.pattern
             )
 
         return True
@@ -490,9 +477,8 @@ class Schema(object):
 
             if len(properties) < self.min_properties:
                 raise InvalidSchemaValue(
-                    "Value must contain at least {0} properties,"
-                    " {1} found".format(
-                        self.min_properties, len(properties))
+                    "Value must contain at least {type} properties,"
+                    " {value} found", len(properties), self.min_properties
                 )
 
         if self.max_properties is not None:
@@ -503,9 +489,8 @@ class Schema(object):
                 )
             if len(properties) > self.max_properties:
                 raise InvalidSchemaValue(
-                    "Value must contain at most {0} properties,"
-                    " {1} found".format(
-                        self.max_properties, len(properties))
+                    "Value must contain at most {type} properties,"
+                    " {value} found", len(properties), self.max_properties
                 )
 
         return True

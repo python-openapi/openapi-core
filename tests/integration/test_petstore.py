@@ -16,7 +16,6 @@ from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
 from openapi_core.schema.schemas.exceptions import (
-    UndefinedSchemaProperty, MissingSchemaProperty, NoOneOfSchema,
     NoValidSchema,
 )
 from openapi_core.schema.schemas.models import Schema
@@ -615,7 +614,7 @@ class TestPetstore(object):
             },
         }
 
-        with pytest.raises(NoOneOfSchema):
+        with pytest.raises(InvalidMediaTypeValue):
             request.get_body(spec)
 
     def test_post_cats_only_required_body(self, spec, spec_dict):
@@ -952,7 +951,7 @@ class TestPetstore(object):
 
         assert parameters == {}
 
-        with pytest.raises(UndefinedSchemaProperty):
+        with pytest.raises(InvalidMediaTypeValue):
             request.get_body(spec)
 
     def test_post_tags_empty_body(self, spec, spec_dict):
@@ -970,7 +969,7 @@ class TestPetstore(object):
 
         assert parameters == {}
 
-        with pytest.raises(MissingSchemaProperty):
+        with pytest.raises(InvalidMediaTypeValue):
             request.get_body(spec)
 
     def test_post_tags_wrong_property_type(self, spec):
