@@ -81,11 +81,11 @@ class TestSchemaUnmarshal(object):
 
     def test_string_format_datetime(self):
         schema = Schema('string', schema_format='date-time')
-        value = '2018-01-02T00:00:00'
+        value = '2018-01-02T00:00:00Z'
 
         result = schema.unmarshal(value)
 
-        assert result == datetime.datetime(2018, 1, 2, 0, 0, 0)
+        assert result == datetime.datetime(2018, 1, 2, 0, 0)
 
     @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_custom(self):
