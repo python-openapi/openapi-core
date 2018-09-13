@@ -10,7 +10,7 @@ from openapi_core.schema.parameters.exceptions import (
     EmptyParameterValue,
 )
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
+from openapi_core.schema.schemas.exceptions import OpenAPISchemaError
 
 log = logging.getLogger(__name__)
 
@@ -77,12 +77,10 @@ class Parameter(object):
 
         if self.name not in location:
             if self.required:
-                raise MissingRequiredParameter(
-                    "Missing required `{0}` parameter".format(self.name))
+                raise MissingRequiredParameter(self.name)
 
             if not self.schema or self.schema.default is None:
-                raise MissingParameter(
-                    "Missing `{0}` parameter".format(self.name))
+                raise MissingParameter(self.name)
 
             return self.schema.default
 
@@ -91,7 +89,7 @@ class Parameter(object):
 
         return location[self.name]
 
-    def unmarshal(self, value):
+    def unmarshal(self, value, custom_formatters=None):
         if self.deprecated:
             warnings.warn(
                 "{0} parameter is deprecated".format(self.name),
@@ -100,8 +98,7 @@ class Parameter(object):
 
         if (self.location == ParameterLocation.QUERY and value == "" and
                 not self.allow_empty_value):
-            raise EmptyParameterValue(
-                "Value of {0} parameter cannot be empty".format(self.name))
+            raise EmptyParameterValue(self.name)
 
         if not self.schema:
             return value
@@ -109,14 +106,14 @@ class Parameter(object):
         try:
             deserialized = self.deserialize(value)
         except (ValueError, AttributeError) as exc:
-            raise InvalidParameterValue(str(exc))
+            raise InvalidParameterValue(self.name, exc)
 
         try:
-            unmarshalled = self.schema.unmarshal(deserialized)
-        except InvalidSchemaValue as exc:
-            raise InvalidParameterValue(str(exc))
+            unmarshalled = self.schema.unmarshal(deserialized, custom_formatters=custom_formatters)
+        except OpenAPISchemaError as exc:
+            raise InvalidParameterValue(self.name, exc)
 
         try:
-            return self.schema.validate(unmarshalled)
-        except InvalidSchemaValue as exc:
-            raise InvalidParameterValue(str(exc))
+            return self.schema.validate(unmarshalled, custom_formatters=custom_formatters)
+        except OpenAPISchemaError as exc:
+            raise InvalidParameterValue(self.name, exc)

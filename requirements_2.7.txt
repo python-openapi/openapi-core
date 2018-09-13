@@ -5,3 +5,4 @@ backports.functools-lru-cache
 backports.functools-partialmethod
 enum34
 strict_rfc3339
+attrs
