@@ -23,11 +23,10 @@ class Response(object):
         try:
             return self.content[mimetype]
         except MimeTypeNotFound:
-            raise InvalidContentType(
-                "Invalid mime type `{0}`".format(mimetype))
+            raise InvalidContentType(mimetype)
 
     def get_value(self, response):
         if not response.data:
-            raise MissingResponseContent("Missing response content")
+            raise MissingResponseContent(response)
 
         return response.data

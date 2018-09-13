@@ -16,11 +16,9 @@ class RequestBody(object):
         try:
             return self.content[mimetype]
         except MimeTypeNotFound:
-            raise InvalidContentType(
-                "Invalid mime type `{0}`".format(mimetype))
+            raise InvalidContentType(mimetype)
 
     def get_value(self, request):
         if not request.body and self.required:
-            raise MissingRequestBody("Missing required request body")
-
+            raise MissingRequestBody(request)
         return request.body

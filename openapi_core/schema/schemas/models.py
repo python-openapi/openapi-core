@@ -1,4 +1,6 @@
 """OpenAPI core schemas models module"""
+import attr
+import functools
 import logging
 from collections import defaultdict
 from datetime import date, datetime
@@ -12,7 +14,7 @@ from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema, NoValidSchema,
-    UndefinedItemsSchema,
+    UndefinedItemsSchema, InvalidCustomFormatSchemaValue, InvalidSchemaProperty,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime,
@@ -24,6 +26,12 @@ from openapi_core.schema.schemas.validators import (
 log = logging.getLogger(__name__)
 
 
+@attr.s
+class Format(object):
+    unmarshal = attr.ib()
+    validate = attr.ib()
+
+
 class Schema(object):
     """Represents an OpenAPI Schema."""
 
@@ -33,18 +41,11 @@ class Schema(object):
         SchemaType.BOOLEAN: forcebool,
     }
 
-    STRING_FORMAT_CAST_CALLABLE_GETTER = {
-        SchemaFormat.NONE: text_type,
-        SchemaFormat.DATE: format_date,
-        SchemaFormat.DATETIME: format_datetime,
-        SchemaFormat.BINARY: binary_type,
-    }
-
-    STRING_FORMAT_VALIDATOR_CALLABLE_GETTER = {
-        SchemaFormat.NONE: TypeValidator(text_type),
-        SchemaFormat.DATE: TypeValidator(date, exclude=datetime),
-        SchemaFormat.DATETIME: TypeValidator(datetime),
-        SchemaFormat.BINARY: TypeValidator(binary_type),
+    STRING_FORMAT_CALLABLE_GETTER = {
+        SchemaFormat.NONE: Format(text_type, TypeValidator(text_type)),
+        SchemaFormat.DATE: Format(format_date, TypeValidator(date, exclude=datetime)),
+        SchemaFormat.DATETIME: Format(format_datetime, TypeValidator(datetime)),
+        SchemaFormat.BINARY: Format(binary_type, TypeValidator(binary_type)),
     }
 
     TYPE_VALIDATOR_CALLABLE_GETTER = {
@@ -142,25 +143,27 @@ class Schema(object):
 
         return set(required)
 
-    def get_cast_mapping(self):
+    def get_cast_mapping(self, custom_formatters=None):
+        pass_defaults = lambda f: functools.partial(
+          f, custom_formatters=custom_formatters)
         mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update({
-            SchemaType.STRING: self._unmarshal_string,
-            SchemaType.ANY: self._unmarshal_any,
-            SchemaType.ARRAY: self._unmarshal_collection,
-            SchemaType.OBJECT: self._unmarshal_object,
+            SchemaType.STRING: pass_defaults(self._unmarshal_string),
+            SchemaType.ANY: pass_defaults(self._unmarshal_any),
+            SchemaType.ARRAY: pass_defaults(self._unmarshal_collection),
+            SchemaType.OBJECT: pass_defaults(self._unmarshal_object),
         })
 
         return defaultdict(lambda: lambda x: x, mapping)
 
-    def cast(self, value):
+    def cast(self, value, custom_formatters=None):
         """Cast value to schema type"""
         if value is None:
             if not self.nullable:
-                raise InvalidSchemaValue("Null value for non-nullable schema")
+                raise InvalidSchemaValue("Null value for non-nullable schema", value, self.type)
             return self.default
 
-        cast_mapping = self.get_cast_mapping()
+        cast_mapping = self.get_cast_mapping(custom_formatters=custom_formatters)
 
         if self.type is not SchemaType.STRING and value == '':
             return None
@@ -170,47 +173,45 @@ class Schema(object):
             return cast_callable(value)
         except ValueError:
             raise InvalidSchemaValue(
-                "Failed to cast value of {0} to {1}".format(value, self.type)
-            )
+                "Failed to cast value {value} to type {type}", value, self.type)
 
-    def unmarshal(self, value):
+    def unmarshal(self, value, custom_formatters=None):
         """Unmarshal parameter from the value."""
         if self.deprecated:
             warnings.warn("The schema is deprecated", DeprecationWarning)
 
-        casted = self.cast(value)
+        casted = self.cast(value, custom_formatters=custom_formatters)
 
         if casted is None and not self.required:
             return None
 
         if self.enum and casted not in self.enum:
             raise InvalidSchemaValue(
-                "Value of {0} not in enum choices: {1}".format(
-                    value, self.enum)
-            )
+                "Value {value} not in enum choices: {type}", value, self.enum)
 
         return casted
 
-    def _unmarshal_string(self, value):
+    def _unmarshal_string(self, value, custom_formatters=None):
         try:
             schema_format = SchemaFormat(self.format)
         except ValueError:
-            # @todo: implement custom format unmarshalling support
-            raise OpenAPISchemaError(
-                "Unsupported {0} format unmarshalling".format(self.format)
-            )
+            msg = "Unsupported format {type} unmarshalling for value {value}"
+            if custom_formatters is not None:
+                formatstring = custom_formatters.get(self.format)
+                if formatstring is None:
+                    raise InvalidSchemaValue(msg, value, self.format)
+            else:
+                raise InvalidSchemaValue(msg, value, self.format)
         else:
-            formatter = self.STRING_FORMAT_CAST_CALLABLE_GETTER[schema_format]
+            formatstring = self.STRING_FORMAT_CALLABLE_GETTER[schema_format]
 
         try:
-            return formatter(value)
-        except ValueError:
-            raise InvalidSchemaValue(
-                "Failed to format value of {0} to {1}".format(
-                    value, self.format)
-            )
+            return formatstring.unmarshal(value)
+        except ValueError as exc:
+            raise InvalidCustomFormatSchemaValue(
+                "Failed to format value {value} to format {type}: {exception}", value, self.format, exc)
 
-    def _unmarshal_any(self, value):
+    def _unmarshal_any(self, value, custom_formatters=None):
         types_resolve_order = [
             SchemaType.OBJECT, SchemaType.ARRAY, SchemaType.BOOLEAN,
             SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
@@ -224,19 +225,20 @@ class Schema(object):
             except (OpenAPISchemaError, TypeError, ValueError):
                 continue
 
-        raise NoValidSchema(
-            "No valid schema found for value {0}".format(value))
+        raise NoValidSchema(value)
 
-    def _unmarshal_collection(self, value):
+    def _unmarshal_collection(self, value, custom_formatters=None):
         if self.items is None:
-            raise UndefinedItemsSchema("Undefined items' schema")
+            raise UndefinedItemsSchema(self.type)
 
-        return list(map(self.items.unmarshal, value))
+        f = functools.partial(self.items.unmarshal,
+                              custom_formatters=custom_formatters)
+        return list(map(f, value))
 
-    def _unmarshal_object(self, value, model_factory=None):
+    def _unmarshal_object(self, value, model_factory=None,
+                          custom_formatters=None):
         if not isinstance(value, (dict, )):
-            raise InvalidSchemaValue(
-                "Value of {0} not a dict".format(value))
+            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
         model_factory = model_factory or ModelFactory()
 
@@ -245,26 +247,25 @@ class Schema(object):
             for one_of_schema in self.one_of:
                 try:
                     found_props = self._unmarshal_properties(
-                        value, one_of_schema)
+                        value, one_of_schema, custom_formatters=custom_formatters)
                 except OpenAPISchemaError:
                     pass
                 else:
                     if properties is not None:
-                        raise MultipleOneOfSchema(
-                            "Exactly one schema should be valid,"
-                            "multiple found")
+                        raise MultipleOneOfSchema(self.type)
                     properties = found_props
 
             if properties is None:
-                raise NoOneOfSchema(
-                    "Exactly one valid schema should be valid, None found.")
+                raise NoOneOfSchema(self.type)
 
         else:
-            properties = self._unmarshal_properties(value)
+            properties = self._unmarshal_properties(
+              value, custom_formatters=custom_formatters)
 
         return model_factory.create(properties, name=self.model)
 
-    def _unmarshal_properties(self, value, one_of_schema=None):
+    def _unmarshal_properties(self, value, one_of_schema=None,
+                              custom_formatters=None):
         all_props = self.get_all_properties()
         all_props_names = self.get_all_properties_names()
         all_req_props_names = self.get_all_required_properties_names()
@@ -279,28 +280,31 @@ class Schema(object):
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
         if extra_props and self.additional_properties is None:
-            raise UndefinedSchemaProperty(
-                "Undefined properties in schema: {0}".format(extra_props))
+            raise UndefinedSchemaProperty(extra_props)
 
         properties = {}
         for prop_name in extra_props:
             prop_value = value[prop_name]
             properties[prop_name] = self.additional_properties.unmarshal(
-                prop_value)
+                prop_value, custom_formatters=custom_formatters)
 
         for prop_name, prop in iteritems(all_props):
             try:
                 prop_value = value[prop_name]
             except KeyError:
                 if prop_name in all_req_props_names:
-                    raise MissingSchemaProperty(
-                        "Missing schema property {0}".format(prop_name))
+                    raise MissingSchemaProperty(prop_name)
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
-            properties[prop_name] = prop.unmarshal(prop_value)
+            try:
+                properties[prop_name] = prop.unmarshal(
+                  prop_value, custom_formatters=custom_formatters)
+            except OpenAPISchemaError as exc:
+                raise InvalidSchemaProperty(prop_name, exc)
 
-        self._validate_properties(properties, one_of_schema=one_of_schema)
+        self._validate_properties(properties, one_of_schema=one_of_schema,
+                                  custom_formatters=custom_formatters)
 
         return properties
 
@@ -313,12 +317,15 @@ class Schema(object):
             SchemaType.NUMBER: self._validate_number,
         }
 
-        return defaultdict(lambda: lambda x: x, mapping)
+        def default(x, **kw):
+            return x
 
-    def validate(self, value):
+        return defaultdict(lambda: default, mapping)
+
+    def validate(self, value, custom_formatters=None):
         if value is None:
             if not self.nullable:
-                raise InvalidSchemaValue("Null value for non-nullable schema")
+                raise InvalidSchemaValue("Null value for non-nullable schema of type {type}", value, self.type)
             return
 
         # type validation
@@ -326,20 +333,18 @@ class Schema(object):
             self.type]
         if not type_validator_callable(value):
             raise InvalidSchemaValue(
-                "Value of {0} not valid type of {1}".format(
-                    value, self.type.value)
-            )
+                "Value {value} not valid type {type}", value, self.type.value)
 
         # structure validation
         validator_mapping = self.get_validator_mapping()
         validator_callable = validator_mapping[self.type]
-        validator_callable(value)
+        validator_callable(value, custom_formatters=custom_formatters)
 
         return value
 
-    def _validate_collection(self, value):
+    def _validate_collection(self, value, custom_formatters=None):
         if self.items is None:
-            raise OpenAPISchemaError("Schema for collection not defined")
+            raise UndefinedItemsSchema(self.type)
 
         if self.min_items is not None:
             if self.min_items < 0:
@@ -349,10 +354,8 @@ class Schema(object):
                 )
             if len(value) < self.min_items:
                 raise InvalidSchemaValue(
-                    "Value must contain at least {0} item(s),"
-                    " {1} found".format(
-                        self.min_items, len(value))
-                )
+                    "Value must contain at least {type} item(s),"
+                    " {value} found", len(value), self.min_items)
         if self.max_items is not None:
             if self.max_items < 0:
                 raise OpenAPISchemaError(
@@ -361,63 +364,55 @@ class Schema(object):
                 )
             if len(value) > self.max_items:
                 raise InvalidSchemaValue(
-                    "Value must contain at most {0} item(s),"
-                    " {1} found".format(
-                        self.max_items, len(value))
-                )
+                    "Value must contain at most {value} item(s),"
+                    " {type} found", len(value), self.max_items)
         if self.unique_items and len(set(value)) != len(value):
-            raise InvalidSchemaValue("Value may not contain duplicate items")
+            raise OpenAPISchemaError("Value may not contain duplicate items")
 
-        return list(map(self.items.validate, value))
+        f = functools.partial(self.items.validate,
+                              custom_formatters=custom_formatters)
+        return list(map(f, value))
 
-    def _validate_number(self, value):
+    def _validate_number(self, value, custom_formatters=None):
         if self.minimum is not None:
             if self.exclusive_minimum and value <= self.minimum:
                 raise InvalidSchemaValue(
-                    "Value {0} is not less than or equal to {1}".format(
-                        value, self.minimum)
-                )
+                    "Value {value} is not less than or equal to {type}", value, self.minimum)
             elif value < self.minimum:
                 raise InvalidSchemaValue(
-                    "Value {0} is not less than {1}".format(
-                        value, self.minimum)
-                )
+                    "Value {value} is not less than {type}", value, self.minimum)
 
         if self.maximum is not None:
             if self.exclusive_maximum and value >= self.maximum:
                 raise InvalidSchemaValue(
-                    "Value {0} is not greater than or equal to {1}".format(
-                        value, self.maximum)
-                )
+                    "Value {value} is not greater than or equal to {type}", value, self.maximum)
             elif value > self.maximum:
                 raise InvalidSchemaValue(
-                    "Value {0} is not greater than {1}".format(
-                        value, self.maximum)
-                )
+                    "Value {value} is not greater than {type}", value, self.maximum)
 
         if self.multiple_of is not None and value % self.multiple_of:
             raise InvalidSchemaValue(
-                "Value {0} is not a multiple of {1}".format(
+                "Value {value} is not a multiple of {type}",
                     value, self.multiple_of)
-            )
 
-    def _validate_string(self, value):
+    def _validate_string(self, value, custom_formatters=None):
         try:
             schema_format = SchemaFormat(self.format)
         except ValueError:
-            # @todo: implement custom format validation support
-            raise OpenAPISchemaError(
-                "Unsupported {0} format validation".format(self.format)
-            )
+            msg = "Unsupported {0} format validation".format(self.format)
+            if custom_formatters is not None:
+                formatstring = custom_formatters.get(self.format)
+                if formatstring is None:
+                    raise OpenAPISchemaError(msg)
+            else:
+                raise OpenAPISchemaError(msg)
         else:
-            format_validator_callable =\
-                self.STRING_FORMAT_VALIDATOR_CALLABLE_GETTER[schema_format]
+            formatstring =\
+                self.STRING_FORMAT_CALLABLE_GETTER[schema_format]
 
-        if not format_validator_callable(value):
+        if not formatstring.validate(value):
             raise InvalidSchemaValue(
-                "Value of {0} not valid format of {1}".format(
-                    value, self.format)
-            )
+                "Value {value} not valid format {type}", value, self.format)
 
         if self.min_length is not None:
             if self.min_length < 0:
@@ -427,8 +422,8 @@ class Schema(object):
                 )
             if len(value) < self.min_length:
                 raise InvalidSchemaValue(
-                    "Value is shorter than the minimum length of {0}".format(
-                        self.min_length)
+                    "Value is shorter ({value}) than the minimum length of {type}",
+                    len(value), self.min_length
                 )
         if self.max_length is not None:
             if self.max_length < 0:
@@ -438,40 +433,40 @@ class Schema(object):
                 )
             if len(value) > self.max_length:
                 raise InvalidSchemaValue(
-                    "Value is longer than the maximum length of {0}".format(
-                        self.max_length)
+                    "Value is longer ({value}) than the maximum length of {type}",
+                    len(value), self.max_length
                 )
         if self.pattern is not None and not self.pattern.search(value):
             raise InvalidSchemaValue(
-                "Value {0} does not match the pattern {1}".format(
-                    value, self.pattern.pattern)
+                "Value {value} does not match the pattern {type}",
+                    value, self.pattern.pattern
             )
 
         return True
 
-    def _validate_object(self, value):
+    def _validate_object(self, value, custom_formatters=None):
         properties = value.__dict__
 
         if self.one_of:
             valid_one_of_schema = None
             for one_of_schema in self.one_of:
                 try:
-                    self._validate_properties(properties, one_of_schema)
+                    self._validate_properties(
+                      properties, one_of_schema,
+                      custom_formatters=custom_formatters)
                 except OpenAPISchemaError:
                     pass
                 else:
                     if valid_one_of_schema is not None:
-                        raise MultipleOneOfSchema(
-                            "Exactly one schema should be valid,"
-                            "multiple found")
+                        raise MultipleOneOfSchema(self.type)
                     valid_one_of_schema = True
 
             if valid_one_of_schema is None:
-                raise NoOneOfSchema(
-                    "Exactly one valid schema should be valid, None found.")
+                raise NoOneOfSchema(self.type)
 
         else:
-            self._validate_properties(properties)
+            self._validate_properties(properties,
+                                      custom_formatters=custom_formatters)
 
         if self.min_properties is not None:
             if self.min_properties < 0:
@@ -482,9 +477,8 @@ class Schema(object):
 
             if len(properties) < self.min_properties:
                 raise InvalidSchemaValue(
-                    "Value must contain at least {0} properties,"
-                    " {1} found".format(
-                        self.min_properties, len(properties))
+                    "Value must contain at least {type} properties,"
+                    " {value} found", len(properties), self.min_properties
                 )
 
         if self.max_properties is not None:
@@ -495,14 +489,14 @@ class Schema(object):
                 )
             if len(properties) > self.max_properties:
                 raise InvalidSchemaValue(
-                    "Value must contain at most {0} properties,"
-                    " {1} found".format(
-                        self.max_properties, len(properties))
+                    "Value must contain at most {type} properties,"
+                    " {value} found", len(properties), self.max_properties
                 )
 
         return True
 
-    def _validate_properties(self, value, one_of_schema=None):
+    def _validate_properties(self, value, one_of_schema=None,
+                             custom_formatters=None):
         all_props = self.get_all_properties()
         all_props_names = self.get_all_properties_names()
         all_req_props_names = self.get_all_required_properties_names()
@@ -517,24 +511,25 @@ class Schema(object):
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
         if extra_props and self.additional_properties is None:
-            raise UndefinedSchemaProperty(
-                "Undefined properties in schema: {0}".format(extra_props))
+            raise UndefinedSchemaProperty(extra_props)
 
         for prop_name in extra_props:
             prop_value = value[prop_name]
             self.additional_properties.validate(
-                prop_value)
+                prop_value, custom_formatters=custom_formatters)
 
         for prop_name, prop in iteritems(all_props):
             try:
                 prop_value = value[prop_name]
             except KeyError:
                 if prop_name in all_req_props_names:
-                    raise MissingSchemaProperty(
-                        "Missing schema property {0}".format(prop_name))
+                    raise MissingSchemaProperty(prop_name)
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
-            prop.validate(prop_value)
+            try:
+                prop.validate(prop_value, custom_formatters=custom_formatters)
+            except OpenAPISchemaError as exc:
+                raise InvalidSchemaProperty(prop_name, original_exception=exc)
 
         return True

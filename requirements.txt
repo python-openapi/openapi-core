@@ -1,3 +1,4 @@
 openapi-spec-validator
 six
 lazy-object-proxy
+attrs
