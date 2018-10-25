@@ -58,6 +58,14 @@ class RequestValidator(object):
             else:
                 parameters[param.location.value][param_name] = value
 
+            if param.schema and value is not None:
+                from jsonschema.exceptions import ValidationError
+                from openapi_core.schema.schemas.validators import SchemaValidator
+                validator = SchemaValidator(
+                    self.spec._source, param.schema.__dict__)
+                errs = validator.iter_errors(value)
+                errors.extend(errs)
+
         return parameters, errors
 
     def _get_body(self, request, operation):

@@ -9,6 +9,19 @@ class BaseModel(object):
         raise NotImplementedError
 
 
+class DictModel(dict, BaseModel):
+
+    @property
+    def __dict__(self):
+        return self
+
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError
+
+
 class Model(BaseModel):
     """Model class for OpenAPI X-Model."""
 

@@ -56,6 +56,7 @@ class SchemaFactory(object):
             default=default, nullable=nullable, enum=enum,
             deprecated=deprecated, all_of=all_of, one_of=one_of,
             additional_properties=additional_properties,
+            _source=schema_deref,
         )
 
     @property

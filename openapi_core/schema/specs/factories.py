@@ -34,7 +34,9 @@ class SpecFactory(object):
         paths = self.paths_generator.generate(paths)
         components = self.components_factory.create(components_spec)
         spec = Spec(
-            info, list(paths), servers=list(servers), components=components)
+            info, list(paths), servers=list(servers), components=components,
+            _source=spec_dict_deref,
+        )
         return spec
 
     @property

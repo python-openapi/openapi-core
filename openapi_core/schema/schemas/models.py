@@ -61,7 +61,7 @@ class Schema(object):
             self, schema_type=None, model=None, properties=None, items=None,
             schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None, one_of=None,
-            additional_properties=None):
+            additional_properties=None, _source=None):
         self.type = SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -76,8 +76,27 @@ class Schema(object):
         self.one_of = one_of and list(one_of) or []
         self.additional_properties = additional_properties
 
+        self._source = _source
+
         self._all_required_properties_cache = None
         self._all_optional_properties_cache = None
+
+    @property
+    def __dict__(self):
+        data = {
+            'type': self.type.value,
+        }
+
+        if self.format:
+            data['format'] = self.format
+
+        if self.all_of:
+            data['allOf'] = list(map(lambda x: x.__dict__, self.all_of))
+
+        if self.one_of:
+            data['oneOf'] = list(map(lambda x: x.__dict__, self.one_of))
+        
+        return data
 
     def __getitem__(self, name):
         return self.properties[name]
