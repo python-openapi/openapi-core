@@ -107,7 +107,7 @@ You can also validate responses
 
 .. code-block:: python
 
-   from openapi_core.validators import ResponseValidator
+   from openapi_core.shortcuts import ResponseValidator
 
    validator = ResponseValidator(spec)
    result = validator.validate(request, response)
