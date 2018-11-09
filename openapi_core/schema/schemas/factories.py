@@ -12,8 +12,12 @@ class SchemaFactory(object):
 
     def __init__(self, dereferencer):
         self.dereferencer = dereferencer
+        self.seen = {}
 
     def create(self, schema_spec):
+        if isinstance(schema_spec, dict) and '$ref' in schema_spec and schema_spec['$ref'] in self.seen:
+            return self.seen[schema_spec['$ref']]
+
         schema_deref = self.dereferencer.dereference(schema_spec)
 
         schema_type = schema_deref.get('type', None)
@@ -43,39 +47,49 @@ class SchemaFactory(object):
         min_properties = schema_deref.get('minProperties', None)
         max_properties = schema_deref.get('maxProperties', None)
 
-        properties = None
-        if properties_spec:
-            properties = self.properties_generator.generate(properties_spec)
-
-        all_of = []
-        if all_of_spec:
-            all_of = map(self.create, all_of_spec)
-
-        one_of = []
-        if one_of_spec:
-            one_of = map(self.create, one_of_spec)
-
-        items = None
-        if items_spec:
-            items = self._create_items(items_spec)
-
-        additional_properties = None
-        if additional_properties_spec:
-            additional_properties = self.create(additional_properties_spec)
-
-        return Schema(
-            schema_type=schema_type, model=model, properties=properties,
-            items=items, schema_format=schema_format, required=required,
-            default=default, nullable=nullable, enum=enum,
-            deprecated=deprecated, all_of=all_of, one_of=one_of,
-            additional_properties=additional_properties,
-            min_items=min_items, max_items=max_items, min_length=min_length,
-            max_length=max_length, pattern=pattern, unique_items=unique_items,
-            minimum=minimum, maximum=maximum, multiple_of=multiple_of,
+        schema = Schema(
+            schema_type=schema_type,
+            model=model,
+            schema_format=schema_format,
+            required=required,
+            default=default,
+            nullable=nullable,
+            enum=enum,
+            deprecated=deprecated,
+            min_items=min_items,
+            max_items=max_items,
+            min_length=min_length,
+            max_length=max_length,
+            pattern=pattern,
+            unique_items=unique_items,
+            minimum=minimum,
+            maximum=maximum,
+            multiple_of=multiple_of,
             exclusive_maximum=exclusive_maximum,
             exclusive_minimum=exclusive_minimum,
-            min_properties=min_properties, max_properties=max_properties,
+            min_properties=min_properties,
+            max_properties=max_properties,
         )
+
+        if isinstance(schema_spec, dict) and '$ref' in schema_spec:
+            self.seen[schema_spec['$ref']] = schema
+
+        if properties_spec:
+            schema.properties = dict(self.properties_generator.generate(properties_spec))
+
+        if all_of_spec:
+            schema.all_of = list(map(self.create, all_of_spec))
+
+        if one_of_spec:
+            schema.one_of = list(map(self.create, one_of_spec))
+
+        if items_spec:
+            schema.items = self._create_items(items_spec)
+
+        if additional_properties_spec:
+            schema.additional_properties = self.create(additional_properties_spec)
+
+        return schema
 
     @property
     @lru_cache()
