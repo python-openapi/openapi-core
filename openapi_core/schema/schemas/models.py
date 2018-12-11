@@ -49,7 +49,7 @@ class Schema(object):
     }
 
     TYPE_VALIDATOR_CALLABLE_GETTER = {
-        SchemaType.ANY: lambda x: x,
+        SchemaType.ANY: lambda x: True,
         SchemaType.BOOLEAN: TypeValidator(bool),
         SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
         SchemaType.NUMBER: TypeValidator(integer_types, float, exclude=bool),
