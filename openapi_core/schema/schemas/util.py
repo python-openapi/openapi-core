@@ -23,4 +23,4 @@ def format_date(value):
 
 def format_datetime(value):
     timestamp = strict_rfc3339.rfc3339_to_timestamp(value)
-    return datetime.datetime.fromtimestamp(timestamp)
+    return datetime.datetime.utcfromtimestamp(timestamp)
