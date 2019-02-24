@@ -283,7 +283,7 @@ class TestResponseValidator(object):
 
     def test_invalid_media_type_value(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
-        response = MockResponse('\{\}')
+        response = MockResponse("{}")
 
         result = validator.validate(request, response)
 
