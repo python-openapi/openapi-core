@@ -1,5 +1,6 @@
 import json
 import pytest
+from uuid import UUID
 from six import iteritems
 
 from openapi_core.extensions.models.models import BaseModel
@@ -1154,11 +1155,13 @@ class TestPetstore(object):
 
         code = 400
         message = 'Bad request'
+        correlationId = UUID('a8098c1a-f86e-11da-bd1a-00112444be1e')
         rootCause = 'Tag already exist'
         additionalinfo = 'Tag Dog already exist'
         data_json = {
             'code': code,
             'message': message,
+            'correlationId': str(correlationId),
             'rootCause': rootCause,
             'additionalinfo': additionalinfo,
         }
@@ -1171,5 +1174,6 @@ class TestPetstore(object):
         assert isinstance(response_result.data, BaseModel)
         assert response_result.data.code == code
         assert response_result.data.message == message
+        assert response_result.data.correlationId == correlationId
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo

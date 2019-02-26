@@ -8,6 +8,7 @@ import re
 import warnings
 
 from six import iteritems, integer_types, binary_type, text_type
+from uuid import UUID
 
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
@@ -46,6 +47,7 @@ class Schema(object):
         SchemaFormat.DATE: Format(format_date, TypeValidator(date, exclude=datetime)),
         SchemaFormat.DATETIME: Format(format_datetime, TypeValidator(datetime)),
         SchemaFormat.BINARY: Format(binary_type, TypeValidator(binary_type)),
+        SchemaFormat.UUID: Format(UUID, TypeValidator(UUID)),
     }
 
     TYPE_VALIDATOR_CALLABLE_GETTER = {
@@ -54,7 +56,7 @@ class Schema(object):
         SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
         SchemaType.NUMBER: TypeValidator(integer_types, float, exclude=bool),
         SchemaType.STRING: TypeValidator(
-            text_type, date, datetime, binary_type),
+            text_type, date, datetime, binary_type, UUID),
         SchemaType.ARRAY: TypeValidator(list, tuple),
         SchemaType.OBJECT: AttributeValidator('__dict__'),
     }
