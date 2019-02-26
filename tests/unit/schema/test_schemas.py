@@ -479,6 +479,25 @@ class TestSchemaValidate(object):
         assert result == value
 
     @pytest.mark.parametrize('value', [
+        u('tsssst'), u('dGVzdA=='),
+    ])
+    def test_string_format_byte_invalid(self, value):
+        schema = Schema('string', schema_format='byte')
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        b('tsssst'), b('dGVzdA=='),
+    ])
+    def test_string_format_byte(self, value):
+        schema = Schema('string', schema_format='byte')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [
         u('test'), b('stream'), datetime.date(1989, 1, 2),
         datetime.datetime(1989, 1, 2, 0, 0, 0),
     ])

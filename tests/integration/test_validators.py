@@ -1,3 +1,4 @@
+from base64 import b64encode
 import json
 import pytest
 
@@ -21,6 +22,12 @@ from openapi_core.wrappers.mock import MockRequest, MockResponse
 class TestRequestValidator(object):
 
     host_url = 'http://petstore.swagger.io'
+
+    api_key = b'12345'
+
+    @property
+    def api_key_encoded(self):
+        return b64encode(self.api_key)
 
     @pytest.fixture
     def spec_dict(self, factory):
@@ -88,7 +95,7 @@ class TestRequestValidator(object):
 
     def test_missing_body(self, validator):
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -106,7 +113,7 @@ class TestRequestValidator(object):
         assert result.body is None
         assert result.parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
@@ -115,7 +122,7 @@ class TestRequestValidator(object):
 
     def test_invalid_content_type(self, validator):
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -133,7 +140,7 @@ class TestRequestValidator(object):
         assert result.body is None
         assert result.parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
@@ -159,7 +166,7 @@ class TestRequestValidator(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -175,7 +182,7 @@ class TestRequestValidator(object):
         assert result.errors == []
         assert result.parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
