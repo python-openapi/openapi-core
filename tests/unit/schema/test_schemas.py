@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 import mock
 import pytest
@@ -415,6 +416,26 @@ class TestSchemaValidate(object):
         result = schema.validate(value)
 
         assert result == value
+
+    @pytest.mark.parametrize('value', [
+        uuid.UUID('{12345678-1234-5678-1234-567812345678}'),
+    ])
+    def test_string_format_uuid(self, value):
+        schema = Schema('string', schema_format='uuid')
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [
+        b('true'), u('true'), False, 1, 3.14, [1, 3],
+        datetime.date(2018, 1, 2), datetime.datetime(2018, 1, 2, 23, 59, 59),
+    ])
+    def test_string_format_uuid_invalid(self, value):
+        schema = Schema('string', schema_format='uuid')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
 
     @pytest.mark.parametrize('value', [
         b('true'), u('true'), False, 1, 3.14, [1, 3],

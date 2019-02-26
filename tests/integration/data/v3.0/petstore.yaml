@@ -317,6 +317,9 @@ components:
           required:
             - rootCause
           properties:
+            correlationId:
+              type: string
+              format: uuid
             rootCause:
               type: string
             suberror:
