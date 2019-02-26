@@ -25,3 +25,4 @@ class SchemaFormat(Enum):
     DATE = 'date'
     DATETIME = 'date-time'
     PASSWORD = 'password'
+    UUID = 'uuid'
