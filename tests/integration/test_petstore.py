@@ -1,5 +1,6 @@
 import json
 import pytest
+from base64 import b64encode
 from uuid import UUID
 from six import iteritems
 
@@ -29,6 +30,12 @@ from openapi_core.wrappers.mock import MockRequest, MockResponse
 
 
 class TestPetstore(object):
+
+    api_key = b'12345'
+
+    @property
+    def api_key_encoded(self):
+        return b64encode(self.api_key)
 
     @pytest.fixture
     def spec_dict(self, factory):
@@ -424,7 +431,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -440,7 +447,7 @@ class TestPetstore(object):
 
         assert parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
@@ -484,7 +491,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -500,7 +507,7 @@ class TestPetstore(object):
 
         assert parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
@@ -544,7 +551,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -560,7 +567,7 @@ class TestPetstore(object):
 
         assert parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
@@ -592,7 +599,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -608,7 +615,7 @@ class TestPetstore(object):
 
         assert parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
@@ -631,7 +638,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -647,7 +654,7 @@ class TestPetstore(object):
 
         assert parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
@@ -672,7 +679,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -688,7 +695,7 @@ class TestPetstore(object):
 
         assert parameters == {
             'header': {
-                'api_key': 12345,
+                'api_key': self.api_key,
             },
             'cookie': {
                 'user': 123,
@@ -711,7 +718,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': self.api_key_encoded,
         }
 
         request = MockRequest(

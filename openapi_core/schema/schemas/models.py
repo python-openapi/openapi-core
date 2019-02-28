@@ -2,13 +2,14 @@
 import attr
 import functools
 import logging
+from base64 import b64decode, b64encode
 from collections import defaultdict
 from datetime import date, datetime
+from uuid import UUID
 import re
 import warnings
 
 from six import iteritems, integer_types, binary_type, text_type
-from uuid import UUID
 
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
@@ -44,10 +45,12 @@ class Schema(object):
 
     STRING_FORMAT_CALLABLE_GETTER = {
         SchemaFormat.NONE: Format(text_type, TypeValidator(text_type)),
-        SchemaFormat.DATE: Format(format_date, TypeValidator(date, exclude=datetime)),
+        SchemaFormat.DATE: Format(
+            format_date, TypeValidator(date, exclude=datetime)),
         SchemaFormat.DATETIME: Format(format_datetime, TypeValidator(datetime)),
         SchemaFormat.BINARY: Format(binary_type, TypeValidator(binary_type)),
         SchemaFormat.UUID: Format(UUID, TypeValidator(UUID)),
+        SchemaFormat.BYTE: Format(b64decode, TypeValidator(binary_type)),
     }
 
     TYPE_VALIDATOR_CALLABLE_GETTER = {

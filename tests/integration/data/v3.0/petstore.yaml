@@ -78,8 +78,8 @@ paths:
         - name: api_key
           in: header
           schema:
-            type: integer
-            format: int32
+            type: string
+            format: byte
           required: true
         - name: user
           in: cookie
