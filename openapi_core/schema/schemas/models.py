@@ -20,6 +20,7 @@ from openapi_core.schema.schemas.exceptions import (
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime,
+    format_uuid,
 )
 from openapi_core.schema.schemas.validators import (
     TypeValidator, AttributeValidator,
@@ -49,7 +50,7 @@ class Schema(object):
             format_date, TypeValidator(date, exclude=datetime)),
         SchemaFormat.DATETIME: Format(format_datetime, TypeValidator(datetime)),
         SchemaFormat.BINARY: Format(binary_type, TypeValidator(binary_type)),
-        SchemaFormat.UUID: Format(UUID, TypeValidator(UUID)),
+        SchemaFormat.UUID: Format(format_uuid, TypeValidator(UUID)),
         SchemaFormat.BYTE: Format(b64decode, TypeValidator(binary_type)),
     }
 

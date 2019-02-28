@@ -4,6 +4,7 @@ from distutils.util import strtobool
 from json import dumps
 from six import string_types
 import strict_rfc3339
+from uuid import UUID
 
 
 def forcebool(val):
@@ -24,3 +25,9 @@ def format_date(value):
 def format_datetime(value):
     timestamp = strict_rfc3339.rfc3339_to_timestamp(value)
     return datetime.datetime.utcfromtimestamp(timestamp)
+
+
+def format_uuid(value):
+    if isinstance(value, UUID):
+        return value
+    return UUID(value)

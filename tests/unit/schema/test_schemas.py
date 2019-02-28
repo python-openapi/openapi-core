@@ -5,6 +5,7 @@ import mock
 import pytest
 
 from openapi_core.extensions.models.models import Model
+from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
 )
@@ -43,6 +44,22 @@ class TestSchemaUnmarshal(object):
     def test_string_valid(self):
         schema = Schema('string')
         value = 'test'
+
+        result = schema.unmarshal(value)
+
+        assert result == value
+
+    def test_string_valid_uuid_str(self):
+        schema = Schema(SchemaType.STRING, schema_format=SchemaFormat.UUID)
+        value = str(uuid.uuid4())
+
+        result = schema.unmarshal(value)
+
+        assert result == uuid.UUID(value)
+
+    def test_string_valid_uuid(self):
+        schema = Schema(SchemaType.STRING, schema_format=SchemaFormat.UUID)
+        value = uuid.uuid4()
 
         result = schema.unmarshal(value)
 
