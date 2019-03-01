@@ -124,13 +124,11 @@ class TestSchemaUnmarshal(object):
         ):
             schema.unmarshal(value)
 
-    def test_integer_valid(self):
+    def test_str_as_integer_invalid(self):
         schema = Schema('integer')
         value = '123'
-
-        result = schema.unmarshal(value)
-
-        assert result == int(value)
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
 
     def test_integer_enum_invalid(self):
         schema = Schema('integer', enum=[1, 2, 3])
@@ -139,13 +137,11 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
 
-    def test_integer_enum(self):
+    def test_str_enum_invalid(self):
         schema = Schema('integer', enum=[1, 2, 3])
         value = '2'
-
-        result = schema.unmarshal(value)
-
-        assert result == int(value)
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
 
     def test_integer_default(self):
         default_value = '123'

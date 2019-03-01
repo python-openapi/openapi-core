@@ -11,7 +11,7 @@ import warnings
 
 from six import iteritems, integer_types, binary_type, text_type
 
-from openapi_core.extensions.models.factories import ModelFactory
+from openapi_core.extensions.models.factories import ModelFactory, Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
@@ -194,11 +194,19 @@ class Schema(object):
             raise InvalidSchemaValue(
                 "Value {value} not in enum choices: {type}", value, self.enum)
 
+        is_string_and_format_datetime = self.format in ("date", "date-time") and isinstance(casted, (date, datetime))
+        if value is not None\
+                and not is_string_and_format_datetime \
+                and not isinstance(casted, Model) and type(casted) != type(value) :
+            raise InvalidSchemaValue("Input {value} not valid for type {type}", value, self.type)
+
         return casted
 
     def _unmarshal_string(self, value, custom_formatters=None):
         try:
             schema_format = SchemaFormat(self.format)
+            if value is not None and not isinstance(value, (str, bytes)):
+                raise ValueError
         except ValueError:
             msg = "Unsupported format {type} unmarshalling for value {value}"
             if custom_formatters is not None:

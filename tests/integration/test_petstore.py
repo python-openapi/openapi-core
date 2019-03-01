@@ -202,7 +202,7 @@ class TestPetstore(object):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         query_params = {
-            'limit': '20',
+            'limit': 20,
         }
 
         request = MockRequest(
@@ -238,8 +238,8 @@ class TestPetstore(object):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         query_params = {
-            'limit': '20',
-            'ids': ['12', '13'],
+            'limit': 20,
+            'ids': [12, 13],
         }
 
         request = MockRequest(
@@ -276,7 +276,7 @@ class TestPetstore(object):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         query_params = [
-            ('limit', '20'),
+            ('limit', 20),
             ('tags', 'cats,dogs'),
         ]
 
@@ -419,7 +419,7 @@ class TestPetstore(object):
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
-            'position': '2',
+            'position': 2,
             'address': {
                 'street': pet_street,
                 'city': pet_city,
@@ -434,7 +434,7 @@ class TestPetstore(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
 
         request = MockRequest(
@@ -479,7 +479,7 @@ class TestPetstore(object):
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
-            'position': '2',
+            'position': 2,
             'address': {
                 'street': pet_street,
                 'city': pet_city,
@@ -494,7 +494,7 @@ class TestPetstore(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
 
         request = MockRequest(
@@ -535,11 +535,11 @@ class TestPetstore(object):
         pet_tag = 'cats'
         pet_street = 'Piekna'
         pet_city = 'Warsaw'
-        pet_healthy = 'false'
+        pet_healthy = False
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
-            'position': '2',
+            'position': 2,
             'address': {
                 'street': pet_street,
                 'city': pet_city,
@@ -554,7 +554,7 @@ class TestPetstore(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
 
         request = MockRequest(
@@ -602,7 +602,7 @@ class TestPetstore(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
 
         request = MockRequest(
@@ -641,7 +641,7 @@ class TestPetstore(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
 
         request = MockRequest(
@@ -682,7 +682,7 @@ class TestPetstore(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
 
         request = MockRequest(
@@ -752,7 +752,7 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         cookies = {
-            'user': '123',
+            'user': 123,
         }
 
         request = MockRequest(
@@ -782,10 +782,10 @@ class TestPetstore(object):
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api_key': 12345,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
 
         request = MockRequest(
@@ -804,7 +804,7 @@ class TestPetstore(object):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets/{petId}'
         view_args = {
-            'petId': '1',
+            'petId': 1,
         }
         request = MockRequest(
             host_url, 'GET', '/pets/1',
@@ -846,7 +846,7 @@ class TestPetstore(object):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets/{petId}'
         view_args = {
-            'petId': '1',
+            'petId': 1,
         }
         request = MockRequest(
             host_url, 'GET', '/pets/1',
@@ -888,7 +888,7 @@ class TestPetstore(object):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets/{petId}'
         view_args = {
-            'petId': '1',
+            'petId': 1,
         }
         request = MockRequest(
             host_url, 'GET', '/pets/1',

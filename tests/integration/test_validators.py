@@ -78,7 +78,7 @@ class TestRequestValidator(object):
     def test_get_pets(self, validator):
         request = MockRequest(
             self.host_url, 'get', '/v1/pets',
-            path_pattern='/v1/pets', args={'limit': '10'},
+            path_pattern='/v1/pets', args={'limit': 10},
         )
 
         result = validator.validate(request)
@@ -98,7 +98,7 @@ class TestRequestValidator(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
         request = MockRequest(
             self.host_url, 'post', '/v1/pets',
@@ -125,7 +125,7 @@ class TestRequestValidator(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
         request = MockRequest(
             self.host_url, 'post', '/v1/pets',
@@ -155,7 +155,7 @@ class TestRequestValidator(object):
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
-            'position': '2',
+            'position': 2,
             'address': {
                 'street': pet_street,
                 'city': pet_city,
@@ -169,7 +169,7 @@ class TestRequestValidator(object):
             'api_key': self.api_key_encoded,
         }
         cookies = {
-            'user': '123',
+            'user': 123,
         }
         request = MockRequest(
             self.host_url, 'post', '/v1/pets',
@@ -203,7 +203,7 @@ class TestRequestValidator(object):
     def test_get_pet(self, validator):
         request = MockRequest(
             self.host_url, 'get', '/v1/pets/1',
-            path_pattern='/v1/pets/{petId}', view_args={'petId': '1'},
+            path_pattern='/v1/pets/{petId}', view_args={'petId': 1},
         )
 
         result = validator.validate(request)
