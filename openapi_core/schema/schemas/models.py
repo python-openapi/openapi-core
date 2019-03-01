@@ -194,10 +194,24 @@ class Schema(object):
             raise InvalidSchemaValue(
                 "Value {value} not in enum choices: {type}", value, self.enum)
 
+        valid_casted_types_by_original_type = {
+            str: (unicode, str, bytes),
+            int: (int,),
+            float: (float,),
+            bytes: (str, unicode, bytes),
+            date: (date, datetime),
+            datetime: (date, datetime),
+            list: (list,),
+            dict: (dict,),
+            unicode: (unicode, str, bytes),
+            bool: (bool,),
+        }
+
         is_string_and_format_datetime = self.format in ("date", "date-time") and isinstance(casted, (date, datetime))
         if value is not None\
                 and not is_string_and_format_datetime \
-                and not isinstance(casted, Model) and type(casted) != type(value) :
+                and not isinstance(casted, Model) \
+                and not type(casted) in valid_casted_types_by_original_type[type(value)]:
             raise InvalidSchemaValue("Input {value} not valid for type {type}", value, self.type)
 
         return casted
@@ -205,7 +219,7 @@ class Schema(object):
     def _unmarshal_string(self, value, custom_formatters=None):
         try:
             schema_format = SchemaFormat(self.format)
-            if value is not None and not isinstance(value, (str, bytes)):
+            if value is not None and not isinstance(value, (str, bytes, unicode)):
                 raise ValueError
         except ValueError:
             msg = "Unsupported format {type} unmarshalling for value {value}"
