@@ -9,7 +9,7 @@ from uuid import UUID
 import re
 import warnings
 
-from six import iteritems, integer_types, binary_type, text_type
+from six import iteritems, integer_types, binary_type, text_type, string_types
 
 from openapi_core.extensions.models.factories import ModelFactory, Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
@@ -195,23 +195,19 @@ class Schema(object):
                 "Value {value} not in enum choices: {type}", value, self.enum)
 
         valid_casted_types_by_original_type = {
-            str: (unicode, str, bytes),
-            int: (int,),
-            float: (float,),
-            bytes: (str, unicode, bytes),
-            date: (date, datetime),
-            datetime: (date, datetime),
-            list: (list,),
-            dict: (dict,),
-            unicode: (unicode, str, bytes),
-            bool: (bool,),
+            str: (string_types, bytes),
+            bytes: string_types,
+            int: int,
+            float: float,
+            dict: Model,
+            string_types: bytes,
         }
 
         is_string_and_format_datetime = self.format in ("date", "date-time") and isinstance(casted, (date, datetime))
-        if value is not None\
-                and not is_string_and_format_datetime \
-                and not isinstance(casted, Model) \
-                and not type(casted) in valid_casted_types_by_original_type[type(value)]:
+        if not (value is None \
+                or isinstance(casted, type(value)) \
+                or is_string_and_format_datetime \
+                or isinstance(casted, valid_casted_types_by_original_type[type(value)])):
             raise InvalidSchemaValue("Input {value} not valid for type {type}", value, self.type)
 
         return casted
@@ -219,7 +215,7 @@ class Schema(object):
     def _unmarshal_string(self, value, custom_formatters=None):
         try:
             schema_format = SchemaFormat(self.format)
-            if value is not None and not isinstance(value, (str, bytes, unicode)):
+            if value is not None and not isinstance(value, (string_types, bytes)):
                 raise ValueError
         except ValueError:
             msg = "Unsupported format {type} unmarshalling for value {value}"
