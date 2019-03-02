@@ -18,9 +18,6 @@ from openapi_core.schema.parameters.models import Parameter
 from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
-from openapi_core.schema.schemas.exceptions import (
-    NoValidSchema,
-)
 from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.schema.servers.models import Server, ServerVariable
