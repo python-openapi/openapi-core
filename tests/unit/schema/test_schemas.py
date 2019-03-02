@@ -198,6 +198,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema()
         assert schema.unmarshal('string') == 'string'
 
+
 class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('schema_type', [
