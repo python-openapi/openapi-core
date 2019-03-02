@@ -1157,7 +1157,7 @@ class TestPetstore(object):
         )
 
         parameters = request.get_parameters(spec)
-        with pytest.raises(NoValidSchema):
+        with pytest.raises(InvalidMediaTypeValue):
             request.get_body(spec)
 
         assert parameters == {}
