@@ -2,7 +2,7 @@
 import datetime
 from distutils.util import strtobool
 from json import dumps
-from six import string_types
+from six import string_types, text_type
 import strict_rfc3339
 
 
@@ -12,6 +12,17 @@ def forcebool(val):
 
     return bool(val)
 
+
+def strictbool(val):
+    if not isinstance(val, bool):
+        raise TypeError('expected bool, got {type}'.format(type=type(val)))
+    return val
+
+
+def strictstr(val):
+    if not isinstance(val, text_type):
+        raise TypeError('expected text, got {type}'.format(type=type(val)))
+    return val
 
 def dicthash(d):
     return hash(dumps(d, sort_keys=True))
