@@ -269,6 +269,33 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
 
+    def test_schema_any_one_of(self):
+        schema = Schema(one_of=[
+            Schema('string'),
+            Schema('array', items=Schema('string')),
+        ])
+        assert schema.unmarshal(['hello']) == ['hello']
+
+    def test_schema_any_one_of_mutiple(self):
+        schema = Schema(one_of=[
+            Schema('array', items=Schema('string')),
+            Schema('array', items=Schema('number')),
+        ])
+        with pytest.raises(MultipleOneOfSchema):
+            schema.unmarshal([])
+
+    def test_schema_any_one_of_no_valid(self):
+        schema = Schema(one_of=[
+            Schema('array', items=Schema('string')),
+            Schema('array', items=Schema('number')),
+        ])
+        with pytest.raises(NoOneOfSchema):
+            schema.unmarshal({})
+
+    def test_schema_any(self):
+        schema = Schema()
+        assert schema.unmarshal('string') == 'string'
+
 
 class TestSchemaValidate(object):
 

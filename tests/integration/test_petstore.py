@@ -1,5 +1,6 @@
 import json
 import pytest
+from datetime import datetime
 from base64 import b64encode
 from uuid import UUID
 from six import iteritems, text_type
@@ -1213,7 +1214,7 @@ class TestPetstore(object):
 
         assert parameters == {}
         assert isinstance(body, BaseModel)
-        assert body.created == created
+        assert body.created == datetime(2016, 4, 16, 16, 6, 5)
         assert body.name == pet_name
 
         code = 400
@@ -1257,7 +1258,7 @@ class TestPetstore(object):
         )
 
         parameters = request.get_parameters(spec)
-        with pytest.raises(NoValidSchema):
+        with pytest.raises(InvalidMediaTypeValue):
             request.get_body(spec)
 
         assert parameters == {}

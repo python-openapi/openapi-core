@@ -219,6 +219,9 @@ class Schema(object):
             else:
                 raise InvalidSchemaValue(msg, value, self.format)
         else:
+            if self.enum and value not in self.enum:
+                raise InvalidSchemaValue(
+                    "Value {value} not in enum choices: {type}", value, self.enum)
             formatstring = self.STRING_FORMAT_CALLABLE_GETTER[schema_format]
 
         try:
@@ -251,13 +254,30 @@ class Schema(object):
             SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
         ]
         cast_mapping = self.get_cast_mapping()
-        for schema_type in types_resolve_order:
-            cast_callable = cast_mapping[schema_type]
-            try:
-                return cast_callable(value)
-            # @todo: remove ValueError when validation separated
-            except (OpenAPISchemaError, TypeError, ValueError):
-                continue
+        if self.one_of:
+            result = None
+            for subschema in self.one_of:
+                try:
+                    casted = subschema.cast(value, custom_formatters)
+                except (OpenAPISchemaError, TypeError, ValueError):
+                    continue
+                else:
+                    if result is not None:
+                        raise MultipleOneOfSchema(self.type)
+                    result = casted
+
+            if result is None:
+                raise NoOneOfSchema(self.type)
+
+            return result
+        else:
+            for schema_type in types_resolve_order:
+                cast_callable = cast_mapping[schema_type]
+                try:
+                    return cast_callable(value)
+                # @todo: remove ValueError when validation separated
+                except (OpenAPISchemaError, TypeError, ValueError):
+                    continue
 
         raise NoValidSchema(value)
 
