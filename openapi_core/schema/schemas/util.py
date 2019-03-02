@@ -20,9 +20,9 @@ def strictbool(val):
 
 
 def strictstr(val):
-    if not isinstance(val, text_type):
+    if not isinstance(val, string_types):
         raise TypeError('expected text, got {type}'.format(type=type(val)))
-    return val
+    return text_type(val)
 
 def dicthash(d):
     return hash(dumps(d, sort_keys=True))
