@@ -173,6 +173,7 @@ class TestSchemaUnmarshal(object):
 
     def test_schema_any_one_of(self):
         schema = Schema(one_of=[
+            Schema('string'),
             Schema('array', items=Schema('string')),
         ])
         assert schema.unmarshal(['hello']) == ['hello']
@@ -193,6 +194,9 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(NoOneOfSchema):
             schema.unmarshal({})
 
+    def test_schema_any(self):
+        schema = Schema()
+        assert schema.unmarshal('string') == 'string'
 
 class TestSchemaValidate(object):
 
