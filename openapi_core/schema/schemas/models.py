@@ -216,7 +216,8 @@ class Schema(object):
         try:
             schema_format = SchemaFormat(self.format)
             if value is not None and not isinstance(value, (string_types, bytes)):
-                raise ValueError
+                raise InvalidSchemaValue(
+                    "Value {value} is type {type}, expected string type", value, type(value))
         except ValueError:
             msg = "Unsupported format {type} unmarshalling for value {value}"
             if custom_formatters is not None:

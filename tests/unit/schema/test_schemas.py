@@ -124,6 +124,12 @@ class TestSchemaUnmarshal(object):
         ):
             schema.unmarshal(value)
 
+    def test_float_as_str_invalid(self):
+        schema = Schema('string')
+        value = 1.23
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
+
     def test_str_as_integer_invalid(self):
         schema = Schema('integer')
         value = '123'
