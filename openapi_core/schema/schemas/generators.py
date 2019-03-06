@@ -16,5 +16,5 @@ class SchemasGenerator(object):
         schemas_deref = self.dereferencer.dereference(schemas_spec)
 
         for schema_name, schema_spec in iteritems(schemas_deref):
-            schema, _ = self.schemas_registry.get_or_create(schema_spec)
+            schema, _ = self.schemas_registry.get_or_create(schema_spec, schema_name)
             yield schema_name, schema

@@ -13,7 +13,7 @@ class SchemaFactory(object):
     def __init__(self, dereferencer):
         self.dereferencer = dereferencer
 
-    def create(self, schema_spec):
+    def create(self, schema_spec, schema_name=''):
         schema_deref = self.dereferencer.dereference(schema_spec)
 
         schema_type = schema_deref.get('type', None)
@@ -75,6 +75,7 @@ class SchemaFactory(object):
             exclusive_maximum=exclusive_maximum,
             exclusive_minimum=exclusive_minimum,
             min_properties=min_properties, max_properties=max_properties,
+            schema_name=schema_name, schema_deref=schema_deref,
         )
 
     @property
