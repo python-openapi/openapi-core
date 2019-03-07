@@ -1,6 +1,7 @@
 from base64 import b64encode
 import json
 import pytest
+from six import text_type
 
 from openapi_core.schema.media_types.exceptions import (
     InvalidContentType, InvalidMediaTypeValue,
@@ -23,11 +24,13 @@ class TestRequestValidator(object):
 
     host_url = 'http://petstore.swagger.io'
 
-    api_key = b'12345'
+    api_key = '12345'
 
     @property
     def api_key_encoded(self):
-        return b64encode(self.api_key)
+        api_key_bytes = self.api_key.encode('utf8')
+        api_key_bytes_enc = b64encode(api_key_bytes)
+        return text_type(api_key_bytes_enc, 'utf8')
 
     @pytest.fixture
     def spec_dict(self, factory):
