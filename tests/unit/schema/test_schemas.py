@@ -124,7 +124,10 @@ class TestSchemaUnmarshal(object):
             custom_format: mock.Mock(unmarshal=lambda x: _raise(ValueError))
         }
 
-        with pytest.raises(InvalidSchemaValue, message='Failed to format value'):
+        with pytest.raises(
+            InvalidSchemaValue,
+            message='Failed to format value'
+        ):
             schema.unmarshal(value, custom_formatters)
 
     def test_integer_valid(self):
