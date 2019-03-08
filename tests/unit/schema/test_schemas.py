@@ -6,7 +6,8 @@ import pytest
 
 from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
+    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema,
+    OpenAPISchemaError, InvalidSchema, InvalidFormat
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -762,4 +763,28 @@ class TestSchemaValidate(object):
         )
 
         with pytest.raises(Exception):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('schema,value', [
+        (Schema('array', items=Schema('number'), min_items=-1), []),
+        (Schema('array', items=Schema('number'), max_items=-1), []),
+        (Schema('string', min_length=-1), u('')),
+        (Schema('string', max_length=-1), u('')),
+        (Schema('object', min_properties=-1), Model()),
+        (Schema('object', max_properties=-1), Model()),
+    ])
+    def test_validate_invalid_schema(self, schema, value):
+        with pytest.raises(InvalidSchema):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('custom_formatters', [
+        {},
+        None,
+    ])
+    def test_validate_string_format_unknown(self, custom_formatters):
+        unknown_format = 'unknown'
+        schema = Schema('string', schema_format=unknown_format)
+        value = 'x'
+
+        with pytest.raises(InvalidFormat):
             schema.validate(value)
