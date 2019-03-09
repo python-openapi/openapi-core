@@ -1,6 +1,5 @@
 from openapi_core.schema.schemas import exceptions
 import pytest
-import inspect
 import attr
 
 
