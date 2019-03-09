@@ -1,5 +1,7 @@
 from openapi_core.schema.schemas import exceptions
 import pytest
+import inspect
+import attr
 
 
 def is_open_api_exception(exception_type):
@@ -22,4 +24,5 @@ class TestExceptions:
     )
     def test_convert_to_string(self, exception_type):
         # verify that we can convert to a string without error
-        str(exception_type)
+        args = ['x'] * len(attr.fields(exception_type))
+        str(exception_type(*args))
