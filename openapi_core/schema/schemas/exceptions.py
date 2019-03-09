@@ -3,8 +3,9 @@ from openapi_core.schema.exceptions import OpenAPIMappingError
 import attr
 
 
+@attr.s
 class OpenAPISchemaError(OpenAPIMappingError):
-    pass
+    schema = attr.ib()
 
 
 @attr.s
@@ -77,3 +78,19 @@ class MultipleOneOfSchema(OpenAPISchemaError):
 
     def __str__(self):
         return "Exactly one schema type {0} should be valid, more than one found".format(self.type)
+
+
+@attr.s
+class InvalidSchema(OpenAPISchemaError):
+    msg = attr.ib()
+
+    def __str__(self):
+        return self.msg
+
+
+@attr.s
+class InvalidFormat(OpenAPISchemaError):
+    msg = attr.ib()
+
+    def __str__(self):
+        return self.msg

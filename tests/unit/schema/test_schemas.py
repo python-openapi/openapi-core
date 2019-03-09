@@ -6,7 +6,9 @@ import pytest
 
 from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
+    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema,
+    OpenAPISchemaError, InvalidSchema, InvalidFormat, NoValidSchema,
+    InvalidSchemaProperty
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -102,27 +104,31 @@ class TestSchemaUnmarshal(object):
 
         assert result == 'x-custom'
 
-    def test_string_format_unknown(self):
+    @pytest.mark.parametrize("custom_formatters", (None, {}))
+    def test_string_format_unknown(self, custom_formatters):
         unknown_format = 'unknown'
         schema = Schema('string', schema_format=unknown_format)
         value = 'x'
 
         with pytest.raises(OpenAPISchemaError):
-            schema.unmarshal(value)
+            schema.unmarshal(value, custom_formatters)
 
-    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_invalid_value(self):
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        with mock.patch.dict(
-            Schema.STRING_FORMAT_CAST_CALLABLE_GETTER,
-            {custom_format: mock.Mock(side_effect=ValueError())},
-        ), pytest.raises(
-            InvalidSchemaValue, message='Failed to format value'
+        def _raise(e): raise e()
+
+        custom_formatters = {
+            custom_format: mock.Mock(unmarshal=lambda x: _raise(ValueError))
+        }
+
+        with pytest.raises(
+            InvalidSchemaValue,
+            message='Failed to format value'
         ):
-            schema.unmarshal(value)
+            schema.unmarshal(value, custom_formatters)
 
     def test_integer_valid(self):
         schema = Schema('integer')
@@ -170,6 +176,38 @@ class TestSchemaUnmarshal(object):
 
         with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
+
+    def test_any_no_valid_schema(self):
+        schema = Schema()
+
+        class Uncastable:
+            def _raise(self):
+                raise ValueError()
+            __nonzero__ = __bool__ = __trunc__ = __float__ = __str__ = _raise
+
+        value = Uncastable()
+
+        with pytest.raises(NoValidSchema):
+            schema.unmarshal(value)
+
+    def test_multiple_one_of(self):
+        schema = Schema('object', one_of=[
+            Schema('object', properties={
+                'one': Schema('string')
+            }),
+            Schema('object', properties={
+                'one': Schema('string')
+            }),
+        ])
+        with pytest.raises(MultipleOneOfSchema):
+            schema.unmarshal({'one': 'one'})
+
+    def test_invalid_schema_property(self):
+        schema = Schema('object', properties={
+            'one': Schema('integer')
+        })
+        with pytest.raises(InvalidSchemaProperty):
+            schema.unmarshal({'one': 'one'})
 
 
 class TestSchemaValidate(object):
@@ -763,3 +801,34 @@ class TestSchemaValidate(object):
 
         with pytest.raises(Exception):
             schema.validate(value)
+
+    @pytest.mark.parametrize('schema,value', [
+        (Schema('array', items=Schema('number'), min_items=-1), []),
+        (Schema('array', items=Schema('number'), max_items=-1), []),
+        (Schema('string', min_length=-1), u('')),
+        (Schema('string', max_length=-1), u('')),
+        (Schema('object', min_properties=-1), Model()),
+        (Schema('object', max_properties=-1), Model()),
+    ])
+    def test_validate_invalid_schema(self, schema, value):
+        with pytest.raises(InvalidSchema):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('custom_formatters', [
+        {},
+        None,
+    ])
+    def test_validate_string_format_unknown(self, custom_formatters):
+        unknown_format = 'unknown'
+        schema = Schema('string', schema_format=unknown_format)
+        value = 'x'
+
+        with pytest.raises(InvalidFormat):
+            schema.validate(value, custom_formatters)
+
+    def test_invalid_schema_property(self):
+        schema = Schema('object', properties={
+            'one': Schema('integer')
+        })
+        with pytest.raises(InvalidSchemaProperty):
+            schema.validate(Model({'one': 'one'}))
