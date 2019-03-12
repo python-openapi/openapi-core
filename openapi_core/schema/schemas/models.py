@@ -68,7 +68,7 @@ class Schema(object):
             self, schema_type=None, model=None, properties=None, items=None,
             schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None, one_of=None,
-            additional_properties=None, min_items=None, max_items=None,
+            additional_properties=True, min_items=None, max_items=None,
             min_length=None, max_length=None, pattern=None, unique_items=False,
             minimum=None, maximum=None, multiple_of=None,
             exclusive_minimum=False, exclusive_maximum=False,
@@ -284,14 +284,15 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props and self.additional_properties is None:
+        if extra_props and self.additional_properties is False:
             raise UndefinedSchemaProperty(extra_props)
 
         properties = {}
-        for prop_name in extra_props:
-            prop_value = value[prop_name]
-            properties[prop_name] = self.additional_properties.unmarshal(
-                prop_value, custom_formatters=custom_formatters)
+        if self.additional_properties is not True:
+            for prop_name in extra_props:
+                prop_value = value[prop_name]
+                properties[prop_name] = self.additional_properties.unmarshal(
+                    prop_value, custom_formatters=custom_formatters)
 
         for prop_name, prop in iteritems(all_props):
             try:
@@ -515,13 +516,14 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props and self.additional_properties is None:
+        if extra_props and self.additional_properties is False:
             raise UndefinedSchemaProperty(extra_props)
 
-        for prop_name in extra_props:
-            prop_value = value[prop_name]
-            self.additional_properties.validate(
-                prop_value, custom_formatters=custom_formatters)
+        if self.additional_properties is not True:
+            for prop_name in extra_props:
+                prop_value = value[prop_name]
+                self.additional_properties.validate(
+                    prop_value, custom_formatters=custom_formatters)
 
         for prop_name, prop in iteritems(all_props):
             try:

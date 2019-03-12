@@ -7,6 +7,7 @@ import pytest
 from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
+    UndefinedSchemaProperty
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -696,6 +697,26 @@ class TestSchemaValidate(object):
         result = schema.validate(value)
 
         assert result == value
+
+    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+    def test_object_additional_propetries(self, value):
+        schema = Schema('object')
+
+        schema.validate(value)
+
+    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+    def test_object_additional_propetries_false(self, value):
+        schema = Schema('object', additional_properties=False)
+
+        with pytest.raises(UndefinedSchemaProperty):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+    def test_object_additional_propetries_object(self, value):
+        additional_properties = Schema('integer')
+        schema = Schema('object', additional_properties=additional_properties)
+
+        schema.validate(value)
 
     @pytest.mark.parametrize('value', [[], ])
     def test_list_min_items_invalid_schema(self, value):
