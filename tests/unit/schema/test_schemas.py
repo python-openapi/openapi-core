@@ -922,6 +922,7 @@ class TestSchemaValidate(object):
                 'somestr': Schema('string'),
                 'someint': Schema('integer'),
             },
+            additional_properties=False,
         )
 
         with pytest.raises(Exception):
