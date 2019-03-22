@@ -58,7 +58,7 @@ class TestSchemaUnmarshal(object):
 
         assert result == uuid.UUID(value)
 
-    def test_string_format_uuid_valid(self):
+    def test_string_format_uuid_uuid_quirks_valid(self):
         schema = Schema(SchemaType.STRING, schema_format=SchemaFormat.UUID)
         value = uuid.uuid4()
 
