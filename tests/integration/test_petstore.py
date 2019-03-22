@@ -17,8 +17,9 @@ from openapi_core.schema.parameters.models import Parameter
 from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
+from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    NoValidSchema,
+    NoValidSchema, InvalidSchemaProperty, InvalidSchemaValue,
 )
 from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.servers.exceptions import InvalidServer
@@ -234,6 +235,105 @@ class TestPetstore(object):
         assert isinstance(response_result.data, BaseModel)
         assert response_result.data.data == []
 
+    def test_get_pets_response(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = {
+            'limit': '20',
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {
+            'query': {
+                'limit': 20,
+                'page': 1,
+                'search': '',
+            }
+        }
+        assert body is None
+
+        data_json = {
+            'data': [
+                {
+                    'id': 1,
+                    'name': 'Cat',
+                }
+            ],
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert isinstance(response_result.data, BaseModel)
+        assert len(response_result.data.data) == 1
+        assert response_result.data.data[0].id == 1
+        assert response_result.data.data[0].name == 'Cat'
+
+    def test_get_pets_invalid_response(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = {
+            'limit': '20',
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        parameters = request.get_parameters(spec)
+        body = request.get_body(spec)
+
+        assert parameters == {
+            'query': {
+                'limit': 20,
+                'page': 1,
+                'search': '',
+            }
+        }
+        assert body is None
+
+        data_json = {
+            'data': [
+                {
+                    'id': 1,
+                    'name': {
+                        'first_name': 'Cat',
+                    },
+                }
+            ],
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == [
+            InvalidMediaTypeValue(
+                original_exception=InvalidSchemaProperty(
+                    property_name='data',
+                    original_exception=InvalidSchemaProperty(
+                        property_name='name',
+                        original_exception=InvalidSchemaValue(
+                            msg="Value {value} is not of type {type}",
+                            type=SchemaType.STRING,
+                            value={'first_name': 'Cat'},
+                        ),
+                    ),
+                ),
+            ),
+        ]
+        assert response_result.data is None
+
     def test_get_pets_ids_param(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
@@ -419,7 +519,7 @@ class TestPetstore(object):
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
-            'position': '2',
+            'position': 2,
             'address': {
                 'street': pet_street,
                 'city': pet_city,
@@ -479,7 +579,7 @@ class TestPetstore(object):
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
-            'position': '2',
+            'position': 2,
             'address': {
                 'street': pet_street,
                 'city': pet_city,
@@ -535,11 +635,11 @@ class TestPetstore(object):
         pet_tag = 'cats'
         pet_street = 'Piekna'
         pet_city = 'Warsaw'
-        pet_healthy = 'false'
+        pet_healthy = False
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
-            'position': '2',
+            'position': 2,
             'address': {
                 'street': pet_street,
                 'city': pet_city,
