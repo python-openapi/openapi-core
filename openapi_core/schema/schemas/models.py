@@ -39,9 +39,6 @@ class Schema(object):
     """Represents an OpenAPI Schema."""
 
     DEFAULT_CAST_CALLABLE_GETTER = {
-        SchemaType.INTEGER: int,
-        SchemaType.NUMBER: float,
-        SchemaType.BOOLEAN: forcebool,
     }
 
     STRING_FORMAT_CALLABLE_GETTER = {
@@ -69,7 +66,7 @@ class Schema(object):
             self, schema_type=None, model=None, properties=None, items=None,
             schema_format=None, required=None, default=None, nullable=False,
             enum=None, deprecated=False, all_of=None, one_of=None,
-            additional_properties=None, min_items=None, max_items=None,
+            additional_properties=True, min_items=None, max_items=None,
             min_length=None, max_length=None, pattern=None, unique_items=False,
             minimum=None, maximum=None, multiple_of=None,
             exclusive_minimum=False, exclusive_maximum=False,
@@ -149,12 +146,15 @@ class Schema(object):
 
         return set(required)
 
-    def get_cast_mapping(self, custom_formatters=None):
+    def get_cast_mapping(self, custom_formatters=None, strict=True):
         pass_defaults = lambda f: functools.partial(
-          f, custom_formatters=custom_formatters)
+          f, custom_formatters=custom_formatters, strict=strict)
         mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update({
             SchemaType.STRING: pass_defaults(self._unmarshal_string),
+            SchemaType.BOOLEAN: pass_defaults(self._unmarshal_boolean),
+            SchemaType.INTEGER: pass_defaults(self._unmarshal_integer),
+            SchemaType.NUMBER: pass_defaults(self._unmarshal_number),
             SchemaType.ANY: pass_defaults(self._unmarshal_any),
             SchemaType.ARRAY: pass_defaults(self._unmarshal_collection),
             SchemaType.OBJECT: pass_defaults(self._unmarshal_object),
@@ -162,14 +162,15 @@ class Schema(object):
 
         return defaultdict(lambda: lambda x: x, mapping)
 
-    def cast(self, value, custom_formatters=None):
+    def cast(self, value, custom_formatters=None, strict=True):
         """Cast value to schema type"""
         if value is None:
             if not self.nullable:
                 raise InvalidSchemaValue("Null value for non-nullable schema", value, self.type)
             return self.default
 
-        cast_mapping = self.get_cast_mapping(custom_formatters=custom_formatters)
+        cast_mapping = self.get_cast_mapping(
+            custom_formatters=custom_formatters, strict=strict)
 
         if self.type is not SchemaType.STRING and value == '':
             return None
@@ -181,12 +182,12 @@ class Schema(object):
             raise InvalidSchemaValue(
                 "Failed to cast value {value} to type {type}", value, self.type)
 
-    def unmarshal(self, value, custom_formatters=None):
+    def unmarshal(self, value, custom_formatters=None, strict=True):
         """Unmarshal parameter from the value."""
         if self.deprecated:
             warnings.warn("The schema is deprecated", DeprecationWarning)
 
-        casted = self.cast(value, custom_formatters=custom_formatters)
+        casted = self.cast(value, custom_formatters=custom_formatters, strict=strict)
 
         if casted is None and not self.required:
             return None
@@ -197,7 +198,10 @@ class Schema(object):
 
         return casted
 
-    def _unmarshal_string(self, value, custom_formatters=None):
+    def _unmarshal_string(self, value, custom_formatters=None, strict=True):
+        if strict and not isinstance(value, (text_type, binary_type)):
+            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+
         try:
             schema_format = SchemaFormat(self.format)
         except ValueError:
@@ -217,7 +221,25 @@ class Schema(object):
             raise InvalidCustomFormatSchemaValue(
                 "Failed to format value {value} to format {type}: {exception}", value, self.format, exc)
 
-    def _unmarshal_any(self, value, custom_formatters=None):
+    def _unmarshal_integer(self, value, custom_formatters=None, strict=True):
+        if strict and not isinstance(value, (integer_types, )):
+            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+
+        return int(value)
+
+    def _unmarshal_number(self, value, custom_formatters=None, strict=True):
+        if strict and not isinstance(value, (float, )):
+            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+
+        return float(value)
+
+    def _unmarshal_boolean(self, value, custom_formatters=None, strict=True):
+        if strict and not isinstance(value, (bool, )):
+            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+
+        return forcebool(value)
+
+    def _unmarshal_any(self, value, custom_formatters=None, strict=True):
         types_resolve_order = [
             SchemaType.OBJECT, SchemaType.ARRAY, SchemaType.BOOLEAN,
             SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
@@ -233,16 +255,21 @@ class Schema(object):
 
         raise NoValidSchema(value)
 
-    def _unmarshal_collection(self, value, custom_formatters=None):
+    def _unmarshal_collection(self, value, custom_formatters=None, strict=True):
+        if not isinstance(value, (list, tuple)):
+            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+
         if self.items is None:
             raise UndefinedItemsSchema(self.type)
 
-        f = functools.partial(self.items.unmarshal,
-                              custom_formatters=custom_formatters)
+        f = functools.partial(
+            self.items.unmarshal,
+            custom_formatters=custom_formatters, strict=strict,
+        )
         return list(map(f, value))
 
     def _unmarshal_object(self, value, model_factory=None,
-                          custom_formatters=None):
+                          custom_formatters=None, strict=True):
         if not isinstance(value, (dict, )):
             raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
@@ -271,7 +298,7 @@ class Schema(object):
         return model_factory.create(properties, name=self.model)
 
     def _unmarshal_properties(self, value, one_of_schema=None,
-                              custom_formatters=None):
+                              custom_formatters=None, strict=True):
         all_props = self.get_all_properties()
         all_props_names = self.get_all_properties_names()
         all_req_props_names = self.get_all_required_properties_names()
@@ -285,14 +312,15 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props and self.additional_properties is None:
+        if extra_props and self.additional_properties is False:
             raise UndefinedSchemaProperty(extra_props)
 
         properties = {}
-        for prop_name in extra_props:
-            prop_value = value[prop_name]
-            properties[prop_name] = self.additional_properties.unmarshal(
-                prop_value, custom_formatters=custom_formatters)
+        if self.additional_properties is not True:
+            for prop_name in extra_props:
+                prop_value = value[prop_name]
+                properties[prop_name] = self.additional_properties.unmarshal(
+                    prop_value, custom_formatters=custom_formatters)
 
         for prop_name, prop in iteritems(all_props):
             try:
@@ -516,13 +544,14 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props and self.additional_properties is None:
+        if extra_props and self.additional_properties is False:
             raise UndefinedSchemaProperty(extra_props)
 
-        for prop_name in extra_props:
-            prop_value = value[prop_name]
-            self.additional_properties.validate(
-                prop_value, custom_formatters=custom_formatters)
+        if self.additional_properties is not True:
+            for prop_name in extra_props:
+                prop_value = value[prop_name]
+                self.additional_properties.validate(
+                    prop_value, custom_formatters=custom_formatters)
 
         for prop_name, prop in iteritems(all_props):
             try:

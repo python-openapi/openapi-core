@@ -8,6 +8,7 @@ from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
+    UndefinedSchemaProperty
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -64,6 +65,13 @@ class TestSchemaUnmarshal(object):
         result = schema.unmarshal(value)
 
         assert result == value
+
+    def test_string_float_invalid(self):
+        schema = Schema('string')
+        value = 1.23
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
 
     def test_string_none(self):
         schema = Schema('string')
@@ -134,7 +142,7 @@ class TestSchemaUnmarshal(object):
         value = 'x'
 
         with mock.patch.dict(
-            Schema.STRING_FORMAT_CAST_CALLABLE_GETTER,
+            Schema.STRING_FORMAT_CALLABLE_GETTER,
             {custom_format: mock.Mock(side_effect=ValueError())},
         ), pytest.raises(
             InvalidSchemaValue, message='Failed to format value'
@@ -143,11 +151,18 @@ class TestSchemaUnmarshal(object):
 
     def test_integer_valid(self):
         schema = Schema('integer')
-        value = '123'
+        value = 123
 
         result = schema.unmarshal(value)
 
         assert result == int(value)
+
+    def test_integer_string_invalid(self):
+        schema = Schema('integer')
+        value = '123'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
 
     def test_integer_enum_invalid(self):
         schema = Schema('integer', enum=[1, 2, 3])
@@ -158,11 +173,18 @@ class TestSchemaUnmarshal(object):
 
     def test_integer_enum(self):
         schema = Schema('integer', enum=[1, 2, 3])
-        value = '2'
+        value = 2
 
         result = schema.unmarshal(value)
 
         assert result == int(value)
+
+    def test_integer_enum_string_invalid(self):
+        schema = Schema('integer', enum=[1, 2, 3])
+        value = '2'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
 
     def test_integer_default(self):
         default_value = '123'
@@ -184,6 +206,65 @@ class TestSchemaUnmarshal(object):
     def test_integer_invalid(self):
         schema = Schema('integer')
         value = 'abc'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
+
+    def test_array_valid(self):
+        schema = Schema('array', items=Schema('integer'))
+        value = [1, 2, 3]
+
+        result = schema.unmarshal(value)
+
+        assert result == value
+
+    def test_array_of_string_string_invalid(self):
+        schema = Schema('array', items=Schema('string'))
+        value = '123'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
+
+    def test_array_of_integer_string_invalid(self):
+        schema = Schema('array', items=Schema('integer'))
+        value = '123'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
+
+    def test_boolean_valid(self):
+        schema = Schema('boolean')
+        value = True
+
+        result = schema.unmarshal(value)
+
+        assert result == value
+
+    def test_boolean_string_invalid(self):
+        schema = Schema('boolean')
+        value = 'True'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
+
+    def test_number_valid(self):
+        schema = Schema('number')
+        value = 1.23
+
+        result = schema.unmarshal(value)
+
+        assert result == value
+
+    def test_number_string_invalid(self):
+        schema = Schema('number')
+        value = '1.23'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(value)
+
+    def test_number_int_invalid(self):
+        schema = Schema('number')
+        value = 1
 
         with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
@@ -714,6 +795,26 @@ class TestSchemaValidate(object):
 
         assert result == value
 
+    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+    def test_object_additional_propetries(self, value):
+        schema = Schema('object')
+
+        schema.validate(value)
+
+    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+    def test_object_additional_propetries_false(self, value):
+        schema = Schema('object', additional_properties=False)
+
+        with pytest.raises(UndefinedSchemaProperty):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+    def test_object_additional_propetries_object(self, value):
+        additional_properties = Schema('integer')
+        schema = Schema('object', additional_properties=additional_properties)
+
+        schema.validate(value)
+
     @pytest.mark.parametrize('value', [[], ])
     def test_list_min_items_invalid_schema(self, value):
         schema = Schema(
@@ -776,6 +877,68 @@ class TestSchemaValidate(object):
             'array',
             items=Schema('number'),
             unique_items=True,
+        )
+
+        with pytest.raises(Exception):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        Model({
+            'someint': 123,
+        }),
+        Model({
+            'somestr': u('content'),
+        }),
+        Model({
+            'somestr': u('content'),
+            'someint': 123,
+        }),
+    ])
+    def test_object_with_properties(self, value):
+        schema = Schema(
+            'object',
+            properties={
+                'somestr': Schema('string'),
+                'someint': Schema('integer'),
+            },
+        )
+
+        result = schema.validate(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [
+        Model({
+            'somestr': Model(),
+            'someint': 123,
+        }),
+        Model({
+            'somestr': {},
+            'someint': 123,
+        }),
+        Model({
+            'somestr': [
+                'content1', 'content2'
+            ],
+            'someint': 123,
+        }),
+        Model({
+            'somestr': 123,
+            'someint': 123,
+        }),
+        Model({
+            'somestr': 'content',
+            'someint': 123,
+            'not_in_scheme_prop': 123,
+        }),
+    ])
+    def test_object_with_invalid_properties(self, value):
+        schema = Schema(
+            'object',
+            properties={
+                'somestr': Schema('string'),
+                'someint': Schema('integer'),
+            },
         )
 
         with pytest.raises(Exception):
