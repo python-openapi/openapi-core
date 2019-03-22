@@ -1,8 +1,9 @@
 """OpenAPI core schemas util module"""
+from base64 import b64decode
 import datetime
 from distutils.util import strtobool
 from json import dumps
-from six import string_types
+from six import string_types, text_type
 import strict_rfc3339
 from uuid import UUID
 
@@ -31,3 +32,7 @@ def format_uuid(value):
     if isinstance(value, UUID):
         return value
     return UUID(value)
+
+
+def format_byte(value, encoding='utf8'):
+    return text_type(b64decode(value), encoding)

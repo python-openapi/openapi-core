@@ -577,7 +577,7 @@ class TestSchemaValidate(object):
         assert result == value
 
     @pytest.mark.parametrize('value', [
-        u('tsssst'), u('dGVzdA=='),
+        b('tsssst'), b('dGVzdA=='),
     ])
     def test_string_format_byte_invalid(self, value):
         schema = Schema('string', schema_format='byte')
@@ -586,7 +586,7 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        b('tsssst'), b('dGVzdA=='),
+        u('tsssst'), u('dGVzdA=='),
     ])
     def test_string_format_byte(self, value):
         schema = Schema('string', schema_format='byte')

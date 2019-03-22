@@ -2,7 +2,7 @@ import json
 import pytest
 from base64 import b64encode
 from uuid import UUID
-from six import iteritems
+from six import iteritems, text_type
 
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.media_types.exceptions import (
@@ -32,11 +32,13 @@ from openapi_core.wrappers.mock import MockRequest, MockResponse
 
 class TestPetstore(object):
 
-    api_key = b'12345'
+    api_key = '12345'
 
     @property
     def api_key_encoded(self):
-        return b64encode(self.api_key)
+        api_key_bytes = self.api_key.encode('utf8')
+        api_key_bytes_enc = b64encode(api_key_bytes)
+        return text_type(api_key_bytes_enc, 'utf8')
 
     @pytest.fixture
     def spec_dict(self, factory):

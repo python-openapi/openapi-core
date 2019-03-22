@@ -19,8 +19,7 @@ from openapi_core.schema.schemas.exceptions import (
     UndefinedItemsSchema, InvalidCustomFormatSchemaValue, InvalidSchemaProperty,
 )
 from openapi_core.schema.schemas.util import (
-    forcebool, format_date, format_datetime,
-    format_uuid,
+    forcebool, format_date, format_datetime, format_byte, format_uuid,
 )
 from openapi_core.schema.schemas.validators import (
     TypeValidator, AttributeValidator,
@@ -48,7 +47,7 @@ class Schema(object):
         SchemaFormat.DATETIME: Format(format_datetime, TypeValidator(datetime)),
         SchemaFormat.BINARY: Format(binary_type, TypeValidator(binary_type)),
         SchemaFormat.UUID: Format(format_uuid, TypeValidator(UUID)),
-        SchemaFormat.BYTE: Format(b64decode, TypeValidator(binary_type)),
+        SchemaFormat.BYTE: Format(format_byte, TypeValidator(text_type)),
     }
 
     TYPE_VALIDATOR_CALLABLE_GETTER = {
