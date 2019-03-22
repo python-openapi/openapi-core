@@ -155,7 +155,7 @@ class TestRequestValidator(object):
         data_json = {
             'name': pet_name,
             'tag': pet_tag,
-            'position': '2',
+            'position': 2,
             'address': {
                 'street': pet_street,
                 'city': pet_city,

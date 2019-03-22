@@ -109,7 +109,11 @@ class Parameter(object):
             raise InvalidParameterValue(self.name, exc)
 
         try:
-            unmarshalled = self.schema.unmarshal(deserialized, custom_formatters=custom_formatters)
+            unmarshalled = self.schema.unmarshal(
+                deserialized,
+                custom_formatters=custom_formatters,
+                strict=False,
+            )
         except OpenAPISchemaError as exc:
             raise InvalidParameterValue(self.name, exc)
 
