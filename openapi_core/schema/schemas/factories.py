@@ -28,7 +28,8 @@ class SchemaFactory(object):
         deprecated = schema_deref.get('deprecated', False)
         all_of_spec = schema_deref.get('allOf', None)
         one_of_spec = schema_deref.get('oneOf', None)
-        additional_properties_spec = schema_deref.get('additionalProperties')
+        additional_properties_spec = schema_deref.get('additionalProperties',
+                                                      True)
         min_items = schema_deref.get('minItems', None)
         max_items = schema_deref.get('maxItems', None)
         min_length = schema_deref.get('minLength', None)
@@ -59,8 +60,8 @@ class SchemaFactory(object):
         if items_spec:
             items = self._create_items(items_spec)
 
-        additional_properties = None
-        if additional_properties_spec:
+        additional_properties = additional_properties_spec
+        if isinstance(additional_properties_spec, dict):
             additional_properties = self.create(additional_properties_spec)
 
         return Schema(
