@@ -50,7 +50,7 @@ class TestSchemaUnmarshal(object):
 
         assert result == value
 
-    def test_string_valid_uuid_str(self):
+    def test_string_format_uuid_valid(self):
         schema = Schema(SchemaType.STRING, schema_format=SchemaFormat.UUID)
         value = str(uuid.uuid4())
 
@@ -58,11 +58,11 @@ class TestSchemaUnmarshal(object):
 
         assert result == uuid.UUID(value)
 
-    def test_string_valid_uuid(self):
+    def test_string_format_uuid_valid(self):
         schema = Schema(SchemaType.STRING, schema_format=SchemaFormat.UUID)
         value = uuid.uuid4()
 
-        result = schema.unmarshal(value)
+        result = schema.unmarshal(value, strict=False)
 
         assert result == value
 
