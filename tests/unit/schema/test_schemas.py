@@ -711,6 +711,39 @@ class TestSchemaValidate(object):
         with pytest.raises(NoOneOfSchema):
             schema.validate(value)
 
+    @pytest.mark.parametrize('value', [
+        Model({
+            'foo': u("FOO"),
+        }),
+        Model({
+            'foo': u("FOO"),
+            'bar': u("BAR"),
+        }),
+    ])
+    def test_unambiguous_one_of(self, value):
+        one_of = [
+            Schema(
+                'object',
+                properties={
+                    'foo': Schema('string'),
+                },
+                additional_properties=False,
+                required=['foo'],
+            ),
+            Schema(
+                'object',
+                properties={
+                    'foo': Schema('string'),
+                    'bar': Schema('string'),
+                },
+                additional_properties=False,
+                required=['foo', 'bar'],
+            ),
+        ]
+        schema = Schema('object', one_of=one_of)
+
+        schema.validate(value)
+
     @pytest.mark.parametrize('value', [Model(), ])
     def test_object_default_property(self, value):
         schema = Schema('object', default='value1')

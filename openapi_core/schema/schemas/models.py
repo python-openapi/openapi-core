@@ -161,6 +161,13 @@ class Schema(object):
 
         return defaultdict(lambda: lambda x: x, mapping)
 
+    def are_additional_properties_allowed(self, one_of_schema=None):
+        return (
+            (self.additional_properties is not False) and
+            (one_of_schema is None or
+                one_of_schema.additional_properties is not False)
+        )
+
     def cast(self, value, custom_formatters=None, strict=True):
         """Cast value to schema type"""
         if value is None:
@@ -311,7 +318,9 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props and self.additional_properties is False:
+        extra_props_allowed = self.are_additional_properties_allowed(
+            one_of_schema)
+        if extra_props and not extra_props_allowed:
             raise UndefinedSchemaProperty(extra_props)
 
         properties = {}
@@ -543,7 +552,9 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props and self.additional_properties is False:
+        extra_props_allowed = self.are_additional_properties_allowed(
+            one_of_schema)
+        if extra_props and not extra_props_allowed:
             raise UndefinedSchemaProperty(extra_props)
 
         if self.additional_properties is not True:
