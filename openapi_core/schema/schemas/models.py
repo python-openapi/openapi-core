@@ -311,7 +311,12 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props and self.additional_properties is False:
+        no_more_properties_allowed = (
+                (self.additional_properties is False) or
+                (one_of_schema is not None and
+                 one_of_schema.additional_properties is False)
+        )
+        if extra_props and no_more_properties_allowed:
             raise UndefinedSchemaProperty(extra_props)
 
         properties = {}
@@ -543,7 +548,12 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        if extra_props and self.additional_properties is False:
+        no_more_properties_allowed = (
+                (self.additional_properties is False) or
+                (one_of_schema is not None and
+                 one_of_schema.additional_properties is False)
+        )
+        if extra_props and no_more_properties_allowed:
             raise UndefinedSchemaProperty(extra_props)
 
         if self.additional_properties is not True:
