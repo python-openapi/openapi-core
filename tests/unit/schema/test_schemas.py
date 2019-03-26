@@ -713,11 +713,11 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [
         Model({
-            'foo': 'FOO',
+            u'foo': u'FOO',
         }),
         Model({
-            'foo': 'FOO',
-            'bar': 'BAR',
+            u'foo': u'FOO',
+            u'bar': u'BAR',
         }),
     ])
     def test_unambiguous_one_of(self, value):
@@ -725,17 +725,19 @@ class TestSchemaValidate(object):
             Schema(
                 'object',
                 properties={
-                    'bar': Schema('string'),
+                    u'foo': Schema('string'),
                 },
                 additional_properties=False,
+                required=[u'foo'],
             ),
             Schema(
                 'object',
                 properties={
-                    'foo': Schema('string'),
-                    'bar': Schema('string'),
+                    u'foo': Schema('string'),
+                    u'bar': Schema('string'),
                 },
                 additional_properties=False,
+                required=[u'foo', u'bar'],
             ),
         ]
         schema = Schema('object', one_of=one_of)
