@@ -66,6 +66,14 @@ class TestSchemaUnmarshal(object):
 
         assert result == value
 
+    def test_string_format_password(self):
+        schema = Schema(SchemaType.STRING, schema_format=SchemaFormat.PASSWORD)
+        value = 'password'
+
+        result = schema.unmarshal(value)
+
+        assert result == 'password'
+
     def test_string_float_invalid(self):
         schema = Schema('string')
         value = 1.23
