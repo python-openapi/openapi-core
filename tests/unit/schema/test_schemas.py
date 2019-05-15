@@ -262,12 +262,12 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
 
-    def test_number_int_invalid(self):
+    def test_number_int(self):
         schema = Schema('number')
         value = 1
+        result = schema.unmarshal(value)
 
-        with pytest.raises(InvalidSchemaValue):
-            schema.unmarshal(value)
+        assert result == value
 
 
 class TestSchemaValidate(object):

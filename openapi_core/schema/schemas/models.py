@@ -54,7 +54,7 @@ class Schema(object):
         SchemaType.ANY: lambda x: True,
         SchemaType.BOOLEAN: TypeValidator(bool),
         SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
-        SchemaType.NUMBER: TypeValidator(integer_types, float, exclude=bool),
+        SchemaType.NUMBER: TypeValidator(integer_types + (float, ), exclude=bool),
         SchemaType.STRING: TypeValidator(
             text_type, date, datetime, binary_type, UUID),
         SchemaType.ARRAY: TypeValidator(list, tuple),
@@ -228,16 +228,16 @@ class Schema(object):
                 "Failed to format value {value} to format {type}: {exception}", value, self.format, exc)
 
     def _unmarshal_integer(self, value, custom_formatters=None, strict=True):
-        if strict and not isinstance(value, (integer_types, )):
+        if strict and not isinstance(value, integer_types):
             raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
         return int(value)
 
     def _unmarshal_number(self, value, custom_formatters=None, strict=True):
-        if strict and not isinstance(value, (float, )):
+        if strict and not isinstance(value, (float, ) + integer_types):
             raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
-        return float(value)
+        return value
 
     def _unmarshal_boolean(self, value, custom_formatters=None, strict=True):
         if strict and not isinstance(value, (bool, )):
