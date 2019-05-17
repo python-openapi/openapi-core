@@ -42,6 +42,7 @@ class Schema(object):
 
     STRING_FORMAT_CALLABLE_GETTER = {
         SchemaFormat.NONE: Format(text_type, TypeValidator(text_type)),
+        SchemaFormat.PASSWORD: Format(text_type, TypeValidator(text_type)),
         SchemaFormat.DATE: Format(
             format_date, TypeValidator(date, exclude=datetime)),
         SchemaFormat.DATETIME: Format(format_datetime, TypeValidator(datetime)),
