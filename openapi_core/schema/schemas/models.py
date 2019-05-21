@@ -79,7 +79,8 @@ class Schema(object):
             min_length=None, max_length=None, pattern=None, unique_items=False,
             minimum=None, maximum=None, multiple_of=None,
             exclusive_minimum=False, exclusive_maximum=False,
-            min_properties=None, max_properties=None):
+            min_properties=None, max_properties=None, read_only=False,
+            write_only=False):
         self.type = SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -109,6 +110,8 @@ class Schema(object):
             if min_properties is not None else None
         self.max_properties = int(max_properties)\
             if max_properties is not None else None
+        self.read_only = read_only
+        self.write_only = write_only
 
         self._all_required_properties_cache = None
         self._all_optional_properties_cache = None
@@ -391,7 +394,7 @@ class Schema(object):
 
         return defaultdict(lambda: default, mapping)
 
-    def validate(self, value, custom_formatters=None):
+    def validate(self, value, custom_formatters=None, read=False, write=False):
         if value is None:
             if not self.nullable:
                 raise InvalidSchemaValue("Null value for non-nullable schema of type {type}", value, self.type)
@@ -407,11 +410,11 @@ class Schema(object):
         # structure validation
         validator_mapping = self.get_validator_mapping()
         validator_callable = validator_mapping[self.type]
-        validator_callable(value, custom_formatters=custom_formatters)
+        validator_callable(value, custom_formatters=custom_formatters, read=read, write=write)
 
         return value
 
-    def _validate_collection(self, value, custom_formatters=None):
+    def _validate_collection(self, value, custom_formatters=None, **kwargs):
         if self.items is None:
             raise UndefinedItemsSchema(self.type)
 
@@ -439,10 +442,10 @@ class Schema(object):
             raise OpenAPISchemaError("Value may not contain duplicate items")
 
         f = functools.partial(self.items.validate,
-                              custom_formatters=custom_formatters)
+                              custom_formatters=custom_formatters, **kwargs)
         return list(map(f, value))
 
-    def _validate_number(self, value, custom_formatters=None):
+    def _validate_number(self, value, **kwargs):
         if self.minimum is not None:
             if self.exclusive_minimum and value <= self.minimum:
                 raise InvalidSchemaValue(
@@ -464,7 +467,7 @@ class Schema(object):
                 "Value {value} is not a multiple of {type}",
                     value, self.multiple_of)
 
-    def _validate_string(self, value, custom_formatters=None):
+    def _validate_string(self, value, custom_formatters=None, **kwargs):
         try:
             schema_format = SchemaFormat(self.format)
         except ValueError:
@@ -513,7 +516,7 @@ class Schema(object):
 
         return True
 
-    def _validate_object(self, value, custom_formatters=None):
+    def _validate_object(self, value, custom_formatters=None, **kwargs):
         properties = value.__dict__
 
         if self.one_of:
@@ -522,7 +525,7 @@ class Schema(object):
                 try:
                     self._validate_properties(
                       properties, one_of_schema,
-                      custom_formatters=custom_formatters)
+                      custom_formatters=custom_formatters, **kwargs)
                 except OpenAPISchemaError:
                     pass
                 else:
@@ -535,7 +538,7 @@ class Schema(object):
 
         else:
             self._validate_properties(properties,
-                                      custom_formatters=custom_formatters)
+                                      custom_formatters=custom_formatters, **kwargs)
 
         if self.min_properties is not None:
             if self.min_properties < 0:
@@ -565,7 +568,7 @@ class Schema(object):
         return True
 
     def _validate_properties(self, value, one_of_schema=None,
-                             custom_formatters=None):
+                             custom_formatters=None, read=False, write=False):
         all_props = self.get_all_properties()
         all_props_names = self.get_all_properties_names()
         all_req_props_names = self.get_all_required_properties_names()
@@ -588,19 +591,30 @@ class Schema(object):
             for prop_name in extra_props:
                 prop_value = value[prop_name]
                 self.additional_properties.validate(
-                    prop_value, custom_formatters=custom_formatters)
+                    prop_value, custom_formatters=custom_formatters,
+                    read=read, write=write)
 
         for prop_name, prop in iteritems(all_props):
+            should_skip = (read and not prop.read_only) or (write and prop.write_only)
             try:
                 prop_value = value[prop_name]
+                if read and prop.write_only:
+                    message = "WriteOnly property {prop} defined on read.".format(prop=prop_name)
+                    raise UndefinedSchemaProperty(message)
+
+                if write and prop.read_only:
+                    message = "ReadOnly property {prop} defined on write.".format(prop=prop_name)
+                    raise UndefinedSchemaProperty(message)
+
             except KeyError:
-                if prop_name in all_req_props_names:
+                if prop_name in all_req_props_names and not should_skip:
                     raise MissingSchemaProperty(prop_name)
-                if not prop.nullable and not prop.default:
+                if (not prop.nullable and not prop.default) or should_skip:
                     continue
                 prop_value = prop.default
             try:
-                prop.validate(prop_value, custom_formatters=custom_formatters)
+                prop.validate(prop_value, custom_formatters=custom_formatters,
+                              read=read, write=write)
             except OpenAPISchemaError as exc:
                 raise InvalidSchemaProperty(prop_name, original_exception=exc)
 

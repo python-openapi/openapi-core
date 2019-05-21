@@ -1008,3 +1008,82 @@ class TestSchemaValidate(object):
 
         with pytest.raises(Exception):
             schema.validate(value)
+
+    @pytest.mark.parametrize('value', [
+        Model({
+            'someint': 123,
+        }),
+    ])
+    def test_object_write_only_pass(self, value):
+        schema = Schema(
+            'object',
+            properties={
+                'somestr': Schema('string',
+                                  read_only=True),
+                'someint': Schema('integer',
+                                  write_only=True),
+            },
+        )
+
+        result = schema.validate(value, write=True)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [
+        Model({
+            'somestr': "asdf",
+        }),
+    ])
+    def test_object_write_only_failed(self, value):
+        schema = Schema(
+            'object',
+            properties={
+                'somestr': Schema('string',
+                                  read_only=True),
+                'someint': Schema('integer',
+                                  write_only=True),
+            },
+        )
+
+        with pytest.raises(UndefinedSchemaProperty):
+            schema.validate(value, write=True)
+
+    @pytest.mark.parametrize('value', [
+        Model({
+            'somestr': "asdf"
+        }),
+    ])
+    def test_object_read_only_pass(self, value):
+        schema = Schema(
+            'object',
+            properties={
+                'somestr': Schema('string',
+                                  read_only=True),
+                'someint': Schema('integer',
+                                  write_only=True),
+            },
+        )
+
+        result = schema.validate(value, read=True)
+
+        assert result == value
+
+    @pytest.mark.parametrize('value', [
+        Model({
+            'somestr': "asdf",
+            'someint': 123
+        }),
+    ])
+    def test_object_read_only_failed(self, value):
+        schema = Schema(
+            'object',
+            properties={
+                'somestr': Schema('string',
+                                  read_only=True),
+                'someint': Schema('integer',
+                                  write_only=True),
+            },
+        )
+
+        with pytest.raises(UndefinedSchemaProperty):
+            schema.validate(value, read=True)
