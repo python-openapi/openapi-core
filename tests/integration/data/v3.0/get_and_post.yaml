@@ -1,0 +1,52 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Test Post and Get
+  license:
+    name: MIT
+paths:
+  /object:
+    post:
+      summary: Post an Object
+      operationId: postObject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObjectDesc'
+      responses:
+        '201':
+          description: Null response
+  /object/{objectId}:
+    get:
+      summary: Get an Object
+      operationId: getObject
+      parameters:
+        - name: objectId
+          in: path
+          required: true
+          description: The id of the object
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object description
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ObjectDesc"
+components:
+  schemas:
+    ObjectDesc:
+      type: object
+      additionalProperties: False
+      properties:
+        object_id:
+          type: string
+          readOnly: true
+        message:
+          type: string
+        password:
+          type: string
+          writeOnly: true

@@ -61,7 +61,7 @@ class ResponseValidator(object):
                 errors.append(exc)
             else:
                 try:
-                    data = media_type.unmarshal(raw_data, self.custom_formatters)
+                    data = media_type.unmarshal(raw_data, self.custom_formatters, read=True)
                 except OpenAPIMappingError as exc:
                     errors.append(exc)
 

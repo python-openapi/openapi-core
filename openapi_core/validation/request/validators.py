@@ -53,7 +53,7 @@ class RequestValidator(object):
                 continue
 
             try:
-                value = param.unmarshal(raw_value, self.custom_formatters)
+                value = param.unmarshal(raw_value, self.custom_formatters, read=True)
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:
@@ -79,7 +79,7 @@ class RequestValidator(object):
                 errors.append(exc)
             else:
                 try:
-                    body = media_type.unmarshal(raw_body, self.custom_formatters)
+                    body = media_type.unmarshal(raw_body, self.custom_formatters, write=True)
                 except OpenAPIMappingError as exc:
                     errors.append(exc)
 

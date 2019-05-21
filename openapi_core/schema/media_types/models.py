@@ -32,7 +32,7 @@ class MediaType(object):
         deserializer = self.get_dererializer()
         return deserializer(value)
 
-    def unmarshal(self, value, custom_formatters=None):
+    def unmarshal(self, value, custom_formatters=None, read=False, write=False):
         if not self.schema:
             return value
 
@@ -47,6 +47,6 @@ class MediaType(object):
             raise InvalidMediaTypeValue(exc)
 
         try:
-            return self.schema.validate(unmarshalled, custom_formatters=custom_formatters)
+            return self.schema.validate(unmarshalled, custom_formatters=custom_formatters, read=read, write=write)
         except OpenAPISchemaError as exc:
             raise InvalidMediaTypeValue(exc)

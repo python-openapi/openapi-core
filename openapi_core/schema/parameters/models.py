@@ -89,7 +89,7 @@ class Parameter(object):
 
         return location[self.name]
 
-    def unmarshal(self, value, custom_formatters=None):
+    def unmarshal(self, value, custom_formatters=None, **kwags):
         if self.deprecated:
             warnings.warn(
                 "{0} parameter is deprecated".format(self.name),
