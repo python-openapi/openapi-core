@@ -1,5 +1,6 @@
 import datetime
 import uuid
+import six
 
 import mock
 import pytest
@@ -520,7 +521,16 @@ class TestSchemaValidate(object):
         assert result == value
 
     @pytest.mark.parametrize('value', [b('test'), False, 1, 3.14, [1, 3]])
-    def test_string_invalid(self, value):
+    @pytest.mark.skip(six.PY2)
+    def test_string_invalid_py3(self, value):
+        schema = Schema('string')
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.validate(value)
+
+    @pytest.mark.parametrize('value', [False, 1, 3.14, [1, 3]])
+    @pytest.mark.skip(six.PY3)
+    def test_string_invalid_py2(self, value):
         schema = Schema('string')
 
         with pytest.raises(InvalidSchemaValue):
@@ -610,6 +620,7 @@ class TestSchemaValidate(object):
     @pytest.mark.parametrize('value', [
         b('tsssst'), b('dGVzdA=='),
     ])
+    @pytest.mark.skip(six.PY2)
     def test_string_format_byte_invalid(self, value):
         schema = Schema('string', schema_format='byte')
 
