@@ -9,7 +9,7 @@ from uuid import UUID
 import re
 import warnings
 
-from six import iteritems, integer_types, binary_type, text_type
+from six import iteritems, integer_types, binary_type, text_type, string_types
 
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
@@ -42,14 +42,14 @@ class Schema(object):
     }
 
     STRING_FORMAT_CALLABLE_GETTER = {
-        SchemaFormat.NONE: Format(text_type, TypeValidator(text_type)),
-        SchemaFormat.PASSWORD: Format(text_type, TypeValidator(text_type)),
+        SchemaFormat.NONE: Format(text_type, TypeValidator(string_types)),
+        SchemaFormat.PASSWORD: Format(text_type, TypeValidator(string_types)),
         SchemaFormat.DATE: Format(
             format_date, TypeValidator(date, exclude=datetime)),
         SchemaFormat.DATETIME: Format(format_datetime, TypeValidator(datetime)),
         SchemaFormat.BINARY: Format(binary_type, TypeValidator(binary_type)),
         SchemaFormat.UUID: Format(format_uuid, TypeValidator(UUID)),
-        SchemaFormat.BYTE: Format(format_byte, TypeValidator(text_type)),
+        SchemaFormat.BYTE: Format(format_byte, TypeValidator(string_types)),
     }
 
     NUMBER_FORMAT_CALLABLE_GETTER = {
