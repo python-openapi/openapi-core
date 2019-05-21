@@ -20,6 +20,7 @@ from openapi_core.schema.schemas.exceptions import (
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime, format_byte, format_uuid,
+    format_number,
 )
 from openapi_core.schema.schemas.validators import (
     TypeValidator, AttributeValidator,
@@ -51,11 +52,19 @@ class Schema(object):
         SchemaFormat.BYTE: Format(format_byte, TypeValidator(text_type)),
     }
 
+    NUMBER_FORMAT_CALLABLE_GETTER = {
+        SchemaFormat.NONE: Format(format_number, TypeValidator(
+            integer_types + (float, ), exclude=bool)),
+        SchemaFormat.FLOAT: Format(float, TypeValidator(float)),
+        SchemaFormat.DOUBLE: Format(float, TypeValidator(float)),
+    }
+
     TYPE_VALIDATOR_CALLABLE_GETTER = {
         SchemaType.ANY: lambda x: True,
         SchemaType.BOOLEAN: TypeValidator(bool),
         SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
-        SchemaType.NUMBER: TypeValidator(integer_types, float, exclude=bool),
+        SchemaType.NUMBER: TypeValidator(
+            integer_types + (float, ), exclude=bool),
         SchemaType.STRING: TypeValidator(
             text_type, date, datetime, binary_type, UUID),
         SchemaType.ARRAY: TypeValidator(list, tuple),
@@ -229,16 +238,33 @@ class Schema(object):
                 "Failed to format value {value} to format {type}: {exception}", value, self.format, exc)
 
     def _unmarshal_integer(self, value, custom_formatters=None, strict=True):
-        if strict and not isinstance(value, (integer_types, )):
+        if strict and not isinstance(value, integer_types):
             raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
         return int(value)
 
     def _unmarshal_number(self, value, custom_formatters=None, strict=True):
-        if strict and not isinstance(value, (float, )):
+        if strict and not isinstance(value, (float, ) + integer_types):
             raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
-        return float(value)
+        try:
+            schema_format = SchemaFormat(self.format)
+        except ValueError:
+            msg = "Unsupported format {type} unmarshalling for value {value}"
+            if custom_formatters is not None:
+                formatnumber = custom_formatters.get(self.format)
+                if formatnumber is None:
+                    raise InvalidSchemaValue(msg, value, self.format)
+            else:
+                raise InvalidSchemaValue(msg, value, self.format)
+        else:
+            formatnumber = self.NUMBER_FORMAT_CALLABLE_GETTER[schema_format]
+
+        try:
+            return formatnumber.unmarshal(value)
+        except ValueError as exc:
+            raise InvalidCustomFormatSchemaValue(
+                "Failed to format value {value} to format {type}: {exception}", value, self.format, exc)
 
     def _unmarshal_boolean(self, value, custom_formatters=None, strict=True):
         if strict and not isinstance(value, (bool, )):

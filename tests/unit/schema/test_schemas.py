@@ -270,12 +270,35 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(InvalidSchemaValue):
             schema.unmarshal(value)
 
-    def test_number_int_invalid(self):
+    def test_number_int(self):
         schema = Schema('number')
         value = 1
+        result = schema.unmarshal(value)
 
-        with pytest.raises(InvalidSchemaValue):
-            schema.unmarshal(value)
+        assert result == 1
+        assert type(result) == int
+
+    def test_number_float(self):
+        schema = Schema('number')
+        value = 1.2
+        result = schema.unmarshal(value)
+
+        assert result == 1.2
+        assert type(result) == float
+
+    def test_number_format_float(self):
+        schema = Schema('number', schema_format='float')
+        value = 1.2
+        result = schema.unmarshal(value)
+
+        assert result == 1.2
+
+    def test_number_format_double(self):
+        schema = Schema('number', schema_format='double')
+        value = 1.2
+        result = schema.unmarshal(value)
+
+        assert result == 1.2
 
 
 class TestSchemaValidate(object):
