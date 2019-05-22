@@ -595,7 +595,7 @@ class Schema(object):
                     read=read, write=write)
 
         for prop_name, prop in iteritems(all_props):
-            should_skip = (read and not prop.read_only) or (write and prop.write_only)
+            should_skip = (write and prop.read_only) or (read and prop.write_only)
             try:
                 prop_value = value[prop_name]
                 if read and prop.write_only:

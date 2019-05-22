@@ -9,7 +9,7 @@ from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
-    UndefinedSchemaProperty
+    UndefinedSchemaProperty, MissingSchemaProperty
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -1056,8 +1056,10 @@ class TestSchemaValidate(object):
             },
         )
 
-        with pytest.raises(UndefinedSchemaProperty):
+        with pytest.raises(UndefinedSchemaProperty) as e:
             schema.validate(value, write=True)
+
+        assert 'ReadOnly property somestr defined on write.' in str(e)
 
     @pytest.mark.parametrize('value', [
         Model({
@@ -1096,5 +1098,48 @@ class TestSchemaValidate(object):
             },
         )
 
-        with pytest.raises(UndefinedSchemaProperty):
+        with pytest.raises(UndefinedSchemaProperty) as e:
             schema.validate(value, read=True)
+        assert 'WriteOnly property someint defined on read.' in str(e)
+
+    @pytest.mark.parametrize('value', [
+        Model({
+        }),
+    ])
+    def test_object_read_only_required_failed(self, value):
+        schema = Schema(
+            'object',
+            properties={
+                'somestr': Schema('string',
+                                  read_only=True),
+                'someint': Schema('integer',
+                                  write_only=True),
+            },
+            required=['somestr', 'someint']
+        )
+
+        with pytest.raises(MissingSchemaProperty) as e:
+            schema.validate(value, read=True)
+        assert 'Missing schema property: somestr' in str(e)
+        assert 'Missing schema property: someint' not in str(e)
+
+    @pytest.mark.parametrize('value', [
+        Model({
+        }),
+    ])
+    def test_object_write_only_required_failed(self, value):
+        schema = Schema(
+            'object',
+            properties={
+                'somestr': Schema('string',
+                                  read_only=True),
+                'someint': Schema('integer',
+                                  write_only=True),
+            },
+            required=['somestr', 'someint']
+        )
+
+        with pytest.raises(MissingSchemaProperty) as e:
+            schema.validate(value, write=True)
+        assert 'Missing schema property: someint' in str(e)
+        assert 'Missing schema property: somestr' not in str(e)
