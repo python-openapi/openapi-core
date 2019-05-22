@@ -514,7 +514,7 @@ class Schema(object):
         return True
 
     def _validate_object(self, value, custom_formatters=None):
-        properties = value.__dict__
+        properties = vars(value)
 
         if self.one_of:
             valid_one_of_schema = None

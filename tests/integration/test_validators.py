@@ -196,12 +196,7 @@ class TestRequestValidator(object):
         pet_model = schemas['PetCreate']['x-model']
         address_model = schemas['Address']['x-model']
         assert result.body.__class__.__name__ == pet_model
-        assert result.body.name == pet_name
-        assert result.body.tag == pet_tag
-        assert result.body.position == 2
-        assert result.body.address.__class__.__name__ == address_model
-        assert result.body.address.street == pet_street
-        assert result.body.address.city == pet_city
+        assert vars(result.body) == data_json
 
     def test_get_pet(self, validator):
         request = MockRequest(
@@ -339,7 +334,4 @@ class TestResponseValidator(object):
 
         assert result.errors == []
         assert isinstance(result.data, BaseModel)
-        assert len(result.data.data) == 1
-        assert result.data.data[0].id == 1
-        assert result.data.data[0].name == 'Sparky'
-        assert result.headers == {}
+        assert vars(result.data) == response_json

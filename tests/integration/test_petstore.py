@@ -235,7 +235,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert response_result.data.data == []
+        assert vars(response_result.data) == data_json
 
     def test_get_pets_response(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -276,9 +276,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert len(response_result.data.data) == 1
-        assert response_result.data.data[0].id == 1
-        assert response_result.data.data[0].name == 'Cat'
+        assert vars(response_result.data) == data_json
 
     def test_get_pets_invalid_response(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -372,7 +370,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert response_result.data.data == []
+        assert vars(response_result.data) == data_json
 
     def test_get_pets_tags_param(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -410,7 +408,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert response_result.data.data == []
+        assert vars(response_result.data) == data_json
 
     def test_get_pets_parameter_deserialization_error(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -560,15 +558,8 @@ class TestPetstore(object):
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
-        address_model = schemas['Address']['x-model']
         assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert body.tag == pet_tag
-        assert body.position == 2
-        assert body.address.__class__.__name__ == address_model
-        assert body.address.street == pet_street
-        assert body.address.city == pet_city
-        assert body.healthy == pet_healthy
+        assert vars(body) == data_json
 
     def test_post_cats(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -622,13 +613,7 @@ class TestPetstore(object):
         pet_model = schemas['PetCreate']['x-model']
         address_model = schemas['Address']['x-model']
         assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert body.tag == pet_tag
-        assert body.position == 2
-        assert body.address.__class__.__name__ == address_model
-        assert body.address.street == pet_street
-        assert body.address.city == pet_city
-        assert body.healthy == pet_healthy
+        assert vars(body) == data_json
 
     def test_post_cats_boolean_string(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -682,13 +667,7 @@ class TestPetstore(object):
         pet_model = schemas['PetCreate']['x-model']
         address_model = schemas['Address']['x-model']
         assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert body.tag == pet_tag
-        assert body.position == 2
-        assert body.address.__class__.__name__ == address_model
-        assert body.address.street == pet_street
-        assert body.address.city == pet_city
-        assert body.healthy is False
+        assert vars(body) == data_json
 
     def test_post_no_one_of_schema(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -768,9 +747,7 @@ class TestPetstore(object):
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
         assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert not hasattr(body, 'tag')
-        assert not hasattr(body, 'address')
+        assert vars(body) == data_json
 
     def test_post_pets_raises_invalid_mimetype(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -837,9 +814,7 @@ class TestPetstore(object):
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
         assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert not hasattr(body, 'tag')
-        assert not hasattr(body, 'address')
+        assert vars(body) == data_json
 
     def test_post_pets_missing_header(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -871,9 +846,7 @@ class TestPetstore(object):
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
         assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert not hasattr(body, 'tag')
-        assert not hasattr(body, 'address')
+        assert vars(body) == data_json
 
     def test_post_pets_raises_invalid_server_error(self, spec):
         host_url = 'http://flowerstore.swagger.io/v1'
@@ -940,9 +913,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert isinstance(response_result.data.data, BaseModel)
-        assert response_result.data.data.id == data_id
-        assert response_result.data.data.name == data_name
+        assert vars(response_result.data) == data_json
 
     def test_get_pet_not_found(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -982,9 +953,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert response_result.data.code == code
-        assert response_result.data.message == message
-        assert response_result.data.rootCause == rootCause
+        assert vars(response_result.data) == data_json
 
     def test_get_pet_wildcard(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -1120,7 +1089,7 @@ class TestPetstore(object):
 
         assert parameters == {}
         assert isinstance(body, BaseModel)
-        assert body.name == pet_name
+        assert vars(body) == data_json
 
         code = 400
         message = 'Bad request'
@@ -1139,10 +1108,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert response_result.data.code == code
-        assert response_result.data.message == message
-        assert response_result.data.rootCause == rootCause
-        assert response_result.data.additionalinfo == additionalinfo
+        assert vars(response_result.data) == data_json
 
     def test_post_tags_created_now(
             self, spec, response_validator):
@@ -1166,8 +1132,7 @@ class TestPetstore(object):
 
         assert parameters == {}
         assert isinstance(body, BaseModel)
-        assert body.created == created
-        assert body.name == pet_name
+        assert vars(body) == data_json
 
         code = 400
         message = 'Bad request'
@@ -1186,10 +1151,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert response_result.data.code == code
-        assert response_result.data.message == message
-        assert response_result.data.rootCause == rootCause
-        assert response_result.data.additionalinfo == additionalinfo
+        assert vars(response_result.data) == data_json
 
     def test_post_tags_created_datetime(
             self, spec, response_validator):
@@ -1213,8 +1175,7 @@ class TestPetstore(object):
 
         assert parameters == {}
         assert isinstance(body, BaseModel)
-        assert body.created == created
-        assert body.name == pet_name
+        assert vars(body) == data_json
 
         code = 400
         message = 'Bad request'
@@ -1233,10 +1194,7 @@ class TestPetstore(object):
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
-        assert response_result.data.code == code
-        assert response_result.data.message == message
-        assert response_result.data.rootCause == rootCause
-        assert response_result.data.additionalinfo == additionalinfo
+        assert vars(response_result.data) == data_json
 
     @pytest.mark.xfail(reason='OneOf for string not supported atm')
     def test_post_tags_created_invalid_type(

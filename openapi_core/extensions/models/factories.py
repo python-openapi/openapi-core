@@ -1,5 +1,5 @@
 """OpenAPI X-Model extension factories module"""
-from openapi_core.extensions.models.models import Model
+from openapi_core.extensions.models.models import Model, DictModel
 
 
 class ModelClassFactory(object):
@@ -10,10 +10,15 @@ class ModelClassFactory(object):
         return type(name, (self.base_class, ), {})
 
 
+class DictFactory(ModelClassFactory):
+
+    base_class = DictModel
+
+
 class ModelFactory(object):
 
     def __init__(self, model_class_factory=None):
-        self.model_class_factory = model_class_factory or ModelClassFactory()
+        self.model_class_factory = model_class_factory or DictFactory()
 
     def create(self, properties, name=None):
         name = name or 'Model'

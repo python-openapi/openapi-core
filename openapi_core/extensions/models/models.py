@@ -24,3 +24,10 @@ class Model(BaseModel):
             raise AttributeError
 
         return self.__properties[name]
+
+
+class DictModel(dict, BaseModel):
+
+    @property
+    def __dict__(self):
+        return self.copy()
