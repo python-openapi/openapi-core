@@ -13,12 +13,12 @@ matrix:
   allow_failures:
   - python: nightly
 before_install:
-- if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then pip install 'coverage<4.0.0'; fi
 - pip install codecov
 - pip install 'py>=1.5.0'
 install:
-- pip install -e .
+- pip install -r requirements.txt
 - pip install -r requirements_dev.txt
+- pip install -e .
 script:
 - python setup.py test
 after_success:
