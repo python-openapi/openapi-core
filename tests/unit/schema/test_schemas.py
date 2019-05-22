@@ -1059,7 +1059,8 @@ class TestSchemaValidate(object):
         with pytest.raises(UndefinedSchemaProperty) as e:
             schema.validate(value, write=True)
 
-        assert 'ReadOnly property somestr defined on write.' in str(e)
+        assert 'ReadOnly property somestr defined on write.' \
+               in six.text_type(e)
 
     @pytest.mark.parametrize('value', [
         Model({
@@ -1100,7 +1101,8 @@ class TestSchemaValidate(object):
 
         with pytest.raises(UndefinedSchemaProperty) as e:
             schema.validate(value, read=True)
-        assert 'WriteOnly property someint defined on read.' in str(e)
+        assert 'WriteOnly property someint defined on read.' \
+               in six.text_type(e)
 
     @pytest.mark.parametrize('value', [
         Model({
@@ -1120,8 +1122,8 @@ class TestSchemaValidate(object):
 
         with pytest.raises(MissingSchemaProperty) as e:
             schema.validate(value, read=True)
-        assert 'Missing schema property: somestr' in str(e)
-        assert 'Missing schema property: someint' not in str(e)
+        assert 'Missing schema property: somestr' in six.text_type(e)
+        assert 'Missing schema property: someint' not in six.text_type(e)
 
     @pytest.mark.parametrize('value', [
         Model({
@@ -1141,5 +1143,5 @@ class TestSchemaValidate(object):
 
         with pytest.raises(MissingSchemaProperty) as e:
             schema.validate(value, write=True)
-        assert 'Missing schema property: someint' in str(e)
-        assert 'Missing schema property: somestr' not in str(e)
+        assert 'Missing schema property: someint' in six.text_type(e)
+        assert 'Missing schema property: somestr' not in six.text_type(e)
