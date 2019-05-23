@@ -16,6 +16,7 @@ from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema, NoValidSchema,
     UndefinedItemsSchema, InvalidCustomFormatSchemaValue, InvalidSchemaProperty,
+    UnmarshallerStrictTypeError,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime, format_byte, format_uuid,
@@ -155,14 +156,19 @@ class Schema(object):
         return set(required)
 
     def get_cast_mapping(self, custom_formatters=None, strict=True):
+        primitive_unmarshallers = self.get_primitive_unmarshallers(
+            custom_formatters=custom_formatters)
+
+        primitive_unmarshallers_partial = dict(
+            (t, functools.partial(u, type_format=self.format, strict=strict))
+            for t, u in primitive_unmarshallers.items()
+        )
+
         pass_defaults = lambda f: functools.partial(
           f, custom_formatters=custom_formatters, strict=strict)
         mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
+        mapping.update(primitive_unmarshallers_partial)
         mapping.update({
-            SchemaType.STRING: pass_defaults(self._unmarshal_string),
-            SchemaType.BOOLEAN: pass_defaults(self._unmarshal_boolean),
-            SchemaType.INTEGER: pass_defaults(self._unmarshal_integer),
-            SchemaType.NUMBER: pass_defaults(self._unmarshal_number),
             SchemaType.ANY: pass_defaults(self._unmarshal_any),
             SchemaType.ARRAY: pass_defaults(self._unmarshal_collection),
             SchemaType.OBJECT: pass_defaults(self._unmarshal_object),
@@ -184,6 +190,10 @@ class Schema(object):
                 raise InvalidSchemaValue("Null value for non-nullable schema", value, self.type)
             return self.default
 
+        if self.enum and value not in self.enum:
+            raise InvalidSchemaValue(
+                "Value {value} not in enum choices: {type}", value, self.enum)
+
         cast_mapping = self.get_cast_mapping(
             custom_formatters=custom_formatters, strict=strict)
 
@@ -193,6 +203,9 @@ class Schema(object):
         cast_callable = cast_mapping[self.type]
         try:
             return cast_callable(value)
+        except UnmarshallerStrictTypeError:
+            raise InvalidSchemaValue(
+                "Value {value} is not of type {type}", value, self.type)
         except ValueError:
             raise InvalidSchemaValue(
                 "Failed to cast value {value} to type {type}", value, self.type)
@@ -207,72 +220,27 @@ class Schema(object):
         if casted is None and not self.required:
             return None
 
-        if self.enum and casted not in self.enum:
-            raise InvalidSchemaValue(
-                "Value {value} not in enum choices: {type}", value, self.enum)
-
         return casted
 
-    def _unmarshal_string(self, value, custom_formatters=None, strict=True):
-        if strict and not isinstance(value, (text_type, binary_type)):
-            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+    def get_primitive_unmarshallers(self, **options):
+        from openapi_core.schema.schemas.unmarshallers import (
+            StringUnmarshaller, BooleanUnmarshaller, IntegerUnmarshaller,
+            NumberUnmarshaller,
+        )
 
-        try:
-            schema_format = SchemaFormat(self.format)
-        except ValueError:
-            msg = "Unsupported format {type} unmarshalling for value {value}"
-            if custom_formatters is not None:
-                formatstring = custom_formatters.get(self.format)
-                if formatstring is None:
-                    raise InvalidSchemaValue(msg, value, self.format)
-            else:
-                raise InvalidSchemaValue(msg, value, self.format)
-        else:
-            if self.enum and value not in self.enum:
-                raise InvalidSchemaValue(
-                    "Value {value} not in enum choices: {type}", value, self.enum)
-            formatstring = self.STRING_FORMAT_CALLABLE_GETTER[schema_format]
+        unmarshallers_classes = {
+            SchemaType.STRING: StringUnmarshaller,
+            SchemaType.BOOLEAN: BooleanUnmarshaller,
+            SchemaType.INTEGER: IntegerUnmarshaller,
+            SchemaType.NUMBER: NumberUnmarshaller,
+        }
 
-        try:
-            return formatstring.unmarshal(value)
-        except ValueError as exc:
-            raise InvalidCustomFormatSchemaValue(
-                "Failed to format value {value} to format {type}: {exception}", value, self.format, exc)
+        unmarshallers = dict(
+            (t, klass(**options))
+            for t, klass in unmarshallers_classes.items()
+        )
 
-    def _unmarshal_integer(self, value, custom_formatters=None, strict=True):
-        if strict and not isinstance(value, integer_types):
-            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
-
-        return int(value)
-
-    def _unmarshal_number(self, value, custom_formatters=None, strict=True):
-        if strict and not isinstance(value, (float, ) + integer_types):
-            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
-
-        try:
-            schema_format = SchemaFormat(self.format)
-        except ValueError:
-            msg = "Unsupported format {type} unmarshalling for value {value}"
-            if custom_formatters is not None:
-                formatnumber = custom_formatters.get(self.format)
-                if formatnumber is None:
-                    raise InvalidSchemaValue(msg, value, self.format)
-            else:
-                raise InvalidSchemaValue(msg, value, self.format)
-        else:
-            formatnumber = self.NUMBER_FORMAT_CALLABLE_GETTER[schema_format]
-
-        try:
-            return formatnumber.unmarshal(value)
-        except ValueError as exc:
-            raise InvalidCustomFormatSchemaValue(
-                "Failed to format value {value} to format {type}: {exception}", value, self.format, exc)
-
-    def _unmarshal_boolean(self, value, custom_formatters=None, strict=True):
-        if strict and not isinstance(value, (bool, )):
-            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
-
-        return forcebool(value)
+        return unmarshallers
 
     def _unmarshal_any(self, value, custom_formatters=None, strict=True):
         types_resolve_order = [
@@ -301,6 +269,8 @@ class Schema(object):
                 cast_callable = cast_mapping[schema_type]
                 try:
                     return cast_callable(value)
+                except UnmarshallerStrictTypeError:
+                    continue
                 # @todo: remove ValueError when validation separated
                 except (OpenAPISchemaError, TypeError, ValueError):
                     continue
