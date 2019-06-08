@@ -20,7 +20,7 @@ from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
 from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    NoValidSchema, InvalidSchemaProperty, InvalidSchemaValue,
+    InvalidSchemaProperty, InvalidSchemaValue,
 )
 from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.servers.exceptions import InvalidServer
