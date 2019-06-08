@@ -2,7 +2,6 @@
 import attr
 import functools
 import logging
-from base64 import b64decode, b64encode
 from collections import defaultdict
 from datetime import date, datetime
 from uuid import UUID
