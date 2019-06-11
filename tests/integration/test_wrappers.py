@@ -122,7 +122,7 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
         assert openapi_request.method == request.method.lower()
-        assert openapi_request.path_pattern == request.url_rule.rule
+        assert openapi_request.path_pattern == '/browse/{id}/'
         assert openapi_request.body == request.data
         assert openapi_request.mimetype == request.mimetype
 
