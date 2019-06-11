@@ -8,47 +8,55 @@ from werkzeug.test import create_environ
 from openapi_core.wrappers.flask import (
     FlaskOpenAPIRequest, FlaskOpenAPIResponse,
 )
+from openapi_core.shortcuts import create_spec
+from openapi_core.validation.response.validators import ResponseValidator
+
+
+@pytest.fixture
+def environ_factory():
+    return create_environ
+
+
+@pytest.fixture
+def map():
+    return Map([
+        # Static URLs
+        Rule('/', endpoint='static/index'),
+        Rule('/about', endpoint='static/about'),
+        Rule('/help', endpoint='static/help'),
+        # Knowledge Base
+        Subdomain('kb', [
+            Rule('/', endpoint='kb/index'),
+            Rule('/browse/', endpoint='kb/browse'),
+            Rule('/browse/<int:id>/', endpoint='kb/browse'),
+            Rule('/browse/<int:id>/<int:page>', endpoint='kb/browse')
+        ])
+    ], default_subdomain='www')
+
+
+@pytest.fixture
+def request_factory(map, environ_factory):
+    server_name = 'localhost'
+
+    def create_request(method, path, subdomain=None, query_string=None):
+        environ = environ_factory(query_string=query_string)
+        req = Request(environ)
+        urls = map.bind_to_environ(
+            environ, server_name=server_name, subdomain=subdomain)
+        req.url_rule, req.view_args = urls.match(
+            path, method, return_rule=True)
+        return req
+    return create_request
+
+
+@pytest.fixture
+def response_factory():
+    def create_response(data, status_code=200):
+        return Response(data, status=status_code)
+    return create_response
 
 
 class TestFlaskOpenAPIRequest(object):
-
-    server_name = 'localhost'
-
-    @pytest.fixture
-    def environ_factory(self):
-        return create_environ
-
-    @pytest.fixture
-    def map(self):
-        return Map([
-            # Static URLs
-            Rule('/', endpoint='static/index'),
-            Rule('/about', endpoint='static/about'),
-            Rule('/help', endpoint='static/help'),
-            # Knowledge Base
-            Subdomain('kb', [
-                Rule('/', endpoint='kb/index'),
-                Rule('/browse/', endpoint='kb/browse'),
-                Rule('/browse/<int:id>/', endpoint='kb/browse'),
-                Rule('/browse/<int:id>/<int:page>', endpoint='kb/browse')
-            ])
-        ], default_subdomain='www')
-
-    @pytest.fixture
-    def request_factory(self, map, environ_factory):
-        def create_request(method, path, subdomain=None, query_string=None):
-            environ = environ_factory(query_string=query_string)
-            req = Request(environ)
-            urls = map.bind_to_environ(
-                environ, server_name=self.server_name, subdomain=subdomain)
-            req.url_rule, req.view_args = urls.match(
-                path, method, return_rule=True)
-            return req
-        return create_request
-
-    @pytest.fixture
-    def openapi_request(self, request):
-        return FlaskOpenAPIRequest(request)
 
     def test_simple(self, request_factory, request):
         request = request_factory('GET', '/', subdomain='www')
@@ -73,8 +81,7 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.mimetype == request.mimetype
 
     def test_multiple_values(self, request_factory, request):
-        request = request_factory(
-            'GET', '/', subdomain='www', query_string='a=b&a=c')
+        request = request_factory('GET', '/', subdomain='www', query_string='a=b&a=c')
 
         openapi_request = FlaskOpenAPIRequest(request)
 
@@ -122,12 +129,6 @@ class TestFlaskOpenAPIRequest(object):
 
 class TestFlaskOpenAPIResponse(object):
 
-    @pytest.fixture
-    def response_factory(self):
-        def create_response(data, status_code=200):
-            return Response(data, status=status_code)
-        return create_response
-
     def test_invalid_server(self, response_factory):
         response = response_factory('Not Found', status_code=404)
 
@@ -137,3 +138,20 @@ class TestFlaskOpenAPIResponse(object):
         assert openapi_response.data == response.data
         assert openapi_response.status_code == response._status_code
         assert openapi_response.mimetype == response.mimetype
+
+
+class TestFlaskOpenAPIRequestValidation(object):
+
+    specfile = 'data/v3.0/flask_wrapper.yaml'
+
+    def test_response_validator_path_pattern(
+            self,
+            factory,
+            request_factory,
+            response_factory):
+        validator = ResponseValidator(create_spec(factory.spec_from_file(self.specfile)))
+        request = request_factory('GET', '/browse/12/', subdomain='kb')
+        openapi_request = FlaskOpenAPIRequest(request)
+        openapi_response = FlaskOpenAPIResponse(response_factory('Some item', status_code=200))
+        result = validator.validate(openapi_request, openapi_response)
+        assert not result.errors
