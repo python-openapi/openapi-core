@@ -142,18 +142,25 @@ class TestFlaskOpenAPIResponse(object):
 
 class TestFlaskOpenAPIValidation(object):
 
-    specfile = 'data/v3.0/flask_wrapper.yaml'
+    @pytest.fixture
+    def flask_spec(self, factory):
+        specfile = 'data/v3.0/flask_wrapper.yaml'
+        return create_spec(factory.spec_from_file(specfile))
 
-    def test_response_validator_path_pattern(self, factory, request_factory, response_factory):
-        validator = ResponseValidator(create_spec(factory.spec_from_file(self.specfile)))
+    def test_response_validator_path_pattern(self,
+                                             flask_spec,
+                                             request_factory,
+                                             response_factory):
+        validator = ResponseValidator(flask_spec)
         request = request_factory('GET', '/browse/12/', subdomain='kb')
         openapi_request = FlaskOpenAPIRequest(request)
-        openapi_response = FlaskOpenAPIResponse(response_factory('Some item', status_code=200))
+        response = response_factory('Some item', status_code=200)
+        openapi_response = FlaskOpenAPIResponse(response)
         result = validator.validate(openapi_request, openapi_response)
         assert not result.errors
 
-    def test_request_validator_path_pattern(self, factory, request_factory):
-        validator = RequestValidator(create_spec(factory.spec_from_file(self.specfile)))
+    def test_request_validator_path_pattern(self, flask_spec, request_factory):
+        validator = RequestValidator(flask_spec)
         request = request_factory('GET', '/browse/12/', subdomain='kb')
         openapi_request = FlaskOpenAPIRequest(request)
         result = validator.validate(openapi_request)
