@@ -1,15 +1,14 @@
-import pytest
-
 from flask.wrappers import Request, Response
 from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
 from werkzeug.routing import Map, Rule, Subdomain
 from werkzeug.test import create_environ
 
-from openapi_core.wrappers.flask import (
-    FlaskOpenAPIRequest, FlaskOpenAPIResponse,
-)
+import pytest
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.wrappers.flask import (FlaskOpenAPIRequest,
+                                         FlaskOpenAPIResponse)
 
 
 @pytest.fixture
@@ -81,7 +80,8 @@ class TestFlaskOpenAPIRequest(object):
         assert openapi_request.mimetype == request.mimetype
 
     def test_multiple_values(self, request_factory, request):
-        request = request_factory('GET', '/', subdomain='www', query_string='a=b&a=c')
+        request = request_factory(
+            'GET', '/', subdomain='www', query_string='a=b&a=c')
 
         openapi_request = FlaskOpenAPIRequest(request)
 
@@ -140,18 +140,21 @@ class TestFlaskOpenAPIResponse(object):
         assert openapi_response.mimetype == response.mimetype
 
 
-class TestFlaskOpenAPIRequestValidation(object):
+class TestFlaskOpenAPIValidation(object):
 
     specfile = 'data/v3.0/flask_wrapper.yaml'
 
-    def test_response_validator_path_pattern(
-            self,
-            factory,
-            request_factory,
-            response_factory):
+    def test_response_validator_path_pattern(self, factory, request_factory, response_factory):
         validator = ResponseValidator(create_spec(factory.spec_from_file(self.specfile)))
         request = request_factory('GET', '/browse/12/', subdomain='kb')
         openapi_request = FlaskOpenAPIRequest(request)
         openapi_response = FlaskOpenAPIResponse(response_factory('Some item', status_code=200))
         result = validator.validate(openapi_request, openapi_response)
+        assert not result.errors
+
+    def test_request_validator_path_pattern(self, factory, request_factory):
+        validator = RequestValidator(create_spec(factory.spec_from_file(self.specfile)))
+        request = request_factory('GET', '/browse/12/', subdomain='kb')
+        openapi_request = FlaskOpenAPIRequest(request)
+        result = validator.validate(openapi_request)
         assert not result.errors
