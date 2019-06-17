@@ -1,8 +1,15 @@
 """OpenAPI core wrappers module"""
+import re
+
 from openapi_core.wrappers.base import BaseOpenAPIRequest, BaseOpenAPIResponse
+
+# http://flask.pocoo.org/docs/1.0/quickstart/#variable-rules
+PATH_PARAMETER_PATTERN = r'<(?:(?:string|int|float|path|uuid):)?(\w+)>'
 
 
 class FlaskOpenAPIRequest(BaseOpenAPIRequest):
+
+    path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
     def __init__(self, request):
         self.request = request
@@ -24,7 +31,7 @@ class FlaskOpenAPIRequest(BaseOpenAPIRequest):
         if self.request.url_rule is None:
             return self.path
 
-        return self.request.url_rule.rule
+        return self.path_regex.sub(r'{\1}', self.request.url_rule.rule)
 
     @property
     def parameters(self):
