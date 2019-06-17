@@ -77,3 +77,17 @@ class MultipleOneOfSchema(OpenAPISchemaError):
 
     def __str__(self):
         return "Exactly one schema type {0} should be valid, more than one found".format(self.type)
+
+
+class UnmarshallerError(Exception):
+    pass
+
+
+@attr.s
+class UnmarshallerStrictTypeError(UnmarshallerError):
+    value = attr.ib()
+    types = attr.ib()
+    
+    def __str__(self):
+        return "Value {value} is not one of types {types}".format(
+            self.value, self.types)
