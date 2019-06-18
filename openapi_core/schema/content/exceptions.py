@@ -1,13 +1,13 @@
-from openapi_core.schema.exceptions import OpenAPIMappingError
-
 import attr
+
+from openapi_core.schema.exceptions import OpenAPIMappingError
 
 
 class OpenAPIContentError(OpenAPIMappingError):
     pass
 
 
-@attr.s
+@attr.s(hash=True)
 class MimeTypeNotFound(OpenAPIContentError):
     mimetype = attr.ib()
     availableMimetypes = attr.ib()

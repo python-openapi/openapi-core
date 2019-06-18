@@ -15,7 +15,7 @@ class TestSchemas(object):
         return Operation('get', '/path', {}, parameters=parameters)
 
     def test_iteritems(self, operation):
-        for name in operation.parameters.keys():
+        for name in operation.parameters:
             assert operation[name] == operation.parameters[name]
 
 

@@ -1,13 +1,13 @@
-from openapi_core.schema.exceptions import OpenAPIMappingError
-
 import attr
+
+from openapi_core.schema.exceptions import OpenAPIMappingError
 
 
 class OpenAPIServerError(OpenAPIMappingError):
     pass
 
 
-@attr.s
+@attr.s(hash=True)
 class InvalidServer(OpenAPIServerError):
     full_url_pattern = attr.ib()
 

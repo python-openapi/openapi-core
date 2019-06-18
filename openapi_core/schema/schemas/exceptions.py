@@ -1,13 +1,13 @@
-from openapi_core.schema.exceptions import OpenAPIMappingError
-
 import attr
+
+from openapi_core.schema.exceptions import OpenAPIMappingError
 
 
 class OpenAPISchemaError(OpenAPIMappingError):
     pass
 
 
-@attr.s
+@attr.s(hash=True)
 class NoValidSchema(OpenAPISchemaError):
     value = attr.ib()
 
@@ -15,7 +15,7 @@ class NoValidSchema(OpenAPISchemaError):
         return "No valid schema found for value: {0}".format(self.value)
 
 
-@attr.s
+@attr.s(hash=True)
 class UndefinedItemsSchema(OpenAPISchemaError):
     type = attr.ib()
 
@@ -23,7 +23,7 @@ class UndefinedItemsSchema(OpenAPISchemaError):
         return "Null value for schema type {0}".format(self.type)
 
 
-@attr.s
+@attr.s(hash=True)
 class InvalidSchemaValue(OpenAPISchemaError):
     msg = attr.ib()
     value = attr.ib()
@@ -32,7 +32,8 @@ class InvalidSchemaValue(OpenAPISchemaError):
     def __str__(self):
         return self.msg.format(value=self.value, type=self.type)
 
-@attr.s
+
+@attr.s(hash=True)
 class InvalidCustomFormatSchemaValue(InvalidSchemaValue):
     original_exception = attr.ib()
 
@@ -40,14 +41,15 @@ class InvalidCustomFormatSchemaValue(InvalidSchemaValue):
         return self.msg.format(value=self.value, type=self.type, exception=self.original_exception)
 
 
-@attr.s
+@attr.s(hash=True)
 class UndefinedSchemaProperty(OpenAPISchemaError):
     extra_props = attr.ib()
 
     def __str__(self):
         return "Extra unexpected properties found in schema: {0}".format(self.extra_props)
 
-@attr.s
+
+@attr.s(hash=True)
 class InvalidSchemaProperty(OpenAPISchemaError):
     property_name = attr.ib()
     original_exception = attr.ib()
@@ -55,7 +57,8 @@ class InvalidSchemaProperty(OpenAPISchemaError):
     def __str__(self):
         return "Invalid schema property {0}: {1}".format(self.property_name, self.original_exception)
 
-@attr.s
+
+@attr.s(hash=True)
 class MissingSchemaProperty(OpenAPISchemaError):
     property_name = attr.ib()
 
@@ -63,7 +66,7 @@ class MissingSchemaProperty(OpenAPISchemaError):
         return "Missing schema property: {0}".format(self.property_name)
 
 
-@attr.s
+@attr.s(hash=True)
 class NoOneOfSchema(OpenAPISchemaError):
     type = attr.ib()
 
@@ -71,7 +74,7 @@ class NoOneOfSchema(OpenAPISchemaError):
         return "Exactly one valid schema type {0} should be valid, None found.".format(self.type)
 
 
-@attr.s
+@attr.s(hash=True)
 class MultipleOneOfSchema(OpenAPISchemaError):
     type = attr.ib()
 
@@ -79,11 +82,10 @@ class MultipleOneOfSchema(OpenAPISchemaError):
         return "Exactly one schema type {0} should be valid, more than one found".format(self.type)
 
 
-class UnmarshallerError(Exception):
+class UnmarshallerError(OpenAPIMappingError):
     pass
 
 
-@attr.s
 class UnmarshallerStrictTypeError(UnmarshallerError):
     value = attr.ib()
     types = attr.ib()
