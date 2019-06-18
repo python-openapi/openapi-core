@@ -27,17 +27,25 @@ class RequestValidator(object):
         )
 
         try:
+            path = self.spec[operation_pattern]
+        # don't process if operation errors
+        except OpenAPIMappingError as exc:
+            return RequestValidationResult([exc, ], None, None)
+
+        path_params, path_params_errors = self._get_parameters(request, path)
+
+        try:
             operation = self.spec.get_operation(
                 operation_pattern, request.method)
         # don't process if operation errors
         except OpenAPIMappingError as exc:
             return RequestValidationResult([exc, ], None, None)
 
-        params, params_errors = self._get_parameters(request, operation)
+        op_params, op_params_errors = self._get_parameters(request, operation)
         body, body_errors = self._get_body(request, operation)
 
-        errors = params_errors + body_errors
-        return RequestValidationResult(errors, body, params)
+        errors = path_params_errors + op_params_errors + body_errors
+        return RequestValidationResult(errors, body, path_params + op_params)
 
     def _get_parameters(self, request, operation):
         errors = []

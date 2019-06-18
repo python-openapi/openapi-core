@@ -16,6 +16,16 @@ class RequestParameters(dict):
     def __setitem__(self, location, value):
         raise NotImplementedError
 
+    def __add__(self, other):
+        if not isinstance(other, self.__class__):
+            raise ValueError("Invalid type")
+
+        for location in self.valid_locations:
+            if location in other:
+                self[location].update(other[location])
+
+        return self    
+
     @classmethod
     def validate_location(cls, location):
         if location not in cls.valid_locations:

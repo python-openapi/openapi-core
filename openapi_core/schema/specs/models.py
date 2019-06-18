@@ -4,6 +4,7 @@ import logging
 
 from openapi_core.compat import partialmethod
 from openapi_core.schema.operations.exceptions import InvalidOperation
+from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.servers.exceptions import InvalidServer
 
 
@@ -19,8 +20,8 @@ class Spec(object):
         self.servers = servers or []
         self.components = components
 
-    def __getitem__(self, path_name):
-        return self.paths[path_name]
+    def __getitem__(self, path_pattern):
+        return self.get_path(path_pattern)
 
     @property
     def default_url(self):
@@ -35,6 +36,12 @@ class Spec(object):
 
     def get_server_url(self, index=0):
         return self.servers[index].default_url
+
+    def get_path(self, path_pattern):
+        try:
+            return self.paths[path_pattern]
+        except KeyError:
+            raise InvalidPath(path_pattern)
 
     def get_operation(self, path_pattern, http_method):
         try:

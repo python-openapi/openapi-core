@@ -9,6 +9,8 @@ from openapi_core.schema.media_types.exceptions import (
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
+from openapi_core.schema.parameters.exceptions import InvalidParameterValue
+from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.schema.responses.exceptions import (
     MissingResponseContent, InvalidResponse,
@@ -54,8 +56,18 @@ class TestRequestValidator(object):
         assert result.body is None
         assert result.parameters == {}
 
-    def test_invalid_operation(self, validator):
+    def test_invalid_path(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1')
+
+        result = validator.validate(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidPath
+        assert result.body is None
+        assert result.parameters == {}
+
+    def test_invalid_operation(self, validator):
+        request = MockRequest(self.host_url, 'patch', '/v1/pets')
 
         result = validator.validate(request)
 
@@ -218,6 +230,80 @@ class TestRequestValidator(object):
                 'petId': 1,
             },
         }
+
+
+class TestPathItemParamsValidator(object):
+
+    @pytest.fixture
+    def spec_dict(self, factory):
+        return {
+            "openapi": "3.0.0",
+            "info": {
+                "title": "Test path item parameter validation",
+                "version": "0.1",
+            },
+            "paths": {
+                "/resource": {
+                    "parameters": [
+                        {
+                            "name": "resId",
+                            "in": "query",
+                            "required": True,
+                            "schema": {
+                                "type": "integer",
+                            },
+                        },
+                    ],
+                    "get": {
+                        "responses": {
+                            "default": {
+                                "description": "Return the resource."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    @pytest.fixture
+    def spec(self, spec_dict):
+        return create_spec(spec_dict)
+
+    @pytest.fixture
+    def validator(self, spec):
+        return RequestValidator(spec)
+
+    def test_request_missing_param(self, validator):
+        request = MockRequest('http://example.com', 'get', '/resource')
+        result = validator.validate(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == MissingRequiredParameter
+        assert result.body is None
+        assert result.parameters == {}
+
+    def test_request_invalid_param(self, validator):
+        request = MockRequest(
+            'http://example.com', 'get', '/resource',
+            args={'resId': 'invalid'},
+        )
+        result = validator.validate(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidParameterValue
+        assert result.body is None
+        assert result.parameters == {}
+
+    def test_request_valid_param(self, validator):
+        request = MockRequest(
+            'http://example.com', 'get', '/resource',
+            args={'resId': '10'},
+        )
+        result = validator.validate(request)
+
+        assert len(result.errors) == 0
+        assert result.body is None
+        assert result.parameters == {'query': {'resId': 10}}
 
 
 class TestResponseValidator(object):
