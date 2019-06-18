@@ -307,7 +307,8 @@ class TestPathItemParamsValidator(object):
 
     @pytest.mark.xfail
     def test_request_override_param(self, spec_dict):
-        # override parameter path parameter on operation (name and in property must match)
+        # override parameter path parameter on operation
+        # (name and in property must match)
         spec_dict["paths"]["/resource"]["get"]["parameters"] = [
             {
                 # full valid parameter object required
@@ -346,7 +347,7 @@ class TestPathItemParamsValidator(object):
         ]
         from openapi_spec_validator.exceptions import OpenAPIValidationError
         with pytest.raises(OpenAPIValidationError):
-            spec = create_spec(spec_dict)
+            create_spec(spec_dict)
 
 
 class TestResponseValidator(object):
