@@ -18,4 +18,4 @@ class Content(dict):
             if fnmatch.fnmatch(mimetype, key):
                 return value
 
-        raise MimeTypeNotFound(mimetype, self.keys())
+        raise MimeTypeNotFound(mimetype, list(self.keys()))

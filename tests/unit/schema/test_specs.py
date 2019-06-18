@@ -32,7 +32,7 @@ class TestSpecs(object):
         return Spec(servers, paths)
 
     def test_iteritems(self, spec):
-        for path_name in spec.paths.keys():
+        for path_name in spec.paths:
             assert spec[path_name] ==\
                 spec.paths[path_name]
 

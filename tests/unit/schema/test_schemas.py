@@ -27,7 +27,7 @@ class TestSchemaIteritems(object):
 
     @property
     def test_valid(self, schema):
-        for name in schema.properties.keys():
+        for name in schema.properties:
             assert schema[name] == schema.properties[name]
 
 

@@ -16,6 +16,6 @@ class TestPaths(object):
 
     @property
     def test_iteritems(self, path):
-        for http_method in path.operations.keys():
+        for http_method in path.operations:
             assert path[http_method] ==\
                 path.operations[http_method]

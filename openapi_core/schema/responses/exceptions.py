@@ -1,13 +1,13 @@
-from openapi_core.schema.exceptions import OpenAPIMappingError
-
 import attr
+
+from openapi_core.schema.exceptions import OpenAPIMappingError
 
 
 class OpenAPIResponseError(OpenAPIMappingError):
     pass
 
 
-@attr.s
+@attr.s(hash=True)
 class InvalidResponse(OpenAPIResponseError):
     http_status = attr.ib()
     responses = attr.ib()
@@ -16,7 +16,7 @@ class InvalidResponse(OpenAPIResponseError):
         return "Unknown response http status: {0}".format(str(self.http_status))
 
 
-@attr.s
+@attr.s(hash=True)
 class MissingResponseContent(OpenAPIResponseError):
     response = attr.ib()
 

@@ -40,5 +40,5 @@ class TestLinks(object):
     @pytest.mark.parametrize("request_body", request_body_list)
     def test_iteritems(self, link_factory, request_body, server):
         link = link_factory(request_body, server)
-        for par_name in link.parameters.keys():
+        for par_name in link.parameters:
             assert link[par_name] == link.parameters[par_name]

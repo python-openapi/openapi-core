@@ -16,6 +16,6 @@ class TestRequestBodies(object):
 
     @property
     def test_iteritems(self, request_body):
-        for mimetype in request_body.content.keys():
+        for mimetype in request_body.content:
             assert request_body[mimetype] ==\
                 request_body.content[mimetype]

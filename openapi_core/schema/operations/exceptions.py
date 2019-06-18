@@ -1,13 +1,13 @@
-from openapi_core.schema.exceptions import OpenAPIMappingError
-
 import attr
+
+from openapi_core.schema.exceptions import OpenAPIMappingError
 
 
 class OpenAPIOperationError(OpenAPIMappingError):
     pass
 
 
-@attr.s
+@attr.s(hash=True)
 class InvalidOperation(OpenAPIOperationError):
     path_pattern = attr.ib()
     http_method = attr.ib()
