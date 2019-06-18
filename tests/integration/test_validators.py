@@ -283,7 +283,10 @@ class TestPathItemParamsValidator(object):
         assert result.parameters == {}
 
     def test_request_invalid_param(self, validator):
-        request = MockRequest('http://example.com', 'get', '/resource', args={'resId': 'invalid'})
+        request = MockRequest(
+            'http://example.com', 'get', '/resource',
+            args={'resId': 'invalid'},
+        )
         result = validator.validate(request)
 
         assert len(result.errors) == 1
@@ -292,7 +295,10 @@ class TestPathItemParamsValidator(object):
         assert result.parameters == {}
 
     def test_request_valid_param(self, validator):
-        request = MockRequest('http://example.com', 'get', '/resource', args={'resId': '10'})
+        request = MockRequest(
+            'http://example.com', 'get', '/resource',
+            args={'resId': '10'},
+        )
         result = validator.validate(request)
 
         assert len(result.errors) == 0
