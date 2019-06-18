@@ -1,6 +1,7 @@
 import pytest
 
 from openapi_core.schema.operations.exceptions import InvalidOperation
+from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.wrappers.mock import MockRequest
@@ -39,11 +40,26 @@ class TestMinimal(object):
         spec_dict = factory.spec_from_file(spec_path)
         spec = create_spec(spec_dict)
         validator = RequestValidator(spec)
-        request = MockRequest(server, "get", "/nonexistent")
+        request = MockRequest(server, "post", "/status")
 
         result = validator.validate(request)
 
         assert len(result.errors) == 1
         assert isinstance(result.errors[0], InvalidOperation)
+        assert result.body is None
+        assert result.parameters == {}
+
+    @pytest.mark.parametrize("server", servers)
+    @pytest.mark.parametrize("spec_path", spec_paths)
+    def test_invalid_path(self, factory, server, spec_path):
+        spec_dict = factory.spec_from_file(spec_path)
+        spec = create_spec(spec_dict)
+        validator = RequestValidator(spec)
+        request = MockRequest(server, "get", "/nonexistent")
+
+        result = validator.validate(request)
+
+        assert len(result.errors) == 1
+        assert isinstance(result.errors[0], InvalidPath)
         assert result.body is None
         assert result.parameters == {}

@@ -10,6 +10,7 @@ from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
 from openapi_core.schema.parameters.exceptions import InvalidParameterValue
+from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.schema.responses.exceptions import (
     MissingResponseContent, InvalidResponse,
@@ -55,8 +56,18 @@ class TestRequestValidator(object):
         assert result.body is None
         assert result.parameters == {}
 
-    def test_invalid_operation(self, validator):
+    def test_invalid_path(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1')
+
+        result = validator.validate(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidPath
+        assert result.body is None
+        assert result.parameters == {}
+
+    def test_invalid_operation(self, validator):
+        request = MockRequest(self.host_url, 'patch', '/v1/pets')
 
         result = validator.validate(request)
 
