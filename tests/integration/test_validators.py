@@ -235,7 +235,7 @@ class TestRequestValidator(object):
 class TestPathItemParamsValidator(object):
 
     @pytest.fixture
-    def spec_dict(self, factory):
+    def spec_dict(self):
         return {
             "openapi": "3.0.0",
             "info": {
@@ -304,6 +304,49 @@ class TestPathItemParamsValidator(object):
         assert len(result.errors) == 0
         assert result.body is None
         assert result.parameters == {'query': {'resId': 10}}
+
+    @pytest.mark.xfail
+    def test_request_override_param(self, spec_dict):
+        # override parameter path parameter on operation (name and in property must match)
+        spec_dict["paths"]["/resource"]["get"]["parameters"] = [
+            {
+                # full valid parameter object required
+                "name": "resId",
+                "in": "query",
+                "required": False,
+                "schema": {
+                    "type": "integer",
+                },
+            }
+        ]
+        validator = RequestValidator(create_spec(spec_dict))
+        request = MockRequest('http://example.com', 'get', '/resource')
+        result = validator.validate(request)
+
+        assert len(result.errors) == 0
+        assert result.body is None
+        assert result.parameters == {}
+
+    @pytest.mark.xfail
+    def test_request_override_invalid_param(self, spec_dict):
+        # override parameter path parameter on operation
+        # This here should result in an invalid spec object, because there are
+        # now two parameters with the same name, but different location.
+        # (The openapi3 spec is also not very explicit about this case)
+        spec_dict["paths"]["/resource"]["get"]["parameters"] = [
+            {
+                # full valid parameter object required
+                "name": "resId",
+                "in": "path",
+                "required": False,
+                "schema": {
+                    "type": "integer",
+                },
+            }
+        ]
+        from openapi_spec_validator.exceptions import OpenAPIValidationError
+        with pytest.raises(OpenAPIValidationError):
+            spec = create_spec(spec_dict)
 
 
 class TestResponseValidator(object):
