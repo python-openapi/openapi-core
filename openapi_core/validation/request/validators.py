@@ -1,4 +1,5 @@
 """OpenAPI core validation request validators module"""
+from itertools import chain
 from six import iteritems
 
 from openapi_core.schema.exceptions import OpenAPIMappingError
@@ -28,30 +29,34 @@ class RequestValidator(object):
 
         try:
             path = self.spec[operation_pattern]
-        # don't process if operation errors
-        except OpenAPIMappingError as exc:
-            return RequestValidationResult([exc, ], None, None)
-
-        path_params, path_params_errors = self._get_parameters(request, path)
-
-        try:
             operation = self.spec.get_operation(
                 operation_pattern, request.method)
         # don't process if operation errors
         except OpenAPIMappingError as exc:
             return RequestValidationResult([exc, ], None, None)
 
-        op_params, op_params_errors = self._get_parameters(request, operation)
+        params, params_errors = self._get_parameters(
+            request, chain(
+                iteritems(operation.parameters),
+                iteritems(path.parameters)
+            )
+        )
+
         body, body_errors = self._get_body(request, operation)
 
-        errors = path_params_errors + op_params_errors + body_errors
-        return RequestValidationResult(errors, body, path_params + op_params)
+        errors = params_errors + body_errors
+        return RequestValidationResult(errors, body, params)
 
-    def _get_parameters(self, request, operation):
+    def _get_parameters(self, request, params):
         errors = []
-
+        seen = set()
         parameters = RequestParameters()
-        for param_name, param in iteritems(operation.parameters):
+        for param_name, param in params:
+            if (param_name, param.location.value) in seen:
+                # skip parameter already seen
+                # e.g. overriden path item paremeter on operation
+                continue
+            seen.add((param_name, param.location.value))
             try:
                 raw_value = param.get_value(request)
             except MissingParameter:

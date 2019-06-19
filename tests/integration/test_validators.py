@@ -305,7 +305,6 @@ class TestPathItemParamsValidator(object):
         assert result.body is None
         assert result.parameters == {'query': {'resId': 10}}
 
-    @pytest.mark.xfail
     def test_request_override_param(self, spec_dict):
         # override parameter path parameter on operation
         # (name and in property must match)
