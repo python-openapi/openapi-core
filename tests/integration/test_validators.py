@@ -328,27 +328,6 @@ class TestPathItemParamsValidator(object):
         assert result.body is None
         assert result.parameters == {}
 
-    @pytest.mark.xfail
-    def test_request_override_invalid_param(self, spec_dict):
-        # override parameter path parameter on operation
-        # This here should result in an invalid spec object, because there are
-        # now two parameters with the same name, but different location.
-        # (The openapi3 spec is also not very explicit about this case)
-        spec_dict["paths"]["/resource"]["get"]["parameters"] = [
-            {
-                # full valid parameter object required
-                "name": "resId",
-                "in": "path",
-                "required": False,
-                "schema": {
-                    "type": "integer",
-                },
-            }
-        ]
-        from openapi_spec_validator.exceptions import OpenAPIValidationError
-        with pytest.raises(OpenAPIValidationError):
-            create_spec(spec_dict)
-
 
 class TestResponseValidator(object):
 
