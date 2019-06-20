@@ -235,7 +235,7 @@ class TestRequestValidator(object):
 class TestPathItemParamsValidator(object):
 
     @pytest.fixture
-    def spec_dict(self, factory):
+    def spec_dict(self):
         return {
             "openapi": "3.0.0",
             "info": {
@@ -304,6 +304,50 @@ class TestPathItemParamsValidator(object):
         assert len(result.errors) == 0
         assert result.body is None
         assert result.parameters == {'query': {'resId': 10}}
+
+    def test_request_override_param(self, spec_dict):
+        # override path parameter on operation
+        spec_dict["paths"]["/resource"]["get"]["parameters"] = [
+            {
+                # full valid parameter object required
+                "name": "resId",
+                "in": "query",
+                "required": False,
+                "schema": {
+                    "type": "integer",
+                },
+            }
+        ]
+        validator = RequestValidator(create_spec(spec_dict))
+        request = MockRequest('http://example.com', 'get', '/resource')
+        result = validator.validate(request)
+
+        assert len(result.errors) == 0
+        assert result.body is None
+        assert result.parameters == {}
+
+    def test_request_override_param_uniqueness(self, spec_dict):
+        # add parameter on operation with same name as on path but
+        # different location
+        spec_dict["paths"]["/resource"]["get"]["parameters"] = [
+            {
+                # full valid parameter object required
+                "name": "resId",
+                "in": "header",
+                "required": False,
+                "schema": {
+                    "type": "integer",
+                },
+            }
+        ]
+        validator = RequestValidator(create_spec(spec_dict))
+        request = MockRequest('http://example.com', 'get', '/resource')
+        result = validator.validate(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == MissingRequiredParameter
+        assert result.body is None
+        assert result.parameters == {}
 
 
 class TestResponseValidator(object):
