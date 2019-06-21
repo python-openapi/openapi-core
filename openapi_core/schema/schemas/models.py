@@ -155,24 +155,42 @@ class Schema(object):
 
         return set(required)
 
-    def get_cast_mapping(self, custom_formatters=None, strict=True):
+    def get_cast_mapping(self, custom_formatters=None, strict=True,
+                         require_all_props=False):
         primitive_unmarshallers = self.get_primitive_unmarshallers(
-            custom_formatters=custom_formatters)
+            custom_formatters=custom_formatters,
+            require_all_props=require_all_props
+        )
 
         primitive_unmarshallers_partial = dict(
-            (t, functools.partial(u, type_format=self.format, strict=strict))
+            (t, functools.partial(
+                u,
+                type_format=self.format,
+                strict=strict,
+                require_all_props=require_all_props)
+             )
             for t, u in primitive_unmarshallers.items()
         )
 
-        pass_defaults = lambda f: functools.partial(
-          f, custom_formatters=custom_formatters, strict=strict)
+        complex_unmarshallers = {
+            SchemaType.ANY: self._unmarshal_any,
+            SchemaType.ARRAY: self._unmarshal_collection,
+            SchemaType.OBJECT: self._unmarshal_object,
+        }
+
+        complex_unmarshallers_partial = dict(
+            (t, functools.partial(
+                u,
+                custom_formatters=custom_formatters,
+                strict=strict,
+                require_all_props=require_all_props)
+             )
+            for t, u in complex_unmarshallers.items()
+        )
+
         mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
         mapping.update(primitive_unmarshallers_partial)
-        mapping.update({
-            SchemaType.ANY: pass_defaults(self._unmarshal_any),
-            SchemaType.ARRAY: pass_defaults(self._unmarshal_collection),
-            SchemaType.OBJECT: pass_defaults(self._unmarshal_object),
-        })
+        mapping.update(complex_unmarshallers_partial)
 
         return defaultdict(lambda: lambda x: x, mapping)
 
@@ -183,7 +201,8 @@ class Schema(object):
                 one_of_schema.additional_properties is not False)
         )
 
-    def cast(self, value, custom_formatters=None, strict=True):
+    def cast(self, value, custom_formatters=None, strict=True,
+             require_all_props=False):
         """Cast value to schema type"""
         if value is None:
             if not self.nullable:
@@ -195,7 +214,8 @@ class Schema(object):
                 "Value {value} not in enum choices: {type}", value, self.enum)
 
         cast_mapping = self.get_cast_mapping(
-            custom_formatters=custom_formatters, strict=strict)
+            custom_formatters=custom_formatters, strict=strict,
+            require_all_props=require_all_props)
 
         if self.type is not SchemaType.STRING and value == '':
             return None
@@ -210,12 +230,14 @@ class Schema(object):
             raise InvalidSchemaValue(
                 "Failed to cast value {value} to type {type}", value, self.type)
 
-    def unmarshal(self, value, custom_formatters=None, strict=True):
+    def unmarshal(self, value, custom_formatters=None, strict=True,
+                  require_all_props=False):
         """Unmarshal parameter from the value."""
         if self.deprecated:
             warnings.warn("The schema is deprecated", DeprecationWarning)
 
-        casted = self.cast(value, custom_formatters=custom_formatters, strict=strict)
+        casted = self.cast(value, custom_formatters=custom_formatters, strict=strict,
+                           require_all_props=require_all_props)
 
         if casted is None and not self.required:
             return None
@@ -242,7 +264,8 @@ class Schema(object):
 
         return unmarshallers
 
-    def _unmarshal_any(self, value, custom_formatters=None, strict=True):
+    def _unmarshal_any(self, value, custom_formatters=None, strict=True,
+                       require_all_props=False):
         types_resolve_order = [
             SchemaType.OBJECT, SchemaType.ARRAY, SchemaType.BOOLEAN,
             SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
@@ -252,7 +275,10 @@ class Schema(object):
             result = None
             for subschema in self.one_of:
                 try:
-                    casted = subschema.cast(value, custom_formatters)
+                    casted = subschema.cast(
+                        value, custom_formatters,
+                        require_all_props=require_all_props
+                    )
                 except (OpenAPISchemaError, TypeError, ValueError):
                     continue
                 else:
@@ -277,7 +303,8 @@ class Schema(object):
 
         raise NoValidSchema(value)
 
-    def _unmarshal_collection(self, value, custom_formatters=None, strict=True):
+    def _unmarshal_collection(self, value, custom_formatters=None, strict=True,
+                              require_all_props=False):
         if not isinstance(value, (list, tuple)):
             raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
@@ -287,11 +314,13 @@ class Schema(object):
         f = functools.partial(
             self.items.unmarshal,
             custom_formatters=custom_formatters, strict=strict,
+            require_all_props=require_all_props
         )
         return list(map(f, value))
 
     def _unmarshal_object(self, value, model_factory=None,
-                          custom_formatters=None, strict=True):
+                          custom_formatters=None, strict=True,
+                          require_all_props=False):
         if not isinstance(value, (dict, )):
             raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
 
@@ -302,7 +331,8 @@ class Schema(object):
             for one_of_schema in self.one_of:
                 try:
                     found_props = self._unmarshal_properties(
-                        value, one_of_schema, custom_formatters=custom_formatters)
+                        value, one_of_schema, custom_formatters=custom_formatters,
+                        require_all_props=False)
                 except OpenAPISchemaError:
                     pass
                 else:
@@ -315,12 +345,14 @@ class Schema(object):
 
         else:
             properties = self._unmarshal_properties(
-              value, custom_formatters=custom_formatters)
+              value, custom_formatters=custom_formatters,
+                require_all_props=require_all_props)
 
         return model_factory.create(properties, name=self.model)
 
     def _unmarshal_properties(self, value, one_of_schema=None,
-                              custom_formatters=None, strict=True):
+                              custom_formatters=None, strict=True,
+                              require_all_props=False):
         all_props = self.get_all_properties()
         all_props_names = self.get_all_properties_names()
         all_req_props_names = self.get_all_required_properties_names()
@@ -344,7 +376,10 @@ class Schema(object):
             for prop_name in extra_props:
                 prop_value = value[prop_name]
                 properties[prop_name] = self.additional_properties.unmarshal(
-                    prop_value, custom_formatters=custom_formatters)
+                    prop_value,
+                    custom_formatters=custom_formatters,
+                    require_all_props=require_all_props
+                )
 
         for prop_name, prop in iteritems(all_props):
             try:
@@ -357,12 +392,16 @@ class Schema(object):
                 prop_value = prop.default
             try:
                 properties[prop_name] = prop.unmarshal(
-                  prop_value, custom_formatters=custom_formatters)
+                  prop_value,
+                    custom_formatters=custom_formatters,
+                    require_all_props=require_all_props
+                )
             except OpenAPISchemaError as exc:
                 raise InvalidSchemaProperty(prop_name, exc)
 
         self._validate_properties(properties, one_of_schema=one_of_schema,
-                                  custom_formatters=custom_formatters)
+                                  custom_formatters=custom_formatters,
+                                  require_all_props=require_all_props)
 
         return properties
 
@@ -380,7 +419,8 @@ class Schema(object):
 
         return defaultdict(lambda: default, mapping)
 
-    def validate(self, value, custom_formatters=None):
+    def validate(self, value, custom_formatters=None,
+                 require_all_props=False):
         if value is None:
             if not self.nullable:
                 raise InvalidSchemaValue("Null value for non-nullable schema of type {type}", value, self.type)
@@ -396,11 +436,16 @@ class Schema(object):
         # structure validation
         validator_mapping = self.get_validator_mapping()
         validator_callable = validator_mapping[self.type]
-        validator_callable(value, custom_formatters=custom_formatters)
+        validator_callable(
+            value,
+            custom_formatters=custom_formatters,
+            require_all_props=False
+        )
 
         return value
 
-    def _validate_collection(self, value, custom_formatters=None):
+    def _validate_collection(self, value, custom_formatters=None,
+                             require_all_props=False):
         if self.items is None:
             raise UndefinedItemsSchema(self.type)
 
@@ -428,10 +473,12 @@ class Schema(object):
             raise OpenAPISchemaError("Value may not contain duplicate items")
 
         f = functools.partial(self.items.validate,
-                              custom_formatters=custom_formatters)
+                              custom_formatters=custom_formatters,
+                              require_all_props=require_all_props)
         return list(map(f, value))
 
-    def _validate_number(self, value, custom_formatters=None):
+    def _validate_number(self, value, custom_formatters=None,
+                         require_all_props=False):
         if self.minimum is not None:
             if self.exclusive_minimum and value <= self.minimum:
                 raise InvalidSchemaValue(
@@ -453,7 +500,8 @@ class Schema(object):
                 "Value {value} is not a multiple of {type}",
                     value, self.multiple_of)
 
-    def _validate_string(self, value, custom_formatters=None):
+    def _validate_string(self, value, custom_formatters=None,
+                         require_all_props=False):
         try:
             schema_format = SchemaFormat(self.format)
         except ValueError:
@@ -502,7 +550,8 @@ class Schema(object):
 
         return True
 
-    def _validate_object(self, value, custom_formatters=None):
+    def _validate_object(self, value, custom_formatters=None,
+                         require_all_props=False):
         properties = value.__dict__
 
         if self.one_of:
@@ -510,8 +559,10 @@ class Schema(object):
             for one_of_schema in self.one_of:
                 try:
                     self._validate_properties(
-                      properties, one_of_schema,
-                      custom_formatters=custom_formatters)
+                        properties, one_of_schema,
+                        custom_formatters=custom_formatters,
+                        require_all_props=require_all_props
+                    )
                 except OpenAPISchemaError:
                     pass
                 else:
@@ -523,8 +574,11 @@ class Schema(object):
                 raise NoOneOfSchema(self.type)
 
         else:
-            self._validate_properties(properties,
-                                      custom_formatters=custom_formatters)
+            self._validate_properties(
+                properties,
+                custom_formatters=custom_formatters,
+                require_all_props=require_all_props
+            )
 
         if self.min_properties is not None:
             if self.min_properties < 0:
@@ -554,7 +608,8 @@ class Schema(object):
         return True
 
     def _validate_properties(self, value, one_of_schema=None,
-                             custom_formatters=None):
+                             custom_formatters=None,
+                             require_all_props=False):
         all_props = self.get_all_properties()
         all_props_names = self.get_all_properties_names()
         all_req_props_names = self.get_all_required_properties_names()
@@ -577,19 +632,25 @@ class Schema(object):
             for prop_name in extra_props:
                 prop_value = value[prop_name]
                 self.additional_properties.validate(
-                    prop_value, custom_formatters=custom_formatters)
+                    prop_value,
+                    custom_formatters=custom_formatters,
+                    require_all_props=require_all_props
+                )
 
         for prop_name, prop in iteritems(all_props):
             try:
                 prop_value = value[prop_name]
             except KeyError:
-                if prop_name in all_req_props_names:
+                if (prop_name in all_req_props_names) or require_all_props:
                     raise MissingSchemaProperty(prop_name)
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
             try:
-                prop.validate(prop_value, custom_formatters=custom_formatters)
+                prop.validate(prop_value,
+                              custom_formatters=custom_formatters,
+                              require_all_props=require_all_props
+                              )
             except OpenAPISchemaError as exc:
                 raise InvalidSchemaProperty(prop_name, original_exception=exc)
 

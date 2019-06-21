@@ -17,7 +17,8 @@ class StrictUnmarshaller(object):
 
     STRICT_TYPES = ()
 
-    def __call__(self, value, type_format=SchemaFormat.NONE, strict=True):
+    def __call__(self, value, type_format=SchemaFormat.NONE, strict=True,
+                 require_all_props=False):
         if self.STRICT_TYPES and strict and not isinstance(
                 value, self.STRICT_TYPES):
             raise UnmarshallerStrictTypeError(value, self.STRICT_TYPES)
@@ -31,14 +32,19 @@ class PrimitiveTypeUnmarshaller(StrictUnmarshaller):
         SchemaFormat.NONE: lambda x: x,
     }
 
-    def __init__(self, custom_formatters=None):
+    def __init__(self, custom_formatters=None, require_all_props=False):
         if custom_formatters is None:
             custom_formatters = {}
         self.custom_formatters = custom_formatters
 
-    def __call__(self, value, type_format=SchemaFormat.NONE, strict=True):
+    def __call__(self, value, type_format=SchemaFormat.NONE, strict=True,
+                 require_all_props=False):
         value = super(PrimitiveTypeUnmarshaller, self).__call__(
-            value, type_format=type_format, strict=strict)
+            value,
+            type_format=type_format,
+            strict=strict,
+            require_all_props= require_all_props
+        )
 
         try:
             schema_format = SchemaFormat(type_format)
