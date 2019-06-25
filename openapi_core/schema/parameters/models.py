@@ -89,7 +89,8 @@ class Parameter(object):
 
         return location[self.name]
 
-    def unmarshal(self, value, custom_formatters=None):
+    def unmarshal(self, value, custom_formatters=None,
+                  require_all_props=False):
         if self.deprecated:
             warnings.warn(
                 "{0} parameter is deprecated".format(self.name),
@@ -112,6 +113,7 @@ class Parameter(object):
             unmarshalled = self.schema.unmarshal(
                 deserialized,
                 custom_formatters=custom_formatters,
+                require_all_props=require_all_props,
                 strict=False,
             )
         except OpenAPISchemaError as exc:
@@ -119,6 +121,9 @@ class Parameter(object):
 
         try:
             return self.schema.validate(
-                unmarshalled, custom_formatters=custom_formatters)
+                unmarshalled,
+                custom_formatters=custom_formatters,
+                require_all_props=require_all_props
+            )
         except OpenAPISchemaError as exc:
             raise InvalidParameterValue(self.name, exc)
