@@ -55,52 +55,51 @@ class TestSchemaRegistryGetOrCreate(BaseTestRegistry):
 
 class TestAllOf(BaseTestRegistry):
 
-        @pytest.fixture
-        def schema_dict(self):
-            return {
-                'type': 'object',
-                'properties': {
-                    'message': {
-                        'type': 'string',
-                    },
-                    'suberror': {
-                        'allOf': [
-                            {'$ref': '#/components/schemas/Error'},
-                            {'$ref': '#/components/schemas/TS'}
-                        ]
-                    }
+    @pytest.fixture
+    def schema_dict(self):
+        return {
+            'type': 'object',
+            'properties': {
+                'message': {
+                    'type': 'string',
                 },
-            }
+                'suberror': {
+                    'allOf': [
+                        {'$ref': '#/components/schemas/Error'},
+                        {'$ref': '#/components/schemas/TS'}
+                    ]
+                }
+            },
+        }
 
-        @pytest.fixture
-        def spec_dict(self, schema_dict):
-            return {
-                'components': {
-                    'schemas': {
-                        'Error': {
-                            'type': 'object',
-                            'properties': {
-                                'message': {
-                                    'type': 'string'
-                                },
-                            }
-                        },
-                        'TS': {
-                            'type': 'object',
-                            'properties': {
-                                'moment': {
-                                    'type': 'string',
-                                    'format': 'datetime'
-                                }
+    @pytest.fixture
+    def spec_dict(self, schema_dict):
+        return {
+            'components': {
+                'schemas': {
+                    'Error': {
+                        'type': 'object',
+                        'properties': {
+                            'message': {
+                                'type': 'string'
+                            },
+                        }
+                    },
+                    'TS': {
+                        'type': 'object',
+                        'properties': {
+                            'moment': {
+                                'type': 'string',
+                                'format': 'datetime'
                             }
                         }
                     }
                 }
             }
+        }
 
+    def test_all_of_intrinsic_type(self, schemas_registry, schema_dict):
+        schema, _ = schemas_registry.get_or_create(schema_dict)
 
-        def test_all_of_intrinsic_type(self, schemas_registry, schema_dict):
-            schema, _ = schemas_registry.get_or_create(schema_dict)
-
-            suberror = schema.properties['suberror']
-            assert suberror.type == SchemaType.OBJECT
+        suberror = schema.properties['suberror']
+        assert suberror.type == SchemaType.OBJECT
