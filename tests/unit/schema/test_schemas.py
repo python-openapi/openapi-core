@@ -145,10 +145,10 @@ class TestSchemaUnmarshal(object):
             they are no longer simply callables
         '''
         class custom_string_formatter(object):
-            def __call__(self, value: str):
+            def __call__(self, value):
                 return "%s-custom" % value
 
-            def validate(self, value: str):
+            def validate(self, value):
                 return value.endswith('-custom')
 
         obj_schema = Schema('object', properties=properties())
@@ -174,10 +174,10 @@ class TestSchemaUnmarshal(object):
             they are no longer simply callables
         '''
         class custom_string_formatter(object):
-            def __call__(self, value: str):
+            def __call__(self, value):
                 return "%s-custom" % value
 
-            def validate(self, value: str):
+            def validate(self, value):
                 return value.endswith('-custom')
 
         # Force SchemaType.ANY
