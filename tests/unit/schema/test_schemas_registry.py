@@ -68,9 +68,6 @@ class TestAllOf(BaseTestRegistry):
                             {'$ref': '#/components/schemas/Error'},
                             {'$ref': '#/components/schemas/TS'}
                         ]
-                    },
-                    'ts': {
-                        '$ref': '#/components/schemas/TS'
                     }
                 },
             }
