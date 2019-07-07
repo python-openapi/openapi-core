@@ -8,8 +8,8 @@ from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
-    UndefinedSchemaProperty
-)
+    UndefinedSchemaProperty,
+    InvalidCustomFormatSchemaValue)
 from openapi_core.schema.schemas.models import Schema
 
 from six import b, u
@@ -121,17 +121,12 @@ class TestSchemaUnmarshal(object):
 
         assert result == datetime.datetime(2018, 1, 2, 0, 0)
 
-    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_custom(self):
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        with mock.patch.dict(
-            Schema.STRING_FORMAT_CAST_CALLABLE_GETTER,
-            {custom_format: lambda x: x + '-custom'},
-        ):
-            result = schema.unmarshal(value)
+        result = schema.unmarshal(value, custom_formatters={custom_format: lambda x: x + '-custom'})
 
         assert result == 'x-custom'
 
@@ -143,19 +138,14 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(OpenAPISchemaError):
             schema.unmarshal(value)
 
-    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_invalid_value(self):
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        with mock.patch.dict(
-            Schema.STRING_FORMAT_CALLABLE_GETTER,
-            {custom_format: mock.Mock(side_effect=ValueError())},
-        ), pytest.raises(
-            InvalidSchemaValue, message='Failed to format value'
-        ):
-            schema.unmarshal(value)
+        with pytest.raises(InvalidCustomFormatSchemaValue) as ex:
+            schema.unmarshal(value, custom_formatters={custom_format: mock.Mock(side_effect=ValueError())})
+            assert isinstance(ex.original_exception, ValueError)
 
     def test_integer_valid(self):
         schema = Schema('integer')
