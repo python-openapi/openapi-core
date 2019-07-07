@@ -86,7 +86,6 @@ class UnmarshallerError(OpenAPIMappingError):
     pass
 
 
-@attr.attrs
 class UnmarshallerStrictTypeError(UnmarshallerError):
     value = attr.ib()
     types = attr.ib()
