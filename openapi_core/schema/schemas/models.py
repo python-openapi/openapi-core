@@ -247,7 +247,7 @@ class Schema(object):
             SchemaType.OBJECT, SchemaType.ARRAY, SchemaType.BOOLEAN,
             SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
         ]
-        cast_mapping = self.get_cast_mapping()
+        cast_mapping = self.get_cast_mapping(custom_formatters=custom_formatters, strict=strict)
         if self.one_of:
             result = None
             for subschema in self.one_of:
