@@ -154,6 +154,30 @@ class TestSchemaUnmarshal(object):
 
         assert result.name == 'Joseph-custom'
 
+    def test_custom_format_inside_any(self):
+        custom_format = 'custom'
+        prop_schema = Schema('string', schema_format=custom_format)
+
+        def properties():
+            yield ('name', prop_schema)
+
+        # TODO: Fix architecture for custom_formatters.
+        # custom_formatters for primitive types are simply callables which return that same primitive,
+        # When applied to properties, they also have to have a validate, so they are no longer simply callables
+        class custom_string_formatter(object):
+            def __call__(self, value: str):
+                return "%s-custom" % value
+
+            def validate(self, value: str):
+                return value.endswith('-custom')
+
+        obj_schema = Schema(None, properties=properties())  # Force SchemaType.ANY
+        value = {"name": "Joseph"}
+
+        result = obj_schema.unmarshal(value, custom_formatters={custom_format: custom_string_formatter()})
+
+        assert result.name == 'Joseph-custom'
+
     def test_string_format_unknown(self):
         unknown_format = 'unknown'
         schema = Schema('string', schema_format=unknown_format)
