@@ -86,10 +86,11 @@ class UnmarshallerError(OpenAPIMappingError):
     pass
 
 
+@attr.attrs
 class UnmarshallerStrictTypeError(UnmarshallerError):
     value = attr.ib()
     types = attr.ib()
     
     def __str__(self):
         return "Value {value} is not one of types {types}".format(
-            self.value, self.types)
+            value=self.value, types=self.types)

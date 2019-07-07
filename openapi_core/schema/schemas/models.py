@@ -269,10 +269,11 @@ class Schema(object):
                 cast_callable = cast_mapping[schema_type]
                 try:
                     return cast_callable(value)
-                except UnmarshallerStrictTypeError:
-                    continue
+                except UnmarshallerStrictTypeError as ex:
+                    log.debug("Failed to unmarshal '{}' as {}: ".format(value, schema_type, str(ex)))
                 # @todo: remove ValueError when validation separated
-                except (OpenAPISchemaError, TypeError, ValueError):
+                except (OpenAPISchemaError, TypeError, ValueError) as ex:
+                    log.debug("Failed to unmarshal '{}' as {}: ".format(value, schema_type, str(ex)))
                     continue
 
         raise NoValidSchema(value)
