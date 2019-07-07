@@ -113,6 +113,9 @@ class Schema(object):
         self._all_required_properties_cache = None
         self._all_optional_properties_cache = None
 
+        if self.all_of or self.one_of:
+            self.type = SchemaType.OBJECT
+
     def __getitem__(self, name):
         return self.properties[name]
 
