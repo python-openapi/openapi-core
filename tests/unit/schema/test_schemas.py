@@ -126,7 +126,8 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        result = schema.unmarshal(value, custom_formatters={custom_format: lambda x: x + '-custom'})
+        custom_formatters = {custom_format: lambda x: x + '-custom'}
+        result = schema.unmarshal(value, custom_formatters=custom_formatters)
 
         assert result == 'x-custom'
 
@@ -138,8 +139,11 @@ class TestSchemaUnmarshal(object):
             yield ('name', prop_schema)
 
         # TODO: Fix architecture for custom_formatters.
-        # custom_formatters for primitive types are simply callables which return that same primitive,
-        # When applied to properties, they also have to have a validate, so they are no longer simply callables
+        ''' custom_formatters for primitive types are simply callables which
+            return that same primitive,
+            When applied to properties, they also have to have a validate, so
+            they are no longer simply callables
+        '''
         class custom_string_formatter(object):
             def __call__(self, value: str):
                 return "%s-custom" % value
@@ -150,7 +154,9 @@ class TestSchemaUnmarshal(object):
         obj_schema = Schema('object', properties=properties())
         value = {"name": "Joseph"}
 
-        result = obj_schema.unmarshal(value, custom_formatters={custom_format: custom_string_formatter()})
+        custom_formatters = {custom_format: custom_string_formatter()}
+        result = obj_schema.unmarshal(value,
+                                      custom_formatters=custom_formatters)
 
         assert result.name == 'Joseph-custom'
 
@@ -162,8 +168,11 @@ class TestSchemaUnmarshal(object):
             yield ('name', prop_schema)
 
         # TODO: Fix architecture for custom_formatters.
-        # custom_formatters for primitive types are simply callables which return that same primitive,
-        # When applied to properties, they also have to have a validate, so they are no longer simply callables
+        ''' custom_formatters for primitive types are simply callables which
+            return that same primitive,
+            When applied to properties, they also have to have a validate, so
+            they are no longer simply callables
+        '''
         class custom_string_formatter(object):
             def __call__(self, value: str):
                 return "%s-custom" % value
@@ -171,10 +180,13 @@ class TestSchemaUnmarshal(object):
             def validate(self, value: str):
                 return value.endswith('-custom')
 
-        obj_schema = Schema(None, properties=properties())  # Force SchemaType.ANY
+        # Force SchemaType.ANY
+        obj_schema = Schema(None, properties=properties())
         value = {"name": "Joseph"}
 
-        result = obj_schema.unmarshal(value, custom_formatters={custom_format: custom_string_formatter()})
+        custom_formatters = {custom_format: custom_string_formatter()}
+        result = obj_schema.unmarshal(value,
+                                      custom_formatters=custom_formatters)
 
         assert result.name == 'Joseph-custom'
 
@@ -191,8 +203,9 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
+        formatters = {custom_format: mock.Mock(side_effect=ValueError())}
         with pytest.raises(InvalidCustomFormatSchemaValue) as ex:
-            schema.unmarshal(value, custom_formatters={custom_format: mock.Mock(side_effect=ValueError())})
+            schema.unmarshal(value, custom_formatters=formatters)
             assert isinstance(ex.original_exception, ValueError)
 
     def test_integer_valid(self):
