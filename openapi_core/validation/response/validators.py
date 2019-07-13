@@ -6,12 +6,15 @@ from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.responses.exceptions import (
     InvalidResponse, MissingResponseContent,
 )
+from openapi_core.schema.schemas.enums import UnmarshalContext
 from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
 )
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.util import get_operation_pattern
+
+_CONTEXT = UnmarshalContext.RESPONSE
 
 
 class ResponseValidator(object):
@@ -73,6 +76,7 @@ class ResponseValidator(object):
 
         try:
             media_type = operation_response[response.mimetype]
+
         except InvalidContentType as exc:
             return None, [exc, ]
 
