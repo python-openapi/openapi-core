@@ -26,7 +26,8 @@ class Schema(object):
             min_length=None, max_length=None, pattern=None, unique_items=False,
             minimum=None, maximum=None, multiple_of=None,
             exclusive_minimum=False, exclusive_maximum=False,
-            min_properties=None, max_properties=None, extensions=None,
+            min_properties=None, max_properties=None,
+            read_only=False, write_only=False, extensions=None,
             _source=None):
         self.type = SchemaType(schema_type)
         self.properties = properties and dict(properties) or {}
@@ -56,6 +57,11 @@ class Schema(object):
             if min_properties is not None else None
         self.max_properties = int(max_properties)\
             if max_properties is not None else None
+        self.read_only = read_only
+        self.write_only = write_only
+
+        if self.read_only and self.write_only:
+            raise OpenAPISchemaError("Schema cannot be readOnly AND writeOnly")
 
         self.extensions = extensions and dict(extensions) or {}
 

@@ -46,6 +46,8 @@ class SchemaFactory(object):
         exclusive_maximum = schema_deref.get('exclusiveMaximum', False)
         min_properties = schema_deref.get('minProperties', None)
         max_properties = schema_deref.get('maxProperties', None)
+        read_only = schema_deref.get('readOnly', False)
+        write_only = schema_deref.get('writeOnly', False)
 
         extensions = self.extensions_generator.generate(schema_deref)
 
@@ -81,7 +83,7 @@ class SchemaFactory(object):
             exclusive_maximum=exclusive_maximum,
             exclusive_minimum=exclusive_minimum,
             min_properties=min_properties, max_properties=max_properties,
-            extensions=extensions,
+            read_only=read_only, write_only=write_only, extensions=extensions,
             _source=schema_deref,
         )
 
