@@ -9,6 +9,9 @@ from openapi_core.schema.schemas.enums import SchemaType
 log = logging.getLogger(__name__)
 
 
+_CONTEXT = UnmarshalContext.REQUEST
+
+
 class Parameter(object):
     """Represents an OpenAPI operation Parameter."""
 
