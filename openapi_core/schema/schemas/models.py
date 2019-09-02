@@ -38,7 +38,13 @@ class Format(object):
 class Schema(object):
     """Represents an OpenAPI Schema."""
 
-    DEFAULT_CAST_CALLABLE_GETTER = {
+    TYPE_CAST_CALLABLE_GETTER = {
+        SchemaType.INTEGER: int,
+        SchemaType.NUMBER: float,
+        SchemaType.BOOLEAN: forcebool,
+    }
+
+    DEFAULT_UNMARSHAL_CALLABLE_GETTER = {
     }
 
     STRING_FORMAT_CALLABLE_GETTER = {
@@ -155,7 +161,39 @@ class Schema(object):
 
         return set(required)
 
-    def get_cast_mapping(self, custom_formatters=None, strict=True):
+    def are_additional_properties_allowed(self, one_of_schema=None):
+        return (
+            (self.additional_properties is not False) and
+            (one_of_schema is None or
+                one_of_schema.additional_properties is not False)
+        )
+
+    def get_cast_mapping(self):
+        mapping = self.TYPE_CAST_CALLABLE_GETTER.copy()
+        mapping.update({
+            SchemaType.ARRAY: self._cast_collection,
+        })
+
+        return defaultdict(lambda: lambda x: x, mapping)
+
+    def cast(self, value):
+        """Cast value from string to schema type"""
+        if value is None:
+            return value
+
+        cast_mapping = self.get_cast_mapping()
+
+        cast_callable = cast_mapping[self.type]
+        try:
+            return cast_callable(value)
+        except ValueError:
+            raise InvalidSchemaValue(
+                "Failed to cast value {value} to type {type}", value, self.type)
+
+    def _cast_collection(self, value):
+        return list(map(self.items.cast, value))
+
+    def get_unmarshal_mapping(self, custom_formatters=None, strict=True):
         primitive_unmarshallers = self.get_primitive_unmarshallers(
             custom_formatters=custom_formatters)
 
@@ -166,7 +204,7 @@ class Schema(object):
 
         pass_defaults = lambda f: functools.partial(
           f, custom_formatters=custom_formatters, strict=strict)
-        mapping = self.DEFAULT_CAST_CALLABLE_GETTER.copy()
+        mapping = self.DEFAULT_UNMARSHAL_CALLABLE_GETTER.copy()
         mapping.update(primitive_unmarshallers_partial)
         mapping.update({
             SchemaType.ANY: pass_defaults(self._unmarshal_any),
@@ -176,15 +214,10 @@ class Schema(object):
 
         return defaultdict(lambda: lambda x: x, mapping)
 
-    def are_additional_properties_allowed(self, one_of_schema=None):
-        return (
-            (self.additional_properties is not False) and
-            (one_of_schema is None or
-                one_of_schema.additional_properties is not False)
-        )
-
-    def cast(self, value, custom_formatters=None, strict=True):
-        """Cast value to schema type"""
+    def unmarshal(self, value, custom_formatters=None, strict=True):
+        """Unmarshal parameter from the value."""
+        if self.deprecated:
+            warnings.warn("The schema is deprecated", DeprecationWarning)
         if value is None:
             if not self.nullable:
                 raise InvalidSchemaValue("Null value for non-nullable schema", value, self.type)
@@ -194,15 +227,15 @@ class Schema(object):
             raise InvalidSchemaValue(
                 "Value {value} not in enum choices: {type}", value, self.enum)
 
-        cast_mapping = self.get_cast_mapping(
+        unmarshal_mapping = self.get_unmarshal_mapping(
             custom_formatters=custom_formatters, strict=strict)
 
         if self.type is not SchemaType.STRING and value == '':
             return None
 
-        cast_callable = cast_mapping[self.type]
+        unmarshal_callable = unmarshal_mapping[self.type]
         try:
-            return cast_callable(value)
+            unmarshalled = unmarshal_callable(value)
         except UnmarshallerStrictTypeError:
             raise InvalidSchemaValue(
                 "Value {value} is not of type {type}", value, self.type)
@@ -210,17 +243,10 @@ class Schema(object):
             raise InvalidSchemaValue(
                 "Failed to cast value {value} to type {type}", value, self.type)
 
-    def unmarshal(self, value, custom_formatters=None, strict=True):
-        """Unmarshal parameter from the value."""
-        if self.deprecated:
-            warnings.warn("The schema is deprecated", DeprecationWarning)
-
-        casted = self.cast(value, custom_formatters=custom_formatters, strict=strict)
-
-        if casted is None and not self.required:
+        if unmarshalled is None and not self.required:
             return None
 
-        return casted
+        return unmarshalled
 
     def get_primitive_unmarshallers(self, **options):
         from openapi_core.schema.schemas.unmarshallers import (
@@ -247,18 +273,18 @@ class Schema(object):
             SchemaType.OBJECT, SchemaType.ARRAY, SchemaType.BOOLEAN,
             SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
         ]
-        cast_mapping = self.get_cast_mapping()
+        unmarshal_mapping = self.get_unmarshal_mapping()
         if self.one_of:
             result = None
             for subschema in self.one_of:
                 try:
-                    casted = subschema.cast(value, custom_formatters)
+                    unmarshalled = subschema.unmarshal(value, custom_formatters)
                 except (OpenAPISchemaError, TypeError, ValueError):
                     continue
                 else:
                     if result is not None:
                         raise MultipleOneOfSchema(self.type)
-                    result = casted
+                    result = unmarshalled
 
             if result is None:
                 raise NoOneOfSchema(self.type)
@@ -266,9 +292,9 @@ class Schema(object):
             return result
         else:
             for schema_type in types_resolve_order:
-                cast_callable = cast_mapping[schema_type]
+                unmarshal_callable = unmarshal_mapping[schema_type]
                 try:
-                    return cast_callable(value)
+                    return unmarshal_callable(value)
                 except UnmarshallerStrictTypeError:
                     continue
                 # @todo: remove ValueError when validation separated
