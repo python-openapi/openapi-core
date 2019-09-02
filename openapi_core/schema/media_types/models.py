@@ -47,7 +47,7 @@ class MediaType(object):
             raise InvalidMediaTypeValue(exc)
 
         try:
-            return self.schema.validate(
+            return self.schema.obj_validate(
                 unmarshalled, custom_formatters=custom_formatters)
         except OpenAPISchemaError as exc:
             raise InvalidMediaTypeValue(exc)

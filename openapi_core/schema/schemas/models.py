@@ -406,7 +406,7 @@ class Schema(object):
 
         return defaultdict(lambda: default, mapping)
 
-    def validate(self, value, custom_formatters=None):
+    def obj_validate(self, value, custom_formatters=None):
         if value is None:
             if not self.nullable:
                 raise InvalidSchemaValue("Null value for non-nullable schema of type {type}", value, self.type)
@@ -453,7 +453,7 @@ class Schema(object):
         if self.unique_items and len(set(value)) != len(value):
             raise OpenAPISchemaError("Value may not contain duplicate items")
 
-        f = functools.partial(self.items.validate,
+        f = functools.partial(self.items.obj_validate,
                               custom_formatters=custom_formatters)
         return list(map(f, value))
 
@@ -602,7 +602,7 @@ class Schema(object):
         if self.additional_properties is not True:
             for prop_name in extra_props:
                 prop_value = value[prop_name]
-                self.additional_properties.validate(
+                self.additional_properties.obj_validate(
                     prop_value, custom_formatters=custom_formatters)
 
         for prop_name, prop in iteritems(all_props):
@@ -615,7 +615,7 @@ class Schema(object):
                     continue
                 prop_value = prop.default
             try:
-                prop.validate(prop_value, custom_formatters=custom_formatters)
+                prop.obj_validate(prop_value, custom_formatters=custom_formatters)
             except OpenAPISchemaError as exc:
                 raise InvalidSchemaProperty(prop_name, original_exception=exc)
 
