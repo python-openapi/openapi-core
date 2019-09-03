@@ -19,9 +19,7 @@ from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaProperty, InvalidSchemaValue,
-)
+from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
 from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.schema.servers.models import Server, ServerVariable
@@ -42,12 +40,16 @@ class TestPetstore(object):
         return text_type(api_key_bytes_enc, 'utf8')
 
     @pytest.fixture
+    def spec_uri(self):
+        return "file://tests/integration/data/v3.0/petstore.yaml"
+
+    @pytest.fixture
     def spec_dict(self, factory):
         return factory.spec_from_file("data/v3.0/petstore.yaml")
 
     @pytest.fixture
-    def spec(self, spec_dict):
-        return create_spec(spec_dict)
+    def spec(self, spec_dict, spec_uri):
+        return create_spec(spec_dict, spec_uri)
 
     @pytest.fixture
     def request_validator(self, spec):
@@ -267,6 +269,9 @@ class TestPetstore(object):
                 {
                     'id': 1,
                     'name': 'Cat',
+                    'ears': {
+                        'healthy': True,
+                    },
                 }
             ],
         }
@@ -322,16 +327,10 @@ class TestPetstore(object):
 
         assert response_result.errors == [
             InvalidMediaTypeValue(
-                original_exception=InvalidSchemaProperty(
-                    property_name='data',
-                    original_exception=InvalidSchemaProperty(
-                        property_name='name',
-                        original_exception=InvalidSchemaValue(
-                            msg="Value {value} is not of type {type}",
-                            type=SchemaType.STRING,
-                            value={'first_name': 'Cat'},
-                        ),
-                    ),
+                original_exception=InvalidSchemaValue(
+                    msg='Value not valid for schema',
+                    type=SchemaType.OBJECT,
+                    value=data_json,
                 ),
             ),
         ]
@@ -932,6 +931,9 @@ class TestPetstore(object):
             'data': {
                 'id': data_id,
                 'name': data_name,
+                'ears': {
+                    'healthy': True,
+                },
             },
         }
         data = json.dumps(data_json)
@@ -1239,7 +1241,6 @@ class TestPetstore(object):
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo
 
-    @pytest.mark.xfail(reason='OneOf for string not supported atm')
     def test_post_tags_created_invalid_type(
             self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'

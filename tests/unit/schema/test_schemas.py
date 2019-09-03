@@ -42,6 +42,17 @@ class TestSchemaUnmarshal(object):
 
         assert result == value
 
+    @pytest.mark.parametrize('schema_type', [
+        'boolean', 'array', 'integer', 'number',
+    ])
+    def test_non_string_empty_value(self, schema_type):
+        schema = Schema(schema_type)
+        value = ''
+
+        result = schema.unmarshal(value)
+
+        assert result is None
+
     def test_string_valid(self):
         schema = Schema('string')
         value = 'test'
@@ -121,19 +132,28 @@ class TestSchemaUnmarshal(object):
 
         assert result == datetime.datetime(2018, 1, 2, 0, 0)
 
-    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_custom(self):
+        def custom_formatter(value):
+            return 'x-custom'
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        with mock.patch.dict(
-            Schema.STRING_FORMAT_CAST_CALLABLE_GETTER,
-            {custom_format: lambda x: x + '-custom'},
-        ):
-            result = schema.unmarshal(value)
+        result = schema.unmarshal(
+            value, custom_formatters={custom_format: custom_formatter})
 
-        assert result == 'x-custom'
+        assert result == custom_formatter(value)
+
+    def test_string_format_custom_value_error(self):
+        def custom_formatter(value):
+            raise ValueError
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(
+                value, custom_formatters={custom_format: custom_formatter})
 
     def test_string_format_unknown(self):
         unknown_format = 'unknown'
@@ -143,7 +163,6 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(OpenAPISchemaError):
             schema.unmarshal(value)
 
-    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_invalid_value(self):
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
@@ -350,6 +369,14 @@ class TestSchemaObjValidate(object):
         result = schema.obj_validate(value)
 
         assert result is None
+
+    def test_string_format_custom_missing(self):
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.obj_validate(value)
 
     @pytest.mark.parametrize('value', [False, True])
     def test_boolean(self, value):

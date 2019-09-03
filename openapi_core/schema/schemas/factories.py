@@ -50,11 +50,11 @@ class SchemaFactory(object):
 
         all_of = []
         if all_of_spec:
-            all_of = map(self.create, all_of_spec)
+            all_of = list(map(self.create, all_of_spec))
 
         one_of = []
         if one_of_spec:
-            one_of = map(self.create, one_of_spec)
+            one_of = list(map(self.create, one_of_spec))
 
         items = None
         if items_spec:
@@ -76,6 +76,7 @@ class SchemaFactory(object):
             exclusive_maximum=exclusive_maximum,
             exclusive_minimum=exclusive_minimum,
             min_properties=min_properties, max_properties=max_properties,
+            _source=schema_deref,
         )
 
     @property

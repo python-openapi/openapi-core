@@ -72,7 +72,7 @@ class Parameter(object):
         deserializer = self.get_dererializer()
         return deserializer(value)
 
-    def get_value(self, request):
+    def get_raw_value(self, request):
         location = request.parameters[self.location.value]
 
         if self.name not in location:
@@ -89,7 +89,7 @@ class Parameter(object):
 
         return location[self.name]
 
-    def unmarshal(self, value, custom_formatters=None):
+    def cast(self, value):
         if self.deprecated:
             warnings.warn(
                 "{0} parameter is deprecated".format(self.name),
@@ -109,13 +109,22 @@ class Parameter(object):
             raise InvalidParameterValue(self.name, exc)
 
         try:
-            casted = self.schema.cast(deserialized)
+            return self.schema.cast(deserialized)
+        except OpenAPISchemaError as exc:
+            raise InvalidParameterValue(self.name, exc)
+
+    def unmarshal(self, value, custom_formatters=None, resolver=None):
+        if not self.schema:
+            return value
+
+        try:
+            self.schema.validate(value, resolver=resolver)
         except OpenAPISchemaError as exc:
             raise InvalidParameterValue(self.name, exc)
 
         try:
             unmarshalled = self.schema.unmarshal(
-                casted,
+                value,
                 custom_formatters=custom_formatters,
                 strict=True,
             )

@@ -58,7 +58,7 @@ class RequestValidator(object):
                 continue
             seen.add((param_name, param.location.value))
             try:
-                raw_value = param.get_value(request)
+                raw_value = param.get_raw_value(request)
             except MissingParameter:
                 continue
             except OpenAPIMappingError as exc:
@@ -66,11 +66,20 @@ class RequestValidator(object):
                 continue
 
             try:
-                value = param.unmarshal(raw_value, self.custom_formatters)
+                casted = param.cast(raw_value)
+            except OpenAPIMappingError as exc:
+                errors.append(exc)
+                continue
+
+            try:
+                unmarshalled = param.unmarshal(
+                    casted, self.custom_formatters,
+                    resolver=self.spec._resolver,
+                )
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:
-                parameters[param.location.value][param_name] = value
+                parameters[param.location.value][param_name] = unmarshalled
 
         return parameters, errors
 
@@ -92,8 +101,16 @@ class RequestValidator(object):
                 errors.append(exc)
             else:
                 try:
-                    body = media_type.unmarshal(raw_body, self.custom_formatters)
+                    casted = media_type.cast(raw_body)
                 except OpenAPIMappingError as exc:
                     errors.append(exc)
+                else:
+                    try:
+                        body = media_type.unmarshal(
+                            casted, self.custom_formatters,
+                            resolver=self.spec._resolver,
+                        )
+                    except OpenAPIMappingError as exc:
+                        errors.append(exc)
 
         return body, errors

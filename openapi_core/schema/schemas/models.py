@@ -9,8 +9,10 @@ import re
 import warnings
 
 from six import iteritems, integer_types, binary_type, text_type
+from jsonschema.exceptions import ValidationError
 
 from openapi_core.extensions.models.factories import ModelFactory
+from openapi_core.schema.schemas._format import oas30_format_checker
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
@@ -23,7 +25,7 @@ from openapi_core.schema.schemas.util import (
     format_number,
 )
 from openapi_core.schema.schemas.validators import (
-    TypeValidator, AttributeValidator,
+    TypeValidator, AttributeValidator, OAS30Validator,
 )
 
 log = logging.getLogger(__name__)
@@ -85,7 +87,7 @@ class Schema(object):
             min_length=None, max_length=None, pattern=None, unique_items=False,
             minimum=None, maximum=None, multiple_of=None,
             exclusive_minimum=False, exclusive_maximum=False,
-            min_properties=None, max_properties=None):
+            min_properties=None, max_properties=None, _source=None):
         self.type = SchemaType(schema_type)
         self.model = model
         self.properties = properties and dict(properties) or {}
@@ -118,6 +120,8 @@ class Schema(object):
 
         self._all_required_properties_cache = None
         self._all_optional_properties_cache = None
+
+        self._source = _source
 
     def __getitem__(self, name):
         return self.properties[name]
@@ -214,6 +218,18 @@ class Schema(object):
 
         return defaultdict(lambda: lambda x: x, mapping)
 
+    def get_validator(self, resolver=None):
+        return OAS30Validator(
+            self._source, resolver=resolver, format_checker=oas30_format_checker)
+
+    def validate(self, value, resolver=None):
+        validator = self.get_validator(resolver=resolver)
+        try:
+            return validator.validate(value)
+        except ValidationError:
+            # TODO: pass validation errors
+            raise InvalidSchemaValue("Value not valid for schema", value, self.type)
+
     def unmarshal(self, value, custom_formatters=None, strict=True):
         """Unmarshal parameter from the value."""
         if self.deprecated:
@@ -241,10 +257,7 @@ class Schema(object):
                 "Value {value} is not of type {type}", value, self.type)
         except ValueError:
             raise InvalidSchemaValue(
-                "Failed to cast value {value} to type {type}", value, self.type)
-
-        if unmarshalled is None and not self.required:
-            return None
+                "Failed to unmarshal value {value} to type {type}", value, self.type)
 
         return unmarshalled
 
@@ -297,8 +310,7 @@ class Schema(object):
                     return unmarshal_callable(value)
                 except UnmarshallerStrictTypeError:
                     continue
-                # @todo: remove ValueError when validation separated
-                except (OpenAPISchemaError, TypeError, ValueError):
+                except (OpenAPISchemaError, TypeError):
                     continue
 
         raise NoValidSchema(value)
@@ -306,9 +318,6 @@ class Schema(object):
     def _unmarshal_collection(self, value, custom_formatters=None, strict=True):
         if not isinstance(value, (list, tuple)):
             raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
-
-        if self.items is None:
-            raise UndefinedItemsSchema(self.type)
 
         f = functools.partial(
             self.items.unmarshal,
