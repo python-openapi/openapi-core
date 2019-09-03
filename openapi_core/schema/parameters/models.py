@@ -109,10 +109,15 @@ class Parameter(object):
             raise InvalidParameterValue(self.name, exc)
 
         try:
+            casted = self.schema.cast(deserialized)
+        except OpenAPISchemaError as exc:
+            raise InvalidParameterValue(self.name, exc)
+
+        try:
             unmarshalled = self.schema.unmarshal(
-                deserialized,
+                casted,
                 custom_formatters=custom_formatters,
-                strict=False,
+                strict=True,
             )
         except OpenAPISchemaError as exc:
             raise InvalidParameterValue(self.name, exc)
