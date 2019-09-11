@@ -123,16 +123,10 @@ class Parameter(object):
             raise InvalidParameterValue(self.name, exc)
 
         try:
-            unmarshalled = self.schema.unmarshal(
+            return self.schema.unmarshal(
                 value,
                 custom_formatters=custom_formatters,
                 strict=True,
             )
-        except OpenAPISchemaError as exc:
-            raise InvalidParameterValue(self.name, exc)
-
-        try:
-            return self.schema.obj_validate(
-                unmarshalled, custom_formatters=custom_formatters)
         except OpenAPISchemaError as exc:
             raise InvalidParameterValue(self.name, exc)

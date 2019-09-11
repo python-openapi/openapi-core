@@ -1,9 +1,12 @@
 """OpenAPI core schemas factories module"""
 import logging
 
+from six import iteritems
+
 from openapi_core.compat import lru_cache
 from openapi_core.schema.properties.generators import PropertiesGenerator
 from openapi_core.schema.schemas.models import Schema
+from openapi_core.schema.schemas.types import Contribution
 
 log = logging.getLogger(__name__)
 
@@ -86,3 +89,59 @@ class SchemaFactory(object):
 
     def _create_items(self, items_spec):
         return self.create(items_spec)
+
+
+class SchemaDictFactory(object):
+
+    contributions = (
+        Contribution('type', src_prop_attr='value'),
+        Contribution('format'),
+        Contribution('properties', is_dict=True, dest_default={}),
+        Contribution('required', dest_default=[]),
+        Contribution('default'),
+        Contribution('nullable', dest_default=False),
+        Contribution('all_of', dest_prop_name='allOf', is_list=True, dest_default=[]),
+        Contribution('one_of', dest_prop_name='oneOf', is_list=True, dest_default=[]),
+        Contribution('additional_properties', dest_prop_name='additionalProperties', dest_default=True),
+        Contribution('min_items', dest_prop_name='minItems'),
+        Contribution('max_items', dest_prop_name='maxItems'),
+        Contribution('min_length', dest_prop_name='minLength'),
+        Contribution('max_length', dest_prop_name='maxLength'),
+        Contribution('pattern', src_prop_attr='pattern'),
+        Contribution('unique_items', dest_prop_name='uniqueItems', dest_default=False),
+        Contribution('minimum'),
+        Contribution('maximum'),
+        Contribution('multiple_of', dest_prop_name='multipleOf'),
+        Contribution('exclusive_minimum', dest_prop_name='exclusiveMinimum', dest_default=False),
+        Contribution('exclusive_maximum', dest_prop_name='exclusiveMaximum', dest_default=False),
+        Contribution('min_properties', dest_prop_name='minProperties'),
+        Contribution('max_properties', dest_prop_name='maxProperties'),
+    )
+
+    def create(self, schema):
+        schema_dict = {}
+        for contrib in self.contributions:
+            self._contribute(schema, schema_dict, contrib)
+        return schema_dict
+
+    def _contribute(self, schema, schema_dict, contrib):
+        def src_map(x):
+            return getattr(x, '__dict__')
+        src_val = getattr(schema, contrib.src_prop_name)
+
+        if src_val and contrib.src_prop_attr:
+            src_val = getattr(src_val, contrib.src_prop_attr)
+
+        if contrib.is_list:
+            src_val = list(map(src_map, src_val))
+        if contrib.is_dict:
+            src_val = dict(
+                (k, src_map(v))
+                for k, v in iteritems(src_val)
+            )
+
+        if src_val == contrib.dest_default:
+            return
+
+        dest_prop_name = contrib.dest_prop_name or contrib.src_prop_name
+        schema_dict[dest_prop_name] = src_val

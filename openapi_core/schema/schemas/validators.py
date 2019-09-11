@@ -33,14 +33,14 @@ class AttributeValidator(object):
         return True
 
 
-OAS30Validator = create(
+BaseOAS30Validator = create(
     meta_schema=_utils.load_schema("draft4"),
     validators={
         u"multipleOf": _validators.multipleOf,
+        # exclusiveMaximum supported inside maximum_draft3_draft4
         u"maximum": _legacy_validators.maximum_draft3_draft4,
-        u"exclusiveMaximum": _validators.exclusiveMaximum,
+        # exclusiveMinimum supported inside minimum_draft3_draft4
         u"minimum": _legacy_validators.minimum_draft3_draft4,
-        u"exclusiveMinimum": _validators.exclusiveMinimum,
         u"maxLength": _validators.maxLength,
         u"minLength": _validators.minLength,
         u"pattern": _validators.pattern,
@@ -59,9 +59,9 @@ OAS30Validator = create(
         u"not": _validators.not_,
         u"items": oas_validators.items,
         u"properties": _validators.properties,
-        u"additionalProperties": _validators.additionalProperties,
+        u"additionalProperties": oas_validators.additionalProperties,
         # TODO: adjust description
-        u"format": _validators.format,
+        u"format": oas_validators.format,
         # TODO: adjust default
         u"$ref": _validators.ref,
         # fixed OAS fields
@@ -78,3 +78,18 @@ OAS30Validator = create(
     version="oas30",
     id_of=lambda schema: schema.get(u"id", ""),
 )
+
+
+class OAS30Validator(BaseOAS30Validator):
+
+    def iter_errors(self, instance, _schema=None):
+        if _schema is None:
+                _schema = self.schema
+
+        # append defaults to trigger validator (i.e. nullable)
+        if 'nullable' not in _schema:
+            _schema.update({
+                'nullable': False,
+            })
+
+        return super(OAS30Validator, self).iter_errors(instance, _schema)
