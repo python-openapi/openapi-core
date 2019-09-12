@@ -7,7 +7,7 @@ import pytest
 from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
+    InvalidSchemaValue, OpenAPISchemaError,
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -167,10 +167,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        with mock.patch.dict(
-            Schema.STRING_FORMAT_CALLABLE_GETTER,
-            {custom_format: mock.Mock(side_effect=ValueError())},
-        ), pytest.raises(
+        with pytest.raises(
             InvalidSchemaValue, message='Failed to format value'
         ):
             schema.unmarshal(value)
@@ -324,22 +321,6 @@ class TestSchemaUnmarshal(object):
             Schema('array', items=Schema('string')),
         ])
         assert schema.unmarshal(['hello']) == ['hello']
-
-    def test_schema_any_one_of_mutiple(self):
-        schema = Schema(one_of=[
-            Schema('array', items=Schema('string')),
-            Schema('array', items=Schema('number')),
-        ])
-        with pytest.raises(MultipleOneOfSchema):
-            schema.unmarshal([])
-
-    def test_schema_any_one_of_no_valid(self):
-        schema = Schema(one_of=[
-            Schema('array', items=Schema('string')),
-            Schema('array', items=Schema('number')),
-        ])
-        with pytest.raises(NoOneOfSchema):
-            schema.unmarshal({})
 
     def test_schema_any(self):
         schema = Schema()
@@ -635,7 +616,34 @@ class TestSchemaValidate(object):
         u('1989-01-02T00:00:00Z'),
         u('2018-01-02T23:59:59Z'),
     ])
-    def test_string_format_datetime(self, value):
+    @mock.patch(
+        'openapi_core.schema.schemas._format.'
+        'DATETIME_HAS_STRICT_RFC3339', True
+    )
+    @mock.patch(
+        'openapi_core.schema.schemas._format.'
+        'DATETIME_HAS_ISODATE', False
+    )
+    def test_string_format_datetime_strict_rfc3339(self, value):
+        schema = Schema('string', schema_format='date-time')
+
+        result = schema.validate(value)
+
+        assert result is None
+
+    @pytest.mark.parametrize('value', [
+        u('1989-01-02T00:00:00Z'),
+        u('2018-01-02T23:59:59Z'),
+    ])
+    @mock.patch(
+        'openapi_core.schema.schemas._format.'
+        'DATETIME_HAS_STRICT_RFC3339', False
+    )
+    @mock.patch(
+        'openapi_core.schema.schemas._format.'
+        'DATETIME_HAS_ISODATE', True
+    )
+    def test_string_format_datetime_isodate(self, value):
         schema = Schema('string', schema_format='date-time')
 
         result = schema.validate(value)

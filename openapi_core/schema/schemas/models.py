@@ -16,7 +16,7 @@ from openapi_core.schema.schemas._format import oas30_format_checker
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
-    OpenAPISchemaError, NoOneOfSchema, MultipleOneOfSchema, NoValidSchema,
+    OpenAPISchemaError, NoValidSchema,
     UndefinedItemsSchema, InvalidCustomFormatSchemaValue, InvalidSchemaProperty,
     UnmarshallerStrictTypeError,
 )
@@ -24,9 +24,7 @@ from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime, format_byte, format_uuid,
     format_number,
 )
-from openapi_core.schema.schemas.validators import (
-    TypeValidator, AttributeValidator, OAS30Validator,
-)
+from openapi_core.schema.schemas.validators import OAS30Validator
 
 log = logging.getLogger(__name__)
 
@@ -47,36 +45,6 @@ class Schema(object):
     }
 
     DEFAULT_UNMARSHAL_CALLABLE_GETTER = {
-    }
-
-    STRING_FORMAT_CALLABLE_GETTER = {
-        SchemaFormat.NONE: Format(text_type, TypeValidator(text_type)),
-        SchemaFormat.PASSWORD: Format(text_type, TypeValidator(text_type)),
-        SchemaFormat.DATE: Format(
-            format_date, TypeValidator(date, exclude=datetime)),
-        SchemaFormat.DATETIME: Format(format_datetime, TypeValidator(datetime)),
-        SchemaFormat.BINARY: Format(binary_type, TypeValidator(binary_type)),
-        SchemaFormat.UUID: Format(format_uuid, TypeValidator(UUID)),
-        SchemaFormat.BYTE: Format(format_byte, TypeValidator(text_type)),
-    }
-
-    NUMBER_FORMAT_CALLABLE_GETTER = {
-        SchemaFormat.NONE: Format(format_number, TypeValidator(
-            integer_types + (float, ), exclude=bool)),
-        SchemaFormat.FLOAT: Format(float, TypeValidator(float)),
-        SchemaFormat.DOUBLE: Format(float, TypeValidator(float)),
-    }
-
-    TYPE_VALIDATOR_CALLABLE_GETTER = {
-        SchemaType.ANY: lambda x: True,
-        SchemaType.BOOLEAN: TypeValidator(bool),
-        SchemaType.INTEGER: TypeValidator(integer_types, exclude=bool),
-        SchemaType.NUMBER: TypeValidator(
-            integer_types + (float, ), exclude=bool),
-        SchemaType.STRING: TypeValidator(
-            text_type, date, datetime, binary_type, UUID),
-        SchemaType.ARRAY: TypeValidator(list, tuple),
-        SchemaType.OBJECT: AttributeValidator('__dict__'),
     }
 
     def __init__(
@@ -304,11 +272,12 @@ class Schema(object):
                     continue
                 else:
                     if result is not None:
-                        raise MultipleOneOfSchema(self.type)
+                        log.warning("multiple valid oneOf schemas found")
+                        continue
                     result = unmarshalled
 
             if result is None:
-                raise NoOneOfSchema(self.type)
+                log.warning("valid oneOf schema not found")
 
             return result
         else:
@@ -321,7 +290,8 @@ class Schema(object):
                 except (OpenAPISchemaError, TypeError):
                     continue
 
-        raise NoValidSchema(value)
+        log.warning("failed to unmarshal any type")
+        return value
 
     def _unmarshal_collection(self, value, custom_formatters=None, strict=True):
         if not isinstance(value, (list, tuple)):
@@ -344,17 +314,18 @@ class Schema(object):
             properties = None
             for one_of_schema in self.one_of:
                 try:
-                    found_props = self._unmarshal_properties(
+                    unmarshalled = self._unmarshal_properties(
                         value, one_of_schema, custom_formatters=custom_formatters)
                 except OpenAPISchemaError:
                     pass
                 else:
                     if properties is not None:
-                        raise MultipleOneOfSchema(self.type)
-                    properties = found_props
+                        log.warning("multiple valid oneOf schemas found")
+                        continue
+                    properties = unmarshalled
 
             if properties is None:
-                raise NoOneOfSchema(self.type)
+                log.warning("valid oneOf schema not found")
 
         else:
             properties = self._unmarshal_properties(
@@ -398,10 +369,8 @@ class Schema(object):
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default
-            try:
-                properties[prop_name] = prop.unmarshal(
-                  prop_value, custom_formatters=custom_formatters)
-            except OpenAPISchemaError as exc:
-                raise InvalidSchemaProperty(prop_name, exc)
+
+            properties[prop_name] = prop.unmarshal(
+                prop_value, custom_formatters=custom_formatters)
 
         return properties

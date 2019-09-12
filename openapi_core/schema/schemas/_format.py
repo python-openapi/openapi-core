@@ -7,6 +7,26 @@ from jsonschema._format import FormatChecker
 from jsonschema.exceptions import FormatError
 from six import binary_type, text_type, integer_types
 
+DATETIME_HAS_STRICT_RFC3339 = False
+DATETIME_HAS_ISODATE = False
+DATETIME_RAISES = ()
+
+try:
+    import isodate
+except ImportError:
+    pass
+else:
+    DATETIME_HAS_ISODATE = True
+    DATETIME_RAISES += (ValueError, isodate.ISO8601Error)
+
+try:
+    import strict_rfc3339
+except ImportError:
+    pass
+else:
+    DATETIME_HAS_STRICT_RFC3339 = True
+    DATETIME_RAISES += (ValueError, TypeError)
+
 
 class StrictFormatChecker(FormatChecker):
 
@@ -56,30 +76,20 @@ def is_byte(instance):
     return b64encode(b64decode(instance)) == instance
 
 
-try:
-    import strict_rfc3339
-except ImportError:
-    try:
-        import isodate
-    except ImportError:
-        pass
-    else:
-        @oas30_format_checker.checks(
-            "date-time", raises=(ValueError, isodate.ISO8601Error))
-        def is_datetime(instance):
-            if isinstance(instance, binary_type):
-                return False
-            if not isinstance(instance, text_type):
-                return True
-            return isodate.parse_datetime(instance)
-else:
-    @oas30_format_checker.checks("date-time")
-    def is_datetime(instance):
-        if isinstance(instance, binary_type):
-            return False
-        if not isinstance(instance, text_type):
-            return True
+@oas30_format_checker.checks("date-time", raises=DATETIME_RAISES)
+def is_datetime(instance):
+    if isinstance(instance, binary_type):
+        return False
+    if not isinstance(instance, text_type):
+        return True
+    
+    if DATETIME_HAS_STRICT_RFC3339:
         return strict_rfc3339.validate_rfc3339(instance)
+    
+    if DATETIME_HAS_ISODATE:
+        return isodate.parse_datetime(instance)
+
+    return True
 
 
 @oas30_format_checker.checks("date", raises=ValueError)

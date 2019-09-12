@@ -3,7 +3,7 @@ from six import text_type, binary_type, integer_types
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, InvalidCustomFormatSchemaValue,
-    OpenAPISchemaError, MultipleOneOfSchema, NoOneOfSchema,
+    OpenAPISchemaError,
     InvalidSchemaProperty,
     UnmarshallerStrictTypeError,
 )
