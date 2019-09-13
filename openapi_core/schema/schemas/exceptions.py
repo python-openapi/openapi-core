@@ -66,22 +66,6 @@ class MissingSchemaProperty(OpenAPISchemaError):
         return "Missing schema property: {0}".format(self.property_name)
 
 
-@attr.s(hash=True)
-class NoOneOfSchema(OpenAPISchemaError):
-    type = attr.ib()
-
-    def __str__(self):
-        return "Exactly one valid schema type {0} should be valid, None found.".format(self.type)
-
-
-@attr.s(hash=True)
-class MultipleOneOfSchema(OpenAPISchemaError):
-    type = attr.ib()
-
-    def __str__(self):
-        return "Exactly one schema type {0} should be valid, more than one found".format(self.type)
-
-
 class UnmarshallerError(OpenAPIMappingError):
     pass
 

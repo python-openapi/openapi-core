@@ -2,6 +2,7 @@
 """OpenAPI core specs factories module"""
 
 from openapi_spec_validator import openapi_v3_spec_validator
+from openapi_spec_validator.validators import Dereferencer
 
 from openapi_core.compat import lru_cache
 from openapi_core.schema.components.factories import ComponentsFactory
@@ -14,8 +15,8 @@ from openapi_core.schema.specs.models import Spec
 
 class SpecFactory(object):
 
-    def __init__(self, dereferencer, config=None):
-        self.dereferencer = dereferencer
+    def __init__(self, spec_resolver, config=None):
+        self.spec_resolver = spec_resolver
         self.config = config or {}
 
     def create(self, spec_dict, spec_url=''):
@@ -34,8 +35,15 @@ class SpecFactory(object):
         paths = self.paths_generator.generate(paths)
         components = self.components_factory.create(components_spec)
         spec = Spec(
-            info, list(paths), servers=list(servers), components=components)
+            info, list(paths), servers=list(servers), components=components,
+            _resolver=self.spec_resolver,
+        )
         return spec
+
+    @property
+    @lru_cache()
+    def dereferencer(self):
+        return Dereferencer(self.spec_resolver)
 
     @property
     @lru_cache()

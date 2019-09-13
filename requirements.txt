@@ -2,4 +2,5 @@ openapi-spec-validator
 six
 lazy-object-proxy
 strict_rfc3339
+isodate
 attrs

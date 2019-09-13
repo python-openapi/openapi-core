@@ -421,6 +421,17 @@ class TestResponseValidator(object):
         assert result.data is None
         assert result.headers == {}
 
+    def test_invalid_media_type(self, validator):
+        request = MockRequest(self.host_url, 'get', '/v1/pets')
+        response = MockResponse("abcde")
+
+        result = validator.validate(request, response)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidMediaTypeValue
+        assert result.data is None
+        assert result.headers == {}
+
     def test_invalid_media_type_value(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
         response = MockResponse("{}")
@@ -458,7 +469,10 @@ class TestResponseValidator(object):
             'data': [
                 {
                     'id': 1,
-                    'name': 'Sparky'
+                    'name': 'Sparky',
+                    'ears': {
+                        'healthy': True,
+                    },
                 },
             ],
         }

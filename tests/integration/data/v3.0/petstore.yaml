@@ -317,7 +317,10 @@ components:
             suberror:
               $ref: "#/components/schemas/ExtendedError"
       additionalProperties:
-        type: string
+        oneOf:
+          - type: string
+          - type: integer
+            format: int32
   responses:
     ErrorResponse:
       description: unexpected error

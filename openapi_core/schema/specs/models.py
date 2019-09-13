@@ -14,11 +14,13 @@ log = logging.getLogger(__name__)
 class Spec(object):
     """Represents an OpenAPI Specification for a service."""
 
-    def __init__(self, info, paths, servers=None, components=None):
+    def __init__(self, info, paths, servers=None, components=None, _resolver=None):
         self.info = info
         self.paths = paths and dict(paths)
         self.servers = servers or []
         self.components = components
+
+        self._resolver = _resolver
 
     def __getitem__(self, path_pattern):
         return self.get_path(path_pattern)

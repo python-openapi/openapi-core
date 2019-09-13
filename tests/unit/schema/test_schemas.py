@@ -7,8 +7,7 @@ import pytest
 from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, MultipleOneOfSchema, NoOneOfSchema, OpenAPISchemaError,
-    UndefinedSchemaProperty
+    InvalidSchemaValue, OpenAPISchemaError,
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -41,6 +40,17 @@ class TestSchemaUnmarshal(object):
             result = schema.unmarshal(value)
 
         assert result == value
+
+    @pytest.mark.parametrize('schema_type', [
+        'boolean', 'array', 'integer', 'number',
+    ])
+    def test_non_string_empty_value(self, schema_type):
+        schema = Schema(schema_type)
+        value = ''
+
+        result = schema.unmarshal(value)
+
+        assert result is None
 
     def test_string_valid(self):
         schema = Schema('string')
@@ -121,19 +131,28 @@ class TestSchemaUnmarshal(object):
 
         assert result == datetime.datetime(2018, 1, 2, 0, 0)
 
-    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_custom(self):
+        def custom_formatter(value):
+            return 'x-custom'
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        with mock.patch.dict(
-            Schema.STRING_FORMAT_CAST_CALLABLE_GETTER,
-            {custom_format: lambda x: x + '-custom'},
-        ):
-            result = schema.unmarshal(value)
+        result = schema.unmarshal(
+            value, custom_formatters={custom_format: custom_formatter})
 
-        assert result == 'x-custom'
+        assert result == custom_formatter(value)
+
+    def test_string_format_custom_value_error(self):
+        def custom_formatter(value):
+            raise ValueError
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+
+        with pytest.raises(InvalidSchemaValue):
+            schema.unmarshal(
+                value, custom_formatters={custom_format: custom_formatter})
 
     def test_string_format_unknown(self):
         unknown_format = 'unknown'
@@ -143,16 +162,12 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(OpenAPISchemaError):
             schema.unmarshal(value)
 
-    @pytest.mark.xfail(reason="No custom formats support atm")
     def test_string_format_invalid_value(self):
         custom_format = 'custom'
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        with mock.patch.dict(
-            Schema.STRING_FORMAT_CALLABLE_GETTER,
-            {custom_format: mock.Mock(side_effect=ValueError())},
-        ), pytest.raises(
+        with pytest.raises(
             InvalidSchemaValue, message='Failed to format value'
         ):
             schema.unmarshal(value)
@@ -307,22 +322,6 @@ class TestSchemaUnmarshal(object):
         ])
         assert schema.unmarshal(['hello']) == ['hello']
 
-    def test_schema_any_one_of_mutiple(self):
-        schema = Schema(one_of=[
-            Schema('array', items=Schema('string')),
-            Schema('array', items=Schema('number')),
-        ])
-        with pytest.raises(MultipleOneOfSchema):
-            schema.unmarshal([])
-
-    def test_schema_any_one_of_no_valid(self):
-        schema = Schema(one_of=[
-            Schema('array', items=Schema('string')),
-            Schema('array', items=Schema('number')),
-        ])
-        with pytest.raises(NoOneOfSchema):
-            schema.unmarshal({})
-
     def test_schema_any(self):
         schema = Schema()
         assert schema.unmarshal('string') == 'string'
@@ -351,13 +350,23 @@ class TestSchemaValidate(object):
 
         assert result is None
 
+    @pytest.mark.xfail(
+        reason="validation does not care about custom formats atm")
+    def test_string_format_custom_missing(self):
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+
+        with pytest.raises(OpenAPISchemaError):
+            schema.validate(value)
+
     @pytest.mark.parametrize('value', [False, True])
     def test_boolean(self, value):
         schema = Schema('boolean')
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [1, 3.14, u('true'), [True, False]])
     def test_boolean_invalid(self, value):
@@ -366,22 +375,22 @@ class TestSchemaValidate(object):
         with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
 
-    @pytest.mark.parametrize('value', [[1, 2], (3, 4)])
+    @pytest.mark.parametrize('value', [(1, 2)])
     def test_array_no_schema(self, value):
         schema = Schema('array')
 
         with pytest.raises(OpenAPISchemaError):
             schema.validate(value)
 
-    @pytest.mark.parametrize('value', [[1, 2], (3, 4)])
+    @pytest.mark.parametrize('value', [[1, 2]])
     def test_array(self, value):
         schema = Schema('array', items=Schema('integer'))
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
-    @pytest.mark.parametrize('value', [False, 1, 3.14, u('true')])
+    @pytest.mark.parametrize('value', [False, 1, 3.14, u('true'), (3, 4)])
     def test_array_invalid(self, value):
         schema = Schema('array')
 
@@ -394,7 +403,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [False, 3.14, u('true'), [1, 2]])
     def test_integer_invalid(self, value):
@@ -416,7 +425,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [4, 5, 6])
     def test_integer_maximum_invalid(self, value):
@@ -431,7 +440,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [1, 2, 4])
     def test_integer_multiple_of_invalid(self, value):
@@ -446,7 +455,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [1, 3.14])
     def test_number(self, value):
@@ -454,7 +463,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [False, 'true', [1, 3]])
     def test_number_invalid(self, value):
@@ -476,7 +485,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [1, 2, 3])
     def test_number_exclusive_minimum_invalid(self, value):
@@ -491,7 +500,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [4, 5, 6])
     def test_number_maximum_invalid(self, value):
@@ -506,7 +515,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [3, 4, 5])
     def test_number_exclusive_maximum_invalid(self, value):
@@ -521,7 +530,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [1, 2, 4])
     def test_number_multiple_of_invalid(self, value):
@@ -536,17 +545,17 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
-    @pytest.mark.parametrize('value', [u('true'), ])
+    @pytest.mark.parametrize('value', [u('true'), b('test')])
     def test_string(self, value):
         schema = Schema('string')
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
-    @pytest.mark.parametrize('value', [b('test'), False, 1, 3.14, [1, 3]])
+    @pytest.mark.parametrize('value', [False, 1, 3.14, [1, 3]])
     def test_string_invalid(self, value):
         schema = Schema('string')
 
@@ -564,24 +573,24 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        datetime.date(1989, 1, 2), datetime.date(2018, 1, 2),
+        u('1989-01-02'), u('2018-01-02'),
     ])
     def test_string_format_date(self, value):
         schema = Schema('string', schema_format='date')
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [
-        uuid.UUID('{12345678-1234-5678-1234-567812345678}'),
+        u('12345678-1234-5678-1234-567812345678'),
     ])
     def test_string_format_uuid(self, value):
         schema = Schema('string', schema_format='uuid')
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [
         b('true'), u('true'), False, 1, 3.14, [1, 3],
@@ -595,7 +604,7 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [
         b('true'), u('true'), False, 1, 3.14, [1, 3],
-        datetime.date(1989, 1, 2),
+        u('1989-01-02'),
     ])
     def test_string_format_datetime_invalid(self, value):
         schema = Schema('string', schema_format='date-time')
@@ -604,19 +613,46 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        datetime.datetime(1989, 1, 2, 0, 0, 0),
-        datetime.datetime(2018, 1, 2, 23, 59, 59),
+        u('1989-01-02T00:00:00Z'),
+        u('2018-01-02T23:59:59Z'),
     ])
-    def test_string_format_datetime(self, value):
+    @mock.patch(
+        'openapi_core.schema.schemas._format.'
+        'DATETIME_HAS_STRICT_RFC3339', True
+    )
+    @mock.patch(
+        'openapi_core.schema.schemas._format.'
+        'DATETIME_HAS_ISODATE', False
+    )
+    def test_string_format_datetime_strict_rfc3339(self, value):
         schema = Schema('string', schema_format='date-time')
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [
-        u('true'), False, 1, 3.14, [1, 3], datetime.date(1989, 1, 2),
-        datetime.datetime(1989, 1, 2, 0, 0, 0),
+        u('1989-01-02T00:00:00Z'),
+        u('2018-01-02T23:59:59Z'),
+    ])
+    @mock.patch(
+        'openapi_core.schema.schemas._format.'
+        'DATETIME_HAS_STRICT_RFC3339', False
+    )
+    @mock.patch(
+        'openapi_core.schema.schemas._format.'
+        'DATETIME_HAS_ISODATE', True
+    )
+    def test_string_format_datetime_isodate(self, value):
+        schema = Schema('string', schema_format='date-time')
+
+        result = schema.validate(value)
+
+        assert result is None
+
+    @pytest.mark.parametrize('value', [
+        u('true'), False, 1, 3.14, [1, 3], u('1989-01-02'),
+        u('1989-01-02T00:00:00Z'),
     ])
     def test_string_format_binary_invalid(self, value):
         schema = Schema('string', schema_format='binary')
@@ -632,10 +668,20 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [
-        b('tsssst'), b('dGVzdA=='),
+        b('dGVzdA=='), u('dGVzdA=='),
+    ])
+    def test_string_format_byte(self, value):
+        schema = Schema('string', schema_format='byte')
+
+        result = schema.validate(value)
+
+        assert result is None
+
+    @pytest.mark.parametrize('value', [
+        u('tsssst'), b('tsssst'), b('tesddddsdsdst'),
     ])
     def test_string_format_byte_invalid(self, value):
         schema = Schema('string', schema_format='byte')
@@ -644,29 +690,12 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        u('tsssst'), u('dGVzdA=='),
-    ])
-    def test_string_format_byte(self, value):
-        schema = Schema('string', schema_format='byte')
-
-        result = schema.validate(value)
-
-        assert result == value
-
-    @pytest.mark.parametrize('value', [
         u('test'), b('stream'), datetime.date(1989, 1, 2),
         datetime.datetime(1989, 1, 2, 0, 0, 0),
     ])
     def test_string_format_unknown(self, value):
         unknown_format = 'unknown'
         schema = Schema('string', schema_format=unknown_format)
-
-        with pytest.raises(OpenAPISchemaError):
-            schema.validate(value)
-
-    @pytest.mark.parametrize('value', [u(""), ])
-    def test_string_min_length_invalid_schema(self, value):
-        schema = Schema('string', min_length=-1)
 
         with pytest.raises(OpenAPISchemaError):
             schema.validate(value)
@@ -684,7 +713,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [u(""), ])
     def test_string_max_length_invalid_schema(self, value):
@@ -706,7 +735,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [u("foo"), u("bar")])
     def test_string_pattern_invalid(self, value):
@@ -721,7 +750,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', ['true', False, 1, 3.14, [1, 3]])
     def test_object_not_an_object(self, value):
@@ -737,20 +766,20 @@ class TestSchemaValidate(object):
         ]
         schema = Schema('object', one_of=one_of)
 
-        with pytest.raises(MultipleOneOfSchema):
+        with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
 
-    @pytest.mark.parametrize('value', [Model(), ])
+    @pytest.mark.parametrize('value', [{}, ])
     def test_object_defferent_type_one_of(self, value):
         one_of = [
             Schema('integer'), Schema('string'),
         ]
         schema = Schema('object', one_of=one_of)
 
-        with pytest.raises(MultipleOneOfSchema):
+        with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
 
-    @pytest.mark.parametrize('value', [Model(), ])
+    @pytest.mark.parametrize('value', [{}, ])
     def test_object_no_one_of(self, value):
         one_of = [
             Schema(
@@ -766,17 +795,17 @@ class TestSchemaValidate(object):
         ]
         schema = Schema('object', one_of=one_of)
 
-        with pytest.raises(NoOneOfSchema):
+        with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        Model({
+        {
             'foo': u("FOO"),
-        }),
-        Model({
+        },
+        {
             'foo': u("FOO"),
             'bar': u("BAR"),
-        }),
+        },
     ])
     def test_unambiguous_one_of(self, value):
         one_of = [
@@ -800,15 +829,17 @@ class TestSchemaValidate(object):
         ]
         schema = Schema('object', one_of=one_of)
 
-        schema.validate(value)
+        result = schema.validate(value)
 
-    @pytest.mark.parametrize('value', [Model(), ])
+        assert result is None
+
+    @pytest.mark.parametrize('value', [{}, ])
     def test_object_default_property(self, value):
         schema = Schema('object', default='value1')
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [Model(), ])
     def test_object_min_properties_invalid_schema(self, value):
@@ -818,9 +849,10 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        Model({'a': 1}),
-        Model({'a': 1, 'b': 2}),
-        Model({'a': 1, 'b': 2, 'c': 3})])
+        {'a': 1},
+        {'a': 1, 'b': 2},
+        {'a': 1, 'b': 2, 'c': 3},
+    ])
     def test_object_min_properties_invalid(self, value):
         schema = Schema(
             'object',
@@ -833,9 +865,10 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        Model({'a': 1}),
-        Model({'a': 1, 'b': 2}),
-        Model({'a': 1, 'b': 2, 'c': 3})])
+        {'a': 1},
+        {'a': 1, 'b': 2},
+        {'a': 1, 'b': 2, 'c': 3},
+    ])
     def test_object_min_properties(self, value):
         schema = Schema(
             'object',
@@ -846,7 +879,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [Model(), ])
     def test_object_max_properties_invalid_schema(self, value):
@@ -856,9 +889,10 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        Model({'a': 1}),
-        Model({'a': 1, 'b': 2}),
-        Model({'a': 1, 'b': 2, 'c': 3})])
+        {'a': 1},
+        {'a': 1, 'b': 2},
+        {'a': 1, 'b': 2, 'c': 3},
+    ])
     def test_object_max_properties_invalid(self, value):
         schema = Schema(
             'object',
@@ -871,9 +905,10 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        Model({'a': 1}),
-        Model({'a': 1, 'b': 2}),
-        Model({'a': 1, 'b': 2, 'c': 3})])
+        {'a': 1},
+        {'a': 1, 'b': 2},
+        {'a': 1, 'b': 2, 'c': 3},
+    ])
     def test_object_max_properties(self, value):
         schema = Schema(
             'object',
@@ -884,38 +919,31 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
-    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+    @pytest.mark.parametrize('value', [{'additional': 1}, ])
     def test_object_additional_propetries(self, value):
         schema = Schema('object')
 
-        schema.validate(value)
+        result = schema.validate(value)
 
-    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+        assert result is None
+
+    @pytest.mark.parametrize('value', [{'additional': 1}, ])
     def test_object_additional_propetries_false(self, value):
         schema = Schema('object', additional_properties=False)
 
-        with pytest.raises(UndefinedSchemaProperty):
+        with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
 
-    @pytest.mark.parametrize('value', [Model({'additional': 1}), ])
+    @pytest.mark.parametrize('value', [{'additional': 1}, ])
     def test_object_additional_propetries_object(self, value):
         additional_properties = Schema('integer')
         schema = Schema('object', additional_properties=additional_properties)
 
-        schema.validate(value)
+        result = schema.validate(value)
 
-    @pytest.mark.parametrize('value', [[], ])
-    def test_list_min_items_invalid_schema(self, value):
-        schema = Schema(
-            'array',
-            items=Schema('number'),
-            min_items=-1,
-        )
-
-        with pytest.raises(OpenAPISchemaError):
-            schema.validate(value)
+        assert result is None
 
     @pytest.mark.parametrize('value', [[], [1], [1, 2]])
     def test_list_min_items_invalid(self, value):
@@ -938,7 +966,7 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [[], ])
     def test_list_max_items_invalid_schema(self, value):
@@ -974,16 +1002,16 @@ class TestSchemaValidate(object):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [
-        Model({
+        {
             'someint': 123,
-        }),
-        Model({
+        },
+        {
             'somestr': u('content'),
-        }),
-        Model({
+        },
+        {
             'somestr': u('content'),
             'someint': 123,
-        }),
+        },
     ])
     def test_object_with_properties(self, value):
         schema = Schema(
@@ -996,32 +1024,28 @@ class TestSchemaValidate(object):
 
         result = schema.validate(value)
 
-        assert result == value
+        assert result is None
 
     @pytest.mark.parametrize('value', [
-        Model({
-            'somestr': Model(),
-            'someint': 123,
-        }),
-        Model({
+        {
             'somestr': {},
             'someint': 123,
-        }),
-        Model({
+        },
+        {
             'somestr': [
                 'content1', 'content2'
             ],
             'someint': 123,
-        }),
-        Model({
+        },
+        {
             'somestr': 123,
             'someint': 123,
-        }),
-        Model({
+        },
+        {
             'somestr': 'content',
             'someint': 123,
             'not_in_scheme_prop': 123,
-        }),
+        },
     ])
     def test_object_with_invalid_properties(self, value):
         schema = Schema(

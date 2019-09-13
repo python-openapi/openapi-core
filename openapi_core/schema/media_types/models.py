@@ -32,22 +32,25 @@ class MediaType(object):
         deserializer = self.get_dererializer()
         return deserializer(value)
 
-    def unmarshal(self, value, custom_formatters=None):
+    def cast(self, value):
         if not self.schema:
             return value
 
         try:
-            deserialized = self.deserialize(value)
+            return self.deserialize(value)
         except ValueError as exc:
             raise InvalidMediaTypeValue(exc)
 
+    def unmarshal(self, value, custom_formatters=None, resolver=None):
+        if not self.schema:
+            return value
+
         try:
-            unmarshalled = self.schema.unmarshal(deserialized, custom_formatters=custom_formatters)
+            self.schema.validate(value, resolver=resolver)
         except OpenAPISchemaError as exc:
             raise InvalidMediaTypeValue(exc)
 
         try:
-            return self.schema.validate(
-                unmarshalled, custom_formatters=custom_formatters)
+            return self.schema.unmarshal(value, custom_formatters=custom_formatters)
         except OpenAPISchemaError as exc:
             raise InvalidMediaTypeValue(exc)
