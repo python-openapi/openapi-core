@@ -6,6 +6,16 @@ from openapi_core.validation.datatypes import BaseValidationResult
 
 @attr.s
 class OpenAPIResponse(object):
+    """OpenAPI request dataclass.
+
+    Attributes:
+        data
+            The response body, as string.
+        status_code
+            The status code as integer.
+        mimetype
+            Lowercase content type without charset.
+    """
 
     data = attr.ib()
     status_code = attr.ib()
