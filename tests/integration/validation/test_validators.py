@@ -17,6 +17,7 @@ from openapi_core.schema.responses.exceptions import (
 )
 from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.shortcuts import create_spec
+from openapi_core.validation.request.datatypes import RequestParameters
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 from openapi_core.wrappers.mock import MockRequest, MockResponse
@@ -54,7 +55,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidServer
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters is None
 
     def test_invalid_path(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1')
@@ -64,7 +65,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidPath
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters is None
 
     def test_invalid_operation(self, validator):
         request = MockRequest(self.host_url, 'patch', '/v1/pets')
@@ -74,7 +75,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidOperation
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters is None
 
     def test_missing_parameter(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
@@ -83,12 +84,12 @@ class TestRequestValidator(object):
 
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
-        assert result.parameters == {
-            'query': {
+        assert result.parameters == RequestParameters(
+            query={
                 'page': 1,
                 'search': '',
             },
-        }
+        )
 
     def test_get_pets(self, validator):
         request = MockRequest(
@@ -100,13 +101,13 @@ class TestRequestValidator(object):
 
         assert result.errors == []
         assert result.body is None
-        assert result.parameters == {
-            'query': {
+        assert result.parameters == RequestParameters(
+            query={
                 'limit': 10,
                 'page': 1,
                 'search': '',
             },
-        }
+        )
 
     def test_missing_body(self, validator):
         headers = {
@@ -126,14 +127,14 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequestBody
         assert result.body is None
-        assert result.parameters == {
-            'header': {
+        assert result.parameters == RequestParameters(
+            header={
                 'api_key': self.api_key,
             },
-            'cookie': {
+            cookie={
                 'user': 123,
             },
-        }
+        )
 
     def test_invalid_content_type(self, validator):
         headers = {
@@ -153,14 +154,14 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidContentType
         assert result.body is None
-        assert result.parameters == {
-            'header': {
+        assert result.parameters == RequestParameters(
+            header={
                 'api_key': self.api_key,
             },
-            'cookie': {
+            cookie={
                 'user': 123,
             },
-        }
+        )
 
     def test_post_pets(self, validator, spec_dict):
         pet_name = 'Cat'
@@ -195,14 +196,14 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert result.errors == []
-        assert result.parameters == {
-            'header': {
+        assert result.parameters == RequestParameters(
+            header={
                 'api_key': self.api_key,
             },
-            'cookie': {
+            cookie={
                 'user': 123,
             },
-        }
+        )
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -225,11 +226,11 @@ class TestRequestValidator(object):
 
         assert result.errors == []
         assert result.body is None
-        assert result.parameters == {
-            'path': {
+        assert result.parameters == RequestParameters(
+            path={
                 'petId': 1,
             },
-        }
+        )
 
 
 class TestPathItemParamsValidator(object):
@@ -280,7 +281,7 @@ class TestPathItemParamsValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters == RequestParameters()
 
     def test_request_invalid_param(self, validator):
         request = MockRequest(
@@ -292,7 +293,7 @@ class TestPathItemParamsValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidParameterValue
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters == RequestParameters()
 
     def test_request_valid_param(self, validator):
         request = MockRequest(
@@ -303,7 +304,7 @@ class TestPathItemParamsValidator(object):
 
         assert len(result.errors) == 0
         assert result.body is None
-        assert result.parameters == {'query': {'resId': 10}}
+        assert result.parameters == RequestParameters(query={'resId': 10})
 
     def test_request_override_param(self, spec_dict):
         # override path parameter on operation
@@ -324,7 +325,7 @@ class TestPathItemParamsValidator(object):
 
         assert len(result.errors) == 0
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters == RequestParameters()
 
     def test_request_override_param_uniqueness(self, spec_dict):
         # add parameter on operation with same name as on path but
@@ -347,7 +348,7 @@ class TestPathItemParamsValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters == RequestParameters()
 
 
 class TestResponseValidator(object):

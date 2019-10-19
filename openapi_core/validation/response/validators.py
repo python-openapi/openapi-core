@@ -1,6 +1,6 @@
 """OpenAPI core validation response validators module"""
 from openapi_core.schema.exceptions import OpenAPIMappingError
-from openapi_core.validation.response.models import ResponseValidationResult
+from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.util import get_operation_pattern
 
 

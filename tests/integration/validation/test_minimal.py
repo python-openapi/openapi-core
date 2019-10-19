@@ -47,7 +47,7 @@ class TestMinimal(object):
         assert len(result.errors) == 1
         assert isinstance(result.errors[0], InvalidOperation)
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters is None
 
     @pytest.mark.parametrize("server", servers)
     @pytest.mark.parametrize("spec_path", spec_paths)
@@ -62,4 +62,4 @@ class TestMinimal(object):
         assert len(result.errors) == 1
         assert isinstance(result.errors[0], InvalidPath)
         assert result.body is None
-        assert result.parameters == {}
+        assert result.parameters is None
