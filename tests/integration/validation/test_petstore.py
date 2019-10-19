@@ -15,8 +15,10 @@ from openapi_core.schema.parameters.exceptions import (
 from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
 from openapi_core.schema.servers.exceptions import InvalidServer
-from openapi_core.shortcuts import create_spec
-from openapi_core.testing.mock import MockRequest, MockResponse
+from openapi_core.shortcuts import (
+    create_spec, validate_parameters, validate_body,
+)
+from openapi_core.testing import MockRequest, MockResponse
 from openapi_core.validation.request.datatypes import RequestParameters
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -64,8 +66,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -100,8 +102,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -146,8 +148,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -197,8 +199,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -235,8 +237,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -274,9 +276,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(InvalidParameterValue):
-            request.get_parameters(spec)
+            validate_parameters(spec, request)
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         assert body is None
 
@@ -293,9 +295,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(InvalidParameterValue):
-            request.get_parameters(spec)
+            validate_parameters(spec, request)
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         assert body is None
 
@@ -308,9 +310,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(MissingRequiredParameter):
-            request.get_parameters(spec)
+            validate_parameters(spec, request)
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         assert body is None
 
@@ -327,8 +329,8 @@ class TestPetstore(object):
         )
 
         with pytest.raises(EmptyParameterValue):
-            request.get_parameters(spec)
-        body = request.get_body(spec)
+            validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert body is None
 
@@ -344,7 +346,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -354,7 +356,7 @@ class TestPetstore(object):
             }
         )
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         assert body is None
 
@@ -393,7 +395,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -404,7 +406,7 @@ class TestPetstore(object):
             },
         )
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -453,7 +455,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -464,7 +466,7 @@ class TestPetstore(object):
             },
         )
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -513,7 +515,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -524,7 +526,7 @@ class TestPetstore(object):
             },
         )
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -561,7 +563,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -573,7 +575,7 @@ class TestPetstore(object):
         )
 
         with pytest.raises(InvalidMediaTypeValue):
-            request.get_body(spec)
+            validate_body(spec, request)
 
     def test_post_cats_only_required_body(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -600,7 +602,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -611,7 +613,7 @@ class TestPetstore(object):
             },
         )
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -641,7 +643,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -653,7 +655,7 @@ class TestPetstore(object):
         )
 
         with pytest.raises(InvalidContentType):
-            request.get_body(spec)
+            validate_body(spec, request)
 
     def test_post_pets_missing_cookie(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -678,9 +680,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(MissingRequiredParameter):
-            request.get_parameters(spec)
+            validate_parameters(spec, request)
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -712,9 +714,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(MissingRequiredParameter):
-            request.get_parameters(spec)
+            validate_parameters(spec, request)
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -745,10 +747,10 @@ class TestPetstore(object):
         )
 
         with pytest.raises(InvalidServer):
-            request.get_parameters(spec)
+            validate_parameters(spec, request)
 
         with pytest.raises(InvalidServer):
-            request.get_body(spec)
+            validate_body(spec, request)
 
     def test_get_pet(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -761,7 +763,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, view_args=view_args,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             path={
@@ -769,7 +771,7 @@ class TestPetstore(object):
             }
         )
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         assert body is None
 
@@ -806,7 +808,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, view_args=view_args,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             path={
@@ -814,7 +816,7 @@ class TestPetstore(object):
             }
         )
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         assert body is None
 
@@ -848,7 +850,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, view_args=view_args,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             path={
@@ -856,7 +858,7 @@ class TestPetstore(object):
             }
         )
 
-        body = request.get_body(spec)
+        body = validate_body(spec, request)
 
         assert body is None
 
@@ -877,8 +879,8 @@ class TestPetstore(object):
             path_pattern=path_pattern,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert body is None
@@ -908,12 +910,12 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters()
 
         with pytest.raises(InvalidMediaTypeValue):
-            request.get_body(spec)
+            validate_body(spec, request)
 
     def test_post_tags_empty_body(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -926,12 +928,12 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters()
 
         with pytest.raises(InvalidMediaTypeValue):
-            request.get_body(spec)
+            validate_body(spec, request)
 
     def test_post_tags_wrong_property_type(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -944,12 +946,12 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
 
         assert parameters == RequestParameters()
 
         with pytest.raises(InvalidMediaTypeValue):
-            request.get_body(spec)
+            validate_body(spec, request)
 
     def test_post_tags_additional_properties(
             self, spec, response_validator):
@@ -966,8 +968,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert isinstance(body, BaseModel)
@@ -1012,8 +1014,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert isinstance(body, BaseModel)
@@ -1059,8 +1061,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = request.get_parameters(spec)
-        body = request.get_body(spec)
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert isinstance(body, BaseModel)
@@ -1106,9 +1108,9 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = request.get_parameters(spec)
+        parameters = validate_parameters(spec, request)
         with pytest.raises(InvalidMediaTypeValue):
-            request.get_body(spec)
+            validate_body(spec, request)
 
         assert parameters == RequestParameters()
 
