@@ -81,7 +81,7 @@ or use shortcuts for simple validation
    validated_params = validate_parameters(spec, request)
    validated_body = validate_body(spec, request)
 
-Request object should implement BaseOpenAPIRequest interface. You can use FlaskOpenAPIRequest a Flask/Werkzeug request wrapper implementation:
+Request object should be instance of OpenAPIRequest class. You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
 
 .. code-block:: python
 
@@ -92,16 +92,16 @@ Request object should implement BaseOpenAPIRequest interface. You can use FlaskO
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-or specify request wrapper class for shortcuts
+or simply specify request factory for shortcuts
 
 .. code-block:: python
 
    from openapi_core import validate_parameters, validate_body
 
    validated_params = validate_parameters(
-       spec, request, wrapper_class=FlaskOpenAPIRequest)
+       spec, request, request_factory=FlaskOpenAPIRequest)
    validated_body = validate_body(
-       spec, request, wrapper_class=FlaskOpenAPIRequest)
+       spec, request, request_factory=FlaskOpenAPIRequest)
 
 You can also validate responses
 
@@ -136,7 +136,7 @@ or use shortcuts for simple validation
 
    validated_data = validate_data(spec, request, response)
 
-Response object should implement BaseOpenAPIResponse interface. You can use FlaskOpenAPIResponse a Flask/Werkzeug response wrapper implementation:
+Response object should be instance of OpenAPIResponse class. You can use FlaskOpenAPIResponse a Flask/Werkzeug response factory:
 
 .. code-block:: python
 
@@ -147,14 +147,14 @@ Response object should implement BaseOpenAPIResponse interface. You can use Flas
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
 
-or specify response wrapper class for shortcuts
+or simply specify response factory for shortcuts
 
 .. code-block:: python
 
    from openapi_core import validate_parameters, validate_body
 
    validated_data = validate_data(
-       spec, request, response, response_wrapper_class=FlaskOpenAPIResponse)
+       spec, request, response, response_factory=FlaskOpenAPIResponse)
 
 Related projects
 ================

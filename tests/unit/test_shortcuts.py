@@ -27,7 +27,7 @@ class ResultMock(object):
             return self.data
 
 
-class WrapperClassMock(object):
+class FactoryClassMock(object):
 
     _instances = {}
 
@@ -43,7 +43,7 @@ class WrapperClassMock(object):
 class TestValidateParameters(object):
 
     @mock.patch('openapi_core.shortcuts.RequestValidator.validate')
-    def test_no_wrapper(self, mock_validate):
+    def test_no_request_factory(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         parameters = mock.sentinel.parameters
@@ -55,7 +55,7 @@ class TestValidateParameters(object):
         mock_validate.aasert_called_once_with(request)
 
     @mock.patch('openapi_core.shortcuts.RequestValidator.validate')
-    def test_no_wrapper_error(self, mock_validate):
+    def test_no_request_factory_error(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         mock_validate.return_value = ResultMock(error_to_raise=ValueError)
@@ -66,39 +66,39 @@ class TestValidateParameters(object):
         mock_validate.aasert_called_once_with(request)
 
     @mock.patch('openapi_core.shortcuts.RequestValidator.validate')
-    def test_wrapper(self, mock_validate):
+    def test_request_factory(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         parameters = mock.sentinel.parameters
         mock_validate.return_value = ResultMock(parameters=parameters)
-        request_wrapper_class = WrapperClassMock
+        request_factory = FactoryClassMock
 
-        result = validate_parameters(spec, request, request_wrapper_class)
+        result = validate_parameters(spec, request, request_factory)
 
         assert result == parameters
         mock_validate.assert_called_once_with(
-            WrapperClassMock(request),
+            FactoryClassMock(request),
         )
 
     @mock.patch('openapi_core.shortcuts.RequestValidator.validate')
-    def test_wrapper_error(self, mock_validate):
+    def test_request_factory_error(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         mock_validate.return_value = ResultMock(error_to_raise=ValueError)
-        request_wrapper_class = WrapperClassMock
+        request_factory = FactoryClassMock
 
         with pytest.raises(ValueError):
-            validate_parameters(spec, request, request_wrapper_class)
+            validate_parameters(spec, request, request_factory)
 
         mock_validate.assert_called_once_with(
-            WrapperClassMock(request),
+            FactoryClassMock(request),
         )
 
 
 class TestValidateBody(object):
 
     @mock.patch('openapi_core.shortcuts.RequestValidator.validate')
-    def test_no_wrapper(self, mock_validate):
+    def test_no_request_factory(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         body = mock.sentinel.body
@@ -110,7 +110,7 @@ class TestValidateBody(object):
         mock_validate.aasert_called_once_with(request)
 
     @mock.patch('openapi_core.shortcuts.RequestValidator.validate')
-    def test_no_wrapper_error(self, mock_validate):
+    def test_no_request_factory_error(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         mock_validate.return_value = ResultMock(error_to_raise=ValueError)
@@ -121,39 +121,39 @@ class TestValidateBody(object):
         mock_validate.aasert_called_once_with(request)
 
     @mock.patch('openapi_core.shortcuts.RequestValidator.validate')
-    def test_wrapper(self, mock_validate):
+    def test_request_factory(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         body = mock.sentinel.body
         mock_validate.return_value = ResultMock(body=body)
-        request_wrapper_class = WrapperClassMock
+        request_factory = FactoryClassMock
 
-        result = validate_body(spec, request, request_wrapper_class)
+        result = validate_body(spec, request, request_factory)
 
         assert result == body
         mock_validate.assert_called_once_with(
-            WrapperClassMock(request),
+            FactoryClassMock(request),
         )
 
     @mock.patch('openapi_core.shortcuts.RequestValidator.validate')
-    def test_wrapper_error(self, mock_validate):
+    def test_request_factory_error(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         mock_validate.return_value = ResultMock(error_to_raise=ValueError)
-        request_wrapper_class = WrapperClassMock
+        request_factory = FactoryClassMock
 
         with pytest.raises(ValueError):
-            validate_body(spec, request, request_wrapper_class)
+            validate_body(spec, request, request_factory)
 
         mock_validate.assert_called_once_with(
-            WrapperClassMock(request),
+            FactoryClassMock(request),
         )
 
 
 class TestvalidateData(object):
 
     @mock.patch('openapi_core.shortcuts.ResponseValidator.validate')
-    def test_no_wrappers(self, mock_validate):
+    def test_no_factories(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         response = mock.sentinel.response
@@ -166,7 +166,7 @@ class TestvalidateData(object):
         mock_validate.aasert_called_once_with(request, response)
 
     @mock.patch('openapi_core.shortcuts.ResponseValidator.validate')
-    def test_no_wrappers_error(self, mock_validate):
+    def test_no_factories_error(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         response = mock.sentinel.response
@@ -178,42 +178,42 @@ class TestvalidateData(object):
         mock_validate.aasert_called_once_with(request, response)
 
     @mock.patch('openapi_core.shortcuts.ResponseValidator.validate')
-    def test_wrappers(self, mock_validate):
+    def test_factories(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         response = mock.sentinel.response
         data = mock.sentinel.data
         mock_validate.return_value = ResultMock(data=data)
-        request_wrapper_class = WrapperClassMock
-        response_wrapper_class = WrapperClassMock
+        request_factory = FactoryClassMock
+        response_factory = FactoryClassMock
 
         result = validate_data(
             spec, request, response,
-            request_wrapper_class, response_wrapper_class,
+            request_factory, response_factory,
         )
 
         assert result == data
         mock_validate.assert_called_once_with(
-            WrapperClassMock(request),
-            WrapperClassMock(response),
+            FactoryClassMock(request),
+            FactoryClassMock(response),
         )
 
     @mock.patch('openapi_core.shortcuts.ResponseValidator.validate')
-    def test_wrappers_error(self, mock_validate):
+    def test_factories_error(self, mock_validate):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         response = mock.sentinel.response
         mock_validate.return_value = ResultMock(error_to_raise=ValueError)
-        request_wrapper_class = WrapperClassMock
-        response_wrapper_class = WrapperClassMock
+        request_factory = FactoryClassMock
+        response_factory = FactoryClassMock
 
         with pytest.raises(ValueError):
             validate_data(
                 spec, request, response,
-                request_wrapper_class, response_wrapper_class,
+                request_factory, response_factory,
             )
 
         mock_validate.assert_called_once_with(
-            WrapperClassMock(request),
-            WrapperClassMock(response),
+            FactoryClassMock(request),
+            FactoryClassMock(response),
         )

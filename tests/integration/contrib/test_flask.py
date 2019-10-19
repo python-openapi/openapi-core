@@ -4,12 +4,13 @@ from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
 from werkzeug.routing import Map, Rule, Subdomain
 from werkzeug.test import create_environ
 
-from openapi_core.shortcuts import create_spec
-from openapi_core.validation.response.validators import ResponseValidator
-from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.contrib.flask import (
     FlaskOpenAPIRequest, FlaskOpenAPIResponse,
 )
+from openapi_core.shortcuts import create_spec
+from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.response.validators import ResponseValidator
 
 
 @pytest.fixture
@@ -67,12 +68,12 @@ class TestFlaskOpenAPIRequest(object):
         query = ImmutableMultiDict([])
         headers = EnvironHeaders(request.environ)
         cookies = {}
-        assert openapi_request.parameters == {
-            'path': path,
-            'query': query,
-            'header': headers,
-            'cookie': cookies,
-        }
+        assert openapi_request.parameters == RequestParameters(
+            path=path,
+            query=query,
+            header=headers,
+            cookie=cookies,
+        )
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
         assert openapi_request.method == request.method.lower()
@@ -92,12 +93,12 @@ class TestFlaskOpenAPIRequest(object):
         ])
         headers = EnvironHeaders(request.environ)
         cookies = {}
-        assert openapi_request.parameters == {
-            'path': path,
-            'query': query,
-            'header': headers,
-            'cookie': cookies,
-        }
+        assert openapi_request.parameters == RequestParameters(
+            path=path,
+            query=query,
+            header=headers,
+            cookie=cookies,
+        )
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
         assert openapi_request.method == request.method.lower()
@@ -114,12 +115,12 @@ class TestFlaskOpenAPIRequest(object):
         query = ImmutableMultiDict([])
         headers = EnvironHeaders(request.environ)
         cookies = {}
-        assert openapi_request.parameters == {
-            'path': path,
-            'query': query,
-            'header': headers,
-            'cookie': cookies,
-        }
+        assert openapi_request.parameters == RequestParameters(
+            path=path,
+            query=query,
+            header=headers,
+            cookie=cookies,
+        )
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
         assert openapi_request.method == request.method.lower()
@@ -135,7 +136,6 @@ class TestFlaskOpenAPIResponse(object):
 
         openapi_response = FlaskOpenAPIResponse(response)
 
-        assert openapi_response.response == response
         assert openapi_response.data == response.data
         assert openapi_response.status_code == response._status_code
         assert openapi_response.mimetype == response.mimetype
@@ -145,7 +145,7 @@ class TestFlaskOpenAPIValidation(object):
 
     @pytest.fixture
     def flask_spec(self, factory):
-        specfile = 'data/v3.0/flask_wrapper.yaml'
+        specfile = 'data/v3.0/flask_factory.yaml'
         return create_spec(factory.spec_from_file(specfile))
 
     def test_response_validator_path_pattern(self,

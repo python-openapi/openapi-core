@@ -1,4 +1,11 @@
-from openapi_core.contrib.flask.requests import FlaskOpenAPIRequest
-from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
+from openapi_core.contrib.flask.requests import FlaskOpenAPIRequestFactory
+from openapi_core.contrib.flask.responses import FlaskOpenAPIResponseFactory
 
-__all__ = ['FlaskOpenAPIRequest', 'FlaskOpenAPIResponse']
+# backward compatibility
+FlaskOpenAPIRequest = FlaskOpenAPIRequestFactory.create
+FlaskOpenAPIResponse = FlaskOpenAPIResponseFactory.create
+
+__all__ = [
+    'FlaskOpenAPIRequestFactory', 'FlaskOpenAPIResponseFactory',
+    'FlaskOpenAPIRequest', 'FlaskOpenAPIResponse',
+]

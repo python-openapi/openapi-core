@@ -1,51 +1,39 @@
 """OpenAPI core contrib flask requests module"""
 import re
 
-from openapi_core.wrappers.base import BaseOpenAPIRequest
+from openapi_core.validation.request.datatypes import (
+    RequestParameters, OpenAPIRequest,
+)
 
 # http://flask.pocoo.org/docs/1.0/quickstart/#variable-rules
 PATH_PARAMETER_PATTERN = r'<(?:(?:string|int|float|path|uuid):)?(\w+)>'
 
 
-class FlaskOpenAPIRequest(BaseOpenAPIRequest):
+class FlaskOpenAPIRequestFactory(object):
 
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
-    def __init__(self, request):
-        self.request = request
+    @classmethod
+    def create(cls, request):
+        method = request.method.lower()
 
-    @property
-    def host_url(self):
-        return self.request.host_url
+        if request.url_rule is None:
+            path_pattern = request.path
+        else:
+            path_pattern = cls.path_regex.sub(r'{\1}', request.url_rule.rule)
 
-    @property
-    def path(self):
-        return self.request.path
-
-    @property
-    def method(self):
-        return self.request.method.lower()
-
-    @property
-    def path_pattern(self):
-        if self.request.url_rule is None:
-            return self.path
-
-        return self.path_regex.sub(r'{\1}', self.request.url_rule.rule)
-
-    @property
-    def parameters(self):
-        return {
-            'path': self.request.view_args,
-            'query': self.request.args,
-            'header': self.request.headers,
-            'cookie': self.request.cookies,
-        }
-
-    @property
-    def body(self):
-        return self.request.data
-
-    @property
-    def mimetype(self):
-        return self.request.mimetype
+        parameters = RequestParameters(
+            path=request.view_args,
+            query=request.args,
+            header=request.headers,
+            cookie=request.cookies,
+        )
+        return OpenAPIRequest(
+            host_url=request.host_url,
+            path=request.path,
+            path_pattern=path_pattern,
+            method=method,
+            parameters=parameters,
+            body=request.data,
+            mimetype=request.mimetype,
+        )

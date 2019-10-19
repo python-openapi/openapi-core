@@ -1,22 +1,15 @@
 """OpenAPI core contrib flask responses module"""
 import re
 
-from openapi_core.wrappers.base import BaseOpenAPIResponse
+from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
-class FlaskOpenAPIResponse(BaseOpenAPIResponse):
+class FlaskOpenAPIResponseFactory(object):
 
-    def __init__(self, response):
-        self.response = response
-
-    @property
-    def data(self):
-        return self.response.data
-
-    @property
-    def status_code(self):
-        return self.response._status_code
-
-    @property
-    def mimetype(self):
-        return self.response.mimetype
+    @classmethod
+    def create(cls, response):
+        return OpenAPIResponse(
+            data=response.data,
+            status_code=response._status_code,
+            mimetype=response.mimetype,
+        )
