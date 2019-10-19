@@ -1,7 +1,7 @@
-"""OpenAPI core wrappers module"""
+"""OpenAPI core contrib flask requests module"""
 import re
 
-from openapi_core.wrappers.base import BaseOpenAPIRequest, BaseOpenAPIResponse
+from openapi_core.wrappers.base import BaseOpenAPIRequest
 
 # http://flask.pocoo.org/docs/1.0/quickstart/#variable-rules
 PATH_PARAMETER_PATTERN = r'<(?:(?:string|int|float|path|uuid):)?(\w+)>'
@@ -49,21 +49,3 @@ class FlaskOpenAPIRequest(BaseOpenAPIRequest):
     @property
     def mimetype(self):
         return self.request.mimetype
-
-
-class FlaskOpenAPIResponse(BaseOpenAPIResponse):
-
-    def __init__(self, response):
-        self.response = response
-
-    @property
-    def data(self):
-        return self.response.data
-
-    @property
-    def status_code(self):
-        return self.response._status_code
-
-    @property
-    def mimetype(self):
-        return self.response.mimetype

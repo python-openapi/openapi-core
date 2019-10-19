@@ -1,14 +1,15 @@
 from flask.wrappers import Request, Response
+import pytest
 from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
 from werkzeug.routing import Map, Rule, Subdomain
 from werkzeug.test import create_environ
 
-import pytest
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.response.validators import ResponseValidator
 from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.wrappers.flask import (FlaskOpenAPIRequest,
-                                         FlaskOpenAPIResponse)
+from openapi_core.contrib.flask import (
+    FlaskOpenAPIRequest, FlaskOpenAPIResponse,
+)
 
 
 @pytest.fixture
