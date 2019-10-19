@@ -66,8 +66,10 @@ and unmarshal request data from validation result
 
 .. code-block:: python
 
-   # get parameters dictionary with path, query, cookies and headers parameters
+   # get parameters object with path, query, cookies and headers parameters
    validated_params = result.parameters
+   # or specific parameters
+   validated_path_params = result.parameters.path
 
    # get body
    validated_body = result.body
@@ -154,7 +156,9 @@ or simply specify response factory for shortcuts
    from openapi_core import validate_parameters, validate_body
 
    validated_data = validate_data(
-       spec, request, response, response_factory=FlaskOpenAPIResponse)
+       spec, request, response,
+       request_factory=FlaskOpenAPIRequest,
+       response_factory=FlaskOpenAPIResponse)
 
 Related projects
 ================
