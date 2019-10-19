@@ -1,10 +1,10 @@
-"""OpenAPI core validation models module"""
+"""OpenAPI core validation datatypes module"""
+import attr
 
 
+@attr.s
 class BaseValidationResult(object):
-
-    def __init__(self, errors):
-        self.errors = errors
+    errors = attr.ib(factory=list)
 
     def raise_for_errors(self):
         for error in self.errors:

@@ -4,7 +4,7 @@ from six import iteritems
 
 from openapi_core.schema.exceptions import OpenAPIMappingError
 from openapi_core.schema.parameters.exceptions import MissingParameter
-from openapi_core.validation.request.models import (
+from openapi_core.validation.request.datatypes import (
     RequestParameters, RequestValidationResult,
 )
 from openapi_core.validation.util import get_operation_pattern
