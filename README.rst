@@ -66,8 +66,10 @@ and unmarshal request data from validation result
 
 .. code-block:: python
 
-   # get parameters dictionary with path, query, cookies and headers parameters
+   # get parameters object with path, query, cookies and headers parameters
    validated_params = result.parameters
+   # or specific parameters
+   validated_path_params = result.parameters.path
 
    # get body
    validated_body = result.body
@@ -81,27 +83,27 @@ or use shortcuts for simple validation
    validated_params = validate_parameters(spec, request)
    validated_body = validate_body(spec, request)
 
-Request object should implement BaseOpenAPIRequest interface. You can use FlaskOpenAPIRequest a Flask/Werkzeug request wrapper implementation:
+Request object should be instance of OpenAPIRequest class. You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
 
 .. code-block:: python
 
    from openapi_core.shortcuts import RequestValidator
-   from openapi_core.wrappers.flask import FlaskOpenAPIRequest
+   from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
    openapi_request = FlaskOpenAPIRequest(flask_request)
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-or specify request wrapper class for shortcuts
+or simply specify request factory for shortcuts
 
 .. code-block:: python
 
    from openapi_core import validate_parameters, validate_body
 
    validated_params = validate_parameters(
-       spec, request, wrapper_class=FlaskOpenAPIRequest)
+       spec, request, request_factory=FlaskOpenAPIRequest)
    validated_body = validate_body(
-       spec, request, wrapper_class=FlaskOpenAPIRequest)
+       spec, request, request_factory=FlaskOpenAPIRequest)
 
 You can also validate responses
 
@@ -136,25 +138,27 @@ or use shortcuts for simple validation
 
    validated_data = validate_data(spec, request, response)
 
-Response object should implement BaseOpenAPIResponse interface. You can use FlaskOpenAPIResponse a Flask/Werkzeug response wrapper implementation:
+Response object should be instance of OpenAPIResponse class. You can use FlaskOpenAPIResponse a Flask/Werkzeug response factory:
 
 .. code-block:: python
 
    from openapi_core.shortcuts import ResponseValidator
-   from openapi_core.wrappers.flask import FlaskOpenAPIResponse
+   from openapi_core.contrib.flask import FlaskOpenAPIResponse
 
    openapi_response = FlaskOpenAPIResponse(flask_response)
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
 
-or specify response wrapper class for shortcuts
+or simply specify response factory for shortcuts
 
 .. code-block:: python
 
    from openapi_core import validate_parameters, validate_body
 
    validated_data = validate_data(
-       spec, request, response, response_wrapper_class=FlaskOpenAPIResponse)
+       spec, request, response,
+       request_factory=FlaskOpenAPIRequest,
+       response_factory=FlaskOpenAPIResponse)
 
 Related projects
 ================

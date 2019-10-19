@@ -20,9 +20,9 @@ def create_spec(spec_dict, spec_url=''):
     return spec_factory.create(spec_dict, spec_url=spec_url)
 
 
-def validate_parameters(spec, request, wrapper_class=None):
-    if wrapper_class is not None:
-        request = wrapper_class(request)
+def validate_parameters(spec, request, request_factory=None):
+    if request_factory is not None:
+        request = request_factory(request)
 
     validator = RequestValidator(spec)
     result = validator.validate(request)
@@ -38,9 +38,9 @@ def validate_parameters(spec, request, wrapper_class=None):
         return result.parameters
 
 
-def validate_body(spec, request, wrapper_class=None):
-    if wrapper_class is not None:
-        request = wrapper_class(request)
+def validate_body(spec, request, request_factory=None):
+    if request_factory is not None:
+        request = request_factory(request)
 
     validator = RequestValidator(spec)
     result = validator.validate(request)
@@ -55,13 +55,13 @@ def validate_body(spec, request, wrapper_class=None):
 
 def validate_data(
         spec, request, response,
-        request_wrapper_class=None,
-        response_wrapper_class=None):
-    if request_wrapper_class is not None:
-        request = request_wrapper_class(request)
+        request_factory=None,
+        response_factory=None):
+    if request_factory is not None:
+        request = request_factory(request)
 
-    if response_wrapper_class is not None:
-        response = response_wrapper_class(response)
+    if response_factory is not None:
+        response = response_factory(response)
 
     validator = ResponseValidator(spec)
     result = validator.validate(request, response)

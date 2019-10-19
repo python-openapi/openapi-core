@@ -50,7 +50,7 @@ class RequestValidator(object):
     def _get_parameters(self, request, params):
         errors = []
         seen = set()
-        parameters = RequestParameters()
+        locations = {}
         for param_name, param in params:
             if (param_name, param.location.value) in seen:
                 # skip parameter already seen
@@ -79,9 +79,10 @@ class RequestValidator(object):
             except OpenAPIMappingError as exc:
                 errors.append(exc)
             else:
-                parameters[param.location.value][param_name] = unmarshalled
+                locations.setdefault(param.location.value, {})
+                locations[param.location.value][param_name] = unmarshalled
 
-        return parameters, errors
+        return RequestParameters(**locations), errors
 
     def _get_body(self, request, operation):
         errors = []
