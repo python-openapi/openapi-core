@@ -15,9 +15,7 @@ from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas._format import oas30_format_checker
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
-    OpenAPISchemaError, NoValidSchema,
-    UndefinedItemsSchema, InvalidSchemaProperty,
+    CastError, InvalidSchemaValue,
     UnmarshallerError, UnmarshallValueError, UnmarshallError,
 )
 from openapi_core.schema.schemas.util import (
@@ -141,13 +139,6 @@ class Schema(object):
 
         return set(required)
 
-    def are_additional_properties_allowed(self, one_of_schema=None):
-        return (
-            (self.additional_properties is not False) and
-            (one_of_schema is None or
-                one_of_schema.additional_properties is not False)
-        )
-
     def get_cast_mapping(self):
         mapping = self.TYPE_CAST_CALLABLE_GETTER.copy()
         mapping.update({
@@ -167,8 +158,7 @@ class Schema(object):
         try:
             return cast_callable(value)
         except ValueError:
-            raise InvalidSchemaValue(
-                "Failed to cast value {value} to type {type}", value, self.type)
+            raise CastError(value, self.type)
 
     def _cast_collection(self, value):
         return list(map(self.items.cast, value))
@@ -204,7 +194,7 @@ class Schema(object):
             return validator.validate(value)
         except ValidationError:
             # TODO: pass validation errors
-            raise InvalidSchemaValue("Value not valid for schema", value, self.type)
+            raise InvalidSchemaValue(value, self.type)
 
     def unmarshal(self, value, custom_formatters=None, strict=True):
         """Unmarshal parameter from the value."""
@@ -310,7 +300,7 @@ class Schema(object):
                 try:
                     unmarshalled = self._unmarshal_properties(
                         value, one_of_schema, custom_formatters=custom_formatters)
-                except OpenAPISchemaError:
+                except (UnmarshallError, ValueError):
                     pass
                 else:
                     if properties is not None:
@@ -342,10 +332,6 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        extra_props_allowed = self.are_additional_properties_allowed(
-            one_of_schema)
-        if extra_props and not extra_props_allowed:
-            raise UndefinedSchemaProperty(extra_props)
 
         properties = {}
         if self.additional_properties is not True:
@@ -358,8 +344,6 @@ class Schema(object):
             try:
                 prop_value = value[prop_name]
             except KeyError:
-                if prop_name in all_req_props_names:
-                    raise MissingSchemaProperty(prop_name)
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default

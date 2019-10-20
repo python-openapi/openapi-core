@@ -178,7 +178,6 @@ class TestPetstore(object):
         assert response_result.errors == [
             InvalidMediaTypeValue(
                 original_exception=InvalidSchemaValue(
-                    msg='Value not valid for schema',
                     type=SchemaType.OBJECT,
                     value=data_json,
                 ),
