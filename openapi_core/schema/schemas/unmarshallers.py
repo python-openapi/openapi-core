@@ -2,10 +2,9 @@ from six import text_type, binary_type, integer_types
 
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, InvalidCustomFormatSchemaValue,
-    OpenAPISchemaError,
-    InvalidSchemaProperty,
+    InvalidCustomFormatSchemaValue,
     UnmarshallerStrictTypeError,
+    FormatterNotFoundError,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime, format_byte, format_uuid,
@@ -49,17 +48,12 @@ class PrimitiveTypeUnmarshaller(StrictUnmarshaller):
             formatter = formatters.get(schema_format)
 
         if formatter is None:
-            raise InvalidSchemaValue(
-                "Unsupported format {type} unmarshalling "
-                "for value {value}",
-                value, type_format)
+            raise FormatterNotFoundError(value, type_format)
 
         try:
             return formatter(value)
         except ValueError as exc:
-            raise InvalidCustomFormatSchemaValue(
-                "Failed to format value {value} to format {type}: {exception}",
-                value, type_format, exc)
+            raise InvalidCustomFormatSchemaValue(value, type_format, exc)
 
     def get_formatters(self):
         return self.FORMATTERS

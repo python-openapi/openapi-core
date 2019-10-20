@@ -15,10 +15,8 @@ from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas._format import oas30_format_checker
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
-    OpenAPISchemaError, NoValidSchema,
-    UndefinedItemsSchema, InvalidCustomFormatSchemaValue, InvalidSchemaProperty,
-    UnmarshallerStrictTypeError,
+    CastError, InvalidSchemaValue,
+    UnmarshallerError, UnmarshalValueError, UnmarshalError,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime, format_byte, format_uuid,
@@ -141,13 +139,6 @@ class Schema(object):
 
         return set(required)
 
-    def are_additional_properties_allowed(self, one_of_schema=None):
-        return (
-            (self.additional_properties is not False) and
-            (one_of_schema is None or
-                one_of_schema.additional_properties is not False)
-        )
-
     def get_cast_mapping(self):
         mapping = self.TYPE_CAST_CALLABLE_GETTER.copy()
         mapping.update({
@@ -167,8 +158,7 @@ class Schema(object):
         try:
             return cast_callable(value)
         except ValueError:
-            raise InvalidSchemaValue(
-                "Failed to cast value {value} to type {type}", value, self.type)
+            raise CastError(value, self.type)
 
     def _cast_collection(self, value):
         return list(map(self.items.cast, value))
@@ -203,8 +193,8 @@ class Schema(object):
         try:
             return validator.validate(value)
         except ValidationError:
-            # TODO: pass validation errors
-            raise InvalidSchemaValue("Value not valid for schema", value, self.type)
+            errors_iter = validator.iter_errors(value)
+            raise InvalidSchemaValue(value, self.type, errors_iter)
 
     def unmarshal(self, value, custom_formatters=None, strict=True):
         """Unmarshal parameter from the value."""
@@ -212,12 +202,12 @@ class Schema(object):
             warnings.warn("The schema is deprecated", DeprecationWarning)
         if value is None:
             if not self.nullable:
-                raise InvalidSchemaValue("Null value for non-nullable schema", value, self.type)
+                raise UnmarshalError(
+                    "Null value for non-nullable schema", value, self.type)
             return self.default
 
         if self.enum and value not in self.enum:
-            raise InvalidSchemaValue(
-                "Value {value} not in enum choices: {type}", value, self.enum)
+            raise UnmarshalError("Invalid value for enum: {0}".format(value))
 
         unmarshal_mapping = self.get_unmarshal_mapping(
             custom_formatters=custom_formatters, strict=strict)
@@ -228,12 +218,8 @@ class Schema(object):
         unmarshal_callable = unmarshal_mapping[self.type]
         try:
             unmarshalled = unmarshal_callable(value)
-        except UnmarshallerStrictTypeError:
-            raise InvalidSchemaValue(
-                "Value {value} is not of type {type}", value, self.type)
-        except ValueError:
-            raise InvalidSchemaValue(
-                "Failed to unmarshal value {value} to type {type}", value, self.type)
+        except ValueError as exc:
+            raise UnmarshalValueError(value, self.type, exc)
 
         return unmarshalled
 
@@ -268,7 +254,7 @@ class Schema(object):
             for subschema in self.one_of:
                 try:
                     unmarshalled = subschema.unmarshal(value, custom_formatters)
-                except (OpenAPISchemaError, TypeError, ValueError):
+                except UnmarshalError:
                     continue
                 else:
                     if result is not None:
@@ -285,9 +271,7 @@ class Schema(object):
                 unmarshal_callable = unmarshal_mapping[schema_type]
                 try:
                     return unmarshal_callable(value)
-                except UnmarshallerStrictTypeError:
-                    continue
-                except (OpenAPISchemaError, TypeError):
+                except (UnmarshalError, ValueError):
                     continue
 
         log.warning("failed to unmarshal any type")
@@ -295,7 +279,7 @@ class Schema(object):
 
     def _unmarshal_collection(self, value, custom_formatters=None, strict=True):
         if not isinstance(value, (list, tuple)):
-            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+            raise ValueError("Invalid value for collection: {0}".format(value))
 
         f = functools.partial(
             self.items.unmarshal,
@@ -306,7 +290,7 @@ class Schema(object):
     def _unmarshal_object(self, value, model_factory=None,
                           custom_formatters=None, strict=True):
         if not isinstance(value, (dict, )):
-            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+            raise ValueError("Invalid value for object: {0}".format(value))
 
         model_factory = model_factory or ModelFactory()
 
@@ -316,7 +300,7 @@ class Schema(object):
                 try:
                     unmarshalled = self._unmarshal_properties(
                         value, one_of_schema, custom_formatters=custom_formatters)
-                except OpenAPISchemaError:
+                except (UnmarshalError, ValueError):
                     pass
                 else:
                     if properties is not None:
@@ -348,10 +332,6 @@ class Schema(object):
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
-        extra_props_allowed = self.are_additional_properties_allowed(
-            one_of_schema)
-        if extra_props and not extra_props_allowed:
-            raise UndefinedSchemaProperty(extra_props)
 
         properties = {}
         if self.additional_properties is not True:
@@ -364,8 +344,6 @@ class Schema(object):
             try:
                 prop_value = value[prop_name]
             except KeyError:
-                if prop_name in all_req_props_names:
-                    raise MissingSchemaProperty(prop_name)
                 if not prop.nullable and not prop.default:
                     continue
                 prop_value = prop.default

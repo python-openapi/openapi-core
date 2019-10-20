@@ -4,7 +4,9 @@ from collections import defaultdict
 from json import loads
 
 from openapi_core.schema.media_types.exceptions import InvalidMediaTypeValue
-from openapi_core.schema.schemas.exceptions import OpenAPISchemaError
+from openapi_core.schema.schemas.exceptions import (
+    CastError, ValidateError, UnmarshalError,
+)
 
 
 MEDIA_TYPE_DESERIALIZERS = {
@@ -37,8 +39,13 @@ class MediaType(object):
             return value
 
         try:
-            return self.deserialize(value)
+            deserialized = self.deserialize(value)
         except ValueError as exc:
+            raise InvalidMediaTypeValue(exc)
+
+        try:
+            return self.schema.cast(deserialized)
+        except CastError as exc:
             raise InvalidMediaTypeValue(exc)
 
     def unmarshal(self, value, custom_formatters=None, resolver=None):
@@ -47,10 +54,10 @@ class MediaType(object):
 
         try:
             self.schema.validate(value, resolver=resolver)
-        except OpenAPISchemaError as exc:
+        except ValidateError as exc:
             raise InvalidMediaTypeValue(exc)
 
         try:
             return self.schema.unmarshal(value, custom_formatters=custom_formatters)
-        except OpenAPISchemaError as exc:
+        except UnmarshalError as exc:
             raise InvalidMediaTypeValue(exc)

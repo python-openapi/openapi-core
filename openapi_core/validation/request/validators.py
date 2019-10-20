@@ -2,8 +2,16 @@
 from itertools import chain
 from six import iteritems
 
-from openapi_core.schema.exceptions import OpenAPIMappingError
-from openapi_core.schema.parameters.exceptions import MissingParameter
+from openapi_core.schema.media_types.exceptions import (
+    InvalidMediaTypeValue, InvalidContentType,
+)
+from openapi_core.schema.operations.exceptions import InvalidOperation
+from openapi_core.schema.parameters.exceptions import (
+    OpenAPIParameterError, MissingRequiredParameter,
+)
+from openapi_core.schema.paths.exceptions import InvalidPath
+from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
+from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.validation.request.datatypes import (
     RequestParameters, RequestValidationResult,
 )
@@ -20,7 +28,7 @@ class RequestValidator(object):
         try:
             server = self.spec.get_server(request.full_url_pattern)
         # don't process if server errors
-        except OpenAPIMappingError as exc:
+        except InvalidServer as exc:
             return RequestValidationResult([exc, ], None, None)
 
         operation_pattern = get_operation_pattern(
@@ -29,10 +37,14 @@ class RequestValidator(object):
 
         try:
             path = self.spec[operation_pattern]
+        except InvalidPath as exc:
+            return RequestValidationResult([exc, ], None, None)
+
+        try:
             operation = self.spec.get_operation(
                 operation_pattern, request.method)
         # don't process if operation errors
-        except OpenAPIMappingError as exc:
+        except InvalidOperation as exc:
             return RequestValidationResult([exc, ], None, None)
 
         params, params_errors = self._get_parameters(
@@ -59,15 +71,15 @@ class RequestValidator(object):
             seen.add((param_name, param.location.value))
             try:
                 raw_value = param.get_raw_value(request)
-            except MissingParameter:
-                continue
-            except OpenAPIMappingError as exc:
+            except MissingRequiredParameter as exc:
                 errors.append(exc)
+                continue
+            except OpenAPIParameterError:
                 continue
 
             try:
                 casted = param.cast(raw_value)
-            except OpenAPIMappingError as exc:
+            except OpenAPIParameterError as exc:
                 errors.append(exc)
                 continue
 
@@ -76,7 +88,7 @@ class RequestValidator(object):
                     casted, self.custom_formatters,
                     resolver=self.spec._resolver,
                 )
-            except OpenAPIMappingError as exc:
+            except OpenAPIParameterError as exc:
                 errors.append(exc)
             else:
                 locations.setdefault(param.location.value, {})
@@ -93,17 +105,17 @@ class RequestValidator(object):
         body = None
         try:
             media_type = operation.request_body[request.mimetype]
-        except OpenAPIMappingError as exc:
+        except InvalidContentType as exc:
             errors.append(exc)
         else:
             try:
                 raw_body = operation.request_body.get_value(request)
-            except OpenAPIMappingError as exc:
+            except MissingRequestBody as exc:
                 errors.append(exc)
             else:
                 try:
                     casted = media_type.cast(raw_body)
-                except OpenAPIMappingError as exc:
+                except InvalidMediaTypeValue as exc:
                     errors.append(exc)
                 else:
                     try:
@@ -111,7 +123,7 @@ class RequestValidator(object):
                             casted, self.custom_formatters,
                             resolver=self.spec._resolver,
                         )
-                    except OpenAPIMappingError as exc:
+                    except InvalidMediaTypeValue as exc:
                         errors.append(exc)
 
         return body, errors
