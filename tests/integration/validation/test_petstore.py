@@ -175,11 +175,13 @@ class TestPetstore(object):
 
         response_result = response_validator.validate(request, response)
 
+        errors = response_result.errors[0].original_exception.schema_errors
         assert response_result.errors == [
             InvalidMediaTypeValue(
                 original_exception=InvalidSchemaValue(
                     type=SchemaType.OBJECT,
                     value=data_json,
+                    schema_errors=errors,
                 ),
             ),
         ]

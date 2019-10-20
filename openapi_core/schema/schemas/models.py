@@ -193,8 +193,8 @@ class Schema(object):
         try:
             return validator.validate(value)
         except ValidationError:
-            # TODO: pass validation errors
-            raise InvalidSchemaValue(value, self.type)
+            errors_iter = validator.iter_errors(value)
+            raise InvalidSchemaValue(value, self.type, errors_iter)
 
     def unmarshal(self, value, custom_formatters=None, strict=True):
         """Unmarshal parameter from the value."""

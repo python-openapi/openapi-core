@@ -48,10 +48,13 @@ class UnmarshallValueError(UnmarshallError):
 class InvalidSchemaValue(ValidateError):
     value = attr.ib()
     type = attr.ib()
+    schema_errors = attr.ib()
 
     def __str__(self):
-        return "Value {value} not valid for schema of type {type}".format(
-            value=self.value, type=self.type)
+        errors = list(self.schema_errors)
+        return (
+            "Value {value} not valid for schema of type {type}: {errors}"
+        ).format(value=self.value, type=self.type, errors=errors)
 
 
 class UnmarshallerError(UnmarshallError):
