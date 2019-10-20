@@ -17,8 +17,8 @@ from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, UndefinedSchemaProperty, MissingSchemaProperty,
     OpenAPISchemaError, NoValidSchema,
-    UndefinedItemsSchema, InvalidCustomFormatSchemaValue, InvalidSchemaProperty,
-    UnmarshallerStrictTypeError,
+    UndefinedItemsSchema, InvalidSchemaProperty,
+    UnmarshallerError, UnmarshallValueError, UnmarshallError,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime, format_byte, format_uuid,
@@ -212,12 +212,12 @@ class Schema(object):
             warnings.warn("The schema is deprecated", DeprecationWarning)
         if value is None:
             if not self.nullable:
-                raise InvalidSchemaValue("Null value for non-nullable schema", value, self.type)
+                raise UnmarshallError(
+                    "Null value for non-nullable schema", value, self.type)
             return self.default
 
         if self.enum and value not in self.enum:
-            raise InvalidSchemaValue(
-                "Value {value} not in enum choices: {type}", value, self.enum)
+            raise UnmarshallError("Invalid value for enum: {0}".format(value))
 
         unmarshal_mapping = self.get_unmarshal_mapping(
             custom_formatters=custom_formatters, strict=strict)
@@ -228,12 +228,8 @@ class Schema(object):
         unmarshal_callable = unmarshal_mapping[self.type]
         try:
             unmarshalled = unmarshal_callable(value)
-        except UnmarshallerStrictTypeError:
-            raise InvalidSchemaValue(
-                "Value {value} is not of type {type}", value, self.type)
-        except ValueError:
-            raise InvalidSchemaValue(
-                "Failed to unmarshal value {value} to type {type}", value, self.type)
+        except ValueError as exc:
+            raise UnmarshallValueError(value, self.type, exc)
 
         return unmarshalled
 
@@ -268,7 +264,7 @@ class Schema(object):
             for subschema in self.one_of:
                 try:
                     unmarshalled = subschema.unmarshal(value, custom_formatters)
-                except (OpenAPISchemaError, TypeError, ValueError):
+                except UnmarshallError:
                     continue
                 else:
                     if result is not None:
@@ -285,9 +281,7 @@ class Schema(object):
                 unmarshal_callable = unmarshal_mapping[schema_type]
                 try:
                     return unmarshal_callable(value)
-                except UnmarshallerStrictTypeError:
-                    continue
-                except (OpenAPISchemaError, TypeError):
+                except (UnmarshallError, ValueError):
                     continue
 
         log.warning("failed to unmarshal any type")
@@ -295,7 +289,7 @@ class Schema(object):
 
     def _unmarshal_collection(self, value, custom_formatters=None, strict=True):
         if not isinstance(value, (list, tuple)):
-            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+            raise ValueError("Invalid value for collection: {0}".format(value))
 
         f = functools.partial(
             self.items.unmarshal,
@@ -306,7 +300,7 @@ class Schema(object):
     def _unmarshal_object(self, value, model_factory=None,
                           custom_formatters=None, strict=True):
         if not isinstance(value, (dict, )):
-            raise InvalidSchemaValue("Value {value} is not of type {type}", value, self.type)
+            raise ValueError("Invalid value for object: {0}".format(value))
 
         model_factory = model_factory or ModelFactory()
 

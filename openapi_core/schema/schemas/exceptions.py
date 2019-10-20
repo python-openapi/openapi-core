@@ -7,6 +7,27 @@ class OpenAPISchemaError(OpenAPIMappingError):
     pass
 
 
+class UnmarshallError(OpenAPISchemaError):
+    """Unmarshall operation error"""
+    pass
+
+
+@attr.s(hash=True)
+class UnmarshallValueError(UnmarshallError):
+    """Failed to unmarshal value to type"""
+    value = attr.ib()
+    type = attr.ib()
+    original_exception = attr.ib(default=None)
+
+    def __str__(self):
+        return (
+            "Failed to unmarshal value {value} to type {type}: {exception}"
+        ).format(
+            value=self.value, type=self.type,
+            exception=self.original_exception,
+        )
+
+
 @attr.s(hash=True)
 class NoValidSchema(OpenAPISchemaError):
     value = attr.ib()
@@ -34,19 +55,12 @@ class InvalidSchemaValue(OpenAPISchemaError):
 
 
 @attr.s(hash=True)
-class InvalidCustomFormatSchemaValue(InvalidSchemaValue):
-    original_exception = attr.ib()
-
-    def __str__(self):
-        return self.msg.format(value=self.value, type=self.type, exception=self.original_exception)
-
-
-@attr.s(hash=True)
 class UndefinedSchemaProperty(OpenAPISchemaError):
     extra_props = attr.ib()
 
     def __str__(self):
-        return "Extra unexpected properties found in schema: {0}".format(self.extra_props)
+        return "Extra unexpected properties found in schema: {0}".format(
+            self.extra_props)
 
 
 @attr.s(hash=True)
@@ -55,7 +69,8 @@ class InvalidSchemaProperty(OpenAPISchemaError):
     original_exception = attr.ib()
 
     def __str__(self):
-        return "Invalid schema property {0}: {1}".format(self.property_name, self.original_exception)
+        return "Invalid schema property {0}: {1}".format(
+            self.property_name, self.original_exception)
 
 
 @attr.s(hash=True)
@@ -66,14 +81,46 @@ class MissingSchemaProperty(OpenAPISchemaError):
         return "Missing schema property: {0}".format(self.property_name)
 
 
-class UnmarshallerError(OpenAPIMappingError):
+class UnmarshallerError(UnmarshallError):
+    """Unmarshaller error"""
     pass
 
 
+@attr.s(hash=True)
+class InvalidCustomFormatSchemaValue(UnmarshallerError):
+    """Value failed to format with custom formatter"""
+    value = attr.ib()
+    type = attr.ib()
+    original_exception = attr.ib()
+
+    def __str__(self):
+        return (
+            "Failed to format value {value} to format {type}: {exception}"
+        ).format(
+            value=self.value, type=self.type,
+            exception=self.original_exception,
+        )
+
+
+@attr.s(hash=True)
+class FormatterNotFoundError(UnmarshallerError):
+    """Formatter not found to unmarshal"""
+    value = attr.ib()
+    type_format = attr.ib()
+
+    def __str__(self):
+        return (
+            "Formatter not found for {format} format "
+            "to unmarshal value {value}"
+        ).format(format=self.type_format, value=self.value)
+
+
+@attr.s(hash=True)
 class UnmarshallerStrictTypeError(UnmarshallerError):
     value = attr.ib()
     types = attr.ib()
     
     def __str__(self):
-        return "Value {value} is not one of types {types}".format(
-            self.value, self.types)
+        types = ', '.join(list(map(str, self.types)))
+        return "Value {value} is not one of types: {types}".format(
+            value=self.value, types=types)

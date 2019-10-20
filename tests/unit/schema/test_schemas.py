@@ -7,7 +7,9 @@ import pytest
 from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, OpenAPISchemaError,
+    InvalidSchemaValue, OpenAPISchemaError, UnmarshallerStrictTypeError,
+    UnmarshallValueError, UnmarshallError, InvalidCustomFormatSchemaValue,
+    FormatterNotFoundError,
 )
 from openapi_core.schema.schemas.models import Schema
 
@@ -88,14 +90,14 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string')
         value = 1.23
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallerStrictTypeError):
             schema.unmarshal(value)
 
     def test_string_none(self):
         schema = Schema('string')
         value = None
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallError):
             schema.unmarshal(value)
 
     def test_string_default(self):
@@ -103,7 +105,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', default=default_value)
         value = None
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallError):
             schema.unmarshal(value)
 
     def test_string_default_nullable(self):
@@ -150,7 +152,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', schema_format=custom_format)
         value = 'x'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(InvalidCustomFormatSchemaValue):
             schema.unmarshal(
                 value, custom_formatters={custom_format: custom_formatter})
 
@@ -168,7 +170,10 @@ class TestSchemaUnmarshal(object):
         value = 'x'
 
         with pytest.raises(
-            InvalidSchemaValue, message='Failed to format value'
+            FormatterNotFoundError,
+            message=(
+                'Formatter not found for custom format to unmarshal value x'
+            ),
         ):
             schema.unmarshal(value)
 
@@ -184,14 +189,14 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer')
         value = '123'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallerStrictTypeError):
             schema.unmarshal(value)
 
     def test_integer_enum_invalid(self):
         schema = Schema('integer', enum=[1, 2, 3])
         value = '123'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallError):
             schema.unmarshal(value)
 
     def test_integer_enum(self):
@@ -206,7 +211,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer', enum=[1, 2, 3])
         value = '2'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallError):
             schema.unmarshal(value)
 
     def test_integer_default(self):
@@ -214,7 +219,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer', default=default_value)
         value = None
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallError):
             schema.unmarshal(value)
 
     def test_integer_default_nullable(self):
@@ -230,7 +235,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer')
         value = 'abc'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallerStrictTypeError):
             schema.unmarshal(value)
 
     def test_array_valid(self):
@@ -245,14 +250,14 @@ class TestSchemaUnmarshal(object):
         schema = Schema('array', items=Schema('string'))
         value = '123'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallValueError):
             schema.unmarshal(value)
 
     def test_array_of_integer_string_invalid(self):
         schema = Schema('array', items=Schema('integer'))
         value = '123'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallValueError):
             schema.unmarshal(value)
 
     def test_boolean_valid(self):
@@ -267,7 +272,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('boolean')
         value = 'True'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallerStrictTypeError):
             schema.unmarshal(value)
 
     def test_number_valid(self):
@@ -282,7 +287,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('number')
         value = '1.23'
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(UnmarshallerStrictTypeError):
             schema.unmarshal(value)
 
     def test_number_int(self):
