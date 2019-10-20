@@ -23,13 +23,13 @@ class ValidateError(OpenAPISchemaError):
     pass
 
 
-class UnmarshallError(OpenAPISchemaError):
-    """Schema unmarshall operation error"""
+class UnmarshalError(OpenAPISchemaError):
+    """Schema unmarshal operation error"""
     pass
 
 
 @attr.s(hash=True)
-class UnmarshallValueError(UnmarshallError):
+class UnmarshalValueError(UnmarshalError):
     """Failed to unmarshal value to type"""
     value = attr.ib()
     type = attr.ib()
@@ -57,7 +57,7 @@ class InvalidSchemaValue(ValidateError):
         ).format(value=self.value, type=self.type, errors=errors)
 
 
-class UnmarshallerError(UnmarshallError):
+class UnmarshallerError(UnmarshalError):
     """Unmarshaller error"""
     pass
 

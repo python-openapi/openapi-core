@@ -10,7 +10,9 @@ from openapi_core.schema.parameters.exceptions import (
     EmptyParameterValue,
 )
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.schemas.exceptions import OpenAPISchemaError
+from openapi_core.schema.schemas.exceptions import (
+    CastError, ValidateError, UnmarshalError,
+)
 
 log = logging.getLogger(__name__)
 
@@ -110,7 +112,7 @@ class Parameter(object):
 
         try:
             return self.schema.cast(deserialized)
-        except OpenAPISchemaError as exc:
+        except CastError as exc:
             raise InvalidParameterValue(self.name, exc)
 
     def unmarshal(self, value, custom_formatters=None, resolver=None):
@@ -119,7 +121,7 @@ class Parameter(object):
 
         try:
             self.schema.validate(value, resolver=resolver)
-        except OpenAPISchemaError as exc:
+        except ValidateError as exc:
             raise InvalidParameterValue(self.name, exc)
 
         try:
@@ -128,5 +130,5 @@ class Parameter(object):
                 custom_formatters=custom_formatters,
                 strict=True,
             )
-        except OpenAPISchemaError as exc:
+        except UnmarshalError as exc:
             raise InvalidParameterValue(self.name, exc)

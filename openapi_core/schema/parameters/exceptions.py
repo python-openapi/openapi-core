@@ -7,8 +7,13 @@ class OpenAPIParameterError(OpenAPIMappingError):
     pass
 
 
+class MissingParameterError(OpenAPIParameterError):
+    """Missing parameter error"""
+    pass
+
+
 @attr.s(hash=True)
-class MissingParameter(OpenAPIParameterError):
+class MissingParameter(MissingParameterError):
     name = attr.ib()
 
     def __str__(self):
@@ -16,7 +21,7 @@ class MissingParameter(OpenAPIParameterError):
 
 
 @attr.s(hash=True)
-class MissingRequiredParameter(OpenAPIParameterError):
+class MissingRequiredParameter(MissingParameterError):
     name = attr.ib()
 
     def __str__(self):

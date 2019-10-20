@@ -8,7 +8,7 @@ from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     InvalidSchemaValue, OpenAPISchemaError, UnmarshallerStrictTypeError,
-    UnmarshallValueError, UnmarshallError, InvalidCustomFormatSchemaValue,
+    UnmarshalValueError, UnmarshalError, InvalidCustomFormatSchemaValue,
     FormatterNotFoundError,
 )
 from openapi_core.schema.schemas.models import Schema
@@ -97,7 +97,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string')
         value = None
 
-        with pytest.raises(UnmarshallError):
+        with pytest.raises(UnmarshalError):
             schema.unmarshal(value)
 
     def test_string_default(self):
@@ -105,7 +105,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', default=default_value)
         value = None
 
-        with pytest.raises(UnmarshallError):
+        with pytest.raises(UnmarshalError):
             schema.unmarshal(value)
 
     def test_string_default_nullable(self):
@@ -196,7 +196,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer', enum=[1, 2, 3])
         value = '123'
 
-        with pytest.raises(UnmarshallError):
+        with pytest.raises(UnmarshalError):
             schema.unmarshal(value)
 
     def test_integer_enum(self):
@@ -211,7 +211,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer', enum=[1, 2, 3])
         value = '2'
 
-        with pytest.raises(UnmarshallError):
+        with pytest.raises(UnmarshalError):
             schema.unmarshal(value)
 
     def test_integer_default(self):
@@ -219,7 +219,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('integer', default=default_value)
         value = None
 
-        with pytest.raises(UnmarshallError):
+        with pytest.raises(UnmarshalError):
             schema.unmarshal(value)
 
     def test_integer_default_nullable(self):
@@ -250,14 +250,14 @@ class TestSchemaUnmarshal(object):
         schema = Schema('array', items=Schema('string'))
         value = '123'
 
-        with pytest.raises(UnmarshallValueError):
+        with pytest.raises(UnmarshalValueError):
             schema.unmarshal(value)
 
     def test_array_of_integer_string_invalid(self):
         schema = Schema('array', items=Schema('integer'))
         value = '123'
 
-        with pytest.raises(UnmarshallValueError):
+        with pytest.raises(UnmarshalValueError):
             schema.unmarshal(value)
 
     def test_boolean_valid(self):

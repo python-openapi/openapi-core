@@ -16,7 +16,7 @@ from openapi_core.schema.schemas._format import oas30_format_checker
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
     CastError, InvalidSchemaValue,
-    UnmarshallerError, UnmarshallValueError, UnmarshallError,
+    UnmarshallerError, UnmarshalValueError, UnmarshalError,
 )
 from openapi_core.schema.schemas.util import (
     forcebool, format_date, format_datetime, format_byte, format_uuid,
@@ -202,12 +202,12 @@ class Schema(object):
             warnings.warn("The schema is deprecated", DeprecationWarning)
         if value is None:
             if not self.nullable:
-                raise UnmarshallError(
+                raise UnmarshalError(
                     "Null value for non-nullable schema", value, self.type)
             return self.default
 
         if self.enum and value not in self.enum:
-            raise UnmarshallError("Invalid value for enum: {0}".format(value))
+            raise UnmarshalError("Invalid value for enum: {0}".format(value))
 
         unmarshal_mapping = self.get_unmarshal_mapping(
             custom_formatters=custom_formatters, strict=strict)
@@ -219,7 +219,7 @@ class Schema(object):
         try:
             unmarshalled = unmarshal_callable(value)
         except ValueError as exc:
-            raise UnmarshallValueError(value, self.type, exc)
+            raise UnmarshalValueError(value, self.type, exc)
 
         return unmarshalled
 
@@ -254,7 +254,7 @@ class Schema(object):
             for subschema in self.one_of:
                 try:
                     unmarshalled = subschema.unmarshal(value, custom_formatters)
-                except UnmarshallError:
+                except UnmarshalError:
                     continue
                 else:
                     if result is not None:
@@ -271,7 +271,7 @@ class Schema(object):
                 unmarshal_callable = unmarshal_mapping[schema_type]
                 try:
                     return unmarshal_callable(value)
-                except (UnmarshallError, ValueError):
+                except (UnmarshalError, ValueError):
                     continue
 
         log.warning("failed to unmarshal any type")
@@ -300,7 +300,7 @@ class Schema(object):
                 try:
                     unmarshalled = self._unmarshal_properties(
                         value, one_of_schema, custom_formatters=custom_formatters)
-                except (UnmarshallError, ValueError):
+                except (UnmarshalError, ValueError):
                     pass
                 else:
                     if properties is not None:

@@ -1,5 +1,12 @@
 """OpenAPI core validation response validators module"""
-from openapi_core.schema.exceptions import OpenAPIMappingError
+from openapi_core.schema.operations.exceptions import InvalidOperation
+from openapi_core.schema.media_types.exceptions import (
+    InvalidMediaTypeValue, InvalidContentType,
+)
+from openapi_core.schema.responses.exceptions import (
+    InvalidResponse, MissingResponseContent,
+)
+from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.util import get_operation_pattern
 
@@ -14,7 +21,7 @@ class ResponseValidator(object):
         try:
             server = self.spec.get_server(request.full_url_pattern)
         # don't process if server errors
-        except OpenAPIMappingError as exc:
+        except InvalidServer as exc:
             return ResponseValidationResult([exc, ], None, None)
 
         operation_pattern = get_operation_pattern(
@@ -25,14 +32,14 @@ class ResponseValidator(object):
             operation = self.spec.get_operation(
                 operation_pattern, request.method)
         # don't process if operation errors
-        except OpenAPIMappingError as exc:
+        except InvalidOperation as exc:
             return ResponseValidationResult([exc, ], None, None)
 
         try:
             operation_response = operation.get_response(
                 str(response.status_code))
         # don't process if operation response errors
-        except OpenAPIMappingError as exc:
+        except InvalidResponse as exc:
             return ResponseValidationResult([exc, ], None, None)
 
         data, data_errors = self._get_data(response, operation_response)
@@ -52,17 +59,17 @@ class ResponseValidator(object):
         data = None
         try:
             media_type = operation_response[response.mimetype]
-        except OpenAPIMappingError as exc:
+        except InvalidContentType as exc:
             errors.append(exc)
         else:
             try:
                 raw_data = operation_response.get_value(response)
-            except OpenAPIMappingError as exc:
+            except MissingResponseContent as exc:
                 errors.append(exc)
             else:
                 try:
                     casted = media_type.cast(raw_data)
-                except OpenAPIMappingError as exc:
+                except InvalidMediaTypeValue as exc:
                     errors.append(exc)
                 else:
                     try:
@@ -70,7 +77,7 @@ class ResponseValidator(object):
                             casted, self.custom_formatters,
                             resolver=self.spec._resolver,
                         )
-                    except OpenAPIMappingError as exc:
+                    except InvalidMediaTypeValue as exc:
                         errors.append(exc)
 
         return data, errors
