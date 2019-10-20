@@ -21,6 +21,23 @@ class RequestParameters(object):
 
 @attr.s
 class OpenAPIRequest(object):
+    """OpenAPI request dataclass.
+
+    Attributes:
+        path
+            Requested path as string.
+        path_pattern
+            The matched url pattern.
+        parameters
+            A RequestParameters object.
+        body
+            The request body, as string.
+        mimetype
+            Like content type, but without parameters (eg, without charset,
+            type etc.) and always lowercase.
+            For example if the content type is "text/HTML; charset=utf-8"
+            the mimetype would be "text/html".
+    """
 
     host_url = attr.ib()
     path = attr.ib()

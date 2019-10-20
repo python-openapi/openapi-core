@@ -1,0 +1,19 @@
+openapi: "3.0.0"
+info:
+  title: Basic OpenAPI specification used with test_flask.TestFlaskOpenAPIIValidation
+  version: "0.1"
+servers:
+  - url: 'http://testserver'
+paths:
+  '/admin/auth/group/{object_id}/':
+    parameters:
+      - name: object_id
+        in: path
+        required: true
+        description: the ID of the resource to retrieve
+        schema:
+          type: integer
+    get:
+      responses:
+        default:
+          description: Return the resource.

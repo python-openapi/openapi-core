@@ -1,3 +1,4 @@
+************
 openapi-core
 ************
 
@@ -15,13 +16,13 @@ openapi-core
      :target: https://pypi.python.org/pypi/openapi-core
 
 About
-=====
+#####
 
 Openapi-core is a Python library that adds client-side and server-side support
 for the `OpenAPI Specification v3.0.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md>`__.
 
 Installation
-============
+############
 
 Recommended way (via pip):
 
@@ -37,7 +38,7 @@ Alternatively you can download the code and install from the repository:
 
 
 Usage
-=====
+#####
 
 Firstly create your specification:
 
@@ -46,6 +47,9 @@ Firstly create your specification:
    from openapi_core import create_spec
 
    spec = create_spec(spec_dict)
+
+Request
+*******
 
 Now you can use it to validate requests
 
@@ -83,27 +87,10 @@ or use shortcuts for simple validation
    validated_params = validate_parameters(spec, request)
    validated_body = validate_body(spec, request)
 
-Request object should be instance of OpenAPIRequest class. You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
+Request object should be instance of OpenAPIRequest class (See `Integrations`_).
 
-.. code-block:: python
-
-   from openapi_core.shortcuts import RequestValidator
-   from openapi_core.contrib.flask import FlaskOpenAPIRequest
-
-   openapi_request = FlaskOpenAPIRequest(flask_request)
-   validator = RequestValidator(spec)
-   result = validator.validate(openapi_request)
-
-or simply specify request factory for shortcuts
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_params = validate_parameters(
-       spec, request, request_factory=FlaskOpenAPIRequest)
-   validated_body = validate_body(
-       spec, request, request_factory=FlaskOpenAPIRequest)
+Response
+********
 
 You can also validate responses
 
@@ -138,7 +125,85 @@ or use shortcuts for simple validation
 
    validated_data = validate_data(spec, request, response)
 
-Response object should be instance of OpenAPIResponse class. You can use FlaskOpenAPIResponse a Flask/Werkzeug response factory:
+Response object should be instance of OpenAPIResponse class (See `Integrations`_).
+
+
+Integrations
+############
+
+Django
+******
+
+For Django 2.2 you can use DjangoOpenAPIRequest a Django request factory:
+
+.. code-block:: python
+
+   from openapi_core.shortcuts import RequestValidator
+   from openapi_core.contrib.django import DjangoOpenAPIRequest
+
+   openapi_request = DjangoOpenAPIRequest(django_request)
+   validator = RequestValidator(spec)
+   result = validator.validate(openapi_request)
+
+or simply specify request factory for shortcuts
+
+.. code-block:: python
+
+   from openapi_core import validate_parameters, validate_body
+
+   validated_params = validate_parameters(
+       spec, request, request_factory=DjangoOpenAPIRequest)
+   validated_body = validate_body(
+       spec, request, request_factory=DjangoOpenAPIRequest)
+
+You can use DjangoOpenAPIResponse as a Django response factory:
+
+.. code-block:: python
+
+   from openapi_core.shortcuts import ResponseValidator
+   from openapi_core.contrib.django import DjangoOpenAPIResponse
+
+   openapi_response = DjangoOpenAPIResponse(django_response)
+   validator = ResponseValidator(spec)
+   result = validator.validate(openapi_request, openapi_response)
+
+or simply specify response factory for shortcuts
+
+.. code-block:: python
+
+   from openapi_core import validate_parameters, validate_body
+
+   validated_data = validate_data(
+       spec, request, response,
+       request_factory=DjangoOpenAPIRequest,
+       response_factory=DjangoOpenAPIResponse)
+
+Flask
+*****
+
+You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
+
+.. code-block:: python
+
+   from openapi_core.shortcuts import RequestValidator
+   from openapi_core.contrib.flask import FlaskOpenAPIRequest
+
+   openapi_request = FlaskOpenAPIRequest(flask_request)
+   validator = RequestValidator(spec)
+   result = validator.validate(openapi_request)
+
+or simply specify request factory for shortcuts
+
+.. code-block:: python
+
+   from openapi_core import validate_parameters, validate_body
+
+   validated_params = validate_parameters(
+       spec, request, request_factory=FlaskOpenAPIRequest)
+   validated_body = validate_body(
+       spec, request, request_factory=FlaskOpenAPIRequest)
+
+You can use FlaskOpenAPIResponse as a Flask/Werkzeug response factory:
 
 .. code-block:: python
 
@@ -160,7 +225,12 @@ or simply specify response factory for shortcuts
        request_factory=FlaskOpenAPIRequest,
        response_factory=FlaskOpenAPIResponse)
 
+Pyramid
+*******
+
+See `pyramid_openapi3  <https://github.com/niteoweb/pyramid_openapi3>`_ project.
+
 Related projects
-================
+################
 * `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__
 * `pyramid_openapi3 <https://github.com/niteoweb/pyramid_openapi3>`__
