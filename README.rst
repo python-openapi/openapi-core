@@ -134,7 +134,7 @@ Integrations
 Django
 ******
 
-You can use DjangoOpenAPIRequest a Django request factory:
+For Django 2.2 you can use DjangoOpenAPIRequest a Django request factory:
 
 .. code-block:: python
 

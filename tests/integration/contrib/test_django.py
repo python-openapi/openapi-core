@@ -1,6 +1,5 @@
-from django.http import HttpResponse, HttpResponseRedirect
-from django.test.client import RequestFactory
-from django.urls import resolve
+import sys
+
 import pytest
 from six import b
 
@@ -13,40 +12,57 @@ from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-@pytest.fixture(autouse=True, scope='module')
-def django_settings():
-    import django
-    from django.conf import settings
-    from django.contrib import admin
-    from django.urls import path
-    settings.configure(
-        ALLOWED_HOSTS=[
-            'testserver',
-        ],
-        INSTALLED_APPS=[
-            'django.contrib.admin',
-            'django.contrib.auth',
-            'django.contrib.contenttypes',
-            'django.contrib.messages',
-            'django.contrib.sessions',
-        ],
-        MIDDLEWARE=[
-            'django.contrib.sessions.middleware.SessionMiddleware',
-            'django.contrib.auth.middleware.AuthenticationMiddleware',
-            'django.contrib.messages.middleware.MessageMiddleware',
-        ]
-    )
-    django.setup()
-    settings.ROOT_URLCONF = (
-        path('admin/', admin.site.urls),
-    )
+@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
+class BaseTestDjango(object):
 
+    @pytest.fixture(autouse=True, scope='module')
+    def django_settings(self):
+        import django
+        from django.conf import settings
+        from django.contrib import admin
+        from django.urls import path
 
-class TestDjangoOpenAPIRequest(object):
+        if settings.configured:
+            return
+
+        settings.configure(
+            ALLOWED_HOSTS=[
+                'testserver',
+            ],
+            INSTALLED_APPS=[
+                'django.contrib.admin',
+                'django.contrib.auth',
+                'django.contrib.contenttypes',
+                'django.contrib.messages',
+                'django.contrib.sessions',
+            ],
+            MIDDLEWARE=[
+                'django.contrib.sessions.middleware.SessionMiddleware',
+                'django.contrib.auth.middleware.AuthenticationMiddleware',
+                'django.contrib.messages.middleware.MessageMiddleware',
+            ]
+        )
+        django.setup()
+        settings.ROOT_URLCONF = (
+            path('admin/', admin.site.urls),
+        )
 
     @pytest.fixture
     def request_factory(self):
+        from django.test.client import RequestFactory
         return RequestFactory()
+
+    @pytest.fixture
+    def response_factory(self):
+        from django.http import HttpResponse
+
+        def create(content=b(''), status_code=None):
+            return HttpResponse(content, status=status_code)
+
+        return create
+
+
+class TestDjangoOpenAPIRequest(BaseTestDjango):
 
     def test_no_resolver(self, request_factory):
         request = request_factory.get('/admin/')
@@ -73,6 +89,7 @@ class TestDjangoOpenAPIRequest(object):
         assert openapi_request.mimetype == request.content_type
 
     def test_simple(self, request_factory):
+        from django.urls import resolve
         request = request_factory.get('/admin/')
         request.resolver_match = resolve('/admin/')
 
@@ -98,6 +115,7 @@ class TestDjangoOpenAPIRequest(object):
         assert openapi_request.mimetype == request.content_type
 
     def test_url_rule(self, request_factory):
+        from django.urls import resolve
         request = request_factory.get('/admin/auth/group/1/')
         request.resolver_match = resolve('/admin/auth/group/1/')
 
@@ -126,10 +144,10 @@ class TestDjangoOpenAPIRequest(object):
         assert openapi_request.mimetype == request.content_type
 
 
-class TestDjangoOpenAPIResponse:
+class TestDjangoOpenAPIResponse(BaseTestDjango):
 
-    def test_stream_response(self):
-        response = HttpResponse()
+    def test_stream_response(self, response_factory):
+        response = response_factory()
         response.writelines(['foo\n', 'bar\n', 'baz\n'])
 
         openapi_response = DjangoOpenAPIResponse(response)
@@ -138,8 +156,8 @@ class TestDjangoOpenAPIResponse:
         assert openapi_response.status_code == response.status_code
         assert openapi_response.mimetype == response["Content-Type"]
 
-    def test_redirect_response(self):
-        response = HttpResponseRedirect('/redirected/')
+    def test_redirect_response(self, response_factory):
+        response = response_factory('/redirected/', status_code=302)
 
         openapi_response = DjangoOpenAPIResponse(response)
 
@@ -148,11 +166,7 @@ class TestDjangoOpenAPIResponse:
         assert openapi_response.mimetype == response["Content-Type"]
 
 
-class TestDjangoOpenAPIValidation(object):
-
-    @pytest.fixture
-    def request_factory(self):
-        return RequestFactory()
+class TestDjangoOpenAPIValidation(BaseTestDjango):
 
     @pytest.fixture
     def django_spec(self, factory):
@@ -160,18 +174,20 @@ class TestDjangoOpenAPIValidation(object):
         return create_spec(factory.spec_from_file(specfile))
 
     def test_response_validator_path_pattern(
-            self, django_spec, request_factory):
+            self, django_spec, request_factory, response_factory):
+        from django.urls import resolve
         validator = ResponseValidator(django_spec)
         request = request_factory.get('/admin/auth/group/1/')
         request.resolver_match = resolve('/admin/auth/group/1/')
         openapi_request = DjangoOpenAPIRequest(request)
-        response = HttpResponse(b('Some item'))
+        response = response_factory(b('Some item'))
         openapi_response = DjangoOpenAPIResponse(response)
         result = validator.validate(openapi_request, openapi_response)
         assert not result.errors
 
     def test_request_validator_path_pattern(
             self, django_spec, request_factory):
+        from django.urls import resolve
         validator = RequestValidator(django_spec)
         request = request_factory.get('/admin/auth/group/1/')
         request.resolver_match = resolve('/admin/auth/group/1/')
