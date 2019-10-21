@@ -62,6 +62,14 @@ paths:
           $ref: "#/components/responses/PetsResponse"
     post:
       summary: Create a pet
+      description: Creates new pet entry
+      externalDocs:
+        url: https://example.com
+        description: Find more info here
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
       operationId: createPets
       tags:
         - pets

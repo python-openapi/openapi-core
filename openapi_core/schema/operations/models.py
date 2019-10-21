@@ -8,15 +8,22 @@ class Operation(object):
 
     def __init__(
             self, http_method, path_name, responses, parameters,
-            request_body=None, deprecated=False, operation_id=None, tags=None):
+            summary=None, description=None, external_docs=None, security=None,
+            request_body=None, deprecated=False, operation_id=None, tags=None,
+            servers=None):
         self.http_method = http_method
         self.path_name = path_name
         self.responses = dict(responses)
         self.parameters = dict(parameters)
+        self.summary = summary
+        self.description = description
+        self.external_docs = external_docs
+        self.security = security
         self.request_body = request_body
         self.deprecated = deprecated
         self.operation_id = operation_id
         self.tags = tags
+        self.servers = servers
 
     def __getitem__(self, name):
         return self.parameters[name]

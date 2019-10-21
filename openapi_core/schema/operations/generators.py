@@ -4,10 +4,14 @@ from six import iteritems
 from openapi_spec_validator.validators import PathItemValidator
 
 from openapi_core.compat import lru_cache
+from openapi_core.schema.external_docs.factories import (
+    ExternalDocumentationFactory,
+)
 from openapi_core.schema.operations.models import Operation
 from openapi_core.schema.parameters.generators import ParametersGenerator
 from openapi_core.schema.request_bodies.factories import RequestBodyFactory
 from openapi_core.schema.responses.generators import ResponsesGenerator
+from openapi_core.schema.security.factories import SecurityRequirementFactory
 
 
 class OperationsGenerator(object):
@@ -32,6 +36,21 @@ class OperationsGenerator(object):
                 parameters_list)
             operation_id = operation_deref.get('operationId')
             tags_list = operation_deref.get('tags', [])
+            summary = operation_deref.get('summary')
+            description = operation_deref.get('description')
+            security_requirements_list = operation_deref.get('security', [])
+
+            security = None
+            if security_requirements_list:
+                security = list(map(
+                    self.security_requirement_factory.create,
+                    security_requirements_list))
+
+            external_docs = None
+            if 'externalDocs' in operation_deref:
+                external_docs_spec = operation_deref.get('externalDocs')
+                external_docs = self.external_docs_factory.create(
+                    external_docs_spec)
 
             request_body = None
             if 'requestBody' in operation_deref:
@@ -43,8 +62,10 @@ class OperationsGenerator(object):
                 http_method,
                 Operation(
                     http_method, path_name, responses, list(parameters),
+                    summary=summary, description=description,
+                    external_docs=external_docs, security=security,
                     request_body=request_body, deprecated=deprecated,
-                    operation_id=operation_id, tags=list(tags_list)
+                    operation_id=operation_id, tags=list(tags_list),
                 ),
             )
 
@@ -60,5 +81,15 @@ class OperationsGenerator(object):
 
     @property
     @lru_cache()
+    def external_docs_factory(self):
+        return ExternalDocumentationFactory(self.dereferencer)
+
+    @property
+    @lru_cache()
     def request_body_factory(self):
         return RequestBodyFactory(self.dereferencer, self.schemas_registry)
+
+    @property
+    @lru_cache()
+    def security_requirement_factory(self):
+        return SecurityRequirementFactory(self.dereferencer)

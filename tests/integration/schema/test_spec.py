@@ -9,6 +9,7 @@ from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
 from openapi_core.schema.schemas.models import Schema
+from openapi_core.schema.security.models import SecurityRequirement
 from openapi_core.schema.servers.models import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.validators import RequestValidator
@@ -79,6 +80,25 @@ class TestPetstore(object):
                 assert operation.http_method == http_method
                 assert operation.operation_id is not None
                 assert operation.tags == operation_spec['tags']
+                assert operation.summary == operation_spec.get('summary')
+                assert operation.description == operation_spec.get(
+                    'description')
+
+                ext_docs_spec = operation_spec.get('externalDocs')
+                if ext_docs_spec:
+                    ext_docs = operation.external_docs
+                    assert ext_docs.url == ext_docs_spec['url']
+                    assert ext_docs.description == ext_docs_spec.get(
+                        'description')
+
+                security_spec = operation_spec.get('security')
+                if security_spec:
+                    for idx, sec_req in enumerate(operation.security):
+                        assert type(sec_req) == SecurityRequirement
+                        sec_req_spec = security_spec[idx]
+                        sec_req_nam = next(iter(sec_req_spec))
+                        assert sec_req.name == sec_req_nam
+                        assert sec_req.scope_names == sec_req_spec[sec_req_nam]
 
                 responses_spec = operation_spec.get('responses')
 
