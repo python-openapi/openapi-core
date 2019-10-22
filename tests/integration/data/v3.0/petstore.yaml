@@ -62,6 +62,19 @@ paths:
           $ref: "#/components/responses/PetsResponse"
     post:
       summary: Create a pet
+      description: Creates new pet entry
+      externalDocs:
+        url: https://example.com
+        description: Find more info here
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+      servers:
+        - url: https://development.gigantic-server.com/v1
+          description: Development server
+        - url: https://staging.gigantic-server.com/v1
+          description: Staging server
       operationId: createPets
       tags:
         - pets

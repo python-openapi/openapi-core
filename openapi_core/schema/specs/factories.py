@@ -30,6 +30,11 @@ class SpecFactory(object):
         paths = spec_dict_deref.get('paths', {})
         components_spec = spec_dict_deref.get('components', {})
 
+        if not servers_spec:
+            servers_spec = [
+                {'url': '/'},
+            ]
+
         info = self.info_factory.create(info_spec)
         servers = self.servers_generator.generate(servers_spec)
         paths = self.paths_generator.generate(paths)
