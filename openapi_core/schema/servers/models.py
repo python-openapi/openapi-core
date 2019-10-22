@@ -4,9 +4,10 @@ from six import iteritems
 
 class Server(object):
 
-    def __init__(self, url, variables=None):
+    def __init__(self, url, variables=None, description=None):
         self.url = url
         self.variables = variables and dict(variables) or {}
+        self.description = description
 
     @property
     def default_url(self):

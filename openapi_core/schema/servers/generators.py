@@ -12,18 +12,16 @@ class ServersGenerator(object):
 
     def generate(self, servers_spec):
         servers_deref = self.dereferencer.dereference(servers_spec)
-        if not servers_deref:
-            yield Server('/')
-            return
         for server_spec in servers_deref:
             url = server_spec['url']
             variables_spec = server_spec.get('variables', {})
+            description = server_spec.get('description')
 
             variables = None
             if variables_spec:
                 variables = self.variables_generator.generate(variables_spec)
 
-            yield Server(url, variables=variables)
+            yield Server(url, variables=variables, description=description)
 
     @property
     @lru_cache()

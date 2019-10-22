@@ -12,6 +12,7 @@ from openapi_core.schema.parameters.generators import ParametersGenerator
 from openapi_core.schema.request_bodies.factories import RequestBodyFactory
 from openapi_core.schema.responses.generators import ResponsesGenerator
 from openapi_core.schema.security.factories import SecurityRequirementFactory
+from openapi_core.schema.servers.generators import ServersGenerator
 
 
 class OperationsGenerator(object):
@@ -39,6 +40,9 @@ class OperationsGenerator(object):
             summary = operation_deref.get('summary')
             description = operation_deref.get('description')
             security_requirements_list = operation_deref.get('security', [])
+            servers_spec = operation_deref.get('servers', [])
+
+            servers = self.servers_generator.generate(servers_spec)
 
             security = None
             if security_requirements_list:
@@ -66,6 +70,7 @@ class OperationsGenerator(object):
                     external_docs=external_docs, security=security,
                     request_body=request_body, deprecated=deprecated,
                     operation_id=operation_id, tags=list(tags_list),
+                    servers=servers,
                 ),
             )
 
@@ -93,3 +98,8 @@ class OperationsGenerator(object):
     @lru_cache()
     def security_requirement_factory(self):
         return SecurityRequirementFactory(self.dereferencer)
+
+    @property
+    @lru_cache()
+    def servers_generator(self):
+        return ServersGenerator(self.dereferencer)

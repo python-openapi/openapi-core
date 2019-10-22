@@ -100,6 +100,23 @@ class TestPetstore(object):
                         assert sec_req.name == sec_req_nam
                         assert sec_req.scope_names == sec_req_spec[sec_req_nam]
 
+                servers_spec = operation_spec.get('servers', [])
+                for idx, server in enumerate(operation.servers):
+                    assert type(server) == Server
+
+                    server_spec = servers_spec[idx]
+                    assert server.url == server_spec['url']
+                    assert server.default_url == server_spec['url']
+                    assert server.description == server_spec.get('description')
+
+                    for variable_name, variable in iteritems(server.variables):
+                        assert type(variable) == ServerVariable
+                        assert variable.name == variable_name
+
+                        variable_spec = server_spec['variables'][variable_name]
+                        assert variable.default == variable_spec['default']
+                        assert variable.enum == variable_spec.get('enum')
+
                 responses_spec = operation_spec.get('responses')
 
                 for http_status, response in iteritems(operation.responses):
