@@ -1,6 +1,9 @@
 import attr
 
 
+NoValue = object()
+
+
 @attr.s(hash=True)
 class Contribution(object):
     src_prop_name = attr.ib()
