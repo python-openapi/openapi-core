@@ -87,6 +87,8 @@ class Parameter(object):
             return self.schema.default
 
         if self.aslist and self.explode:
+            if hasattr(location, 'getall'):
+                return location.getall(self.name)
             return location.getlist(self.name)
 
         return location[self.name]
