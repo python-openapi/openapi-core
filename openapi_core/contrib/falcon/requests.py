@@ -1,5 +1,6 @@
 """OpenAPI core contrib falcon responses module"""
 from openapi_core.validation.request.datatypes import OpenAPIRequest, RequestParameters
+from werkzeug.datastructures import ImmutableMultiDict
 
 
 class FalconOpenAPIRequestFactory:
@@ -14,7 +15,10 @@ class FalconOpenAPIRequestFactory:
         headers = {key.lower(): value for key, value in req.headers.items()}
 
         parameters = RequestParameters(
-            path=route_params, query=req.params, header=headers, cookie=req.cookies
+            path=route_params,
+            query=ImmutableMultiDict(req.params.items()),
+            header=headers,
+            cookie=req.cookies,
         )
         return OpenAPIRequest(
             host_url=req.host,
