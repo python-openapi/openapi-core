@@ -1,4 +1,6 @@
 """OpenAPI core contrib falcon responses module"""
+import json
+
 from openapi_core.validation.request.datatypes import OpenAPIRequest, RequestParameters
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -26,6 +28,9 @@ class FalconOpenAPIRequestFactory:
             path_pattern=req.uri_template,
             method=method,
             parameters=parameters,
-            body=req.bounded_stream.read(),
+            # Support falcon-jsonify.
+            body=json.dumps(req.json)
+            if getattr(req, "json", None)
+            else req.bounded_stream.read(),
             mimetype=req.content_type.partition(";")[0] if req.content_type else "",
         )
