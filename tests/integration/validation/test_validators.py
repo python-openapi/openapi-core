@@ -94,7 +94,7 @@ class TestRequestValidator(object):
     def test_get_pets(self, validator):
         request = MockRequest(
             self.host_url, 'get', '/v1/pets',
-            path_pattern='/v1/pets', args={'limit': '10'},
+            path_pattern='/v1/pets', args={'limit': '10', 'ids': ['1', '2']},
         )
 
         result = validator.validate(request)
@@ -106,6 +106,31 @@ class TestRequestValidator(object):
                 'limit': 10,
                 'page': 1,
                 'search': '',
+                'ids': [1, 2],
+            },
+        )
+
+    def test_get_pets_webob(self, validator):
+        from webob.multidict import GetDict
+        request = MockRequest(
+            self.host_url, 'get', '/v1/pets',
+            path_pattern='/v1/pets',
+        )
+        request.parameters.query = GetDict(
+            [('limit', '5'), ('ids', '1'), ('ids', '2')],
+            {}
+        )
+
+        result = validator.validate(request)
+
+        assert result.errors == []
+        assert result.body is None
+        assert result.parameters == RequestParameters(
+            query={
+                'limit': 5,
+                'page': 1,
+                'search': '',
+                'ids': [1, 2],
             },
         )
 
