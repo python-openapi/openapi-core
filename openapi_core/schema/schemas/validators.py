@@ -1,4 +1,4 @@
-from jsonschema import _legacy_validators, _format, _types, _utils, _validators
+from jsonschema import _legacy_validators, _utils, _validators
 from jsonschema.validators import create
 
 from openapi_core.schema.schemas import _types as oas_types
@@ -56,7 +56,7 @@ class OAS30Validator(BaseOAS30Validator):
 
     def iter_errors(self, instance, _schema=None):
         if _schema is None:
-                _schema = self.schema
+            _schema = self.schema
 
         # append defaults to trigger validator (i.e. nullable)
         if 'nullable' not in _schema:

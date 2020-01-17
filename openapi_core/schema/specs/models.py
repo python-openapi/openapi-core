@@ -14,7 +14,8 @@ log = logging.getLogger(__name__)
 class Spec(object):
     """Represents an OpenAPI Specification for a service."""
 
-    def __init__(self, info, paths, servers=None, components=None, _resolver=None):
+    def __init__(
+            self, info, paths, servers=None, components=None, _resolver=None):
         self.info = info
         self.paths = paths and dict(paths)
         self.servers = servers or []

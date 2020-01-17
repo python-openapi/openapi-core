@@ -1,6 +1,4 @@
 """OpenAPI core contrib flask responses module"""
-import re
-
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 

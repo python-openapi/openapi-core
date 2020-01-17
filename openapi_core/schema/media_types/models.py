@@ -58,6 +58,7 @@ class MediaType(object):
             raise InvalidMediaTypeValue(exc)
 
         try:
-            return self.schema.unmarshal(value, custom_formatters=custom_formatters)
+            return self.schema.unmarshal(
+                value, custom_formatters=custom_formatters)
         except UnmarshalError as exc:
             raise InvalidMediaTypeValue(exc)

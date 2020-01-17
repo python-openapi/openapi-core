@@ -1,5 +1,5 @@
 from jsonschema._types import (
-    TypeChecker, is_any, is_array, is_bool, is_integer,
+    TypeChecker, is_array, is_bool, is_integer,
     is_object, is_number,
 )
 from six import text_type, binary_type

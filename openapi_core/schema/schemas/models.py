@@ -3,25 +3,20 @@ import attr
 import functools
 import logging
 from collections import defaultdict
-from datetime import date, datetime
-from uuid import UUID
 import re
 import warnings
 
-from six import iteritems, integer_types, binary_type, text_type
+from six import iteritems
 from jsonschema.exceptions import ValidationError
 
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas._format import oas30_format_checker
-from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
+from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.exceptions import (
     CastError, InvalidSchemaValue,
-    UnmarshallerError, UnmarshalValueError, UnmarshalError,
+    UnmarshalValueError, UnmarshalError,
 )
-from openapi_core.schema.schemas.util import (
-    forcebool, format_date, format_datetime, format_byte, format_uuid,
-    format_number,
-)
+from openapi_core.schema.schemas.util import forcebool
 from openapi_core.schema.schemas.validators import OAS30Validator
 
 log = logging.getLogger(__name__)
@@ -172,8 +167,9 @@ class Schema(object):
             for t, u in primitive_unmarshallers.items()
         )
 
-        pass_defaults = lambda f: functools.partial(
-          f, custom_formatters=custom_formatters, strict=strict)
+        def pass_defaults(f):
+            return functools.partial(
+                f, custom_formatters=custom_formatters, strict=strict)
         mapping = self.DEFAULT_UNMARSHAL_CALLABLE_GETTER.copy()
         mapping.update(primitive_unmarshallers_partial)
         mapping.update({
@@ -186,7 +182,9 @@ class Schema(object):
 
     def get_validator(self, resolver=None):
         return OAS30Validator(
-            self.__dict__, resolver=resolver, format_checker=oas30_format_checker)
+            self.__dict__,
+            resolver=resolver, format_checker=oas30_format_checker,
+        )
 
     def validate(self, value, resolver=None):
         validator = self.get_validator(resolver=resolver)
@@ -254,7 +252,8 @@ class Schema(object):
             result = None
             for subschema in self.one_of:
                 try:
-                    unmarshalled = subschema.unmarshal(value, custom_formatters)
+                    unmarshalled = subschema.unmarshal(
+                        value, custom_formatters)
                 except UnmarshalError:
                     continue
                 else:
@@ -278,9 +277,11 @@ class Schema(object):
         log.warning("failed to unmarshal any type")
         return value
 
-    def _unmarshal_collection(self, value, custom_formatters=None, strict=True):
+    def _unmarshal_collection(
+            self, value, custom_formatters=None, strict=True):
         if not isinstance(value, (list, tuple)):
-            raise ValueError("Invalid value for collection: {0}".format(value))
+            raise ValueError(
+                "Invalid value for collection: {0}".format(value))
 
         f = functools.partial(
             self.items.unmarshal,
@@ -300,7 +301,9 @@ class Schema(object):
             for one_of_schema in self.one_of:
                 try:
                     unmarshalled = self._unmarshal_properties(
-                        value, one_of_schema, custom_formatters=custom_formatters)
+                        value, one_of_schema,
+                        custom_formatters=custom_formatters,
+                    )
                 except (UnmarshalError, ValueError):
                     pass
                 else:
