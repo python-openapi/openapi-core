@@ -101,7 +101,7 @@ class FormatterNotFoundError(UnmarshallerError):
 class UnmarshallerStrictTypeError(UnmarshallerError):
     value = attr.ib()
     types = attr.ib()
-    
+
     def __str__(self):
         types = ', '.join(list(map(str, self.types)))
         return "Value {value} is not one of types: {types}".format(

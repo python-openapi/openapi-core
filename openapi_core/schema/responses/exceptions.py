@@ -13,7 +13,8 @@ class InvalidResponse(OpenAPIResponseError):
     responses = attr.ib()
 
     def __str__(self):
-        return "Unknown response http status: {0}".format(str(self.http_status))
+        return "Unknown response http status: {0}".format(
+            str(self.http_status))
 
 
 @attr.s(hash=True)

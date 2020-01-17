@@ -13,4 +13,5 @@ class MimeTypeNotFound(OpenAPIContentError):
     availableMimetypes = attr.ib()
 
     def __str__(self):
-        return "Mimetype not found: {0}. Valid mimetypes: {1}".format(self.mimetype, self.availableMimetypes)
+        return "Mimetype not found: {0}. Valid mimetypes: {1}".format(
+            self.mimetype, self.availableMimetypes)

@@ -82,10 +82,10 @@ def is_datetime(instance):
         return False
     if not isinstance(instance, text_type):
         return True
-    
+
     if DATETIME_HAS_STRICT_RFC3339:
         return strict_rfc3339.validate_rfc3339(instance)
-    
+
     if DATETIME_HAS_ISODATE:
         return isodate.parse_datetime(instance)
 
