@@ -3,5 +3,5 @@ pytest==3.5.0
 pytest-flake8
 pytest-cov==2.5.1
 flask
-django==2.2.8; python_version>="3.0"
+django==2.2.9; python_version>="3.0"
 webob
