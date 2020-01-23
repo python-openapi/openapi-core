@@ -11,8 +11,9 @@ from openapi_core.schema.parameters.exceptions import (
 )
 from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    CastError, ValidateError, UnmarshalError,
+    CastError, ValidateError,
 )
+from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 
 log = logging.getLogger(__name__)
 
@@ -81,10 +82,7 @@ class Parameter(object):
             if self.required:
                 raise MissingRequiredParameter(self.name)
 
-            if not self.schema or self.schema.default is None:
-                raise MissingParameter(self.name)
-
-            return self.schema.default
+            raise MissingParameter(self.name)
 
         if self.aslist and self.explode:
             if hasattr(location, 'getall'):

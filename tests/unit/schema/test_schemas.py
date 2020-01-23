@@ -7,11 +7,16 @@ import pytest
 from openapi_core.extensions.models.models import Model
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    InvalidSchemaValue, OpenAPISchemaError, UnmarshallerStrictTypeError,
-    UnmarshalValueError, UnmarshalError, InvalidCustomFormatSchemaValue,
-    FormatterNotFoundError,
+    InvalidSchemaValue, OpenAPISchemaError,
 )
 from openapi_core.schema.schemas.models import Schema
+from openapi_core.schema.schemas.types import NoValue
+from openapi_core.unmarshalling.schemas.exceptions import (
+    InvalidCustomFormatSchemaValue,
+    FormatterNotFoundError,
+    UnmarshalError,
+    UnmarshallerStrictTypeError,
+)
 
 from six import b, u
 
@@ -50,9 +55,8 @@ class TestSchemaUnmarshal(object):
         schema = Schema(schema_type)
         value = ''
 
-        result = schema.unmarshal(value)
-
-        assert result is None
+        with pytest.raises(UnmarshallerStrictTypeError):
+            schema.unmarshal(value)
 
     def test_string_valid(self):
         schema = Schema('string')
@@ -93,25 +97,19 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(UnmarshallerStrictTypeError):
             schema.unmarshal(value)
 
-    def test_string_none(self):
-        schema = Schema('string')
-        value = None
-
-        with pytest.raises(UnmarshalError):
-            schema.unmarshal(value)
-
     def test_string_default(self):
         default_value = 'default'
         schema = Schema('string', default=default_value)
-        value = None
+        value = NoValue
 
-        with pytest.raises(UnmarshalError):
-            schema.unmarshal(value)
+        result = schema.unmarshal(value)
 
-    def test_string_default_nullable(self):
-        default_value = 'default'
+        assert result == default_value
+
+    @pytest.mark.parametrize('default_value', ['default', None])
+    def test_string_default_nullable(self, default_value):
         schema = Schema('string', default=default_value, nullable=True)
-        value = None
+        value = NoValue
 
         result = schema.unmarshal(value)
 
@@ -161,7 +159,7 @@ class TestSchemaUnmarshal(object):
         schema = Schema('string', schema_format=unknown_format)
         value = 'x'
 
-        with pytest.raises(OpenAPISchemaError):
+        with pytest.raises(FormatterNotFoundError):
             schema.unmarshal(value)
 
     def test_string_format_invalid_value(self):
@@ -172,7 +170,7 @@ class TestSchemaUnmarshal(object):
         with pytest.raises(
             FormatterNotFoundError,
             message=(
-                'Formatter not found for custom format to unmarshal value x'
+                'Formatter not found for custom format'
             ),
         ):
             schema.unmarshal(value)
@@ -215,21 +213,22 @@ class TestSchemaUnmarshal(object):
             schema.unmarshal(value)
 
     def test_integer_default(self):
-        default_value = '123'
+        default_value = 123
         schema = Schema('integer', default=default_value)
-        value = None
+        value = NoValue
 
-        with pytest.raises(UnmarshalError):
-            schema.unmarshal(value)
+        result = schema.unmarshal(value)
+
+        assert result == default_value
 
     def test_integer_default_nullable(self):
-        default_value = '123'
+        default_value = 123
         schema = Schema('integer', default=default_value, nullable=True)
         value = None
 
         result = schema.unmarshal(value)
 
-        assert result == default_value
+        assert result is None
 
     def test_integer_invalid(self):
         schema = Schema('integer')
@@ -250,14 +249,14 @@ class TestSchemaUnmarshal(object):
         schema = Schema('array', items=Schema('string'))
         value = '123'
 
-        with pytest.raises(UnmarshalValueError):
+        with pytest.raises(UnmarshallerStrictTypeError):
             schema.unmarshal(value)
 
     def test_array_of_integer_string_invalid(self):
         schema = Schema('array', items=Schema('integer'))
         value = '123'
 
-        with pytest.raises(UnmarshalValueError):
+        with pytest.raises(UnmarshallerStrictTypeError):
             schema.unmarshal(value)
 
     def test_boolean_valid(self):
@@ -702,7 +701,7 @@ class TestSchemaValidate(object):
         unknown_format = 'unknown'
         schema = Schema('string', schema_format=unknown_format)
 
-        with pytest.raises(OpenAPISchemaError):
+        with pytest.raises(InvalidSchemaValue):
             schema.validate(value)
 
     @pytest.mark.parametrize('value', [u(""), u("a"), u("ab")])

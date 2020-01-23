@@ -7,7 +7,7 @@ from openapi_core.schema.media_types.exceptions import (
 )
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import (
-    OpenAPIParameterError, MissingRequiredParameter,
+    OpenAPIParameterError, MissingRequiredParameter, MissingParameter,
 )
 from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
@@ -74,14 +74,16 @@ class RequestValidator(object):
             except MissingRequiredParameter as exc:
                 errors.append(exc)
                 continue
-            except OpenAPIParameterError:
-                continue
-
-            try:
-                casted = param.cast(raw_value)
-            except OpenAPIParameterError as exc:
-                errors.append(exc)
-                continue
+            except MissingParameter:
+                if not param.schema or not param.schema.has_default():
+                    continue
+                casted = param.schema.default
+            else:
+                try:
+                    casted = param.cast(raw_value)
+                except OpenAPIParameterError as exc:
+                    errors.append(exc)
+                    continue
 
             try:
                 unmarshalled = param.unmarshal(

@@ -278,6 +278,7 @@ components:
         $ref: "#/components/schemas/Pet"
     PetsData:
       type: object
+      x-model: PetsData
       required:
         - data
       properties:
@@ -285,6 +286,7 @@ components:
           $ref: "#/components/schemas/Pets"
     PetData:
       type: object
+      x-model: PetData
       required:
         - data
       properties:
@@ -292,6 +294,7 @@ components:
           $ref: "#/components/schemas/Pet"
     TagCreate:
       type: object
+      x-model: TagCreate
       required:
         - name
       properties:
@@ -316,6 +319,7 @@ components:
         message:
           type: string
     ExtendedError:
+      x-model: ExtendedError
       allOf:
         - $ref: "#/components/schemas/Error"
         - type: object

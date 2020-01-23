@@ -1,8 +1,5 @@
 """OpenAPI core schema exceptions module"""
-
-
-class OpenAPIError(Exception):
-    pass
+from openapi_core.exceptions import OpenAPIError
 
 
 class OpenAPIMappingError(OpenAPIError):

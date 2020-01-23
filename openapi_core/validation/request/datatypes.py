@@ -10,6 +10,18 @@ from six.moves.urllib.parse import urljoin
 
 @attr.s
 class RequestParameters(object):
+    """OpenAPI request parameters dataclass.
+
+    Attributes:
+        path
+            Path parameters as dict.
+        query
+            Query string parameters as MultiDict. Must support getlist method.
+        header
+            Request headers as dict.
+        cookie
+            Request cookies as dict.
+    """
     path = attr.ib(factory=dict)
     query = attr.ib(factory=ImmutableMultiDict)
     header = attr.ib(factory=dict)
