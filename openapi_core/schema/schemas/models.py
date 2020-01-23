@@ -1,18 +1,14 @@
 """OpenAPI core schemas models module"""
 import attr
 import logging
-from collections import defaultdict
 import re
 
 from jsonschema.exceptions import ValidationError
 
 from openapi_core.schema.schemas._format import oas30_format_checker
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.schemas.exceptions import (
-    CastError, InvalidSchemaValue,
-)
+from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
 from openapi_core.schema.schemas.types import NoValue
-from openapi_core.schema.schemas.util import forcebool
 from openapi_core.schema.schemas.validators import OAS30Validator
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalValueError,
@@ -29,12 +25,6 @@ class Format(object):
 
 class Schema(object):
     """Represents an OpenAPI Schema."""
-
-    TYPE_CAST_CALLABLE_GETTER = {
-        SchemaType.INTEGER: int,
-        SchemaType.NUMBER: float,
-        SchemaType.BOOLEAN: forcebool,
-    }
 
     def __init__(
             self, schema_type=None, properties=None, items=None,
@@ -109,29 +99,16 @@ class Schema(object):
         all_properties = self.get_all_properties()
         return set(all_properties.keys())
 
-    def get_cast_mapping(self):
-        mapping = self.TYPE_CAST_CALLABLE_GETTER.copy()
-        mapping.update({
-            SchemaType.ARRAY: self._cast_collection,
-        })
-
-        return defaultdict(lambda: lambda x: x, mapping)
-
     def cast(self, value):
         """Cast value from string to schema type"""
-        if value in (None, NoValue):
-            return value
-
-        cast_mapping = self.get_cast_mapping()
-
-        cast_callable = cast_mapping[self.type]
+        from openapi_core.casting.schemas.exceptions import CastError
+        from openapi_core.casting.schemas.factories import SchemaCastersFactory
+        casters_factory = SchemaCastersFactory()
+        caster = casters_factory.create(self)
         try:
-            return cast_callable(value)
-        except ValueError:
+            return caster(value)
+        except (ValueError, TypeError):
             raise CastError(value, self.type)
-
-    def _cast_collection(self, value):
-        return list(map(self.items.cast, value))
 
     def get_validator(self, resolver=None):
         return OAS30Validator(

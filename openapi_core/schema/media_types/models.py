@@ -5,8 +5,9 @@ from json import loads
 
 from openapi_core.schema.media_types.exceptions import InvalidMediaTypeValue
 from openapi_core.schema.schemas.exceptions import (
-    CastError, ValidateError,
+    ValidateError,
 )
+from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 
 

@@ -11,8 +11,9 @@ from openapi_core.schema.parameters.exceptions import (
 )
 from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.exceptions import (
-    CastError, ValidateError,
+    ValidateError,
 )
+from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 
 log = logging.getLogger(__name__)
