@@ -181,6 +181,46 @@ or simply specify response factory for shortcuts
 Flask
 *****
 
+Decorator
+=========
+
+Flask views can be integrated by `FlaskOpenAPIViewDecorator` decorator.
+
+.. code-block:: python
+
+   from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
+
+   openapi = FlaskOpenAPIViewDecorator.from_spec(spec)
+
+   @app.route('/home')
+   @openapi
+   def home():
+       pass
+
+If you want to decorate class based view you can use the decorators attribute:
+
+.. code-block:: python
+
+   class MyView(View):
+       decorators = [openapi]
+
+View
+====
+
+As an alternative to the decorator-based integration, Flask method based views can be integrated by inheritance from `FlaskOpenAPIView` class.
+
+.. code-block:: python
+
+   from openapi_core.contrib.flask.views import FlaskOpenAPIView
+
+   class MyView(FlaskOpenAPIView):
+       pass
+
+   app.add_url_rule('/home', view_func=MyView.as_view('home', spec))
+
+Low level
+=========
+
 You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
 
 .. code-block:: python
