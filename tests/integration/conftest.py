@@ -1,5 +1,6 @@
 from os import path
 
+from openapi_spec_validator.schemas import read_yaml_file
 import pytest
 from six.moves.urllib import request
 from yaml import safe_load
@@ -8,8 +9,7 @@ from yaml import safe_load
 def spec_from_file(spec_file):
     directory = path.abspath(path.dirname(__file__))
     path_full = path.join(directory, spec_file)
-    with open(path_full) as fh:
-        return safe_load(fh)
+    return read_yaml_file(path_full)
 
 
 def spec_from_url(spec_url):
