@@ -3,11 +3,12 @@ import pytest
 
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 from openapi_core.shortcuts import create_spec
+from openapi_core.validation.request.datatypes import RequestParameters
 
 
 class TestFlaskOpenAPIDecorator(object):
 
-    view_response = None
+    view_response_callable = None
 
     @pytest.fixture
     def spec(self, factory):
@@ -31,17 +32,30 @@ class TestFlaskOpenAPIDecorator(object):
             with app.app_context():
                 yield client
 
+    @pytest.fixture
+    def view_response(self):
+        def view_response(*args, **kwargs):
+            return self.view_response_callable(*args, **kwargs)
+        return view_response
+
     @pytest.fixture(autouse=True)
-    def view(self, app, decorator):
+    def view(self, app, decorator, view_response):
         @app.route("/browse/<id>/")
         @decorator
-        def browse_details(id):
-            return self.view_response
+        def browse_details(*args, **kwargs):
+            return view_response(*args, **kwargs)
         return browse_details
 
     def test_invalid_content_type(self, client):
-        self.view_response = make_response('success', 200)
-
+        def view_response_callable(*args, **kwargs):
+            from flask.globals import request
+            assert request.openapi
+            assert not request.openapi.errors
+            assert request.openapi.parameters == RequestParameters(path={
+                'id': 12,
+            })
+            return make_response('success', 200)
+        self.view_response_callable = view_response_callable
         result = client.get('/browse/12/')
 
         assert result.json == {
@@ -101,7 +115,15 @@ class TestFlaskOpenAPIDecorator(object):
         assert result.json == expected_data
 
     def test_valid(self, client):
-        self.view_response = jsonify(data='data')
+        def view_response_callable(*args, **kwargs):
+            from flask.globals import request
+            assert request.openapi
+            assert not request.openapi.errors
+            assert request.openapi.parameters == RequestParameters(path={
+                'id': 12,
+            })
+            return jsonify(data='data')
+        self.view_response_callable = view_response_callable
 
         result = client.get('/browse/12/')
 

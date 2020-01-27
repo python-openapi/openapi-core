@@ -27,22 +27,30 @@ class OpenAPIDecorator(OpenAPIProcessor):
         def decorated(*args, **kwargs):
             request = self._get_request(*args, **kwargs)
             openapi_request = self._get_openapi_request(request)
-            errors = self.process_request(openapi_request)
-            if errors:
-                return self._handle_openapi_errors(errors)
-            response = view(*args, **kwargs)
+            request_result = self.process_request(openapi_request)
+            if request_result.errors:
+                return self._handle_request_errors(request_result)
+            response = self._handle_request_view(
+                request_result, view, *args, **kwargs)
             openapi_response = self._get_openapi_response(response)
-            errors = self.process_response(openapi_request, openapi_response)
-            if errors:
-                return self._handle_openapi_errors(errors)
+            response_result = self.process_response(
+                openapi_request, openapi_response)
+            if response_result.errors:
+                return self._handle_response_errors(response_result)
             return response
         return decorated
 
     def _get_request(self, *args, **kwargs):
         return self.request_provider.provide(*args, **kwargs)
 
-    def _handle_openapi_errors(self, errors):
-        return self.openapi_errors_handler.handle(errors)
+    def _handle_request_view(self, request_result, view, *args, **kwargs):
+        return view(*args, **kwargs)
+
+    def _handle_request_errors(self, request_result):
+        return self.openapi_errors_handler.handle(request_result.errors)
+
+    def _handle_response_errors(self, response_result):
+        return self.openapi_errors_handler.handle(response_result.errors)
 
     def _get_openapi_request(self, request):
         return self.request_factory.create(request)

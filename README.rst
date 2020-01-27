@@ -218,6 +218,21 @@ As an alternative to the decorator-based integration, Flask method based views c
 
    app.add_url_rule('/home', view_func=MyView.as_view('home', spec))
 
+Request parameters
+==================
+
+In Flask, all unmarshalled request data are provided as Flask request object's openapi.parameters attribute
+
+.. code-block:: python
+
+   from flask.globals import request
+
+   @app.route('/browse/<id>/')
+   @openapi
+   def home():
+       browse_id = request.openapi.parameters.path['id']
+       page = request.openapi.parameters.query.get('page', 1)
+
 Low level
 =========
 
