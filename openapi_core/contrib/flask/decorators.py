@@ -25,6 +25,12 @@ class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
             request_provider, openapi_errors_handler,
         )
 
+    def _handle_request_view(self, request_result, view, *args, **kwargs):
+        request = self._get_request(*args, **kwargs)
+        request.openapi = request_result
+        return super(FlaskOpenAPIViewDecorator, self)._handle_request_view(
+            request_result, view, *args, **kwargs)
+
     @classmethod
     def from_spec(
             cls,
