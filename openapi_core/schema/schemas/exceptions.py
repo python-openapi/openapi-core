@@ -7,17 +7,6 @@ class OpenAPISchemaError(OpenAPIMappingError):
     pass
 
 
-@attr.s(hash=True)
-class CastError(OpenAPISchemaError):
-    """Schema cast operation error"""
-    value = attr.ib()
-    type = attr.ib()
-
-    def __str__(self):
-        return "Failed to cast value {value} to type {type}".format(
-            value=self.value, type=self.type)
-
-
 class ValidateError(OpenAPISchemaError):
     """Schema validate operation error"""
     pass
