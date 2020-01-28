@@ -23,9 +23,9 @@ class FalconOpenAPIRequestFactory:
             cookie=req.cookies,
         )
         return OpenAPIRequest(
-            host_url=req.host,
+            host_url=None,
             path=req.path,
-            path_pattern=req.uri_template,
+            path_pattern=req.uri_template or req.path,
             method=method,
             parameters=parameters,
             # Support falcon-jsonify.
