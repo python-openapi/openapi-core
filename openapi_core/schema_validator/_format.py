@@ -28,60 +28,41 @@ else:
     DATETIME_RAISES += (ValueError, TypeError)
 
 
-class StrictFormatChecker(FormatChecker):
-
-    def check(self, instance, format):
-        if format not in self.checkers:
-            raise FormatError(
-                "Format checker for %r format not found" % (format, ))
-        return super(StrictFormatChecker, self).check(
-            instance, format)
-
-
-oas30_format_checker = StrictFormatChecker()
-
-
-@oas30_format_checker.checks('int32')
 def is_int32(instance):
     return isinstance(instance, integer_types)
 
 
-@oas30_format_checker.checks('int64')
 def is_int64(instance):
     return isinstance(instance, integer_types)
 
 
-@oas30_format_checker.checks('float')
 def is_float(instance):
     return isinstance(instance, float)
 
 
-@oas30_format_checker.checks('double')
 def is_double(instance):
     # float has double precision in Python
     # It's double in CPython and Jython
     return isinstance(instance, float)
 
 
-@oas30_format_checker.checks('binary')
 def is_binary(instance):
     return isinstance(instance, binary_type)
 
 
-@oas30_format_checker.checks('byte', raises=(binascii.Error, TypeError))
 def is_byte(instance):
     if isinstance(instance, text_type):
         instance = instance.encode()
 
-    return b64encode(b64decode(instance)) == instance
-
-
-@oas30_format_checker.checks("date-time", raises=DATETIME_RAISES)
-def is_datetime(instance):
-    if isinstance(instance, binary_type):
+    try:
+        return b64encode(b64decode(instance)) == instance
+    except TypeError:
         return False
-    if not isinstance(instance, text_type):
-        return True
+
+
+def is_datetime(instance):
+    if not isinstance(instance, (binary_type, text_type)):
+        return False
 
     if DATETIME_HAS_STRICT_RFC3339:
         return strict_rfc3339.validate_rfc3339(instance)
@@ -92,24 +73,63 @@ def is_datetime(instance):
     return True
 
 
-@oas30_format_checker.checks("date", raises=ValueError)
 def is_date(instance):
-    if isinstance(instance, binary_type):
+    if not isinstance(instance, (binary_type, text_type)):
         return False
-    if not isinstance(instance, text_type):
-        return True
+
+    if isinstance(instance, binary_type):
+        instance = instance.decode()
+
     return datetime.strptime(instance, "%Y-%m-%d")
 
 
-@oas30_format_checker.checks("uuid", raises=AttributeError)
 def is_uuid(instance):
-    if isinstance(instance, binary_type):
-        return False
-    if not isinstance(instance, text_type):
-        return True
-    try:
-        uuid_obj = UUID(instance)
-    except ValueError:
+    if not isinstance(instance, (binary_type, text_type)):
         return False
 
-    return text_type(uuid_obj) == instance
+    if isinstance(instance, binary_type):
+        instance = instance.decode()
+
+    return text_type(UUID(instance)) == instance
+
+
+def is_password(instance):
+    return True
+
+
+class OASFormatChecker(FormatChecker):
+
+    checkers = {
+        'int32': (is_int32, ()),
+        'int64': (is_int64, ()),
+        'float': (is_float, ()),
+        'double': (is_double, ()),
+        'byte': (is_byte, (binascii.Error, TypeError)),
+        'binary': (is_binary, ()),
+        'date': (is_date, (ValueError, )),
+        'date-time': (is_datetime, DATETIME_RAISES),
+        'password': (is_password, ()),
+        # non standard
+        'uuid': (is_uuid, (AttributeError, ValueError)),
+    }
+
+    def check(self, instance, format):
+        if format not in self.checkers:
+            raise FormatError(
+                "Format checker for %r format not found" % (format, ))
+
+        func, raises = self.checkers[format]
+        result, cause = None, None
+        try:
+            result = func(instance)
+        except raises as e:
+            cause = e
+
+        if not result:
+            raise FormatError(
+                "%r is not a %r" % (instance, format), cause=cause,
+            )
+        return result
+
+
+oas30_format_checker = OASFormatChecker()

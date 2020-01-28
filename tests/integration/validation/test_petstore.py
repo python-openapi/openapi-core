@@ -13,12 +13,12 @@ from openapi_core.schema.parameters.exceptions import (
     MissingRequiredParameter, InvalidParameterValue, EmptyParameterValue,
 )
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
 from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.shortcuts import (
     create_spec, validate_parameters, validate_body,
 )
 from openapi_core.testing import MockRequest, MockResponse
+from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.request.datatypes import RequestParameters
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -182,7 +182,6 @@ class TestPetstore(object):
                     type=SchemaType.OBJECT,
                     value=data_json,
                     schema_errors=original_exc.schema_errors,
-                    schema_errors_iter=original_exc._schema_errors_iter,
                 ),
             ),
         ]

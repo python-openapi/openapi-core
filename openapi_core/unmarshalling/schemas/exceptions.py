@@ -8,6 +8,11 @@ class UnmarshalError(OpenAPIError):
     pass
 
 
+class ValidateError(UnmarshalError):
+    """Schema validate operation error"""
+    pass
+
+
 class UnmarshallerError(UnmarshalError):
     """Unmarshaller error"""
     pass
@@ -30,8 +35,20 @@ class UnmarshalValueError(UnmarshalError):
 
 
 @attr.s(hash=True)
-class InvalidCustomFormatSchemaValue(UnmarshallerError):
-    """Value failed to format with custom formatter"""
+class InvalidSchemaValue(ValidateError):
+    value = attr.ib()
+    type = attr.ib()
+    schema_errors = attr.ib(factory=tuple)
+
+    def __str__(self):
+        return (
+            "Value {value} not valid for schema of type {type}: {errors}"
+        ).format(value=self.value, type=self.type, errors=self.schema_errors)
+
+
+@attr.s(hash=True)
+class InvalidSchemaFormatValue(UnmarshallerError):
+    """Value failed to format with formatter"""
     value = attr.ib()
     type = attr.ib()
     original_exception = attr.ib()
@@ -53,14 +70,3 @@ class FormatterNotFoundError(UnmarshallerError):
     def __str__(self):
         return "Formatter not found for {format} format".format(
             format=self.type_format)
-
-
-@attr.s(hash=True)
-class UnmarshallerStrictTypeError(UnmarshallerError):
-    value = attr.ib()
-    types = attr.ib()
-
-    def __str__(self):
-        types = ', '.join(list(map(str, self.types)))
-        return "Value {value} is not one of types: {types}".format(
-            value=self.value, types=types)

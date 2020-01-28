@@ -1,6 +1,9 @@
+from copy import deepcopy
 import warnings
 
 from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
+from openapi_core.schema_validator import OAS30Validator
+from openapi_core.schema_validator import oas30_format_checker
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
 )
@@ -25,7 +28,8 @@ class SchemaUnmarshallersFactory(object):
         SchemaType.ANY: AnyUnmarshaller,
     }
 
-    def __init__(self, custom_formatters=None):
+    def __init__(self, resolver=None, custom_formatters=None):
+        self.resolver = resolver
         if custom_formatters is None:
             custom_formatters = {}
         self.custom_formatters = custom_formatters
@@ -42,21 +46,31 @@ class SchemaUnmarshallersFactory(object):
 
         elif schema_type in self.COMPLEX_UNMARSHALLERS:
             klass = self.COMPLEX_UNMARSHALLERS[schema_type]
-            kwargs = dict(schema=schema, unmarshallers_factory=self)
+            kwargs = dict(
+                schema=schema, unmarshallers_factory=self)
 
         formatter = self.get_formatter(klass.FORMATTERS, schema.format)
 
         if formatter is None:
             raise FormatterNotFoundError(schema.format)
 
-        return klass(formatter, **kwargs)
+        validator = self.get_validator(schema)
 
-    def get_formatter(self, formatters, type_format=SchemaFormat.NONE):
+        return klass(formatter, validator, **kwargs)
+
+    def get_formatter(self, default_formatters, type_format=SchemaFormat.NONE):
         try:
             schema_format = SchemaFormat(type_format)
         except ValueError:
             return self.custom_formatters.get(type_format)
         else:
-            if schema_format == SchemaFormat.NONE:
-                return lambda x: x
-            return formatters.get(schema_format)
+            return default_formatters.get(schema_format)
+
+    def get_validator(self, schema):
+        format_checker = deepcopy(oas30_format_checker)
+        for name, formatter in self.custom_formatters.items():
+            format_checker.checks(name)(formatter.validate)
+        return OAS30Validator(
+            schema.__dict__,
+            resolver=self.resolver, format_checker=format_checker,
+        )
