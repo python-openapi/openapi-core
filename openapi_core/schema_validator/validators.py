@@ -1,8 +1,8 @@
 from jsonschema import _legacy_validators, _utils, _validators
 from jsonschema.validators import create
 
-from openapi_core.schema.schemas import _types as oas_types
-from openapi_core.schema.schemas import _validators as oas_validators
+from openapi_core.schema_validator import _types as oas_types
+from openapi_core.schema_validator import _validators as oas_validators
 
 
 BaseOAS30Validator = create(
