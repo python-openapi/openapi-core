@@ -10,11 +10,10 @@ from openapi_core.schema.parameters.exceptions import (
     EmptyParameterValue,
 )
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.schemas.exceptions import (
-    ValidateError,
-)
 from openapi_core.casting.schemas.exceptions import CastError
-from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
+from openapi_core.unmarshalling.schemas.exceptions import (
+    UnmarshalError, ValidateError,
+)
 
 log = logging.getLogger(__name__)
 
@@ -121,15 +120,10 @@ class Parameter(object):
             return value
 
         try:
-            self.schema.validate(value, resolver=resolver)
-        except ValidateError as exc:
-            raise InvalidParameterValue(self.name, exc)
-
-        try:
             return self.schema.unmarshal(
                 value,
+                resolver=resolver,
                 custom_formatters=custom_formatters,
-                strict=True,
             )
-        except UnmarshalError as exc:
+        except (ValidateError, UnmarshalError) as exc:
             raise InvalidParameterValue(self.name, exc)

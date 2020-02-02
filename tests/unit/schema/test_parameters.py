@@ -6,6 +6,7 @@ from openapi_core.schema.parameters.exceptions import (
 from openapi_core.schema.parameters.enums import ParameterStyle
 from openapi_core.schema.parameters.models import Parameter
 from openapi_core.schema.schemas.models import Schema
+from openapi_core.unmarshalling.schemas.formatters import Formatter
 
 
 class TestParameterInit(object):
@@ -93,16 +94,20 @@ class TestParameterUnmarshal(object):
             param.unmarshal(value)
 
     def test_query_schema_custom_format_invalid(self):
-        def custom_formatter(value):
-            raise ValueError
+
+        class CustomFormatter(Formatter):
+            def unmarshal(self, value):
+                raise ValueError
+        formatter = CustomFormatter()
+        custom_format = 'custom'
+        custom_formatters = {
+            custom_format: formatter,
+        }
         schema = Schema(
             'string',
-            schema_format='custom',
+            schema_format=custom_format,
             _source={'type': 'string', 'format': 'custom'},
         )
-        custom_formatters = {
-            'custom': custom_formatter,
-        }
         param = Parameter('param', 'query', schema=schema)
         value = 'test'
 

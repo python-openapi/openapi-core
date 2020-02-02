@@ -1,19 +1,22 @@
+from functools import partial
 import logging
 
-from six import text_type, binary_type, integer_types
+from six import text_type, binary_type
 from six import iteritems
 
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
-from openapi_core.schema.schemas.exceptions import (
-    ValidateError,
-)
 from openapi_core.schema.schemas.types import NoValue
-from openapi_core.unmarshalling.schemas.exceptions import (
-    UnmarshalError,
-    InvalidCustomFormatSchemaValue,
-    UnmarshallerStrictTypeError,
+from openapi_core.schema_validator._types import (
+    is_array, is_bool, is_integer,
+    is_object, is_number, is_string,
 )
+from openapi_core.schema_validator._format import oas30_format_checker
+from openapi_core.unmarshalling.schemas.exceptions import (
+    UnmarshalError, ValidateError, InvalidSchemaValue,
+    InvalidSchemaFormatValue,
+)
+from openapi_core.unmarshalling.schemas.formatters import Formatter
 from openapi_core.unmarshalling.schemas.util import (
     forcebool, format_date, format_datetime, format_byte, format_uuid,
     format_number,
@@ -22,133 +25,142 @@ from openapi_core.unmarshalling.schemas.util import (
 log = logging.getLogger(__name__)
 
 
-class StrictUnmarshaller(object):
-
-    STRICT_TYPES = ()
-
-    def __call__(self, value, strict=True):
-        if strict and not self._is_strict(value):
-            raise UnmarshallerStrictTypeError(value, self.STRICT_TYPES)
-
-        return value
-
-    def _is_strict(self, value):
-        if not self.STRICT_TYPES:
-            return True
-
-        return isinstance(value, self.STRICT_TYPES)
-
-
-class PrimitiveTypeUnmarshaller(StrictUnmarshaller):
+class PrimitiveTypeUnmarshaller(object):
 
     FORMATTERS = {}
 
-    def __init__(self, formatter, schema):
+    def __init__(self, formatter, validator, schema):
         self.formatter = formatter
+        self.validator = validator
         self.schema = schema
 
-    def __call__(self, value=NoValue, strict=True):
+    def __call__(self, value=NoValue):
         if value is NoValue:
             value = self.schema.default
         if value is None:
             return
-        value = super(PrimitiveTypeUnmarshaller, self).__call__(
-            value, strict=strict)
 
-        return self.format(value)
+        self.validate(value)
 
-    def format(self, value):
+        return self.unmarshal(value)
+
+    def _formatter_validate(self, value):
+        result = self.formatter.validate(value)
+        if not result:
+            raise InvalidSchemaValue(value, self.schema.type)
+
+    def validate(self, value):
+        errors_iter = self.validator.iter_errors(value)
+        errors = tuple(errors_iter)
+        if errors:
+            raise InvalidSchemaValue(
+                value, self.schema.type, schema_errors=errors)
+
+    def unmarshal(self, value):
         try:
-            return self.formatter(value)
+            return self.formatter.unmarshal(value)
         except ValueError as exc:
-            raise InvalidCustomFormatSchemaValue(
+            raise InvalidSchemaFormatValue(
                 value, self.schema.format, exc)
 
 
 class StringUnmarshaller(PrimitiveTypeUnmarshaller):
 
-    STRICT_TYPES = (text_type, binary_type)
     FORMATTERS = {
-        SchemaFormat.NONE: text_type,
-        SchemaFormat.PASSWORD: text_type,
-        SchemaFormat.DATE: format_date,
-        SchemaFormat.DATETIME: format_datetime,
-        SchemaFormat.BINARY: binary_type,
-        SchemaFormat.UUID: format_uuid,
-        SchemaFormat.BYTE: format_byte,
+        SchemaFormat.NONE: Formatter.from_callables(
+            partial(is_string, None), text_type),
+        SchemaFormat.PASSWORD: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='password'), text_type),
+        SchemaFormat.DATE: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='date'), format_date),
+        SchemaFormat.DATETIME: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='date-time'),
+            format_datetime),
+        SchemaFormat.BINARY: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='binary'), binary_type),
+        SchemaFormat.UUID: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='uuid'), format_uuid),
+        SchemaFormat.BYTE: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='byte'), format_byte),
     }
 
 
 class IntegerUnmarshaller(PrimitiveTypeUnmarshaller):
 
-    STRICT_TYPES = integer_types
     FORMATTERS = {
-        SchemaFormat.NONE: int,
-        SchemaFormat.INT32: int,
-        SchemaFormat.INT64: int,
+        SchemaFormat.NONE: Formatter.from_callables(
+            partial(is_integer, None), int),
+        SchemaFormat.INT32: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='int32'), int),
+        SchemaFormat.INT64: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='int64'), int),
     }
 
 
 class NumberUnmarshaller(PrimitiveTypeUnmarshaller):
 
-    STRICT_TYPES = (float, ) + integer_types
     FORMATTERS = {
-        SchemaFormat.NONE: format_number,
-        SchemaFormat.FLOAT: float,
-        SchemaFormat.DOUBLE: float,
+        SchemaFormat.NONE: Formatter.from_callables(
+            partial(is_number, None), format_number),
+        SchemaFormat.FLOAT: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='float'), float),
+        SchemaFormat.DOUBLE: Formatter.from_callables(
+            partial(oas30_format_checker.check, format='double'), float),
     }
 
 
 class BooleanUnmarshaller(PrimitiveTypeUnmarshaller):
 
-    STRICT_TYPES = (bool, )
     FORMATTERS = {
-        SchemaFormat.NONE: forcebool,
+        SchemaFormat.NONE: Formatter.from_callables(
+            partial(is_bool, None), forcebool),
     }
 
 
 class ComplexUnmarshaller(PrimitiveTypeUnmarshaller):
 
-    def __init__(self, formatter, schema, unmarshallers_factory):
-        super(ComplexUnmarshaller, self).__init__(formatter, schema)
+    def __init__(self, formatter, validator, schema, unmarshallers_factory):
+        super(ComplexUnmarshaller, self).__init__(formatter, validator, schema)
         self.unmarshallers_factory = unmarshallers_factory
 
 
 class ArrayUnmarshaller(ComplexUnmarshaller):
 
-    STRICT_TYPES = (list, tuple)
-    FORMATTERS = {}
+    FORMATTERS = {
+        SchemaFormat.NONE: Formatter.from_callables(
+            partial(is_array, None), list),
+    }
 
     @property
     def items_unmarshaller(self):
         return self.unmarshallers_factory.create(self.schema.items)
 
-    def __call__(self, value=NoValue, strict=True):
-        value = super(ArrayUnmarshaller, self).__call__(value, strict=strict)
-
-        self.unmarshallers_factory.create(self.schema.items)
+    def __call__(self, value=NoValue):
+        value = super(ArrayUnmarshaller, self).__call__(value)
 
         return list(map(self.items_unmarshaller, value))
 
 
 class ObjectUnmarshaller(ComplexUnmarshaller):
 
-    STRICT_TYPES = (dict, )
-    FORMATTERS = {}
+    FORMATTERS = {
+        SchemaFormat.NONE: Formatter.from_callables(
+            partial(is_object, None), dict),
+    }
 
     @property
     def model_factory(self):
         return ModelFactory()
 
-    def __call__(self, value=NoValue, strict=True):
-        value = super(ObjectUnmarshaller, self).__call__(value, strict=strict)
+    def __call__(self, value=NoValue):
+        value = super(ObjectUnmarshaller, self).__call__(value)
 
         if self.schema.one_of:
             properties = None
             for one_of_schema in self.schema.one_of:
                 try:
                     unmarshalled = self._unmarshal_properties(
-                        value, one_of_schema, strict=strict)
+                        value, one_of_schema)
                 except (UnmarshalError, ValueError):
                     pass
                 else:
@@ -169,8 +181,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
         return properties
 
-    def _unmarshal_properties(
-            self, value=NoValue, one_of_schema=None, strict=True):
+    def _unmarshal_properties(self, value=NoValue, one_of_schema=None):
         all_props = self.schema.get_all_properties()
         all_props_names = self.schema.get_all_properties_names()
 
@@ -187,8 +198,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             for prop_name in extra_props:
                 prop_value = value[prop_name]
                 properties[prop_name] = self.unmarshallers_factory.create(
-                    self.schema.additional_properties)(
-                        prop_value, strict=strict)
+                    self.schema.additional_properties)(prop_value)
 
         for prop_name, prop in iteritems(all_props):
             try:
@@ -199,31 +209,37 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
                 prop_value = prop.default
 
             properties[prop_name] = self.unmarshallers_factory.create(
-                prop)(prop_value, strict=strict)
+                prop)(prop_value)
 
         return properties
 
 
 class AnyUnmarshaller(ComplexUnmarshaller):
 
+    FORMATTERS = {
+        SchemaFormat.NONE: Formatter(),
+    }
+
     SCHEMA_TYPES_ORDER = [
         SchemaType.OBJECT, SchemaType.ARRAY, SchemaType.BOOLEAN,
         SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
     ]
 
-    def __call__(self, value=NoValue, strict=True):
+    def __call__(self, value=NoValue):
         one_of_schema = self._get_one_of_schema(value)
         if one_of_schema:
-            return self.unmarshallers_factory.create(one_of_schema)(
-                value, strict=strict)
+            return self.unmarshallers_factory.create(one_of_schema)(value)
 
         for schema_type in self.SCHEMA_TYPES_ORDER:
+            unmarshaller = self.unmarshallers_factory.create(
+                self.schema, type_override=schema_type)
+            # validate with validator of formatter (usualy type validator)
             try:
-                unmarshaller = self.unmarshallers_factory.create(
-                    self.schema, type_override=schema_type)
-                return unmarshaller(value, strict=strict)
-            except (UnmarshalError, ValueError):
+                unmarshaller._formatter_validate(value)
+            except ValidateError:
                 continue
+            else:
+                return unmarshaller(value)
 
         log.warning("failed to unmarshal any type")
         return value
@@ -232,8 +248,9 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         if not self.schema.one_of:
             return
         for subschema in self.schema.one_of:
+            unmarshaller = self.unmarshallers_factory.create(subschema)
             try:
-                subschema.validate(value)
+                unmarshaller.validate(value)
             except ValidateError:
                 continue
             else:

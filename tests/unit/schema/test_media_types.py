@@ -3,6 +3,7 @@ import pytest
 from openapi_core.schema.media_types.exceptions import InvalidMediaTypeValue
 from openapi_core.schema.media_types.models import MediaType
 from openapi_core.schema.schemas.models import Schema
+from openapi_core.unmarshalling.schemas.formatters import Formatter
 
 
 class TestMediaTypeCast(object):
@@ -35,16 +36,20 @@ class TestParameterUnmarshal(object):
             media_type.unmarshal(value)
 
     def test_schema_custom_format_invalid(self):
-        def custom_formatter(value):
-            raise ValueError
+
+        class CustomFormatter(Formatter):
+            def unmarshal(self, value):
+                raise ValueError
+        formatter = CustomFormatter()
+        custom_format = 'custom'
+        custom_formatters = {
+            custom_format: formatter,
+        }
         schema = Schema(
             'string',
-            schema_format='custom',
+            schema_format=custom_format,
             _source={'type': 'string', 'format': 'custom'},
         )
-        custom_formatters = {
-            'custom': custom_formatter,
-        }
         media_type = MediaType('application/json', schema=schema)
         value = 'test'
 
