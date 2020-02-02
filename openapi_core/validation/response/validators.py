@@ -7,6 +7,9 @@ from openapi_core.schema.responses.exceptions import (
     InvalidResponse, MissingResponseContent,
 )
 from openapi_core.schema.servers.exceptions import InvalidServer
+from openapi_core.unmarshalling.schemas.exceptions import (
+    UnmarshalError, ValidateError,
+)
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.util import get_operation_pattern
 
@@ -19,27 +22,10 @@ class ResponseValidator(object):
 
     def validate(self, request, response):
         try:
-            server = self.spec.get_server(request.full_url_pattern)
-        # don't process if server errors
-        except InvalidServer as exc:
-            return ResponseValidationResult([exc, ], None, None)
-
-        operation_pattern = get_operation_pattern(
-            server.default_url, request.full_url_pattern
-        )
-
-        try:
-            operation = self.spec.get_operation(
-                operation_pattern, request.method)
+            operation_response = self._get_operation_response(
+                request, response)
         # don't process if operation errors
-        except InvalidOperation as exc:
-            return ResponseValidationResult([exc, ], None, None)
-
-        try:
-            operation_response = operation.get_response(
-                str(response.status_code))
-        # don't process if operation response errors
-        except InvalidResponse as exc:
+        except (InvalidServer, InvalidOperation, InvalidResponse) as exc:
             return ResponseValidationResult([exc, ], None, None)
 
         data, data_errors = self._get_data(response, operation_response)
@@ -49,6 +35,33 @@ class ResponseValidator(object):
 
         errors = data_errors + headers_errors
         return ResponseValidationResult(errors, data, headers)
+
+    def _get_operation_pattern(self, request):
+        server = self.spec.get_server(request.full_url_pattern)
+
+        return get_operation_pattern(
+            server.default_url, request.full_url_pattern
+        )
+
+    def _get_operation(self, request):
+        operation_pattern = self._get_operation_pattern(request)
+
+        return self.spec.get_operation(operation_pattern, request.method)
+
+    def _get_operation_response(self, request, response):
+        operation = self._get_operation(request)
+
+        return operation.get_response(str(response.status_code))
+
+    def _validate_data(self, request, response):
+        try:
+            operation_response = self._get_operation_response(
+                request, response)
+        except (InvalidServer, InvalidOperation, InvalidResponse) as exc:
+            return ResponseValidationResult([exc, ], None, None)
+
+        data, data_errors = self._get_data(response, operation_response)
+        return ResponseValidationResult(data_errors, data, None)
 
     def _get_data(self, response, operation_response):
         errors = []
@@ -73,11 +86,8 @@ class ResponseValidator(object):
                     errors.append(exc)
                 else:
                     try:
-                        data = media_type.unmarshal(
-                            casted, self.custom_formatters,
-                            resolver=self.spec._resolver,
-                        )
-                    except InvalidMediaTypeValue as exc:
+                        data = self._unmarshal(media_type, casted)
+                    except (ValidateError, UnmarshalError) as exc:
                         errors.append(exc)
 
         return data, errors
@@ -89,3 +99,13 @@ class ResponseValidator(object):
         headers = {}
 
         return headers, errors
+
+    def _unmarshal(self, param_or_media_type, value):
+        if not param_or_media_type.schema:
+            return value
+
+        return param_or_media_type.schema.unmarshal(
+            value,
+            resolver=self.spec._resolver,
+            custom_formatters=self.custom_formatters,
+        )

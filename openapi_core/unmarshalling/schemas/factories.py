@@ -2,6 +2,7 @@ from copy import deepcopy
 import warnings
 
 from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
+from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema_validator import OAS30Validator
 from openapi_core.schema_validator import oas30_format_checker
 from openapi_core.unmarshalling.schemas.exceptions import (
@@ -36,6 +37,8 @@ class SchemaUnmarshallersFactory(object):
 
     def create(self, schema, type_override=None):
         """Create unmarshaller from the schema."""
+        if not isinstance(schema, Schema):
+            raise TypeError("schema not type of Schema")
         if schema.deprecated:
             warnings.warn("The schema is deprecated", DeprecationWarning)
 

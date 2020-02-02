@@ -12,6 +12,9 @@ from openapi_core.schema.parameters.exceptions import (
 from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.schema.servers.exceptions import InvalidServer
+from openapi_core.unmarshalling.schemas.exceptions import (
+    UnmarshalError, ValidateError,
+)
 from openapi_core.validation.request.datatypes import (
     RequestParameters, RequestValidationResult,
 )
@@ -26,25 +29,10 @@ class RequestValidator(object):
 
     def validate(self, request):
         try:
-            server = self.spec.get_server(request.full_url_pattern)
-        # don't process if server errors
-        except InvalidServer as exc:
-            return RequestValidationResult([exc, ], None, None)
-
-        operation_pattern = get_operation_pattern(
-            server.default_url, request.full_url_pattern
-        )
-
-        try:
-            path = self.spec[operation_pattern]
-        except InvalidPath as exc:
-            return RequestValidationResult([exc, ], None, None)
-
-        try:
-            operation = self.spec.get_operation(
-                operation_pattern, request.method)
+            path = self._get_path(request)
+            operation = self._get_operation(request)
         # don't process if operation errors
-        except InvalidOperation as exc:
+        except (InvalidServer, InvalidPath, InvalidOperation) as exc:
             return RequestValidationResult([exc, ], None, None)
 
         params, params_errors = self._get_parameters(
@@ -58,6 +46,47 @@ class RequestValidator(object):
 
         errors = params_errors + body_errors
         return RequestValidationResult(errors, body, params)
+
+    def _validate_parameters(self, request):
+        try:
+            path = self._get_path(request)
+            operation = self._get_operation(request)
+        except (InvalidServer, InvalidPath, InvalidOperation) as exc:
+            return RequestValidationResult([exc, ], None, None)
+
+        params, params_errors = self._get_parameters(
+            request, chain(
+                iteritems(operation.parameters),
+                iteritems(path.parameters)
+            )
+        )
+        return RequestValidationResult(params_errors, None, params)
+
+    def _validate_body(self, request):
+        try:
+            operation = self._get_operation(request)
+        except (InvalidServer, InvalidOperation) as exc:
+            return RequestValidationResult([exc, ], None, None)
+
+        body, body_errors = self._get_body(request, operation)
+        return RequestValidationResult(body_errors, body, None)
+
+    def _get_operation_pattern(self, request):
+        server = self.spec.get_server(request.full_url_pattern)
+
+        return get_operation_pattern(
+            server.default_url, request.full_url_pattern
+        )
+
+    def _get_path(self, request):
+        operation_pattern = self._get_operation_pattern(request)
+
+        return self.spec[operation_pattern]
+
+    def _get_operation(self, request):
+        operation_pattern = self._get_operation_pattern(request)
+
+        return self.spec.get_operation(operation_pattern, request.method)
 
     def _get_parameters(self, request, params):
         errors = []
@@ -86,11 +115,8 @@ class RequestValidator(object):
                     continue
 
             try:
-                unmarshalled = param.unmarshal(
-                    casted, self.custom_formatters,
-                    resolver=self.spec._resolver,
-                )
-            except OpenAPIParameterError as exc:
+                unmarshalled = self._unmarshal(param, casted)
+            except (ValidateError, UnmarshalError) as exc:
                 errors.append(exc)
             else:
                 locations.setdefault(param.location.value, {})
@@ -121,11 +147,18 @@ class RequestValidator(object):
                     errors.append(exc)
                 else:
                     try:
-                        body = media_type.unmarshal(
-                            casted, self.custom_formatters,
-                            resolver=self.spec._resolver,
-                        )
-                    except InvalidMediaTypeValue as exc:
+                        body = self._unmarshal(media_type, casted)
+                    except (ValidateError, UnmarshalError) as exc:
                         errors.append(exc)
 
         return body, errors
+
+    def _unmarshal(self, param_or_media_type, value):
+        if not param_or_media_type.schema:
+            return value
+
+        return param_or_media_type.schema.unmarshal(
+            value,
+            resolver=self.spec._resolver,
+            custom_formatters=self.custom_formatters,
+        )

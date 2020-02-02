@@ -18,6 +18,7 @@ from openapi_core.schema.responses.exceptions import (
 from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.shortcuts import create_spec
 from openapi_core.testing import MockRequest, MockResponse
+from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.request.datatypes import RequestParameters
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -465,7 +466,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidMediaTypeValue
+        assert type(result.errors[0]) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 
@@ -485,7 +486,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidMediaTypeValue
+        assert type(result.errors[0]) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 

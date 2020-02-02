@@ -12,7 +12,8 @@ from openapi_core.validation.request.shortcuts import (
 class TestSpecValidateParameters(object):
 
     @mock.patch(
-        'openapi_core.validation.request.shortcuts.RequestValidator.validate'
+        'openapi_core.validation.request.shortcuts.RequestValidator.'
+        '_validate_parameters'
     )
     def test_no_request_factory(self, mock_validate):
         spec = mock.sentinel.spec
@@ -26,7 +27,8 @@ class TestSpecValidateParameters(object):
         mock_validate.aasert_called_once_with(request)
 
     @mock.patch(
-        'openapi_core.validation.request.shortcuts.RequestValidator.validate'
+        'openapi_core.validation.request.shortcuts.RequestValidator.'
+        '_validate_parameters'
     )
     def test_no_request_factory_error(self, mock_validate):
         spec = mock.sentinel.spec
@@ -39,7 +41,8 @@ class TestSpecValidateParameters(object):
         mock_validate.aasert_called_once_with(request)
 
     @mock.patch(
-        'openapi_core.validation.request.shortcuts.RequestValidator.validate'
+        'openapi_core.validation.request.shortcuts.RequestValidator.'
+        '_validate_parameters'
     )
     def test_request_factory(self, mock_validate):
         spec = mock.sentinel.spec
@@ -56,7 +59,8 @@ class TestSpecValidateParameters(object):
         )
 
     @mock.patch(
-        'openapi_core.validation.request.shortcuts.RequestValidator.validate'
+        'openapi_core.validation.request.shortcuts.RequestValidator.'
+        '_validate_parameters'
     )
     def test_request_factory_error(self, mock_validate):
         spec = mock.sentinel.spec
@@ -75,7 +79,8 @@ class TestSpecValidateParameters(object):
 class TestSpecValidateBody(object):
 
     @mock.patch(
-        'openapi_core.validation.request.shortcuts.RequestValidator.validate'
+        'openapi_core.validation.request.shortcuts.RequestValidator.'
+        '_validate_body'
     )
     def test_no_request_factory(self, mock_validate):
         spec = mock.sentinel.spec
@@ -89,7 +94,8 @@ class TestSpecValidateBody(object):
         mock_validate.aasert_called_once_with(request)
 
     @mock.patch(
-        'openapi_core.validation.request.shortcuts.RequestValidator.validate'
+        'openapi_core.validation.request.shortcuts.RequestValidator.'
+        '_validate_body'
     )
     def test_no_request_factory_error(self, mock_validate):
         spec = mock.sentinel.spec
@@ -102,7 +108,8 @@ class TestSpecValidateBody(object):
         mock_validate.aasert_called_once_with(request)
 
     @mock.patch(
-        'openapi_core.validation.request.shortcuts.RequestValidator.validate'
+        'openapi_core.validation.request.shortcuts.RequestValidator.'
+        '_validate_body'
     )
     def test_request_factory(self, mock_validate):
         spec = mock.sentinel.spec
@@ -119,7 +126,8 @@ class TestSpecValidateBody(object):
         )
 
     @mock.patch(
-        'openapi_core.validation.request.shortcuts.RequestValidator.validate'
+        'openapi_core.validation.request.shortcuts.RequestValidator.'
+        '_validate_body'
     )
     def test_request_factory_error(self, mock_validate):
         spec = mock.sentinel.spec

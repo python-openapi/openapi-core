@@ -1,12 +1,10 @@
 import pytest
 
 from openapi_core.schema.parameters.exceptions import (
-    EmptyParameterValue, InvalidParameterValue,
+    EmptyParameterValue,
 )
 from openapi_core.schema.parameters.enums import ParameterStyle
 from openapi_core.schema.parameters.models import Parameter
-from openapi_core.schema.schemas.models import Schema
-from openapi_core.unmarshalling.schemas.formatters import Formatter
 
 
 class TestParameterInit(object):
@@ -65,51 +63,3 @@ class TestParameterCast(object):
         result = param.cast(value)
 
         assert result == value
-
-
-class TestParameterUnmarshal(object):
-
-    def test_query_valid(self):
-        param = Parameter('param', 'query')
-        value = 'test'
-
-        result = param.unmarshal(value)
-
-        assert result == value
-
-    def test_query_allow_empty_value(self):
-        param = Parameter('param', 'query', allow_empty_value=True)
-        value = ''
-
-        result = param.unmarshal(value)
-
-        assert result == value
-
-    def test_query_schema_type_invalid(self):
-        schema = Schema('integer', _source={'type': 'integer'})
-        param = Parameter('param', 'query', schema=schema)
-        value = 'test'
-
-        with pytest.raises(InvalidParameterValue):
-            param.unmarshal(value)
-
-    def test_query_schema_custom_format_invalid(self):
-
-        class CustomFormatter(Formatter):
-            def unmarshal(self, value):
-                raise ValueError
-        formatter = CustomFormatter()
-        custom_format = 'custom'
-        custom_formatters = {
-            custom_format: formatter,
-        }
-        schema = Schema(
-            'string',
-            schema_format=custom_format,
-            _source={'type': 'string', 'format': 'custom'},
-        )
-        param = Parameter('param', 'query', schema=schema)
-        value = 'test'
-
-        with pytest.raises(InvalidParameterValue):
-            param.unmarshal(value, custom_formatters=custom_formatters)
