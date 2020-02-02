@@ -1,5 +1,5 @@
 """OpenAPI core validation request shortcuts module"""
-from functools import partial
+import warnings
 
 from openapi_core.schema.media_types.exceptions import OpenAPIMediaTypeError
 from openapi_core.schema.parameters.exceptions import OpenAPIParameterError
@@ -28,8 +28,26 @@ def validate_request(validator, request, failsafe=None):
     return result
 
 
-validate_parameters = partial(validate_request, failsafe=ERRORS_BODY)
-validate_body = partial(validate_request, failsafe=ERRORS_PARAMETERS)
+def validate_parameters(validator, request):
+    warnings.warn(
+        "validate_parameters shortcut is deprecated, "
+        "use validator.validate instead",
+        DeprecationWarning,
+    )
+    result = validator._validate_parameters(request)
+    result.raise_for_errors()
+    return result
+
+
+def validate_body(validator, request):
+    warnings.warn(
+        "validate_body shortcut is deprecated, "
+        "use validator.validate instead",
+        DeprecationWarning,
+    )
+    result = validator._validate_body(request)
+    result.raise_for_errors()
+    return result
 
 
 def spec_validate_parameters(spec, request, request_factory=None):

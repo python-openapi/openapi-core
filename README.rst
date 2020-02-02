@@ -78,15 +78,6 @@ and unmarshal request data from validation result
    # get body
    validated_body = result.body
 
-or use shortcuts for simple validation
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_params = validate_parameters(spec, request)
-   validated_body = validate_body(spec, request)
-
 Request object should be instance of OpenAPIRequest class (See `Integrations`_).
 
 Response
@@ -117,14 +108,6 @@ and unmarshal response data from validation result
    # get data
    validated_data = result.data
 
-or use shortcuts for simple validation
-
-.. code-block:: python
-
-   from openapi_core import validate_data
-
-   validated_data = validate_data(spec, request, response)
-
 Response object should be instance of OpenAPIResponse class (See `Integrations`_).
 
 
@@ -145,17 +128,6 @@ For Django 2.2 you can use DjangoOpenAPIRequest a Django request factory:
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-or simply specify request factory for shortcuts
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_params = validate_parameters(
-       spec, request, request_factory=DjangoOpenAPIRequest)
-   validated_body = validate_body(
-       spec, request, request_factory=DjangoOpenAPIRequest)
-
 You can use DjangoOpenAPIResponse as a Django response factory:
 
 .. code-block:: python
@@ -166,17 +138,6 @@ You can use DjangoOpenAPIResponse as a Django response factory:
    openapi_response = DjangoOpenAPIResponse(django_response)
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
-
-or simply specify response factory for shortcuts
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_data = validate_data(
-       spec, request, response,
-       request_factory=DjangoOpenAPIRequest,
-       response_factory=DjangoOpenAPIResponse)
 
 Flask
 *****
@@ -247,17 +208,6 @@ You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-or simply specify request factory for shortcuts
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_params = validate_parameters(
-       spec, request, request_factory=FlaskOpenAPIRequest)
-   validated_body = validate_body(
-       spec, request, request_factory=FlaskOpenAPIRequest)
-
 You can use FlaskOpenAPIResponse as a Flask/Werkzeug response factory:
 
 .. code-block:: python
@@ -268,17 +218,6 @@ You can use FlaskOpenAPIResponse as a Flask/Werkzeug response factory:
    openapi_response = FlaskOpenAPIResponse(flask_response)
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
-
-or simply specify response factory for shortcuts
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_data = validate_data(
-       spec, request, response,
-       request_factory=FlaskOpenAPIRequest,
-       response_factory=FlaskOpenAPIResponse)
 
 Pyramid
 *******
