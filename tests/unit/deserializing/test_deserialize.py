@@ -51,8 +51,9 @@ class TestMediaTypeDeserialise(object):
 
     @pytest.fixture
     def deserializer_factory(self):
-        def create_deserializer(media_type):
-            return MediaTypeDeserializersFactory().create(media_type)
+        def create_deserializer(media_type, custom_deserializers=None):
+            return MediaTypeDeserializersFactory(
+                custom_deserializers=custom_deserializers).create(media_type)
         return create_deserializer
 
     def test_empty(self, deserializer_factory):
@@ -69,3 +70,19 @@ class TestMediaTypeDeserialise(object):
         result = deserializer_factory(media_type)(value)
 
         assert result == {}
+
+    def test_no_schema_custom_deserialiser(self, deserializer_factory):
+        custom_mimetype = 'application/custom'
+        media_type = MediaType(custom_mimetype)
+        value = "{}"
+
+        def custom_deserializer(value):
+            return 'custom'
+        custom_deserializers = {
+            custom_mimetype: custom_deserializer,
+        }
+
+        result = deserializer_factory(
+            media_type, custom_deserializers=custom_deserializers)(value)
+
+        assert result == 'custom'
