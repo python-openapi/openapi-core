@@ -1,15 +1,20 @@
+from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.schema.schemas.types import NoValue
 
 
 class PrimitiveCaster(object):
 
-    def __init__(self, caster_callable):
+    def __init__(self, schema, caster_callable):
+        self.schema = schema
         self.caster_callable = caster_callable
 
     def __call__(self, value):
         if value in (None, NoValue):
             return value
-        return self.caster_callable(value)
+        try:
+            return self.caster_callable(value)
+        except (ValueError, TypeError):
+            raise CastError(value, self.schema.type.value)
 
 
 class DummyCaster(object):

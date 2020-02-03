@@ -1,8 +1,8 @@
 """OpenAPI core validation response validators module"""
+from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.schema.operations.exceptions import InvalidOperation
-from openapi_core.schema.media_types.exceptions import (
-    InvalidMediaTypeValue, InvalidContentType,
-)
+from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.responses.exceptions import (
     InvalidResponse, MissingResponseContent,
 )
@@ -64,33 +64,35 @@ class ResponseValidator(object):
         return ResponseValidationResult(data_errors, data, None)
 
     def _get_data(self, response, operation_response):
-        errors = []
-
         if not operation_response.content:
-            return None, errors
+            return None, []
 
-        data = None
         try:
             media_type = operation_response[response.mimetype]
         except InvalidContentType as exc:
-            errors.append(exc)
-        else:
-            try:
-                raw_data = operation_response.get_value(response)
-            except MissingResponseContent as exc:
-                errors.append(exc)
-            else:
-                try:
-                    casted = media_type.cast(raw_data)
-                except InvalidMediaTypeValue as exc:
-                    errors.append(exc)
-                else:
-                    try:
-                        data = self._unmarshal(media_type, casted)
-                    except (ValidateError, UnmarshalError) as exc:
-                        errors.append(exc)
+            return None, [exc, ]
 
-        return data, errors
+        try:
+            raw_data = self._get_data_value(response)
+        except MissingResponseContent as exc:
+            return None, [exc, ]
+
+        try:
+            deserialised = self._deserialise_media_type(media_type, raw_data)
+        except DeserializeError as exc:
+            return None, [exc, ]
+
+        try:
+            casted = self._cast(media_type, deserialised)
+        except CastError as exc:
+            return None, [exc, ]
+
+        try:
+            data = self._unmarshal(media_type, casted)
+        except (ValidateError, UnmarshalError) as exc:
+            return None, [exc, ]
+
+        return data, []
 
     def _get_headers(self, response, operation_response):
         errors = []
@@ -99,6 +101,30 @@ class ResponseValidator(object):
         headers = {}
 
         return headers, errors
+
+    def _get_data_value(self, response):
+        if not response.data:
+            raise MissingResponseContent(response)
+
+        return response.data
+
+    def _deserialise_media_type(self, media_type, value):
+        from openapi_core.deserializing.media_types.factories import (
+            MediaTypeDeserializersFactory,
+        )
+        deserializers_factory = MediaTypeDeserializersFactory()
+        deserializer = deserializers_factory.create(media_type)
+        return deserializer(value)
+
+    def _cast(self, param_or_media_type, value):
+        # return param_or_media_type.cast(value)
+        if not param_or_media_type.schema:
+            return value
+
+        from openapi_core.casting.schemas.factories import SchemaCastersFactory
+        casters_factory = SchemaCastersFactory()
+        caster = casters_factory.create(param_or_media_type.schema)
+        return caster(value)
 
     def _unmarshal(self, param_or_media_type, value):
         if not param_or_media_type.schema:

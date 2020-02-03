@@ -2,12 +2,12 @@
 from itertools import chain
 from six import iteritems
 
-from openapi_core.schema.media_types.exceptions import (
-    InvalidMediaTypeValue, InvalidContentType,
-)
+from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.deserializing.exceptions import DeserializeError
+from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import (
-    OpenAPIParameterError, MissingRequiredParameter, MissingParameter,
+    MissingRequiredParameter, MissingParameter,
 )
 from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
@@ -99,7 +99,7 @@ class RequestValidator(object):
                 continue
             seen.add((param_name, param.location.value))
             try:
-                raw_value = param.get_raw_value(request)
+                raw_value = self._get_parameter_value(param, request)
             except MissingRequiredParameter as exc:
                 errors.append(exc)
                 continue
@@ -109,8 +109,15 @@ class RequestValidator(object):
                 casted = param.schema.default
             else:
                 try:
-                    casted = param.cast(raw_value)
-                except OpenAPIParameterError as exc:
+                    deserialised = self._deserialise_parameter(
+                        param, raw_value)
+                except DeserializeError as exc:
+                    errors.append(exc)
+                    continue
+
+                try:
+                    casted = self._cast(param, deserialised)
+                except CastError as exc:
                     errors.append(exc)
                     continue
 
@@ -125,33 +132,82 @@ class RequestValidator(object):
         return RequestParameters(**locations), errors
 
     def _get_body(self, request, operation):
-        errors = []
-
         if operation.request_body is None:
-            return None, errors
+            return None, []
 
-        body = None
         try:
             media_type = operation.request_body[request.mimetype]
         except InvalidContentType as exc:
-            errors.append(exc)
-        else:
-            try:
-                raw_body = operation.request_body.get_value(request)
-            except MissingRequestBody as exc:
-                errors.append(exc)
-            else:
-                try:
-                    casted = media_type.cast(raw_body)
-                except InvalidMediaTypeValue as exc:
-                    errors.append(exc)
-                else:
-                    try:
-                        body = self._unmarshal(media_type, casted)
-                    except (ValidateError, UnmarshalError) as exc:
-                        errors.append(exc)
+            return None, [exc, ]
 
-        return body, errors
+        try:
+            raw_body = self._get_body_value(operation.request_body, request)
+        except MissingRequestBody as exc:
+            return None, [exc, ]
+
+        try:
+            deserialised = self._deserialise_media_type(media_type, raw_body)
+        except DeserializeError as exc:
+            return None, [exc, ]
+
+        try:
+            casted = self._cast(media_type, deserialised)
+        except CastError as exc:
+            return None, [exc, ]
+
+        try:
+            body = self._unmarshal(media_type, casted)
+        except (ValidateError, UnmarshalError) as exc:
+            return None, [exc, ]
+
+        return body, []
+
+    def _get_parameter_value(self, param, request):
+        location = request.parameters[param.location.value]
+
+        if param.name not in location:
+            if param.required:
+                raise MissingRequiredParameter(param.name)
+
+            raise MissingParameter(param.name)
+
+        if param.aslist and param.explode:
+            if hasattr(location, 'getall'):
+                return location.getall(param.name)
+            return location.getlist(param.name)
+
+        return location[param.name]
+
+    def _get_body_value(self, request_body, request):
+        if not request.body and request_body.required:
+            raise MissingRequestBody(request)
+        return request.body
+
+    def _deserialise_media_type(self, media_type, value):
+        from openapi_core.deserializing.media_types.factories import (
+            MediaTypeDeserializersFactory,
+        )
+        deserializers_factory = MediaTypeDeserializersFactory()
+        deserializer = deserializers_factory.create(media_type)
+        return deserializer(value)
+
+    def _deserialise_parameter(self, param, value):
+        from openapi_core.deserializing.parameters.factories import (
+            ParameterDeserializersFactory,
+        )
+        deserializers_factory = ParameterDeserializersFactory()
+        deserializer = deserializers_factory.create(param)
+        return deserializer(value)
+
+    def _cast(self, param_or_media_type, value):
+        # return param_or_media_type.cast(value)
+        if not param_or_media_type.schema:
+            return value
+
+        from openapi_core.casting.schemas.factories import SchemaCastersFactory
+        casters_factory = SchemaCastersFactory()
+        caster = casters_factory.create(param_or_media_type.schema)
+        return caster(value)
 
     def _unmarshal(self, param_or_media_type, value):
         if not param_or_media_type.schema:

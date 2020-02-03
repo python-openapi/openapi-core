@@ -3,13 +3,14 @@ import json
 import pytest
 from six import text_type
 
+from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.schema.media_types.exceptions import (
-    InvalidContentType, InvalidMediaTypeValue,
+    InvalidContentType,
 )
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
-from openapi_core.schema.parameters.exceptions import InvalidParameterValue
 from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.schema.responses.exceptions import (
@@ -317,7 +318,7 @@ class TestPathItemParamsValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidParameterValue
+        assert type(result.errors[0]) == CastError
         assert result.body is None
         assert result.parameters == RequestParameters()
 
@@ -455,7 +456,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidMediaTypeValue
+        assert type(result.errors[0]) == DeserializeError
         assert result.data is None
         assert result.headers == {}
 
