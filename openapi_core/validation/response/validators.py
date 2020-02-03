@@ -74,7 +74,7 @@ class ResponseValidator(object):
             return None, [exc, ]
 
         try:
-            raw_data = operation_response.get_value(response)
+            raw_data = self._get_data_value(response)
         except MissingResponseContent as exc:
             return None, [exc, ]
 
@@ -102,6 +102,12 @@ class ResponseValidator(object):
         headers = {}
 
         return headers, errors
+
+    def _get_data_value(self, response):
+        if not response.data:
+            raise MissingResponseContent(response)
+
+        return response.data
 
     def _deserialise(self, param_or_media_type, value):
         return param_or_media_type.deserialise(value)

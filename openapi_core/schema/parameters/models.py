@@ -72,22 +72,6 @@ class Parameter(object):
         deserializer = self.get_dererializer()
         return deserializer(value)
 
-    def get_raw_value(self, request):
-        location = request.parameters[self.location.value]
-
-        if self.name not in location:
-            if self.required:
-                raise MissingRequiredParameter(self.name)
-
-            raise MissingParameter(self.name)
-
-        if self.aslist and self.explode:
-            if hasattr(location, 'getall'):
-                return location.getall(self.name)
-            return location.getlist(self.name)
-
-        return location[self.name]
-
     def deserialise(self, value):
         if self.deprecated:
             warnings.warn(
@@ -102,13 +86,4 @@ class Parameter(object):
         try:
             return self.deserialize(value)
         except (ValueError, AttributeError) as exc:
-            raise InvalidParameterValue(self.name, exc)
-
-    def cast(self, value):
-        if not self.schema:
-            return value
-
-        try:
-            return self.schema.cast(value)
-        except CastError as exc:
             raise InvalidParameterValue(self.name, exc)

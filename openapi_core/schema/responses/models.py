@@ -2,7 +2,6 @@
 from openapi_core.schema.content.exceptions import MimeTypeNotFound
 from openapi_core.schema.content.models import Content
 from openapi_core.schema.media_types.exceptions import InvalidContentType
-from openapi_core.schema.responses.exceptions import MissingResponseContent
 
 
 class Response(object):
@@ -24,9 +23,3 @@ class Response(object):
             return self.content[mimetype]
         except MimeTypeNotFound:
             raise InvalidContentType(mimetype)
-
-    def get_value(self, response):
-        if not response.data:
-            raise MissingResponseContent(response)
-
-        return response.data

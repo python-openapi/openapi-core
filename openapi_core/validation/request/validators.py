@@ -100,7 +100,7 @@ class RequestValidator(object):
                 continue
             seen.add((param_name, param.location.value))
             try:
-                raw_value = param.get_raw_value(request)
+                raw_value = self._get_parameter_value(param, request)
             except MissingRequiredParameter as exc:
                 errors.append(exc)
                 continue
@@ -141,7 +141,7 @@ class RequestValidator(object):
             return None, [exc, ]
 
         try:
-            raw_body = operation.request_body.get_value(request)
+            raw_body = self._get_body_value(operation.request_body, request)
         except MissingRequestBody as exc:
             return None, [exc, ]
 
@@ -161,6 +161,27 @@ class RequestValidator(object):
             return None, [exc, ]
 
         return body, []
+
+    def _get_parameter_value(self, param, request):
+        location = request.parameters[param.location.value]
+
+        if param.name not in location:
+            if param.required:
+                raise MissingRequiredParameter(param.name)
+
+            raise MissingParameter(param.name)
+
+        if param.aslist and param.explode:
+            if hasattr(location, 'getall'):
+                return location.getall(param.name)
+            return location.getlist(param.name)
+
+        return location[param.name]
+
+    def _get_body_value(self, request_body, request):
+        if not request.body and request_body.required:
+            raise MissingRequestBody(request)
+        return request.body
 
     def _deserialise(self, param_or_media_type, value):
         return param_or_media_type.deserialise(value)
