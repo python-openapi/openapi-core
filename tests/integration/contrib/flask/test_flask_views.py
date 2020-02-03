@@ -87,14 +87,13 @@ class TestFlaskOpenAPIView(object):
             'errors': [
                 {
                     'class': (
-                        "<class 'openapi_core.schema.parameters."
-                        "exceptions.InvalidParameterValue'>"
+                        "<class 'openapi_core.casting.schemas.exceptions."
+                        "CastError'>"
                     ),
                     'status': 400,
                     'title': (
-                        'Invalid parameter value for `id`: '
-                        'Failed to cast value invalidparameter to type '
-                        'SchemaType.INTEGER'
+                        "Failed to cast value invalid literal for int() with "
+                        "base 10: 'invalidparameter' to type <class 'int'>"
                     )
                 }
             ]

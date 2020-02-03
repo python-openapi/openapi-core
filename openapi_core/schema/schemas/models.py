@@ -90,14 +90,3 @@ class Schema(object):
     def get_all_properties_names(self):
         all_properties = self.get_all_properties()
         return set(all_properties.keys())
-
-    def cast(self, value):
-        """Cast value from string to schema type"""
-        from openapi_core.casting.schemas.exceptions import CastError
-        from openapi_core.casting.schemas.factories import SchemaCastersFactory
-        casters_factory = SchemaCastersFactory()
-        caster = casters_factory.create(self)
-        try:
-            return caster(value)
-        except (ValueError, TypeError):
-            raise CastError(value, self.type)

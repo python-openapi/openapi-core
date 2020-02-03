@@ -5,6 +5,7 @@ from base64 import b64encode
 from uuid import UUID
 from six import text_type
 
+from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.parameters.exceptions import (
@@ -291,7 +292,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(InvalidParameterValue):
+        with pytest.raises(CastError):
             validate_parameters(spec, request)
 
         body = validate_body(spec, request)

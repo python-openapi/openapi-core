@@ -1,4 +1,5 @@
 """OpenAPI core validation response validators module"""
+from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.media_types.exceptions import (
     InvalidMediaTypeValue, InvalidContentType,
@@ -87,7 +88,7 @@ class ResponseValidator(object):
                 else:
                     try:
                         casted = self._cast(media_type, deserialised)
-                    except InvalidMediaTypeValue as exc:
+                    except CastError as exc:
                         errors.append(exc)
                     else:
                         try:
@@ -109,7 +110,16 @@ class ResponseValidator(object):
         return param_or_media_type.deserialise(value)
 
     def _cast(self, param_or_media_type, value):
-        return param_or_media_type.cast(value)
+        # return param_or_media_type.cast(value)
+        if not param_or_media_type.schema:
+            return value
+
+        from openapi_core.casting.schemas.exceptions import CastError
+        from openapi_core.casting.schemas.factories import SchemaCastersFactory
+        casters_factory = SchemaCastersFactory()
+        caster = casters_factory.create(param_or_media_type.schema)
+        return caster(value)
+
 
     def _unmarshal(self, param_or_media_type, value):
         if not param_or_media_type.schema:
