@@ -157,8 +157,11 @@ class RequestValidator(object):
         if not param_or_media_type.schema:
             return value
 
-        return param_or_media_type.schema.unmarshal(
-            value,
-            resolver=self.spec._resolver,
-            custom_formatters=self.custom_formatters,
+        from openapi_core.unmarshalling.schemas.factories import (
+            SchemaUnmarshallersFactory,
         )
+        unmarshallers_factory = SchemaUnmarshallersFactory(
+            self.spec._resolver, self.custom_formatters)
+        unmarshaller = unmarshallers_factory.create(
+            param_or_media_type.schema)
+        return unmarshaller(value)

@@ -1,10 +1,16 @@
+import datetime
+import uuid
+
 import pytest
 
 from openapi_core.schema.media_types.models import MediaType
 from openapi_core.schema.parameters.models import Parameter
+from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.models import Schema
+from openapi_core.schema.schemas.types import NoValue
 from openapi_core.unmarshalling.schemas.exceptions import (
-    InvalidSchemaFormatValue,
+    InvalidSchemaFormatValue, InvalidSchemaValue, UnmarshalError,
+    FormatterNotFoundError,
 )
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
@@ -14,10 +20,9 @@ from openapi_core.unmarshalling.schemas.formatters import Formatter
 
 @pytest.fixture
 def unmarshaller_factory():
-    def create_unmarshaller(param_or_media_type, custom_formatters=None):
+    def create_unmarshaller(schema, custom_formatters=None):
         return SchemaUnmarshallersFactory(
-            custom_formatters=custom_formatters).create(
-                param_or_media_type.schema)
+            custom_formatters=custom_formatters).create(schema)
     return create_unmarshaller
 
 
@@ -28,7 +33,7 @@ class TestParameterUnmarshal(object):
         value = 'test'
 
         with pytest.raises(TypeError):
-            unmarshaller_factory(param).unmarshal(value)
+            unmarshaller_factory(param.schema).unmarshal(value)
 
     def test_schema_type_invalid(self, unmarshaller_factory):
         schema = Schema('integer', _source={'type': 'integer'})
@@ -36,7 +41,7 @@ class TestParameterUnmarshal(object):
         value = 'test'
 
         with pytest.raises(InvalidSchemaFormatValue):
-            unmarshaller_factory(param).unmarshal(value)
+            unmarshaller_factory(param.schema).unmarshal(value)
 
     def test_schema_custom_format_invalid(self, unmarshaller_factory):
 
@@ -58,7 +63,9 @@ class TestParameterUnmarshal(object):
 
         with pytest.raises(InvalidSchemaFormatValue):
             unmarshaller_factory(
-                param, custom_formatters=custom_formatters).unmarshal(value)
+                param.schema,
+                custom_formatters=custom_formatters,
+            ).unmarshal(value)
 
 
 class TestMediaTypeUnmarshal(object):
@@ -68,7 +75,7 @@ class TestMediaTypeUnmarshal(object):
         value = 'test'
 
         with pytest.raises(TypeError):
-            unmarshaller_factory(media_type).unmarshal(value)
+            unmarshaller_factory(media_type.schema).unmarshal(value)
 
     def test_schema_type_invalid(self, unmarshaller_factory):
         schema = Schema('integer', _source={'type': 'integer'})
@@ -76,7 +83,7 @@ class TestMediaTypeUnmarshal(object):
         value = 'test'
 
         with pytest.raises(InvalidSchemaFormatValue):
-            unmarshaller_factory(media_type).unmarshal(value)
+            unmarshaller_factory(media_type.schema).unmarshal(value)
 
     def test_schema_custom_format_invalid(self, unmarshaller_factory):
 
@@ -98,5 +105,314 @@ class TestMediaTypeUnmarshal(object):
 
         with pytest.raises(InvalidSchemaFormatValue):
             unmarshaller_factory(
-                media_type, custom_formatters=custom_formatters).unmarshal(
-                    value)
+                media_type.schema,
+                custom_formatters=custom_formatters,
+            ).unmarshal(value)
+
+
+class TestSchemaUnmarshallerCall(object):
+
+    def test_deprecated(self, unmarshaller_factory):
+        schema = Schema('string', deprecated=True)
+        value = 'test'
+
+        with pytest.warns(DeprecationWarning):
+            result = unmarshaller_factory(schema)(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize('schema_type', [
+        'boolean', 'array', 'integer', 'number',
+    ])
+    def test_non_string_empty_value(self, schema_type, unmarshaller_factory):
+        schema = Schema(schema_type)
+        value = ''
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_string_valid(self, unmarshaller_factory):
+        schema = Schema('string')
+        value = 'test'
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == value
+
+    def test_string_format_uuid_valid(self, unmarshaller_factory):
+        schema = Schema(SchemaType.STRING, schema_format='uuid')
+        value = str(uuid.uuid4())
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == uuid.UUID(value)
+
+    def test_string_format_uuid_uuid_quirks_invalid(
+            self, unmarshaller_factory):
+        schema = Schema(SchemaType.STRING, schema_format='uuid')
+        value = uuid.uuid4()
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_string_format_password(self, unmarshaller_factory):
+        schema = Schema(SchemaType.STRING, schema_format='password')
+        value = 'password'
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == 'password'
+
+    def test_string_float_invalid(self, unmarshaller_factory):
+        schema = Schema('string')
+        value = 1.23
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_string_default(self, unmarshaller_factory):
+        default_value = 'default'
+        schema = Schema('string', default=default_value)
+        value = NoValue
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == default_value
+
+    @pytest.mark.parametrize('default_value', ['default', None])
+    def test_string_default_nullable(
+            self, default_value, unmarshaller_factory):
+        schema = Schema('string', default=default_value, nullable=True)
+        value = NoValue
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == default_value
+
+    def test_string_format_date(self, unmarshaller_factory):
+        schema = Schema('string', schema_format='date')
+        value = '2018-01-02'
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == datetime.date(2018, 1, 2)
+
+    def test_string_format_datetime(self, unmarshaller_factory):
+        schema = Schema('string', schema_format='date-time')
+        value = '2018-01-02T00:00:00Z'
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == datetime.datetime(2018, 1, 2, 0, 0)
+
+    def test_string_format_custom(self, unmarshaller_factory):
+        formatted = 'x-custom'
+
+        class CustomFormatter(Formatter):
+            def unmarshal(self, value):
+                return formatted
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+        formatter = CustomFormatter()
+        custom_formatters = {
+            custom_format: formatter,
+        }
+
+        result = unmarshaller_factory(
+            schema, custom_formatters=custom_formatters)(value)
+
+        assert result == formatted
+
+    def test_string_format_custom_value_error(self, unmarshaller_factory):
+
+        class CustomFormatter(Formatter):
+            def unmarshal(self, value):
+                raise ValueError
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+        formatter = CustomFormatter()
+        custom_formatters = {
+            custom_format: formatter,
+        }
+
+        with pytest.raises(InvalidSchemaFormatValue):
+            unmarshaller_factory(schema, custom_formatters=custom_formatters)(
+                value)
+
+    def test_string_format_unknown(self, unmarshaller_factory):
+        unknown_format = 'unknown'
+        schema = Schema('string', schema_format=unknown_format)
+        value = 'x'
+
+        with pytest.raises(FormatterNotFoundError):
+            unmarshaller_factory(schema)(value)
+
+    def test_string_format_invalid_value(self, unmarshaller_factory):
+        custom_format = 'custom'
+        schema = Schema('string', schema_format=custom_format)
+        value = 'x'
+
+        with pytest.raises(
+            FormatterNotFoundError,
+            message=(
+                'Formatter not found for custom format'
+            ),
+        ):
+            unmarshaller_factory(schema)(value)
+
+    def test_integer_valid(self, unmarshaller_factory):
+        schema = Schema('integer')
+        value = 123
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == int(value)
+
+    def test_integer_string_invalid(self, unmarshaller_factory):
+        schema = Schema('integer')
+        value = '123'
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_integer_enum_invalid(self, unmarshaller_factory):
+        schema = Schema('integer', enum=[1, 2, 3])
+        value = '123'
+
+        with pytest.raises(UnmarshalError):
+            unmarshaller_factory(schema)(value)
+
+    def test_integer_enum(self, unmarshaller_factory):
+        schema = Schema('integer', enum=[1, 2, 3])
+        value = 2
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == int(value)
+
+    def test_integer_enum_string_invalid(self, unmarshaller_factory):
+        schema = Schema('integer', enum=[1, 2, 3])
+        value = '2'
+
+        with pytest.raises(UnmarshalError):
+            unmarshaller_factory(schema)(value)
+
+    def test_integer_default(self, unmarshaller_factory):
+        default_value = 123
+        schema = Schema('integer', default=default_value)
+        value = NoValue
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == default_value
+
+    def test_integer_default_nullable(self, unmarshaller_factory):
+        default_value = 123
+        schema = Schema('integer', default=default_value, nullable=True)
+        value = None
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result is None
+
+    def test_integer_invalid(self, unmarshaller_factory):
+        schema = Schema('integer')
+        value = 'abc'
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_array_valid(self, unmarshaller_factory):
+        schema = Schema('array', items=Schema('integer'))
+        value = [1, 2, 3]
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == value
+
+    def test_array_of_string_string_invalid(self, unmarshaller_factory):
+        schema = Schema('array', items=Schema('string'))
+        value = '123'
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_array_of_integer_string_invalid(self, unmarshaller_factory):
+        schema = Schema('array', items=Schema('integer'))
+        value = '123'
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_boolean_valid(self, unmarshaller_factory):
+        schema = Schema('boolean')
+        value = True
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == value
+
+    def test_boolean_string_invalid(self, unmarshaller_factory):
+        schema = Schema('boolean')
+        value = 'True'
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_number_valid(self, unmarshaller_factory):
+        schema = Schema('number')
+        value = 1.23
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == value
+
+    def test_number_string_invalid(self, unmarshaller_factory):
+        schema = Schema('number')
+        value = '1.23'
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_number_int(self, unmarshaller_factory):
+        schema = Schema('number')
+        value = 1
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == 1
+        assert type(result) == int
+
+    def test_number_float(self, unmarshaller_factory):
+        schema = Schema('number')
+        value = 1.2
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == 1.2
+        assert type(result) == float
+
+    def test_number_format_float(self, unmarshaller_factory):
+        schema = Schema('number', schema_format='float')
+        value = 1.2
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == 1.2
+
+    def test_number_format_double(self, unmarshaller_factory):
+        schema = Schema('number', schema_format='double')
+        value = 1.2
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == 1.2
+
+    def test_schema_any_one_of(self, unmarshaller_factory):
+        schema = Schema(one_of=[
+            Schema('string'),
+            Schema('array', items=Schema('string')),
+        ])
+        assert unmarshaller_factory(schema)(['hello']) == ['hello']
+
+    def test_schema_any(self, unmarshaller_factory):
+        schema = Schema()
+        assert unmarshaller_factory(schema)('string') == 'string'
