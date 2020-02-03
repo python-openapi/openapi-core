@@ -32,13 +32,13 @@ class MediaType(object):
         return deserializer(value)
 
     def cast(self, value):
-        if not self.schema:
-            return value
-
         try:
             deserialized = self.deserialize(value)
         except ValueError as exc:
             raise InvalidMediaTypeValue(exc)
+
+        if not self.schema:
+            return deserialized
 
         try:
             return self.schema.cast(deserialized)
