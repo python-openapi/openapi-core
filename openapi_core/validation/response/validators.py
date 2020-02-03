@@ -65,38 +65,35 @@ class ResponseValidator(object):
         return ResponseValidationResult(data_errors, data, None)
 
     def _get_data(self, response, operation_response):
-        errors = []
-
         if not operation_response.content:
-            return None, errors
+            return None, []
 
-        data = None
         try:
             media_type = operation_response[response.mimetype]
         except InvalidContentType as exc:
-            errors.append(exc)
-        else:
-            try:
-                raw_data = operation_response.get_value(response)
-            except MissingResponseContent as exc:
-                errors.append(exc)
-            else:
-                try:
-                    deserialised = self._deserialise(media_type, raw_data)
-                except InvalidMediaTypeValue as exc:
-                    errors.append(exc)
-                else:
-                    try:
-                        casted = self._cast(media_type, deserialised)
-                    except CastError as exc:
-                        errors.append(exc)
-                    else:
-                        try:
-                            data = self._unmarshal(media_type, casted)
-                        except (ValidateError, UnmarshalError) as exc:
-                            errors.append(exc)
+            return None, [exc, ]
 
-        return data, errors
+        try:
+            raw_data = operation_response.get_value(response)
+        except MissingResponseContent as exc:
+            return None, [exc, ]
+
+        try:
+            deserialised = self._deserialise(media_type, raw_data)
+        except InvalidMediaTypeValue as exc:
+            return None, [exc, ]
+
+        try:
+            casted = self._cast(media_type, deserialised)
+        except CastError as exc:
+            return None, [exc, ]
+
+        try:
+            data = self._unmarshal(media_type, casted)
+        except (ValidateError, UnmarshalError) as exc:
+            return None, [exc, ]
+
+        return data, []
 
     def _get_headers(self, response, operation_response):
         errors = []

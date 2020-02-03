@@ -114,12 +114,12 @@ class RequestValidator(object):
                 except OpenAPIParameterError as exc:
                     errors.append(exc)
                     continue
-                else:
-                    try:
-                        casted = self._cast(param, deserialised)
-                    except CastError as exc:
-                        errors.append(exc)
-                        continue
+
+                try:
+                    casted = self._cast(param, deserialised)
+                except CastError as exc:
+                    errors.append(exc)
+                    continue
 
             try:
                 unmarshalled = self._unmarshal(param, casted)
@@ -132,38 +132,35 @@ class RequestValidator(object):
         return RequestParameters(**locations), errors
 
     def _get_body(self, request, operation):
-        errors = []
-
         if operation.request_body is None:
-            return None, errors
+            return None, []
 
-        body = None
         try:
             media_type = operation.request_body[request.mimetype]
         except InvalidContentType as exc:
-            errors.append(exc)
-        else:
-            try:
-                raw_body = operation.request_body.get_value(request)
-            except MissingRequestBody as exc:
-                errors.append(exc)
-            else:
-                try:
-                    deserialised = self._deserialise(media_type, raw_body)
-                except InvalidMediaTypeValue as exc:
-                    errors.append(exc)
-                else:
-                    try:
-                        casted = self._cast(media_type, deserialised)
-                    except CastError as exc:
-                        errors.append(exc)
-                    else:
-                        try:
-                            body = self._unmarshal(media_type, casted)
-                        except (ValidateError, UnmarshalError) as exc:
-                            errors.append(exc)
+            return None, [exc, ]
 
-        return body, errors
+        try:
+            raw_body = operation.request_body.get_value(request)
+        except MissingRequestBody as exc:
+            return None, [exc, ]
+
+        try:
+            deserialised = self._deserialise(media_type, raw_body)
+        except InvalidMediaTypeValue as exc:
+            return None, [exc, ]
+
+        try:
+            casted = self._cast(media_type, deserialised)
+        except CastError as exc:
+            return None, [exc, ]
+
+        try:
+            body = self._unmarshal(media_type, casted)
+        except (ValidateError, UnmarshalError) as exc:
+            return None, [exc, ]
+
+        return body, []
 
     def _deserialise(self, param_or_media_type, value):
         return param_or_media_type.deserialise(value)
