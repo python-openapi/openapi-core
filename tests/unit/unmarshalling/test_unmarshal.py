@@ -416,3 +416,16 @@ class TestSchemaUnmarshallerCall(object):
     def test_schema_any(self, unmarshaller_factory):
         schema = Schema()
         assert unmarshaller_factory(schema)('string') == 'string'
+
+    @pytest.mark.parametrize('value', [
+        {'additional': 1},
+        {'foo': 'bar', 'bar': 'foo'},
+        {'additional': {'bar': 1}},
+    ])
+    @pytest.mark.parametrize('additional_properties', [True, Schema()])
+    def test_schema_free_form_object(
+            self, value, additional_properties, unmarshaller_factory):
+        schema = Schema('object', additional_properties=additional_properties)
+
+        result = unmarshaller_factory(schema)(value)
+        assert result == value

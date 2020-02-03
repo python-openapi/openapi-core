@@ -6,6 +6,7 @@ from six import iteritems
 
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
+from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.schemas.types import NoValue
 from openapi_core.schema_validator._types import (
     is_array, is_bool, is_integer,
@@ -194,11 +195,15 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         extra_props = set(value_props_names) - set(all_props_names)
 
         properties = {}
-        if self.schema.additional_properties is not True:
+        if isinstance(self.schema.additional_properties, Schema):
             for prop_name in extra_props:
                 prop_value = value[prop_name]
                 properties[prop_name] = self.unmarshallers_factory.create(
                     self.schema.additional_properties)(prop_value)
+        elif self.schema.additional_properties is True:
+            for prop_name in extra_props:
+                prop_value = value[prop_name]
+                properties[prop_name] = prop_value
 
         for prop_name, prop in iteritems(all_props):
             try:
