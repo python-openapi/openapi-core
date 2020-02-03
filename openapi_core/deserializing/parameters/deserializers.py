@@ -3,7 +3,6 @@ from openapi_core.deserializing.parameters.exceptions import (
     EmptyParameterValue,
 )
 from openapi_core.schema.parameters.enums import ParameterLocation
-from openapi_core.schema.schemas.types import NoValue
 
 
 class PrimitiveDeserializer(object):
@@ -22,5 +21,5 @@ class PrimitiveDeserializer(object):
             return value
         try:
             return self.deserializer_callable(value)
-        except (ValueError, TypeError, AttributeError) as exc:
+        except (ValueError, TypeError, AttributeError):
             raise DeserializeError(value, self.param.style)

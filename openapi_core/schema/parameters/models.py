@@ -1,6 +1,5 @@
 """OpenAPI core parameters models module"""
 import logging
-import warnings
 
 from openapi_core.schema.parameters.enums import (
     ParameterLocation, ParameterStyle,

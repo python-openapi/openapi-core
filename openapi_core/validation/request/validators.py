@@ -6,9 +6,8 @@ from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.operations.exceptions import InvalidOperation
-from openapi_core.schema.parameters.enums import ParameterLocation
 from openapi_core.schema.parameters.exceptions import (
-    OpenAPIParameterError, MissingRequiredParameter, MissingParameter,
+    MissingRequiredParameter, MissingParameter,
 )
 from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
@@ -192,7 +191,6 @@ class RequestValidator(object):
         deserializer = deserializers_factory.create(media_type)
         return deserializer(value)
 
-
     def _deserialise_parameter(self, param, value):
         from openapi_core.deserializing.parameters.factories import (
             ParameterDeserializersFactory,
@@ -206,7 +204,6 @@ class RequestValidator(object):
         if not param_or_media_type.schema:
             return value
 
-        from openapi_core.casting.schemas.exceptions import CastError
         from openapi_core.casting.schemas.factories import SchemaCastersFactory
         casters_factory = SchemaCastersFactory()
         caster = casters_factory.create(param_or_media_type.schema)

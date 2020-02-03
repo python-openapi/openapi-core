@@ -105,8 +105,7 @@ class TestFlaskOpenAPIDecorator(object):
                     ),
                     'status': 400,
                     'title': (
-                        "Failed to cast value invalid literal for int() with "
-                        "base 10: 'invalidparameter' to type <class 'int'>"
+                        "Failed to cast value invalidparameter to type integer"
                     )
                 }
             ]

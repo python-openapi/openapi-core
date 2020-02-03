@@ -121,12 +121,10 @@ class ResponseValidator(object):
         if not param_or_media_type.schema:
             return value
 
-        from openapi_core.casting.schemas.exceptions import CastError
         from openapi_core.casting.schemas.factories import SchemaCastersFactory
         casters_factory = SchemaCastersFactory()
         caster = casters_factory.create(param_or_media_type.schema)
         return caster(value)
-
 
     def _unmarshal(self, param_or_media_type, value):
         if not param_or_media_type.schema:

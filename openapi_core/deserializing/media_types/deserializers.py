@@ -10,5 +10,5 @@ class PrimitiveDeserializer(object):
     def __call__(self, value):
         try:
             return self.deserializer_callable(value)
-        except (ValueError, TypeError, AttributeError) as exc:
+        except (ValueError, TypeError, AttributeError):
             raise DeserializeError(value, self.mimetype)
