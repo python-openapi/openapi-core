@@ -48,8 +48,21 @@ class TestPetstore(object):
 
     def test_spec(self, spec, spec_dict):
         url = 'http://petstore.swagger.io/v1'
-        assert spec.info.title == spec_dict['info']['title']
-        assert spec.info.version == spec_dict['info']['version']
+
+        info_spec = spec_dict['info']
+        assert spec.info.title == info_spec['title']
+        assert spec.info.description == info_spec['description']
+        assert spec.info.terms_of_service == info_spec['termsOfService']
+        assert spec.info.version == info_spec['version']
+
+        contact_spec = info_spec['contact']
+        assert spec.info.contact.name == contact_spec['name']
+        assert spec.info.contact.url == contact_spec['url']
+        assert spec.info.contact.email == contact_spec['email']
+
+        license_spec = info_spec['license']
+        assert spec.info.license.name == license_spec['name']
+        assert spec.info.license.url == license_spec['url']
 
         assert spec.get_server_url() == url
 

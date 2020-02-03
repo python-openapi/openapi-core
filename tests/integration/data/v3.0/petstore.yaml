@@ -2,8 +2,15 @@ openapi: "3.0.0"
 info:
   version: 1.0.0
   title: Swagger Petstore
+  description: Swagger Petstore API specification
+  termsOfService: Fair use
+  contact:
+    name: Author
+    url: http://petstore.swagger.io
+    email: email@petstore.swagger.io
   license:
     name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: http://petstore.swagger.io/{version}
     variables:
