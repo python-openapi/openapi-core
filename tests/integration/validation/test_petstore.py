@@ -6,10 +6,14 @@ from uuid import UUID
 from six import text_type
 
 from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.deserializing.exceptions import DeserializeError
+from openapi_core.deserializing.parameters.exceptions import (
+    EmptyParameterValue,
+)
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.parameters.exceptions import (
-    MissingRequiredParameter, InvalidParameterValue, EmptyParameterValue,
+    MissingRequiredParameter,
 )
 from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.servers.exceptions import InvalidServer
@@ -273,7 +277,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(InvalidParameterValue):
+        with pytest.raises(DeserializeError):
             validate_parameters(spec, request)
 
         body = validate_body(spec, request)

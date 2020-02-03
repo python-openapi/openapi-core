@@ -3,10 +3,12 @@ from itertools import chain
 from six import iteritems
 
 from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.schema.media_types.exceptions import (
     InvalidMediaTypeValue, InvalidContentType,
 )
 from openapi_core.schema.operations.exceptions import InvalidOperation
+from openapi_core.schema.parameters.enums import ParameterLocation
 from openapi_core.schema.parameters.exceptions import (
     OpenAPIParameterError, MissingRequiredParameter, MissingParameter,
 )
@@ -110,8 +112,9 @@ class RequestValidator(object):
                 casted = param.schema.default
             else:
                 try:
-                    deserialised = self._deserialise(param, raw_value)
-                except OpenAPIParameterError as exc:
+                    deserialised = self._deserialise_parameter(
+                        param, raw_value)
+                except DeserializeError as exc:
                     errors.append(exc)
                     continue
 
@@ -146,7 +149,7 @@ class RequestValidator(object):
             return None, [exc, ]
 
         try:
-            deserialised = self._deserialise(media_type, raw_body)
+            deserialised = self._deserialise_media_type(media_type, raw_body)
         except InvalidMediaTypeValue as exc:
             return None, [exc, ]
 
@@ -183,8 +186,16 @@ class RequestValidator(object):
             raise MissingRequestBody(request)
         return request.body
 
-    def _deserialise(self, param_or_media_type, value):
+    def _deserialise_media_type(self, param_or_media_type, value):
         return param_or_media_type.deserialise(value)
+
+    def _deserialise_parameter(self, param, value):
+        from openapi_core.deserializing.parameters.factories import (
+            ParameterDeserializersFactory,
+        )
+        deserializers_factory = ParameterDeserializersFactory()
+        deserializer = deserializers_factory.create(param)
+        return deserializer(value)
 
     def _cast(self, param_or_media_type, value):
         # return param_or_media_type.cast(value)

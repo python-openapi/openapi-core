@@ -1,8 +1,3 @@
-import pytest
-
-from openapi_core.schema.parameters.exceptions import (
-    EmptyParameterValue,
-)
 from openapi_core.schema.parameters.enums import ParameterStyle
 from openapi_core.schema.parameters.models import Parameter
 
@@ -36,30 +31,3 @@ class TestParameterInit(object):
         assert param.allow_empty_value is False
         assert param.style == ParameterStyle.FORM
         assert param.explode is True
-
-
-class TestParameterDeserialise(object):
-
-    def test_deprecated(self):
-        param = Parameter('param', 'query', deprecated=True)
-        value = 'test'
-
-        with pytest.warns(DeprecationWarning):
-            result = param.deserialise(value)
-
-        assert result == value
-
-    def test_query_empty(self):
-        param = Parameter('param', 'query')
-        value = ''
-
-        with pytest.raises(EmptyParameterValue):
-            param.deserialise(value)
-
-    def test_query_valid(self):
-        param = Parameter('param', 'query')
-        value = 'test'
-
-        result = param.deserialise(value)
-
-        assert result == value
