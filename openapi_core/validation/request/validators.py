@@ -23,9 +23,13 @@ from openapi_core.validation.util import get_operation_pattern
 
 class RequestValidator(object):
 
-    def __init__(self, spec, custom_formatters=None):
+    def __init__(
+            self, spec,
+            custom_formatters=None, custom_media_type_deserializers=None,
+    ):
         self.spec = spec
         self.custom_formatters = custom_formatters
+        self.custom_media_type_deserializers = custom_media_type_deserializers
 
     def validate(self, request):
         try:
@@ -187,7 +191,8 @@ class RequestValidator(object):
         from openapi_core.deserializing.media_types.factories import (
             MediaTypeDeserializersFactory,
         )
-        deserializers_factory = MediaTypeDeserializersFactory()
+        deserializers_factory = MediaTypeDeserializersFactory(
+            self.custom_media_type_deserializers)
         deserializer = deserializers_factory.create(media_type)
         return deserializer(value)
 

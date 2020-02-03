@@ -111,6 +111,31 @@ and unmarshal response data from validation result
 Response object should be instance of OpenAPIResponse class (See `Integrations`_).
 
 
+Customizations
+##############
+
+Deserializers
+*************
+
+Pass custom defined media type deserializers dictionary with supported mimetypes as a key to `RequestValidator` or `ResponseValidator` constructor:
+
+.. code-block:: python
+
+   def protobuf_deserializer(message):
+       feature = route_guide_pb2.Feature()
+       feature.ParseFromString(message)
+       return feature
+
+   custom_media_type_deserializers = {
+       'application/protobuf': protobuf_deserializer,
+   }
+
+   validator = ResponseValidator(
+       spec, custom_media_type_deserializers=custom_media_type_deserializers)
+
+   result = validator.validate(request, response)
+
+
 Integrations
 ############
 
