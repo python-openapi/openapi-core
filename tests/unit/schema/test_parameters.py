@@ -38,14 +38,14 @@ class TestParameterInit(object):
         assert param.explode is True
 
 
-class TestParameterCast(object):
+class TestParameterDeserialise(object):
 
     def test_deprecated(self):
         param = Parameter('param', 'query', deprecated=True)
         value = 'test'
 
         with pytest.warns(DeprecationWarning):
-            result = param.cast(value)
+            result = param.deserialise(value)
 
         assert result == value
 
@@ -54,12 +54,12 @@ class TestParameterCast(object):
         value = ''
 
         with pytest.raises(EmptyParameterValue):
-            param.cast(value)
+            param.deserialise(value)
 
     def test_query_valid(self):
         param = Parameter('param', 'query')
         value = 'test'
 
-        result = param.cast(value)
+        result = param.deserialise(value)
 
         assert result == value

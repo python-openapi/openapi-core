@@ -88,7 +88,7 @@ class Parameter(object):
 
         return location[self.name]
 
-    def cast(self, value):
+    def deserialise(self, value):
         if self.deprecated:
             warnings.warn(
                 "{0} parameter is deprecated".format(self.name),
@@ -100,14 +100,15 @@ class Parameter(object):
             raise EmptyParameterValue(self.name)
 
         try:
-            deserialized = self.deserialize(value)
+            return self.deserialize(value)
         except (ValueError, AttributeError) as exc:
             raise InvalidParameterValue(self.name, exc)
 
+    def cast(self, value):
         if not self.schema:
-            return deserialized
+            return value
 
         try:
-            return self.schema.cast(deserialized)
+            return self.schema.cast(value)
         except CastError as exc:
             raise InvalidParameterValue(self.name, exc)

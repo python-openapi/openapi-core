@@ -109,10 +109,15 @@ class RequestValidator(object):
                 casted = param.schema.default
             else:
                 try:
-                    casted = param.cast(raw_value)
+                    deserialised = self._deserialise(param, raw_value)
                 except OpenAPIParameterError as exc:
                     errors.append(exc)
-                    continue
+                else:
+                    try:
+                        casted = self._cast(param, deserialised)
+                    except OpenAPIParameterError as exc:
+                        errors.append(exc)
+                        continue
 
             try:
                 unmarshalled = self._unmarshal(param, casted)
@@ -142,16 +147,27 @@ class RequestValidator(object):
                 errors.append(exc)
             else:
                 try:
-                    casted = media_type.cast(raw_body)
+                    deserialised = self._deserialise(media_type, raw_body)
                 except InvalidMediaTypeValue as exc:
                     errors.append(exc)
                 else:
                     try:
-                        body = self._unmarshal(media_type, casted)
-                    except (ValidateError, UnmarshalError) as exc:
+                        casted = self._cast(media_type, deserialised)
+                    except InvalidMediaTypeValue as exc:
                         errors.append(exc)
+                    else:
+                        try:
+                            body = self._unmarshal(media_type, casted)
+                        except (ValidateError, UnmarshalError) as exc:
+                            errors.append(exc)
 
         return body, errors
+
+    def _deserialise(self, param_or_media_type, value):
+        return param_or_media_type.deserialise(value)
+
+    def _cast(self, param_or_media_type, value):
+        return param_or_media_type.cast(value)
 
     def _unmarshal(self, param_or_media_type, value):
         if not param_or_media_type.schema:

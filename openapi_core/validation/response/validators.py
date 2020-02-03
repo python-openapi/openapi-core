@@ -81,14 +81,19 @@ class ResponseValidator(object):
                 errors.append(exc)
             else:
                 try:
-                    casted = media_type.cast(raw_data)
+                    deserialised = self._deserialise(media_type, raw_data)
                 except InvalidMediaTypeValue as exc:
                     errors.append(exc)
                 else:
                     try:
-                        data = self._unmarshal(media_type, casted)
-                    except (ValidateError, UnmarshalError) as exc:
+                        casted = self._cast(media_type, deserialised)
+                    except InvalidMediaTypeValue as exc:
                         errors.append(exc)
+                    else:
+                        try:
+                            data = self._unmarshal(media_type, casted)
+                        except (ValidateError, UnmarshalError) as exc:
+                            errors.append(exc)
 
         return data, errors
 
@@ -99,6 +104,12 @@ class ResponseValidator(object):
         headers = {}
 
         return headers, errors
+
+    def _deserialise(self, param_or_media_type, value):
+        return param_or_media_type.deserialise(value)
+
+    def _cast(self, param_or_media_type, value):
+        return param_or_media_type.cast(value)
 
     def _unmarshal(self, param_or_media_type, value):
         if not param_or_media_type.schema:
