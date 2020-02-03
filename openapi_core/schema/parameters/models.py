@@ -99,13 +99,13 @@ class Parameter(object):
                 not self.allow_empty_value):
             raise EmptyParameterValue(self.name)
 
-        if not self.schema:
-            return value
-
         try:
             deserialized = self.deserialize(value)
         except (ValueError, AttributeError) as exc:
             raise InvalidParameterValue(self.name, exc)
+
+        if not self.schema:
+            return deserialized
 
         try:
             return self.schema.cast(deserialized)
