@@ -4,9 +4,7 @@ from six import iteritems
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.media_types.exceptions import (
-    InvalidMediaTypeValue, InvalidContentType,
-)
+from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.enums import ParameterLocation
 from openapi_core.schema.parameters.exceptions import (
@@ -150,7 +148,7 @@ class RequestValidator(object):
 
         try:
             deserialised = self._deserialise_media_type(media_type, raw_body)
-        except InvalidMediaTypeValue as exc:
+        except DeserializeError as exc:
             return None, [exc, ]
 
         try:
@@ -186,8 +184,14 @@ class RequestValidator(object):
             raise MissingRequestBody(request)
         return request.body
 
-    def _deserialise_media_type(self, param_or_media_type, value):
-        return param_or_media_type.deserialise(value)
+    def _deserialise_media_type(self, media_type, value):
+        from openapi_core.deserializing.media_types.factories import (
+            MediaTypeDeserializersFactory,
+        )
+        deserializers_factory = MediaTypeDeserializersFactory()
+        deserializer = deserializers_factory.create(media_type)
+        return deserializer(value)
+
 
     def _deserialise_parameter(self, param, value):
         from openapi_core.deserializing.parameters.factories import (

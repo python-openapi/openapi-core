@@ -4,8 +4,9 @@ import pytest
 from six import text_type
 
 from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.schema.media_types.exceptions import (
-    InvalidContentType, InvalidMediaTypeValue,
+    InvalidContentType,
 )
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.operations.exceptions import InvalidOperation
@@ -455,7 +456,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidMediaTypeValue
+        assert type(result.errors[0]) == DeserializeError
         assert result.data is None
         assert result.headers == {}
 

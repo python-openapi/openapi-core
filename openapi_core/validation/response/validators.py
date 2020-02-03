@@ -1,9 +1,8 @@
 """OpenAPI core validation response validators module"""
 from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.schema.operations.exceptions import InvalidOperation
-from openapi_core.schema.media_types.exceptions import (
-    InvalidMediaTypeValue, InvalidContentType,
-)
+from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.responses.exceptions import (
     InvalidResponse, MissingResponseContent,
 )
@@ -79,8 +78,8 @@ class ResponseValidator(object):
             return None, [exc, ]
 
         try:
-            deserialised = self._deserialise(media_type, raw_data)
-        except InvalidMediaTypeValue as exc:
+            deserialised = self._deserialise_media_type(media_type, raw_data)
+        except DeserializeError as exc:
             return None, [exc, ]
 
         try:
@@ -109,8 +108,13 @@ class ResponseValidator(object):
 
         return response.data
 
-    def _deserialise(self, param_or_media_type, value):
-        return param_or_media_type.deserialise(value)
+    def _deserialise_media_type(self, media_type, value):
+        from openapi_core.deserializing.media_types.factories import (
+            MediaTypeDeserializersFactory,
+        )
+        deserializers_factory = MediaTypeDeserializersFactory()
+        deserializer = deserializers_factory.create(media_type)
+        return deserializer(value)
 
     def _cast(self, param_or_media_type, value):
         # return param_or_media_type.cast(value)
