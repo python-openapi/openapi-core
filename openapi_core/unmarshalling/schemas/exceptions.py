@@ -19,22 +19,6 @@ class UnmarshallerError(UnmarshalError):
 
 
 @attr.s(hash=True)
-class UnmarshalValueError(UnmarshalError):
-    """Failed to unmarshal value to type"""
-    value = attr.ib()
-    type = attr.ib()
-    original_exception = attr.ib(default=None)
-
-    def __str__(self):
-        return (
-            "Failed to unmarshal value {value} to type {type}: {exception}"
-        ).format(
-            value=self.value, type=self.type,
-            exception=self.original_exception,
-        )
-
-
-@attr.s(hash=True)
 class InvalidSchemaValue(ValidateError):
     value = attr.ib()
     type = attr.ib()

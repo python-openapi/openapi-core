@@ -5,9 +5,6 @@ import re
 
 from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.types import NoValue
-from openapi_core.unmarshalling.schemas.exceptions import (
-    UnmarshalValueError,
-)
 
 log = logging.getLogger(__name__)
 
@@ -104,16 +101,3 @@ class Schema(object):
             return caster(value)
         except (ValueError, TypeError):
             raise CastError(value, self.type)
-
-    def unmarshal(self, value, resolver=None, custom_formatters=None):
-        """Unmarshal parameter from the value."""
-        from openapi_core.unmarshalling.schemas.factories import (
-            SchemaUnmarshallersFactory,
-        )
-        unmarshallers_factory = SchemaUnmarshallersFactory(
-            resolver, custom_formatters)
-        unmarshaller = unmarshallers_factory.create(self)
-        try:
-            return unmarshaller(value)
-        except ValueError as exc:
-            raise UnmarshalValueError(value, self.type, exc)
