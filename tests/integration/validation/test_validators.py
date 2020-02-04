@@ -235,9 +235,7 @@ class TestRequestValidator(object):
                 'user': 123,
             },
         )
-        assert result.security == {
-            'petstore_auth': self.api_key_encoded,
-        }
+        assert result.security == {}
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -251,9 +249,14 @@ class TestRequestValidator(object):
         assert result.body.address.city == pet_city
 
     def test_get_pet(self, validator):
+        authorization = 'Basic ' + self.api_key_encoded
+        headers = {
+            'Authorization': authorization,
+        }
         request = MockRequest(
             self.host_url, 'get', '/v1/pets/1',
             path_pattern='/v1/pets/{petId}', view_args={'petId': '1'},
+            headers=headers,
         )
 
         result = validator.validate(request)
@@ -265,6 +268,9 @@ class TestRequestValidator(object):
                 'petId': 1,
             },
         )
+        assert result.security == {
+            'petstore_auth': self.api_key,
+        }
 
 
 class TestPathItemParamsValidator(object):

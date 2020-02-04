@@ -1,6 +1,6 @@
 """OpenAPI core security schemes models module"""
 from openapi_core.schema.security_schemes.enums import (
-    SecuritySchemeType, ApiKeyLocation,
+    SecuritySchemeType, ApiKeyLocation, HttpAuthScheme,
 )
 
 
@@ -16,7 +16,7 @@ class SecurityScheme(object):
         self.description = description
         self.name = name
         self.apikey_in = apikey_in and ApiKeyLocation(apikey_in)
-        self.scheme = scheme
+        self.scheme = scheme and HttpAuthScheme(scheme)
         self.bearer_format = bearer_format
         self.flows = flows
         self.open_id_connect_url = open_id_connect_url

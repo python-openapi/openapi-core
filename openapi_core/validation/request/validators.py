@@ -1,4 +1,6 @@
 """OpenAPI core validation request validators module"""
+import base64
+import binascii
 from itertools import chain
 from six import iteritems
 import warnings
@@ -103,7 +105,7 @@ class RequestValidator(object):
     def _get_security(self, request, operation):
         security = operation.security or self.spec.security
         if not security:
-            return
+            return {}
 
         for security_requirement in security:
             data = {
@@ -112,6 +114,8 @@ class RequestValidator(object):
             }
             if all(value for value in data.values()):
                 return data
+
+        return {}
 
     def _get_parameters(self, request, params):
         errors = []
@@ -195,6 +199,22 @@ class RequestValidator(object):
         if scheme.type == SecuritySchemeType.API_KEY:
             source = getattr(request.parameters, scheme.apikey_in.value)
             return source.get(scheme.name)
+        elif scheme.type == SecuritySchemeType.HTTP:
+            auth_header = request.parameters.header.get('Authorization')
+            try:
+                auth_type, encoded_credentials = auth_header.split(' ', 1)
+            except ValueError:
+                raise ValueError('Could not parse authorization header.')
+
+            if auth_type.lower() != scheme.scheme.value:
+                raise ValueError(
+                    'Unknown authorization method %s' % auth_type)
+            try:
+                return base64.b64decode(
+                    encoded_credentials.encode('ascii'), validate=True
+                ).decode('latin1')
+            except binascii.Error:
+                raise ValueError('Invalid base64 encoding.')
 
         warnings.warn("Only api key security scheme type supported")
 

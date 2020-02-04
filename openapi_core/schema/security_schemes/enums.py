@@ -19,3 +19,9 @@ class ApiKeyLocation(Enum):
     @classmethod
     def has_value(cls, value):
         return (any(value == item.value for item in cls))
+
+
+class HttpAuthScheme(Enum):
+
+    BASIC = 'basic'
+    BEARER = 'bearer'

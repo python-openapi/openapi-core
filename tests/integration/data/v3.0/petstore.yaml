@@ -75,10 +75,6 @@ paths:
       externalDocs:
         url: https://example.com
         description: Find more info here
-      security:
-        - petstore_auth:
-            - write:pets
-            - read:pets
       servers:
         - url: https://development.gigantic-server.com/v1
           description: Development server
@@ -128,6 +124,10 @@ paths:
           schema:
             type: integer
             format: int64
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
       responses:
         '200':
           description: Expected response to a valid request
@@ -371,6 +371,5 @@ components:
       name: api_key
       in: query
     petstore_auth:
-      type: apiKey
-      name: api_key
-      in: header
+      type: http
+      scheme: basic
