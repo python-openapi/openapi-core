@@ -71,9 +71,8 @@ class TestPetstore(object):
             assert type(security_req) == SecurityRequirement
 
             security_req_spec = security_spec[idx]
-            name = next(iter(security_req_spec))
-            assert security_req.name == name
-            assert security_req.scope_names == security_req_spec[name]
+            for scheme_name in security_req:
+                security_req[scheme_name] == security_req_spec[scheme_name]
 
         assert spec.get_server_url() == url
 
@@ -115,15 +114,6 @@ class TestPetstore(object):
                     assert ext_docs.description == ext_docs_spec.get(
                         'description')
 
-                security_spec = operation_spec.get('security')
-                if security_spec:
-                    for idx, sec_req in enumerate(operation.security):
-                        assert type(sec_req) == SecurityRequirement
-                        sec_req_spec = security_spec[idx]
-                        sec_req_nam = next(iter(sec_req_spec))
-                        assert sec_req.name == sec_req_nam
-                        assert sec_req.scope_names == sec_req_spec[sec_req_nam]
-
                 servers_spec = operation_spec.get('servers', [])
                 for idx, server in enumerate(operation.servers):
                     assert type(server) == Server
@@ -146,9 +136,9 @@ class TestPetstore(object):
                     assert type(security_req) == SecurityRequirement
 
                     security_req_spec = security_spec[idx]
-                    name = next(iter(security_req_spec))
-                    assert security_req.name == name
-                    assert security_req.scope_names == security_req_spec[name]
+                    for scheme_name in security_req:
+                        security_req[scheme_name] == security_req_spec[
+                            scheme_name]
 
                 responses_spec = operation_spec.get('responses')
 

@@ -1,9 +1,6 @@
 """OpenAPI core security requirements models module"""
 
 
-class SecurityRequirement(object):
+class SecurityRequirement(dict):
     """Represents an OpenAPI Security Requirement."""
-
-    def __init__(self, name, scope_names=None):
-        self.name = name
-        self.scope_names = scope_names or []
+    pass

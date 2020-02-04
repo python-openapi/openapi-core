@@ -1,9 +1,6 @@
 """OpenAPI core validation request validators module"""
-import base64
-import binascii
 from itertools import chain
 from six import iteritems
-import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -14,11 +11,12 @@ from openapi_core.schema.parameters.exceptions import (
 )
 from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
-from openapi_core.schema.security_schemes.enums import SecuritySchemeType
 from openapi_core.schema.servers.exceptions import InvalidServer
+from openapi_core.security.exceptions import SecurityError
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
 )
+from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request.datatypes import (
     RequestParameters, RequestValidationResult,
 )
@@ -45,8 +43,7 @@ class RequestValidator(object):
 
         try:
             security = self._get_security(request, operation)
-        # TODO narrow exceptions
-        except Exception as exc:
+        except InvalidSecurity as exc:
             return RequestValidationResult([exc, ], None, None, None)
 
         params, params_errors = self._get_parameters(
@@ -108,14 +105,16 @@ class RequestValidator(object):
             return {}
 
         for security_requirement in security:
-            data = {
-                security_requirement.name: self._get_security_value(
-                    security_requirement.name, request)
-            }
-            if all(value for value in data.values()):
-                return data
+            try:
+                return {
+                    scheme_name: self._get_security_value(
+                        scheme_name, request)
+                    for scheme_name in security_requirement
+                }
+            except SecurityError:
+                continue
 
-        return {}
+        raise InvalidSecurity()
 
     def _get_parameters(self, request, params):
         errors = []
@@ -196,27 +195,10 @@ class RequestValidator(object):
         if not scheme:
             return
 
-        if scheme.type == SecuritySchemeType.API_KEY:
-            source = getattr(request.parameters, scheme.apikey_in.value)
-            return source.get(scheme.name)
-        elif scheme.type == SecuritySchemeType.HTTP:
-            auth_header = request.parameters.header.get('Authorization')
-            try:
-                auth_type, encoded_credentials = auth_header.split(' ', 1)
-            except ValueError:
-                raise ValueError('Could not parse authorization header.')
-
-            if auth_type.lower() != scheme.scheme.value:
-                raise ValueError(
-                    'Unknown authorization method %s' % auth_type)
-            try:
-                return base64.b64decode(
-                    encoded_credentials.encode('ascii'), validate=True
-                ).decode('latin1')
-            except binascii.Error:
-                raise ValueError('Invalid base64 encoding.')
-
-        warnings.warn("Only api key security scheme type supported")
+        from openapi_core.security.factories import SecurityProviderFactory
+        security_provider_factory = SecurityProviderFactory()
+        security_provider = security_provider_factory.create(scheme)
+        return security_provider(request)
 
     def _get_parameter_value(self, param, request):
         location = request.parameters[param.location.value]

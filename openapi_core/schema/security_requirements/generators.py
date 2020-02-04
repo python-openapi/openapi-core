@@ -12,7 +12,4 @@ class SecurityRequirementsGenerator(object):
     def generate(self, security_spec):
         security_deref = self.dereferencer.dereference(security_spec)
         for security_requirement_spec in security_deref:
-            name = next(iter(security_requirement_spec))
-            scope_names = security_requirement_spec[name]
-
-            yield SecurityRequirement(name, scope_names=scope_names)
+            yield SecurityRequirement(security_requirement_spec)

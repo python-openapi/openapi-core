@@ -13,6 +13,7 @@ info:
     url: https://opensource.org/licenses/MIT
 security:
   - api_key: []
+  - {}
 servers:
   - url: http://petstore.swagger.io/{version}
     variables:
