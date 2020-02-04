@@ -71,3 +71,4 @@ class OpenAPIRequest(object):
 class RequestValidationResult(BaseValidationResult):
     body = attr.ib(default=None)
     parameters = attr.ib(factory=RequestParameters)
+    security = attr.ib(default=None)

@@ -20,6 +20,7 @@ from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.shortcuts import create_spec
 from openapi_core.testing import MockRequest, MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
+from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request.datatypes import RequestParameters
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -37,15 +38,15 @@ class TestRequestValidator(object):
         api_key_bytes_enc = b64encode(api_key_bytes)
         return text_type(api_key_bytes_enc, 'utf8')
 
-    @pytest.fixture
+    @pytest.fixture(scope='session')
     def spec_dict(self, factory):
         return factory.spec_from_file("data/v3.0/petstore.yaml")
 
-    @pytest.fixture
+    @pytest.fixture(scope='session')
     def spec(self, spec_dict):
         return create_spec(spec_dict)
 
-    @pytest.fixture
+    @pytest.fixture(scope='session')
     def validator(self, spec):
         return RequestValidator(spec)
 
@@ -94,9 +95,10 @@ class TestRequestValidator(object):
         )
 
     def test_get_pets(self, validator):
+        args = {'limit': '10', 'ids': ['1', '2'], 'api_key': self.api_key}
         request = MockRequest(
             self.host_url, 'get', '/v1/pets',
-            path_pattern='/v1/pets', args={'limit': '10', 'ids': ['1', '2']},
+            path_pattern='/v1/pets', args=args,
         )
 
         result = validator.validate(request)
@@ -111,6 +113,9 @@ class TestRequestValidator(object):
                 'ids': [1, 2],
             },
         )
+        assert result.security == {
+            'api_key': self.api_key,
+        }
 
     def test_get_pets_webob(self, validator):
         from webob.multidict import GetDict
@@ -231,6 +236,7 @@ class TestRequestValidator(object):
                 'user': 123,
             },
         )
+        assert result.security == {}
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -243,10 +249,28 @@ class TestRequestValidator(object):
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
-    def test_get_pet(self, validator):
+    def test_get_pet_unauthorized(self, validator):
         request = MockRequest(
             self.host_url, 'get', '/v1/pets/1',
             path_pattern='/v1/pets/{petId}', view_args={'petId': '1'},
+        )
+
+        result = validator.validate(request)
+
+        assert result.errors == [InvalidSecurity(), ]
+        assert result.body is None
+        assert result.parameters is None
+        assert result.security is None
+
+    def test_get_pet(self, validator):
+        authorization = 'Basic ' + self.api_key_encoded
+        headers = {
+            'Authorization': authorization,
+        }
+        request = MockRequest(
+            self.host_url, 'get', '/v1/pets/1',
+            path_pattern='/v1/pets/{petId}', view_args={'petId': '1'},
+            headers=headers,
         )
 
         result = validator.validate(request)
@@ -258,11 +282,14 @@ class TestRequestValidator(object):
                 'petId': 1,
             },
         )
+        assert result.security == {
+            'petstore_auth': self.api_key,
+        }
 
 
 class TestPathItemParamsValidator(object):
 
-    @pytest.fixture
+    @pytest.fixture(scope='session')
     def spec_dict(self):
         return {
             "openapi": "3.0.0",
@@ -293,11 +320,11 @@ class TestPathItemParamsValidator(object):
             }
         }
 
-    @pytest.fixture
+    @pytest.fixture(scope='session')
     def spec(self, spec_dict):
         return create_spec(spec_dict)
 
-    @pytest.fixture
+    @pytest.fixture(scope='session')
     def validator(self, spec):
         return RequestValidator(spec)
 

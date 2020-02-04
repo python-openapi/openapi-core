@@ -11,7 +11,9 @@ from openapi_core.schema.operations.models import Operation
 from openapi_core.schema.parameters.generators import ParametersGenerator
 from openapi_core.schema.request_bodies.factories import RequestBodyFactory
 from openapi_core.schema.responses.generators import ResponsesGenerator
-from openapi_core.schema.security.factories import SecurityRequirementFactory
+from openapi_core.schema.security_requirements.generators import (
+    SecurityRequirementsGenerator,
+)
 from openapi_core.schema.servers.generators import ServersGenerator
 
 
@@ -39,16 +41,12 @@ class OperationsGenerator(object):
             tags_list = operation_deref.get('tags', [])
             summary = operation_deref.get('summary')
             description = operation_deref.get('description')
-            security_requirements_list = operation_deref.get('security', [])
+            security_spec = operation_deref.get('security', [])
             servers_spec = operation_deref.get('servers', [])
 
             servers = self.servers_generator.generate(servers_spec)
-
-            security = None
-            if security_requirements_list:
-                security = list(map(
-                    self.security_requirement_factory.create,
-                    security_requirements_list))
+            security = self.security_requirements_generator.generate(
+                security_spec)
 
             external_docs = None
             if 'externalDocs' in operation_deref:
@@ -67,10 +65,10 @@ class OperationsGenerator(object):
                 Operation(
                     http_method, path_name, responses, list(parameters),
                     summary=summary, description=description,
-                    external_docs=external_docs, security=security,
+                    external_docs=external_docs, security=list(security),
                     request_body=request_body, deprecated=deprecated,
                     operation_id=operation_id, tags=list(tags_list),
-                    servers=servers,
+                    servers=list(servers),
                 ),
             )
 
@@ -96,8 +94,8 @@ class OperationsGenerator(object):
 
     @property
     @lru_cache()
-    def security_requirement_factory(self):
-        return SecurityRequirementFactory(self.dereferencer)
+    def security_requirements_generator(self):
+        return SecurityRequirementsGenerator(self.dereferencer)
 
     @property
     @lru_cache()

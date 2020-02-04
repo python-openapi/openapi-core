@@ -11,6 +11,9 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
+security:
+  - api_key: []
+  - {}
 servers:
   - url: http://petstore.swagger.io/{version}
     variables:
@@ -73,10 +76,6 @@ paths:
       externalDocs:
         url: https://example.com
         description: Find more info here
-      security:
-        - petstore_auth:
-            - write:pets
-            - read:pets
       servers:
         - url: https://development.gigantic-server.com/v1
           description: Development server
@@ -126,6 +125,10 @@ paths:
           schema:
             type: integer
             format: int64
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
       responses:
         '200':
           description: Expected response to a valid request
@@ -363,3 +366,11 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/PetsData"
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: query
+    petstore_auth:
+      type: http
+      scheme: basic

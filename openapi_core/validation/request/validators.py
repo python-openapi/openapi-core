@@ -12,9 +12,11 @@ from openapi_core.schema.parameters.exceptions import (
 from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.schema.servers.exceptions import InvalidServer
+from openapi_core.security.exceptions import SecurityError
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
 )
+from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request.datatypes import (
     RequestParameters, RequestValidationResult,
 )
@@ -37,7 +39,12 @@ class RequestValidator(object):
             operation = self._get_operation(request)
         # don't process if operation errors
         except (InvalidServer, InvalidPath, InvalidOperation) as exc:
-            return RequestValidationResult([exc, ], None, None)
+            return RequestValidationResult([exc, ], None, None, None)
+
+        try:
+            security = self._get_security(request, operation)
+        except InvalidSecurity as exc:
+            return RequestValidationResult([exc, ], None, None, None)
 
         params, params_errors = self._get_parameters(
             request, chain(
@@ -49,7 +56,7 @@ class RequestValidator(object):
         body, body_errors = self._get_body(request, operation)
 
         errors = params_errors + body_errors
-        return RequestValidationResult(errors, body, params)
+        return RequestValidationResult(errors, body, params, security)
 
     def _validate_parameters(self, request):
         try:
@@ -64,7 +71,7 @@ class RequestValidator(object):
                 iteritems(path.parameters)
             )
         )
-        return RequestValidationResult(params_errors, None, params)
+        return RequestValidationResult(params_errors, None, params, None)
 
     def _validate_body(self, request):
         try:
@@ -73,7 +80,7 @@ class RequestValidator(object):
             return RequestValidationResult([exc, ], None, None)
 
         body, body_errors = self._get_body(request, operation)
-        return RequestValidationResult(body_errors, body, None)
+        return RequestValidationResult(body_errors, body, None, None)
 
     def _get_operation_pattern(self, request):
         server = self.spec.get_server(request.full_url_pattern)
@@ -91,6 +98,23 @@ class RequestValidator(object):
         operation_pattern = self._get_operation_pattern(request)
 
         return self.spec.get_operation(operation_pattern, request.method)
+
+    def _get_security(self, request, operation):
+        security = operation.security or self.spec.security
+        if not security:
+            return {}
+
+        for security_requirement in security:
+            try:
+                return {
+                    scheme_name: self._get_security_value(
+                        scheme_name, request)
+                    for scheme_name in security_requirement
+                }
+            except SecurityError:
+                continue
+
+        raise InvalidSecurity()
 
     def _get_parameters(self, request, params):
         errors = []
@@ -165,6 +189,16 @@ class RequestValidator(object):
             return None, [exc, ]
 
         return body, []
+
+    def _get_security_value(self, scheme_name, request):
+        scheme = self.spec.components.security_schemes.get(scheme_name)
+        if not scheme:
+            return
+
+        from openapi_core.security.factories import SecurityProviderFactory
+        security_provider_factory = SecurityProviderFactory()
+        security_provider = security_provider_factory.create(scheme)
+        return security_provider(request)
 
     def _get_parameter_value(self, param, request):
         location = request.parameters[param.location.value]
