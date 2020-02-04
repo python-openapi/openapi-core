@@ -1,4 +1,4 @@
-"""OpenAPI core security models module"""
+"""OpenAPI core security requirements models module"""
 
 
 class SecurityRequirement(object):

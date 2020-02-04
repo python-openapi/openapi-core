@@ -9,6 +9,9 @@ from openapi_core.schema.components.factories import ComponentsFactory
 from openapi_core.schema.infos.factories import InfoFactory
 from openapi_core.schema.paths.generators import PathsGenerator
 from openapi_core.schema.schemas.registries import SchemaRegistry
+from openapi_core.schema.security_requirements.generators import (
+    SecurityRequirementsGenerator,
+)
 from openapi_core.schema.servers.generators import ServersGenerator
 from openapi_core.schema.specs.models import Spec
 
@@ -29,6 +32,7 @@ class SpecFactory(object):
         servers_spec = spec_dict_deref.get('servers', [])
         paths = spec_dict_deref.get('paths', {})
         components_spec = spec_dict_deref.get('components', {})
+        security_spec = spec_dict_deref.get('security', [])
 
         if not servers_spec:
             servers_spec = [
@@ -39,8 +43,13 @@ class SpecFactory(object):
         servers = self.servers_generator.generate(servers_spec)
         paths = self.paths_generator.generate(paths)
         components = self.components_factory.create(components_spec)
+
+        security = self.security_requirements_generator.generate(
+                security_spec)
+
         spec = Spec(
             info, list(paths), servers=list(servers), components=components,
+            security=list(security),
             _resolver=self.spec_resolver,
         )
         return spec
@@ -74,3 +83,8 @@ class SpecFactory(object):
     @lru_cache()
     def components_factory(self):
         return ComponentsFactory(self.dereferencer, self.schemas_registry)
+
+    @property
+    @lru_cache()
+    def security_requirements_generator(self):
+        return SecurityRequirementsGenerator(self.dereferencer)

@@ -9,7 +9,9 @@ from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
 from openapi_core.schema.schemas.models import Schema
-from openapi_core.schema.security.models import SecurityRequirement
+from openapi_core.schema.security_requirements.models import (
+    SecurityRequirement,
+)
 from openapi_core.schema.servers.models import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.validators import RequestValidator
@@ -63,6 +65,15 @@ class TestPetstore(object):
         license_spec = info_spec['license']
         assert spec.info.license.name == license_spec['name']
         assert spec.info.license.url == license_spec['url']
+
+        security_spec = spec_dict.get('security', [])
+        for idx, security_req in enumerate(spec.security):
+            assert type(security_req) == SecurityRequirement
+
+            security_req_spec = security_spec[idx]
+            name = next(iter(security_req_spec))
+            assert security_req.name == name
+            assert security_req.scope_names == security_req_spec[name]
 
         assert spec.get_server_url() == url
 
@@ -129,6 +140,15 @@ class TestPetstore(object):
                         variable_spec = server_spec['variables'][variable_name]
                         assert variable.default == variable_spec['default']
                         assert variable.enum == variable_spec.get('enum')
+
+                security_spec = operation_spec.get('security', [])
+                for idx, security_req in enumerate(operation.security):
+                    assert type(security_req) == SecurityRequirement
+
+                    security_req_spec = security_spec[idx]
+                    name = next(iter(security_req_spec))
+                    assert security_req.name == name
+                    assert security_req.scope_names == security_req_spec[name]
 
                 responses_spec = operation_spec.get('responses')
 

@@ -94,9 +94,10 @@ class TestRequestValidator(object):
         )
 
     def test_get_pets(self, validator):
+        args = {'limit': '10', 'ids': ['1', '2'], 'api_key': self.api_key}
         request = MockRequest(
             self.host_url, 'get', '/v1/pets',
-            path_pattern='/v1/pets', args={'limit': '10', 'ids': ['1', '2']},
+            path_pattern='/v1/pets', args=args,
         )
 
         result = validator.validate(request)
@@ -111,6 +112,9 @@ class TestRequestValidator(object):
                 'ids': [1, 2],
             },
         )
+        assert result.security == {
+            'api_key': self.api_key,
+        }
 
     def test_get_pets_webob(self, validator):
         from webob.multidict import GetDict
@@ -231,6 +235,9 @@ class TestRequestValidator(object):
                 'user': 123,
             },
         )
+        assert result.security == {
+            'petstore_auth': self.api_key_encoded,
+        }
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']

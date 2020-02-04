@@ -15,11 +15,13 @@ class Spec(object):
     """Represents an OpenAPI Specification for a service."""
 
     def __init__(
-            self, info, paths, servers=None, components=None, _resolver=None):
+            self, info, paths, servers=None, components=None,
+            security=None, _resolver=None):
         self.info = info
         self.paths = paths and dict(paths)
         self.servers = servers or []
         self.components = components
+        self.security = security
 
         self._resolver = _resolver
 
