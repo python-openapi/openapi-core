@@ -93,10 +93,31 @@ class TestPetstore(object):
 
         for path_name, path in iteritems(spec.paths):
             assert type(path) == Path
+
+            path_spec = spec_dict['paths'][path_name]
             assert path.name == path_name
+            assert path.summary == path_spec.get('summary')
+            assert path.description == path_spec.get('description')
+
+            servers_spec = path_spec.get('servers', [])
+            for idx, server in enumerate(path.servers):
+                assert type(server) == Server
+
+                server_spec = servers_spec[idx]
+                assert server.url == server_spec['url']
+                assert server.default_url == server_spec['url']
+                assert server.description == server_spec.get('description')
+
+                for variable_name, variable in iteritems(server.variables):
+                    assert type(variable) == ServerVariable
+                    assert variable.name == variable_name
+
+                    variable_spec = server_spec['variables'][variable_name]
+                    assert variable.default == variable_spec['default']
+                    assert variable.enum == variable_spec.get('enum')
 
             for http_method, operation in iteritems(path.operations):
-                operation_spec = spec_dict['paths'][path_name][http_method]
+                operation_spec = path_spec[http_method]
 
                 assert type(operation) == Operation
                 assert operation.path_name == path_name
