@@ -1,4 +1,5 @@
 """OpenAPI core testing requests module"""
+from six.moves.urllib.parse import urljoin
 from werkzeug.datastructures import ImmutableMultiDict
 
 from openapi_core.validation.request.datatypes import (
@@ -22,10 +23,9 @@ class MockRequestFactory(object):
         path_pattern = path_pattern or path
         method = method.lower()
         body = data or ''
+        full_url_pattern = urljoin(host_url, path_pattern)
         return OpenAPIRequest(
-            host_url=host_url,
-            path=path,
-            path_pattern=path_pattern,
+            full_url_pattern=full_url_pattern,
             method=method,
             parameters=parameters,
             body=body,

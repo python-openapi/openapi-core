@@ -1,6 +1,8 @@
 """OpenAPI core contrib flask requests module"""
 import re
 
+from six.moves.urllib.parse import urljoin
+
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,
 )
@@ -28,10 +30,9 @@ class FlaskOpenAPIRequestFactory(object):
             header=request.headers,
             cookie=request.cookies,
         )
+        full_url_pattern = urljoin(request.host_url, path_pattern)
         return OpenAPIRequest(
-            host_url=request.host_url,
-            path=request.path,
-            path_pattern=path_pattern,
+            full_url_pattern=full_url_pattern,
             method=method,
             parameters=parameters,
             body=request.data,
