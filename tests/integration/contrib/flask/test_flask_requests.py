@@ -1,3 +1,4 @@
+from six.moves.urllib.parse import urljoin
 from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
 
 from openapi_core.contrib.flask import FlaskOpenAPIRequest
@@ -21,10 +22,9 @@ class TestFlaskOpenAPIRequest(object):
             header=headers,
             cookie=cookies,
         )
-        assert openapi_request.host_url == request.host_url
-        assert openapi_request.path == request.path
         assert openapi_request.method == request.method.lower()
-        assert openapi_request.path_pattern == request.path
+        assert openapi_request.full_url_pattern == \
+            urljoin(request.host_url, request.path)
         assert openapi_request.body == request.data
         assert openapi_request.mimetype == request.mimetype
 
@@ -46,10 +46,9 @@ class TestFlaskOpenAPIRequest(object):
             header=headers,
             cookie=cookies,
         )
-        assert openapi_request.host_url == request.host_url
-        assert openapi_request.path == request.path
         assert openapi_request.method == request.method.lower()
-        assert openapi_request.path_pattern == request.path
+        assert openapi_request.full_url_pattern == \
+            urljoin(request.host_url, request.path)
         assert openapi_request.body == request.data
         assert openapi_request.mimetype == request.mimetype
 
@@ -68,9 +67,8 @@ class TestFlaskOpenAPIRequest(object):
             header=headers,
             cookie=cookies,
         )
-        assert openapi_request.host_url == request.host_url
-        assert openapi_request.path == request.path
         assert openapi_request.method == request.method.lower()
-        assert openapi_request.path_pattern == '/browse/{id}/'
+        assert openapi_request.full_url_pattern == \
+            urljoin(request.host_url, '/browse/{id}/')
         assert openapi_request.body == request.data
         assert openapi_request.mimetype == request.mimetype

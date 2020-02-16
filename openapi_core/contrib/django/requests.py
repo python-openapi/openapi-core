@@ -1,6 +1,8 @@
 """OpenAPI core contrib django requests module"""
 import re
 
+from six.moves.urllib.parse import urljoin
+
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,
 )
@@ -40,11 +42,11 @@ class DjangoOpenAPIRequestFactory(object):
             header=request.headers,
             cookie=request.COOKIES,
         )
+        full_url_pattern = urljoin(
+            request._current_scheme_host, path_pattern)
         return OpenAPIRequest(
-            host_url=request._current_scheme_host,
-            path=request.path,
+            full_url_pattern=full_url_pattern,
             method=method,
-            path_pattern=path_pattern,
             parameters=parameters,
             body=request.body,
             mimetype=request.content_type,
