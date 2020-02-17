@@ -7,6 +7,7 @@ from openapi_core.schema.responses.exceptions import (
     InvalidResponse, MissingResponseContent,
 )
 from openapi_core.schema.servers.exceptions import InvalidServer
+from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
 )
@@ -139,7 +140,9 @@ class ResponseValidator(object):
             SchemaUnmarshallersFactory,
         )
         unmarshallers_factory = SchemaUnmarshallersFactory(
-            self.spec._resolver, self.custom_formatters)
+            self.spec._resolver, self.custom_formatters,
+            context=UnmarshalContext.RESPONSE,
+        )
         unmarshaller = unmarshallers_factory.create(
             param_or_media_type.schema)
         return unmarshaller(value)

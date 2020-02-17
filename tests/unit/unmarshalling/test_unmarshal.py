@@ -8,6 +8,7 @@ from openapi_core.schema.parameters.models import Parameter
 from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.schemas.types import NoValue
+from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     InvalidSchemaFormatValue, InvalidSchemaValue, UnmarshalError,
     FormatterNotFoundError,
@@ -20,9 +21,10 @@ from openapi_core.unmarshalling.schemas.formatters import Formatter
 
 @pytest.fixture
 def unmarshaller_factory():
-    def create_unmarshaller(schema, custom_formatters=None):
+    def create_unmarshaller(schema, custom_formatters=None, context=None):
         return SchemaUnmarshallersFactory(
-            custom_formatters=custom_formatters).create(schema)
+            custom_formatters=custom_formatters, context=context).create(
+                schema)
     return create_unmarshaller
 
 
@@ -429,3 +431,45 @@ class TestSchemaUnmarshallerCall(object):
 
         result = unmarshaller_factory(schema)(value)
         assert result == value
+
+    def test_read_only_properties(self, unmarshaller_factory):
+        id_property = Schema('integer', read_only=True)
+
+        def properties():
+            yield ('id', id_property)
+
+        obj_schema = Schema('object', properties=properties(), required=['id'])
+
+        # readOnly properties may be admitted in a Response context
+        result = unmarshaller_factory(
+            obj_schema, context=UnmarshalContext.RESPONSE)({"id": 10})
+        assert result == {
+            'id': 10,
+        }
+
+        # readOnly properties are not admitted on a Request context
+        result = unmarshaller_factory(
+            obj_schema, context=UnmarshalContext.REQUEST)({"id": 10})
+
+        assert result == {}
+
+    def test_write_only_properties(self, unmarshaller_factory):
+        id_property = Schema('integer', write_only=True)
+
+        def properties():
+            yield ('id', id_property)
+
+        obj_schema = Schema('object', properties=properties(), required=['id'])
+
+        # readOnly properties may be admitted in a Response context
+        result = unmarshaller_factory(
+            obj_schema, context=UnmarshalContext.REQUEST)({"id": 10})
+        assert result == {
+            'id': 10,
+        }
+
+        # readOnly properties are not admitted on a Request context
+        result = unmarshaller_factory(
+            obj_schema, context=UnmarshalContext.RESPONSE)({"id": 10})
+
+        assert result == {}
