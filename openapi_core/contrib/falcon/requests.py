@@ -1,36 +1,45 @@
 """OpenAPI core contrib falcon responses module"""
-import json
+from json import dumps
 
-from openapi_core.validation.request.datatypes import OpenAPIRequest, RequestParameters
 from werkzeug.datastructures import ImmutableMultiDict
+
+from openapi_core.validation.request.datatypes import (
+    OpenAPIRequest, RequestParameters,
+)
 
 
 class FalconOpenAPIRequestFactory:
+
     @classmethod
-    def create(cls, req, route_params):
+    def create(cls, request):
         """
         Create OpenAPIRequest from falcon Request and route params.
         """
-        method = req.method.lower()
+        method = request.method.lower()
 
-        # Convert keys to lowercase as that's what the OpenAPIRequest expects.
-        headers = {key.lower(): value for key, value in req.headers.items()}
+        # gets deduced by path finder against spec
+        path = {}
 
+        # Support falcon-jsonify.
+        body = (
+            dumps(request.json) if getattr(request, "json", None)
+            else request.bounded_stream.read()
+        )
+        mimetype = request.options.default_media_type
+        if request.content_type:
+            mimetype = request.content_type.partition(";")[0]
+
+        query = ImmutableMultiDict(request.params.items())
         parameters = RequestParameters(
-            path=route_params,
-            query=ImmutableMultiDict(req.params.items()),
-            header=headers,
-            cookie=req.cookies,
+            query=query,
+            header=request.headers,
+            cookie=request.cookies,
+            path=path,
         )
         return OpenAPIRequest(
-            host_url=None,
-            path=req.path,
-            path_pattern=req.uri_template or req.path,
+            full_url_pattern=request.url,
             method=method,
             parameters=parameters,
-            # Support falcon-jsonify.
-            body=json.dumps(req.json)
-            if getattr(req, "json", None)
-            else req.bounded_stream.read(),
-            mimetype=req.content_type.partition(";")[0] if req.content_type else "",
+            body=body,
+            mimetype=mimetype,
         )

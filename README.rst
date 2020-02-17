@@ -206,6 +206,48 @@ You can use DjangoOpenAPIResponse as a Django response factory:
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
 
+Falcon
+******
+
+This section describes integration with `Falcon <https://falconframework.org>`__ web framework.
+
+Middleware
+==========
+
+Falcon API can be integrated by `FalconOpenAPIMiddleware` middleware.
+
+.. code-block:: python
+
+   from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
+
+   openapi_middleware = FalconOpenAPIMiddleware.from_spec(spec)
+   api = falcon.API(middleware=[openapi_middleware])
+
+Low level
+=========
+
+For Falcon you can use FalconOpenAPIRequest a Falcon request factory:
+
+.. code-block:: python
+
+   from openapi_core.validation.request.validators import RequestValidator
+   from openapi_core.contrib.falcon import FalconOpenAPIRequest
+
+   openapi_request = FalconOpenAPIRequest(falcon_request)
+   validator = RequestValidator(spec)
+   result = validator.validate(openapi_request)
+
+You can use FalconOpenAPIResponse as a Falcon response factory:
+
+.. code-block:: python
+
+   from openapi_core.validation.response.validators import ResponseValidator
+   from openapi_core.contrib.falcon import FalconOpenAPIResponse
+
+   openapi_response = FalconOpenAPIResponse(falcon_response)
+   validator = ResponseValidator(spec)
+   result = validator.validate(openapi_request, openapi_response)
+
 Flask
 *****
 

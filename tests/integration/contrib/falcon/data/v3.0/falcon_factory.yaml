@@ -1,11 +1,11 @@
 openapi: "3.0.0"
 info:
-  title: Basic OpenAPI specification used with test_flask.TestFlaskOpenAPIIValidation
+  title: Basic OpenAPI specification used with test_falcon.TestFalconOpenAPIIValidation
   version: "0.1"
 servers:
   - url: 'http://localhost'
 paths:
-  '/browse/{id}/':
+  '/browse/{id}':
     parameters:
       - name: id
         in: path

@@ -19,9 +19,8 @@ class TestFalconOpenAPIValidation(object):
                                              request_factory,
                                              response_factory):
         validator = ResponseValidator(spec)
-        request = request_factory('GET', '/browse/12/', subdomain='kb')
-        openapi_request = FalconOpenAPIRequestFactory.create(
-            request, '/browse/12/')
+        request = request_factory('GET', '/browse/12', subdomain='kb')
+        openapi_request = FalconOpenAPIRequestFactory.create(request)
         response = response_factory('{"data": "data"}', status_code=200)
         openapi_response = FalconOpenAPIResponseFactory.create(response)
         result = validator.validate(openapi_request, openapi_response)
@@ -29,8 +28,7 @@ class TestFalconOpenAPIValidation(object):
 
     def test_request_validator_path_pattern(self, spec, request_factory):
         validator = RequestValidator(spec)
-        request = request_factory('GET', '/browse/12/', subdomain='kb')
-        openapi_request = FalconOpenAPIRequestFactory.create(
-            request, '/browse/12/')
+        request = request_factory('GET', '/browse/12', subdomain='kb')
+        openapi_request = FalconOpenAPIRequestFactory.create(request)
         result = validator.validate(openapi_request)
         assert not result.errors

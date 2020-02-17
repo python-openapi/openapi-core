@@ -4,9 +4,17 @@ from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 class FalconOpenAPIResponseFactory(object):
     @classmethod
-    def create(cls, resp):
+    def create(cls, response):
+        status_code = int(response.status[:3])
+
+        mimetype = ''
+        if response.content_type:
+            mimetype = response.content_type.partition(";")[0]
+        else:
+            mimetype = response.options.default_media_type
+
         return OpenAPIResponse(
-            data=resp.body,
-            status_code=resp.status[:3],
-            mimetype=resp.content_type.partition(";")[0] if resp.content_type else '',
+            data=response.body,
+            status_code=status_code,
+            mimetype=mimetype,
         )
