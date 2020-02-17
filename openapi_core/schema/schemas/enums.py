@@ -26,8 +26,3 @@ class SchemaFormat(Enum):
     DATETIME = 'date-time'
     PASSWORD = 'password'
     UUID = 'uuid'
-
-
-class UnmarshalContext(Enum):
-    REQUEST = 'request'
-    RESPONSE = 'response'

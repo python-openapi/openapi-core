@@ -35,6 +35,19 @@ def nullable(validator, is_nullable, instance, schema):
         yield ValidationError("None for not nullable")
 
 
+def required(validator, required, instance, schema):
+    if not validator.is_type(instance, "object"):
+        return
+    for property in required:
+        if property not in instance:
+            prop_schema = schema['properties'][property]
+            read_only = prop_schema.get('readOnly', False)
+            write_only = prop_schema.get('writeOnly', False)
+            if validator.write and read_only or validator.read and write_only:
+                continue
+            yield ValidationError("%r is a required property" % property)
+
+
 def additionalProperties(validator, aP, instance, schema):
     if not validator.is_type(instance, "object"):
         return
@@ -52,6 +65,22 @@ def additionalProperties(validator, aP, instance, schema):
         if not aP:
             error = "Additional properties are not allowed (%s %s unexpected)"
             yield ValidationError(error % extras_msg(extras))
+
+
+def readOnly(validator, ro, instance, schema):
+    if not validator.write or not ro:
+        return
+
+    yield ValidationError(
+        "Tried to write read-only proparty with %s" % (instance))
+
+
+def writeOnly(validator, wo, instance, schema):
+    if not validator.read or not wo:
+        return
+
+    yield ValidationError(
+        "Tried to read write-only proparty with %s" % (instance))
 
 
 def not_implemented(validator, value, instance, schema):

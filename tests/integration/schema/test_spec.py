@@ -268,5 +268,9 @@ class TestPetstore(object):
         if not spec.components:
             return
 
-        for _, schema in iteritems(spec.components.schemas):
+        for schema_name, schema in iteritems(spec.components.schemas):
             assert type(schema) == Schema
+
+            schema_spec = spec_dict['components']['schemas'][schema_name]
+            assert schema.read_only == schema_spec.get('readOnly', False)
+            assert schema.write_only == schema_spec.get('writeOnly', False)

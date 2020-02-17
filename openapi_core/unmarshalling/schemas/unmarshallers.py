@@ -13,6 +13,7 @@ from openapi_core.schema_validator._types import (
     is_object, is_number, is_string,
 )
 from openapi_core.schema_validator._format import oas30_format_checker
+from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError, InvalidSchemaValue,
     InvalidSchemaFormatValue,
@@ -120,9 +121,12 @@ class BooleanUnmarshaller(PrimitiveTypeUnmarshaller):
 
 class ComplexUnmarshaller(PrimitiveTypeUnmarshaller):
 
-    def __init__(self, formatter, validator, schema, unmarshallers_factory):
+    def __init__(
+            self, formatter, validator, schema, unmarshallers_factory,
+            context=None):
         super(ComplexUnmarshaller, self).__init__(formatter, validator, schema)
         self.unmarshallers_factory = unmarshallers_factory
+        self.context = context
 
 
 class ArrayUnmarshaller(ComplexUnmarshaller):
@@ -206,6 +210,10 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
                 properties[prop_name] = prop_value
 
         for prop_name, prop in iteritems(all_props):
+            if self.context == UnmarshalContext.REQUEST and prop.read_only:
+                continue
+            if self.context == UnmarshalContext.RESPONSE and prop.write_only:
+                continue
             try:
                 prop_value = value[prop_name]
             except KeyError:

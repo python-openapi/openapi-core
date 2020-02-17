@@ -21,7 +21,6 @@ BaseOAS30Validator = create(
         u"uniqueItems": _validators.uniqueItems,
         u"maxProperties": _validators.maxProperties,
         u"minProperties": _validators.minProperties,
-        u"required": _validators.required,
         u"enum": _validators.enum,
         # adjusted to OAS
         u"type": oas_validators.type,
@@ -31,6 +30,7 @@ BaseOAS30Validator = create(
         u"not": _validators.not_,
         u"items": oas_validators.items,
         u"properties": _validators.properties,
+        u"required": oas_validators.required,
         u"additionalProperties": oas_validators.additionalProperties,
         # TODO: adjust description
         u"format": oas_validators.format,
@@ -39,8 +39,8 @@ BaseOAS30Validator = create(
         # fixed OAS fields
         u"nullable": oas_validators.nullable,
         u"discriminator": oas_validators.not_implemented,
-        u"readOnly": oas_validators.not_implemented,
-        u"writeOnly": oas_validators.not_implemented,
+        u"readOnly": oas_validators.readOnly,
+        u"writeOnly": oas_validators.writeOnly,
         u"xml": oas_validators.not_implemented,
         u"externalDocs": oas_validators.not_implemented,
         u"example": oas_validators.not_implemented,
@@ -53,6 +53,11 @@ BaseOAS30Validator = create(
 
 
 class OAS30Validator(BaseOAS30Validator):
+
+    def __init__(self, *args, **kwargs):
+        self.read = kwargs.pop('read', None)
+        self.write = kwargs.pop('write', None)
+        super(OAS30Validator, self).__init__(*args, **kwargs)
 
     def iter_errors(self, instance, _schema=None):
         if _schema is None:

@@ -11,9 +11,9 @@ from openapi_core.schema.parameters.exceptions import (
 )
 from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
-from openapi_core.schema.schemas.enums import UnmarshalContext
 from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.security.exceptions import SecurityError
+from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
 )
@@ -23,8 +23,6 @@ from openapi_core.validation.request.datatypes import (
 )
 from openapi_core.validation.util import get_operation_pattern
 
-
-_CONTEXT = UnmarshalContext.REQUEST
 
 class RequestValidator(object):
 
@@ -259,7 +257,9 @@ class RequestValidator(object):
             SchemaUnmarshallersFactory,
         )
         unmarshallers_factory = SchemaUnmarshallersFactory(
-            self.spec._resolver, self.custom_formatters)
+            self.spec._resolver, self.custom_formatters,
+            context=UnmarshalContext.REQUEST,
+        )
         unmarshaller = unmarshallers_factory.create(
             param_or_media_type.schema)
         return unmarshaller(value)

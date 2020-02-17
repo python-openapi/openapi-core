@@ -60,9 +60,6 @@ class Schema(object):
         self.read_only = read_only
         self.write_only = write_only
 
-        if self.read_only and self.write_only:
-            raise OpenAPISchemaError("Schema cannot be readOnly AND writeOnly")
-
         self.extensions = extensions and dict(extensions) or {}
 
         self._all_required_properties_cache = None
