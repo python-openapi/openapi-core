@@ -45,6 +45,7 @@ class TestFlaskOpenAPIView(object):
 
         result = client.get('/browse/12/')
 
+        assert result.status_code == 415
         assert result.json == {
             'errors': [
                 {
@@ -78,6 +79,7 @@ class TestFlaskOpenAPIView(object):
                 }
             ]
         }
+        assert result.status_code == 500
         assert result.json == expected_data
 
     def test_endpoint_error(self, client):
@@ -97,6 +99,7 @@ class TestFlaskOpenAPIView(object):
                 }
             ]
         }
+        assert result.status_code == 400
         assert result.json == expected_data
 
     def test_valid(self, client):
