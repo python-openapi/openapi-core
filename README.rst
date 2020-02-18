@@ -55,7 +55,7 @@ Now you can use it to validate requests
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import RequestValidator
+   from openapi_core.validation.request.validators import RequestValidator
 
    validator = RequestValidator(spec)
    result = validator.validate(request)
@@ -90,7 +90,7 @@ You can also validate responses
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import ResponseValidator
+   from openapi_core.validation.response.validators import ResponseValidator
 
    validator = ResponseValidator(spec)
    result = validator.validate(request, response)
@@ -188,7 +188,7 @@ For Django 2.2 you can use DjangoOpenAPIRequest a Django request factory:
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import RequestValidator
+   from openapi_core.validation.request.validators import RequestValidator
    from openapi_core.contrib.django import DjangoOpenAPIRequest
 
    openapi_request = DjangoOpenAPIRequest(django_request)
@@ -199,7 +199,7 @@ You can use DjangoOpenAPIResponse as a Django response factory:
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import ResponseValidator
+   from openapi_core.validation.response.validators import ResponseValidator
    from openapi_core.contrib.django import DjangoOpenAPIResponse
 
    openapi_response = DjangoOpenAPIResponse(django_response)
@@ -268,7 +268,7 @@ You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import RequestValidator
+   from openapi_core.validation.request.validators import RequestValidator
    from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
    openapi_request = FlaskOpenAPIRequest(flask_request)
@@ -279,7 +279,7 @@ You can use FlaskOpenAPIResponse as a Flask/Werkzeug response factory:
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import ResponseValidator
+   from openapi_core.validation.response.validators import ResponseValidator
    from openapi_core.contrib.flask import FlaskOpenAPIResponse
 
    openapi_response = FlaskOpenAPIResponse(flask_response)
