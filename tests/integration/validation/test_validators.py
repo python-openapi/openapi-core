@@ -439,7 +439,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidOperation
+        assert type(result.errors[0]) == InvalidPath
         assert result.data is None
         assert result.headers is None
 
