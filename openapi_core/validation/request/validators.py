@@ -36,8 +36,7 @@ class RequestValidator(object):
 
     def validate(self, request):
         try:
-            path = self._get_path(request)
-            operation = self._get_operation(request)
+            path, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except (InvalidServer, InvalidPath, InvalidOperation) as exc:
             return RequestValidationResult([exc, ], None, None, None)
@@ -61,8 +60,7 @@ class RequestValidator(object):
 
     def _validate_parameters(self, request):
         try:
-            path = self._get_path(request)
-            operation = self._get_operation(request)
+            path, operation, _, _, _ = self._find_path(request)
         except (InvalidServer, InvalidPath, InvalidOperation) as exc:
             return RequestValidationResult([exc, ], None, None)
 
@@ -76,7 +74,7 @@ class RequestValidator(object):
 
     def _validate_body(self, request):
         try:
-            operation = self._get_operation(request)
+            _, operation, _, _, _ = self._find_path(request)
         except (InvalidServer, InvalidOperation) as exc:
             return RequestValidationResult([exc, ], None, None)
 
@@ -90,15 +88,17 @@ class RequestValidator(object):
             server.default_url, request.full_url_pattern
         )
 
-    def _get_path(self, request):
+    def _find_path(self, request):
         operation_pattern = self._get_operation_pattern(request)
 
-        return self.spec[operation_pattern]
+        path = self.spec[operation_pattern]
+        path_variables = {}
+        operation = self.spec.get_operation(operation_pattern, request.method)
+        servers = path.servers or operation.servers or self.spec.servers
+        server = servers[0]
+        server_variables = {}
 
-    def _get_operation(self, request):
-        operation_pattern = self._get_operation_pattern(request)
-
-        return self.spec.get_operation(operation_pattern, request.method)
+        return path, operation, server, path_variables, server_variables
 
     def _get_security(self, request, operation):
         security = operation.security or self.spec.security
