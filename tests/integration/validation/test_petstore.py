@@ -16,9 +16,11 @@ from openapi_core.schema.parameters.exceptions import (
     MissingRequiredParameter,
 )
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.shortcuts import (
-    create_spec, validate_parameters, validate_body,
+    create_spec, validate_parameters, validate_body, validate_data,
+)
+from openapi_core.templating.paths.exceptions import (
+    ServerNotFound,
 )
 from openapi_core.testing import MockRequest, MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
@@ -163,7 +165,7 @@ class TestPetstore(object):
         )
         assert body is None
 
-        data_json = {
+        response_data_json = {
             'data': [
                 {
                     'id': 1,
@@ -173,8 +175,11 @@ class TestPetstore(object):
                 }
             ],
         }
-        data = json.dumps(data_json)
-        response = MockResponse(data)
+        response_data = json.dumps(response_data_json)
+        response = MockResponse(response_data)
+
+        with pytest.raises(InvalidSchemaValue):
+            validate_data(spec, request, response)
 
         response_result = response_validator.validate(request, response)
 
@@ -182,7 +187,7 @@ class TestPetstore(object):
         assert response_result.errors == [
             InvalidSchemaValue(
                 type=SchemaType.OBJECT,
-                value=data_json,
+                value=response_data_json,
                 schema_errors=schema_errors,
             ),
         ]
@@ -363,7 +368,7 @@ class TestPetstore(object):
         assert body is None
 
     def test_post_birds(self, spec, spec_dict):
-        host_url = 'http://petstore.swagger.io/v1'
+        host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
         pet_tag = 'cats'
@@ -423,7 +428,7 @@ class TestPetstore(object):
         assert body.healthy == pet_healthy
 
     def test_post_cats(self, spec, spec_dict):
-        host_url = 'http://petstore.swagger.io/v1'
+        host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
         pet_tag = 'cats'
@@ -483,7 +488,7 @@ class TestPetstore(object):
         assert body.healthy == pet_healthy
 
     def test_post_cats_boolean_string(self, spec, spec_dict):
-        host_url = 'http://petstore.swagger.io/v1'
+        host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
         pet_tag = 'cats'
@@ -543,7 +548,7 @@ class TestPetstore(object):
         assert body.healthy is False
 
     def test_post_no_one_of_schema(self, spec, spec_dict):
-        host_url = 'http://petstore.swagger.io/v1'
+        host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
         alias = 'kitty'
@@ -580,7 +585,7 @@ class TestPetstore(object):
             validate_body(spec, request)
 
     def test_post_cats_only_required_body(self, spec, spec_dict):
-        host_url = 'http://petstore.swagger.io/v1'
+        host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
         pet_healthy = True
@@ -625,7 +630,7 @@ class TestPetstore(object):
         assert not hasattr(body, 'address')
 
     def test_post_pets_raises_invalid_mimetype(self, spec):
-        host_url = 'http://petstore.swagger.io/v1'
+        host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'
         data_json = {
             'name': 'Cat',
@@ -660,7 +665,7 @@ class TestPetstore(object):
             validate_body(spec, request)
 
     def test_post_pets_missing_cookie(self, spec, spec_dict):
-        host_url = 'http://petstore.swagger.io/v1'
+        host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
         pet_healthy = True
@@ -694,7 +699,7 @@ class TestPetstore(object):
         assert not hasattr(body, 'address')
 
     def test_post_pets_missing_header(self, spec, spec_dict):
-        host_url = 'http://petstore.swagger.io/v1'
+        host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'
         pet_name = 'Cat'
         pet_healthy = True
@@ -748,11 +753,28 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        with pytest.raises(InvalidServer):
+        with pytest.raises(ServerNotFound):
             validate_parameters(spec, request)
 
-        with pytest.raises(InvalidServer):
+        with pytest.raises(ServerNotFound):
             validate_body(spec, request)
+
+        data_id = 1
+        data_name = 'test'
+        data_json = {
+            'data': {
+                'id': data_id,
+                'name': data_name,
+                'ears': {
+                    'healthy': True,
+                },
+            },
+        }
+        data = json.dumps(data_json)
+        response = MockResponse(data)
+
+        with pytest.raises(ServerNotFound):
+            validate_data(spec, request, response)
 
     def test_get_pet(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -1075,14 +1097,22 @@ class TestPetstore(object):
         message = 'Bad request'
         rootCause = 'Tag already exist'
         additionalinfo = 'Tag Dog already exist'
-        data_json = {
+        response_data_json = {
             'code': code,
             'message': message,
             'rootCause': rootCause,
             'additionalinfo': additionalinfo,
         }
-        data = json.dumps(data_json)
-        response = MockResponse(data, status_code=404)
+        response_data = json.dumps(response_data_json)
+        response = MockResponse(response_data, status_code=404)
+
+        data = validate_data(spec, request, response)
+
+        assert isinstance(data, BaseModel)
+        assert data.code == code
+        assert data.message == message
+        assert data.rootCause == rootCause
+        assert data.additionalinfo == additionalinfo
 
         response_result = response_validator.validate(request, response)
 

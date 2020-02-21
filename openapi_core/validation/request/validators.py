@@ -5,14 +5,12 @@ from six import iteritems
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.schema.media_types.exceptions import InvalidContentType
-from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import (
     MissingRequiredParameter, MissingParameter,
 )
-from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
-from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.security.exceptions import SecurityError
+from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
@@ -30,7 +28,7 @@ class RequestValidator(BaseValidator):
         try:
             path, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
-        except (InvalidServer, InvalidPath, InvalidOperation) as exc:
+        except PathError as exc:
             return RequestValidationResult([exc, ], None, None, None)
 
         try:
@@ -53,7 +51,7 @@ class RequestValidator(BaseValidator):
     def _validate_parameters(self, request):
         try:
             path, operation, _, _, _ = self._find_path(request)
-        except (InvalidServer, InvalidPath, InvalidOperation) as exc:
+        except PathError as exc:
             return RequestValidationResult([exc, ], None, None)
 
         params, params_errors = self._get_parameters(
@@ -67,7 +65,7 @@ class RequestValidator(BaseValidator):
     def _validate_body(self, request):
         try:
             _, operation, _, _, _ = self._find_path(request)
-        except (InvalidServer, InvalidOperation) as exc:
+        except PathError as exc:
             return RequestValidationResult([exc, ], None, None)
 
         body, body_errors = self._get_body(request, operation)

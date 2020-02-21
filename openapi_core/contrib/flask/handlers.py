@@ -3,13 +3,17 @@ from flask.globals import current_app
 from flask.json import dumps
 
 from openapi_core.schema.media_types.exceptions import InvalidContentType
-from openapi_core.schema.servers.exceptions import InvalidServer
+from openapi_core.templating.paths.exceptions import (
+    ServerNotFound, OperationNotFound, PathNotFound,
+)
 
 
 class FlaskOpenAPIErrorsHandler(object):
 
     OPENAPI_ERROR_STATUS = {
-        InvalidServer: 500,
+        ServerNotFound: 400,
+        OperationNotFound: 405,
+        PathNotFound: 404,
         InvalidContentType: 415,
     }
 

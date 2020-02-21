@@ -5,15 +5,17 @@ class BaseValidator(object):
 
     def __init__(
             self, spec,
+            base_url=None,
             custom_formatters=None, custom_media_type_deserializers=None,
     ):
         self.spec = spec
+        self.base_url = base_url
         self.custom_formatters = custom_formatters
         self.custom_media_type_deserializers = custom_media_type_deserializers
 
     def _find_path(self, request):
         from openapi_core.templating.paths.finders import PathFinder
-        finder = PathFinder(self.spec)
+        finder = PathFinder(self.spec, base_url=self.base_url)
         return finder.find(request)
 
     def _deserialise_media_type(self, media_type, value):

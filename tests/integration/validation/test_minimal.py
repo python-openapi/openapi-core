@@ -1,8 +1,9 @@
 import pytest
 
-from openapi_core.schema.operations.exceptions import InvalidOperation
-from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.shortcuts import create_spec
+from openapi_core.templating.paths.exceptions import (
+    PathNotFound, OperationNotFound,
+)
 from openapi_core.testing import MockRequest
 from openapi_core.validation.request.validators import RequestValidator
 
@@ -45,7 +46,7 @@ class TestMinimal(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert isinstance(result.errors[0], InvalidOperation)
+        assert isinstance(result.errors[0], OperationNotFound)
         assert result.body is None
         assert result.parameters is None
 
@@ -60,6 +61,6 @@ class TestMinimal(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert isinstance(result.errors[0], InvalidPath)
+        assert isinstance(result.errors[0], PathNotFound)
         assert result.body is None
         assert result.parameters is None

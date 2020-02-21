@@ -4,3 +4,5 @@ lazy-object-proxy
 strict_rfc3339
 isodate
 attrs
+parse==1.14.0
+more-itertools>=5.0.0

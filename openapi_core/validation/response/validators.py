@@ -1,13 +1,11 @@
 """OpenAPI core validation response validators module"""
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.media_types.exceptions import InvalidContentType
-from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.responses.exceptions import (
     InvalidResponse, MissingResponseContent,
 )
-from openapi_core.schema.servers.exceptions import InvalidServer
+from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
@@ -22,7 +20,7 @@ class ResponseValidator(BaseValidator):
         try:
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
-        except (InvalidServer, InvalidPath, InvalidOperation) as exc:
+        except PathError as exc:
             return ResponseValidationResult([exc, ], None, None)
 
         try:
@@ -47,7 +45,7 @@ class ResponseValidator(BaseValidator):
         try:
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
-        except (InvalidServer, InvalidPath, InvalidOperation) as exc:
+        except PathError as exc:
             return ResponseValidationResult([exc, ], None, None)
 
         try:

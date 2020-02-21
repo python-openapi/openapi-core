@@ -9,15 +9,15 @@ from openapi_core.schema.media_types.exceptions import (
     InvalidContentType,
 )
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
-from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.schema.responses.exceptions import (
     MissingResponseContent, InvalidResponse,
 )
-from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.shortcuts import create_spec
+from openapi_core.templating.paths.exceptions import (
+    PathNotFound, OperationNotFound,
+)
 from openapi_core.testing import MockRequest, MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.exceptions import InvalidSecurity
@@ -48,7 +48,7 @@ class TestRequestValidator(object):
 
     @pytest.fixture(scope='session')
     def validator(self, spec):
-        return RequestValidator(spec)
+        return RequestValidator(spec, base_url=self.host_url)
 
     def test_request_server_error(self, validator):
         request = MockRequest('http://petstore.invalid.net/v1', 'get', '/')
@@ -56,7 +56,7 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidServer
+        assert type(result.errors[0]) == PathNotFound
         assert result.body is None
         assert result.parameters is None
 
@@ -66,7 +66,7 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidPath
+        assert type(result.errors[0]) == PathNotFound
         assert result.body is None
         assert result.parameters is None
 
@@ -76,7 +76,7 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidOperation
+        assert type(result.errors[0]) == OperationNotFound
         assert result.body is None
         assert result.parameters is None
 
@@ -149,7 +149,7 @@ class TestRequestValidator(object):
             'user': '123',
         }
         request = MockRequest(
-            self.host_url, 'post', '/v1/pets',
+            'https://development.gigantic-server.com', 'post', '/v1/pets',
             path_pattern='/v1/pets',
             headers=headers, cookies=cookies,
         )
@@ -176,7 +176,7 @@ class TestRequestValidator(object):
             'user': '123',
         }
         request = MockRequest(
-            self.host_url, 'post', '/v1/pets',
+            'https://development.gigantic-server.com', 'post', '/v1/pets',
             path_pattern='/v1/pets', mimetype='text/csv',
             headers=headers, cookies=cookies,
         )
@@ -220,7 +220,7 @@ class TestRequestValidator(object):
             'user': '123',
         }
         request = MockRequest(
-            self.host_url, 'post', '/v1/pets',
+            'https://development.gigantic-server.com', 'post', '/v1/pets',
             path_pattern='/v1/pets', data=data,
             headers=headers, cookies=cookies,
         )
@@ -326,7 +326,7 @@ class TestPathItemParamsValidator(object):
 
     @pytest.fixture(scope='session')
     def validator(self, spec):
-        return RequestValidator(spec)
+        return RequestValidator(spec, base_url='http://example.com')
 
     def test_request_missing_param(self, validator):
         request = MockRequest('http://example.com', 'get', '/resource')
@@ -373,7 +373,8 @@ class TestPathItemParamsValidator(object):
                 },
             }
         ]
-        validator = RequestValidator(create_spec(spec_dict))
+        validator = RequestValidator(
+            create_spec(spec_dict), base_url='http://example.com')
         request = MockRequest('http://example.com', 'get', '/resource')
         result = validator.validate(request)
 
@@ -395,7 +396,8 @@ class TestPathItemParamsValidator(object):
                 },
             }
         ]
-        validator = RequestValidator(create_spec(spec_dict))
+        validator = RequestValidator(
+            create_spec(spec_dict), base_url='http://example.com')
         request = MockRequest('http://example.com', 'get', '/resource')
         result = validator.validate(request)
 
@@ -419,7 +421,7 @@ class TestResponseValidator(object):
 
     @pytest.fixture
     def validator(self, spec):
-        return ResponseValidator(spec)
+        return ResponseValidator(spec, base_url=self.host_url)
 
     def test_invalid_server(self, validator):
         request = MockRequest('http://petstore.invalid.net/v1', 'get', '/')
@@ -428,18 +430,18 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidServer
+        assert type(result.errors[0]) == PathNotFound
         assert result.data is None
         assert result.headers is None
 
     def test_invalid_operation(self, validator):
-        request = MockRequest(self.host_url, 'get', '/v1')
+        request = MockRequest(self.host_url, 'patch', '/v1/pets')
         response = MockResponse('Not Found', status_code=404)
 
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidPath
+        assert type(result.errors[0]) == OperationNotFound
         assert result.data is None
         assert result.headers is None
 
