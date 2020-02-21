@@ -1,5 +1,4 @@
 """OpenAPI core validation validators module"""
-from openapi_core.validation.util import get_operation_pattern
 
 
 class BaseValidator(object):
@@ -13,23 +12,9 @@ class BaseValidator(object):
         self.custom_media_type_deserializers = custom_media_type_deserializers
 
     def _find_path(self, request):
-        operation_pattern = self._get_operation_pattern(request)
-
-        path = self.spec[operation_pattern]
-        path_variables = {}
-        operation = self.spec.get_operation(operation_pattern, request.method)
-        servers = path.servers or operation.servers or self.spec.servers
-        server = servers[0]
-        server_variables = {}
-
-        return path, operation, server, path_variables, server_variables
-
-    def _get_operation_pattern(self, request):
-        server = self.spec.get_server(request.full_url_pattern)
-
-        return get_operation_pattern(
-            server.default_url, request.full_url_pattern
-        )
+        from openapi_core.templating.paths.finders import PathFinder
+        finder = PathFinder(self.spec)
+        return finder.find(request)
 
     def _deserialise_media_type(self, media_type, value):
         from openapi_core.deserializing.media_types.factories import (

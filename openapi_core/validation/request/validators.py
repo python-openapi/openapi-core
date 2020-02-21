@@ -21,7 +21,6 @@ from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request.datatypes import (
     RequestParameters, RequestValidationResult,
 )
-from openapi_core.validation.util import get_operation_pattern
 from openapi_core.validation.validators import BaseValidator
 
 

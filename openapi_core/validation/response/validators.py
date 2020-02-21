@@ -13,7 +13,6 @@ from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
 )
 from openapi_core.validation.response.datatypes import ResponseValidationResult
-from openapi_core.validation.util import get_operation_pattern
 from openapi_core.validation.validators import BaseValidator
 
 

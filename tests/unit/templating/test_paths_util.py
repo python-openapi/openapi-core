@@ -1,4 +1,4 @@
-from openapi_core.validation.util import path_qs
+from openapi_core.templating.paths.util import path_qs
 
 
 class TestPathQs(object):

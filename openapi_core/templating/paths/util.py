@@ -1,4 +1,4 @@
-"""OpenAPI core validation util module"""
+"""OpenAPI core templating paths util module"""
 from six.moves.urllib.parse import urlparse
 
 
