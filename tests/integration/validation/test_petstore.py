@@ -5,20 +5,23 @@ from base64 import b64encode
 from uuid import UUID
 from six import text_type
 
-from openapi_core.extensions.models.models import BaseModel
-from openapi_core.schema.media_types.exceptions import (
-    InvalidContentType, InvalidMediaTypeValue,
+from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.deserializing.exceptions import DeserializeError
+from openapi_core.deserializing.parameters.exceptions import (
+    EmptyParameterValue,
 )
+from openapi_core.extensions.models.models import BaseModel
+from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.parameters.exceptions import (
-    MissingRequiredParameter, InvalidParameterValue, EmptyParameterValue,
+    MissingRequiredParameter,
 )
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.schemas.exceptions import InvalidSchemaValue
 from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.shortcuts import (
     create_spec, validate_parameters, validate_body,
 )
 from openapi_core.testing import MockRequest, MockResponse
+from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.request.datatypes import RequestParameters
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -175,15 +178,12 @@ class TestPetstore(object):
 
         response_result = response_validator.validate(request, response)
 
-        original_exc = response_result.errors[0].original_exception
+        schema_errors = response_result.errors[0].schema_errors
         assert response_result.errors == [
-            InvalidMediaTypeValue(
-                original_exception=InvalidSchemaValue(
-                    type=SchemaType.OBJECT,
-                    value=data_json,
-                    schema_errors=original_exc.schema_errors,
-                    schema_errors_iter=original_exc._schema_errors_iter,
-                ),
+            InvalidSchemaValue(
+                type=SchemaType.OBJECT,
+                value=data_json,
+                schema_errors=schema_errors,
             ),
         ]
         assert response_result.data is None
@@ -277,7 +277,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(InvalidParameterValue):
+        with pytest.raises(DeserializeError):
             validate_parameters(spec, request)
 
         body = validate_body(spec, request)
@@ -296,7 +296,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(InvalidParameterValue):
+        with pytest.raises(CastError):
             validate_parameters(spec, request)
 
         body = validate_body(spec, request)
@@ -576,7 +576,7 @@ class TestPetstore(object):
             },
         )
 
-        with pytest.raises(InvalidMediaTypeValue):
+        with pytest.raises(InvalidSchemaValue):
             validate_body(spec, request)
 
     def test_post_cats_only_required_body(self, spec, spec_dict):
@@ -916,7 +916,7 @@ class TestPetstore(object):
 
         assert parameters == RequestParameters()
 
-        with pytest.raises(InvalidMediaTypeValue):
+        with pytest.raises(InvalidSchemaValue):
             validate_body(spec, request)
 
     def test_post_tags_empty_body(self, spec, spec_dict):
@@ -934,7 +934,7 @@ class TestPetstore(object):
 
         assert parameters == RequestParameters()
 
-        with pytest.raises(InvalidMediaTypeValue):
+        with pytest.raises(InvalidSchemaValue):
             validate_body(spec, request)
 
     def test_post_tags_wrong_property_type(self, spec):
@@ -952,7 +952,7 @@ class TestPetstore(object):
 
         assert parameters == RequestParameters()
 
-        with pytest.raises(InvalidMediaTypeValue):
+        with pytest.raises(InvalidSchemaValue):
             validate_body(spec, request)
 
     def test_post_tags_additional_properties(
@@ -1111,7 +1111,7 @@ class TestPetstore(object):
         )
 
         parameters = validate_parameters(spec, request)
-        with pytest.raises(InvalidMediaTypeValue):
+        with pytest.raises(InvalidSchemaValue):
             validate_body(spec, request)
 
         assert parameters == RequestParameters()

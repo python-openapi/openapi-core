@@ -55,7 +55,7 @@ Now you can use it to validate requests
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import RequestValidator
+   from openapi_core.validation.request.validators import RequestValidator
 
    validator = RequestValidator(spec)
    result = validator.validate(request)
@@ -78,14 +78,8 @@ and unmarshal request data from validation result
    # get body
    validated_body = result.body
 
-or use shortcuts for simple validation
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_params = validate_parameters(spec, request)
-   validated_body = validate_body(spec, request)
+   # get security data
+   validated_security = result.security
 
 Request object should be instance of OpenAPIRequest class (See `Integrations`_).
 
@@ -96,7 +90,7 @@ You can also validate responses
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import ResponseValidator
+   from openapi_core.validation.response.validators import ResponseValidator
 
    validator = ResponseValidator(spec)
    result = validator.validate(request, response)
@@ -117,15 +111,71 @@ and unmarshal response data from validation result
    # get data
    validated_data = result.data
 
-or use shortcuts for simple validation
+Response object should be instance of OpenAPIResponse class (See `Integrations`_).
+
+Security
+********
+
+openapi-core supports security for authentication and authorization process. Security data for security schemas are accessible from `security` attribute of `RequestValidationResult` object.
+
+For given security specification:
+
+.. code-block:: yaml
+
+   security:
+     - BasicAuth: []
+     - ApiKeyAuth: []
+   components:
+     securitySchemes:
+       BasicAuth:
+         type: http
+         scheme: basic
+       ApiKeyAuth:
+         type: apiKey
+         in: header
+         name: X-API-Key
+
+you can access your security data the following:
 
 .. code-block:: python
 
-   from openapi_core import validate_data
+   result = validator.validate(request)
 
-   validated_data = validate_data(spec, request, response)
+   # get basic auth decoded credentials
+   result.security['BasicAuth']
 
-Response object should be instance of OpenAPIResponse class (See `Integrations`_).
+   # get api key
+   result.security['ApiKeyAuth']
+
+Supported security types:
+
+* http – for Basic and Bearer HTTP authentications schemes
+* apiKey – for API keys and cookie authentication
+
+
+Customizations
+##############
+
+Deserializers
+*************
+
+Pass custom defined media type deserializers dictionary with supported mimetypes as a key to `RequestValidator` or `ResponseValidator` constructor:
+
+.. code-block:: python
+
+   def protobuf_deserializer(message):
+       feature = route_guide_pb2.Feature()
+       feature.ParseFromString(message)
+       return feature
+
+   custom_media_type_deserializers = {
+       'application/protobuf': protobuf_deserializer,
+   }
+
+   validator = ResponseValidator(
+       spec, custom_media_type_deserializers=custom_media_type_deserializers)
+
+   result = validator.validate(request, response)
 
 
 Integrations
@@ -138,92 +188,103 @@ For Django 2.2 you can use DjangoOpenAPIRequest a Django request factory:
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import RequestValidator
+   from openapi_core.validation.request.validators import RequestValidator
    from openapi_core.contrib.django import DjangoOpenAPIRequest
 
    openapi_request = DjangoOpenAPIRequest(django_request)
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-or simply specify request factory for shortcuts
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_params = validate_parameters(
-       spec, request, request_factory=DjangoOpenAPIRequest)
-   validated_body = validate_body(
-       spec, request, request_factory=DjangoOpenAPIRequest)
-
 You can use DjangoOpenAPIResponse as a Django response factory:
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import ResponseValidator
+   from openapi_core.validation.response.validators import ResponseValidator
    from openapi_core.contrib.django import DjangoOpenAPIResponse
 
    openapi_response = DjangoOpenAPIResponse(django_response)
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
 
-or simply specify response factory for shortcuts
+Flask
+*****
+
+Decorator
+=========
+
+Flask views can be integrated by `FlaskOpenAPIViewDecorator` decorator.
 
 .. code-block:: python
 
-   from openapi_core import validate_parameters, validate_body
+   from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 
-   validated_data = validate_data(
-       spec, request, response,
-       request_factory=DjangoOpenAPIRequest,
-       response_factory=DjangoOpenAPIResponse)
+   openapi = FlaskOpenAPIViewDecorator.from_spec(spec)
 
-Flask
-*****
+   @app.route('/home')
+   @openapi
+   def home():
+       pass
+
+If you want to decorate class based view you can use the decorators attribute:
+
+.. code-block:: python
+
+   class MyView(View):
+       decorators = [openapi]
+
+View
+====
+
+As an alternative to the decorator-based integration, Flask method based views can be integrated by inheritance from `FlaskOpenAPIView` class.
+
+.. code-block:: python
+
+   from openapi_core.contrib.flask.views import FlaskOpenAPIView
+
+   class MyView(FlaskOpenAPIView):
+       pass
+
+   app.add_url_rule('/home', view_func=MyView.as_view('home', spec))
+
+Request parameters
+==================
+
+In Flask, all unmarshalled request data are provided as Flask request object's openapi.parameters attribute
+
+.. code-block:: python
+
+   from flask.globals import request
+
+   @app.route('/browse/<id>/')
+   @openapi
+   def home():
+       browse_id = request.openapi.parameters.path['id']
+       page = request.openapi.parameters.query.get('page', 1)
+
+Low level
+=========
 
 You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import RequestValidator
+   from openapi_core.validation.request.validators import RequestValidator
    from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
    openapi_request = FlaskOpenAPIRequest(flask_request)
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-or simply specify request factory for shortcuts
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_params = validate_parameters(
-       spec, request, request_factory=FlaskOpenAPIRequest)
-   validated_body = validate_body(
-       spec, request, request_factory=FlaskOpenAPIRequest)
-
 You can use FlaskOpenAPIResponse as a Flask/Werkzeug response factory:
 
 .. code-block:: python
 
-   from openapi_core.shortcuts import ResponseValidator
+   from openapi_core.validation.response.validators import ResponseValidator
    from openapi_core.contrib.flask import FlaskOpenAPIResponse
 
    openapi_response = FlaskOpenAPIResponse(flask_response)
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
-
-or simply specify response factory for shortcuts
-
-.. code-block:: python
-
-   from openapi_core import validate_parameters, validate_body
-
-   validated_data = validate_data(
-       spec, request, response,
-       request_factory=FlaskOpenAPIRequest,
-       response_factory=FlaskOpenAPIResponse)
 
 Pyramid
 *******

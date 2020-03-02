@@ -4,9 +4,10 @@ import logging
 from six import iteritems
 
 from openapi_core.compat import lru_cache
+from openapi_core.schema.extensions.generators import ExtensionsGenerator
 from openapi_core.schema.properties.generators import PropertiesGenerator
 from openapi_core.schema.schemas.models import Schema
-from openapi_core.schema.schemas.types import Contribution
+from openapi_core.schema.schemas.types import Contribution, NoValue
 
 log = logging.getLogger(__name__)
 
@@ -21,9 +22,8 @@ class SchemaFactory(object):
 
         schema_type = schema_deref.get('type', None)
         schema_format = schema_deref.get('format')
-        model = schema_deref.get('x-model', None)
         required = schema_deref.get('required', False)
-        default = schema_deref.get('default', None)
+        default = schema_deref.get('default', NoValue)
         properties_spec = schema_deref.get('properties', None)
         items_spec = schema_deref.get('items', None)
         nullable = schema_deref.get('nullable', False)
@@ -46,6 +46,10 @@ class SchemaFactory(object):
         exclusive_maximum = schema_deref.get('exclusiveMaximum', False)
         min_properties = schema_deref.get('minProperties', None)
         max_properties = schema_deref.get('maxProperties', None)
+        read_only = schema_deref.get('readOnly', False)
+        write_only = schema_deref.get('writeOnly', False)
+
+        extensions = self.extensions_generator.generate(schema_deref)
 
         properties = None
         if properties_spec:
@@ -68,7 +72,7 @@ class SchemaFactory(object):
             additional_properties = self.create(additional_properties_spec)
 
         return Schema(
-            schema_type=schema_type, model=model, properties=properties,
+            schema_type=schema_type, properties=properties,
             items=items, schema_format=schema_format, required=required,
             default=default, nullable=nullable, enum=enum,
             deprecated=deprecated, all_of=all_of, one_of=one_of,
@@ -79,8 +83,14 @@ class SchemaFactory(object):
             exclusive_maximum=exclusive_maximum,
             exclusive_minimum=exclusive_minimum,
             min_properties=min_properties, max_properties=max_properties,
+            read_only=read_only, write_only=write_only, extensions=extensions,
             _source=schema_deref,
         )
+
+    @property
+    @lru_cache()
+    def extensions_generator(self):
+        return ExtensionsGenerator(self.dereferencer)
 
     @property
     @lru_cache()
@@ -100,20 +110,38 @@ class SchemaDictFactory(object):
         Contribution('required', dest_default=[]),
         Contribution('default'),
         Contribution('nullable', dest_default=False),
-        Contribution('all_of', dest_prop_name='allOf', is_list=True, dest_default=[]),
-        Contribution('one_of', dest_prop_name='oneOf', is_list=True, dest_default=[]),
-        Contribution('additional_properties', dest_prop_name='additionalProperties', dest_default=True),
+        Contribution(
+            'all_of',
+            dest_prop_name='allOf', is_list=True, dest_default=[],
+        ),
+        Contribution(
+            'one_of',
+            dest_prop_name='oneOf', is_list=True, dest_default=[],
+        ),
+        Contribution(
+            'additional_properties',
+            dest_prop_name='additionalProperties', dest_default=True,
+        ),
         Contribution('min_items', dest_prop_name='minItems'),
         Contribution('max_items', dest_prop_name='maxItems'),
         Contribution('min_length', dest_prop_name='minLength'),
         Contribution('max_length', dest_prop_name='maxLength'),
         Contribution('pattern', src_prop_attr='pattern'),
-        Contribution('unique_items', dest_prop_name='uniqueItems', dest_default=False),
+        Contribution(
+            'unique_items',
+            dest_prop_name='uniqueItems', dest_default=False,
+        ),
         Contribution('minimum'),
         Contribution('maximum'),
         Contribution('multiple_of', dest_prop_name='multipleOf'),
-        Contribution('exclusive_minimum', dest_prop_name='exclusiveMinimum', dest_default=False),
-        Contribution('exclusive_maximum', dest_prop_name='exclusiveMaximum', dest_default=False),
+        Contribution(
+            'exclusive_minimum',
+            dest_prop_name='exclusiveMinimum', dest_default=False,
+        ),
+        Contribution(
+            'exclusive_maximum',
+            dest_prop_name='exclusiveMaximum', dest_default=False,
+        ),
         Contribution('min_properties', dest_prop_name='minProperties'),
         Contribution('max_properties', dest_prop_name='maxProperties'),
     )

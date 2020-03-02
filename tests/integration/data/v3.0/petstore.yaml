@@ -2,8 +2,18 @@ openapi: "3.0.0"
 info:
   version: 1.0.0
   title: Swagger Petstore
+  description: Swagger Petstore API specification
+  termsOfService: Fair use
+  contact:
+    name: Author
+    url: http://petstore.swagger.io
+    email: email@petstore.swagger.io
   license:
     name: MIT
+    url: https://opensource.org/licenses/MIT
+security:
+  - api_key: []
+  - {}
 servers:
   - url: http://petstore.swagger.io/{version}
     variables:
@@ -66,10 +76,6 @@ paths:
       externalDocs:
         url: https://example.com
         description: Find more info here
-      security:
-        - petstore_auth:
-            - write:pets
-            - read:pets
       servers:
         - url: https://development.gigantic-server.com/v1
           description: Development server
@@ -119,6 +125,10 @@ paths:
           schema:
             type: integer
             format: int64
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
       responses:
         '200':
           description: Expected response to a valid request
@@ -278,6 +288,7 @@ components:
         $ref: "#/components/schemas/Pet"
     PetsData:
       type: object
+      x-model: PetsData
       required:
         - data
       properties:
@@ -285,6 +296,7 @@ components:
           $ref: "#/components/schemas/Pets"
     PetData:
       type: object
+      x-model: PetData
       required:
         - data
       properties:
@@ -292,6 +304,7 @@ components:
           $ref: "#/components/schemas/Pet"
     TagCreate:
       type: object
+      x-model: TagCreate
       required:
         - name
       properties:
@@ -316,6 +329,7 @@ components:
         message:
           type: string
     ExtendedError:
+      x-model: ExtendedError
       allOf:
         - $ref: "#/components/schemas/Error"
         - type: object
@@ -352,3 +366,11 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/PetsData"
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: query
+    petstore_auth:
+      type: http
+      scheme: basic

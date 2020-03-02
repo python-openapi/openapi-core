@@ -9,7 +9,9 @@ from openapi_core.schema.paths.models import Path
 from openapi_core.schema.request_bodies.models import RequestBody
 from openapi_core.schema.responses.models import Response
 from openapi_core.schema.schemas.models import Schema
-from openapi_core.schema.security.models import SecurityRequirement
+from openapi_core.schema.security_requirements.models import (
+    SecurityRequirement,
+)
 from openapi_core.schema.servers.models import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.validators import RequestValidator
@@ -48,8 +50,29 @@ class TestPetstore(object):
 
     def test_spec(self, spec, spec_dict):
         url = 'http://petstore.swagger.io/v1'
-        assert spec.info.title == spec_dict['info']['title']
-        assert spec.info.version == spec_dict['info']['version']
+
+        info_spec = spec_dict['info']
+        assert spec.info.title == info_spec['title']
+        assert spec.info.description == info_spec['description']
+        assert spec.info.terms_of_service == info_spec['termsOfService']
+        assert spec.info.version == info_spec['version']
+
+        contact_spec = info_spec['contact']
+        assert spec.info.contact.name == contact_spec['name']
+        assert spec.info.contact.url == contact_spec['url']
+        assert spec.info.contact.email == contact_spec['email']
+
+        license_spec = info_spec['license']
+        assert spec.info.license.name == license_spec['name']
+        assert spec.info.license.url == license_spec['url']
+
+        security_spec = spec_dict.get('security', [])
+        for idx, security_req in enumerate(spec.security):
+            assert type(security_req) == SecurityRequirement
+
+            security_req_spec = security_spec[idx]
+            for scheme_name in security_req:
+                security_req[scheme_name] == security_req_spec[scheme_name]
 
         assert spec.get_server_url() == url
 
@@ -70,10 +93,31 @@ class TestPetstore(object):
 
         for path_name, path in iteritems(spec.paths):
             assert type(path) == Path
+
+            path_spec = spec_dict['paths'][path_name]
             assert path.name == path_name
+            assert path.summary == path_spec.get('summary')
+            assert path.description == path_spec.get('description')
+
+            servers_spec = path_spec.get('servers', [])
+            for idx, server in enumerate(path.servers):
+                assert type(server) == Server
+
+                server_spec = servers_spec[idx]
+                assert server.url == server_spec['url']
+                assert server.default_url == server_spec['url']
+                assert server.description == server_spec.get('description')
+
+                for variable_name, variable in iteritems(server.variables):
+                    assert type(variable) == ServerVariable
+                    assert variable.name == variable_name
+
+                    variable_spec = server_spec['variables'][variable_name]
+                    assert variable.default == variable_spec['default']
+                    assert variable.enum == variable_spec.get('enum')
 
             for http_method, operation in iteritems(path.operations):
-                operation_spec = spec_dict['paths'][path_name][http_method]
+                operation_spec = path_spec[http_method]
 
                 assert type(operation) == Operation
                 assert operation.path_name == path_name
@@ -91,15 +135,6 @@ class TestPetstore(object):
                     assert ext_docs.description == ext_docs_spec.get(
                         'description')
 
-                security_spec = operation_spec.get('security')
-                if security_spec:
-                    for idx, sec_req in enumerate(operation.security):
-                        assert type(sec_req) == SecurityRequirement
-                        sec_req_spec = security_spec[idx]
-                        sec_req_nam = next(iter(sec_req_spec))
-                        assert sec_req.name == sec_req_nam
-                        assert sec_req.scope_names == sec_req_spec[sec_req_nam]
-
                 servers_spec = operation_spec.get('servers', [])
                 for idx, server in enumerate(operation.servers):
                     assert type(server) == Server
@@ -116,6 +151,15 @@ class TestPetstore(object):
                         variable_spec = server_spec['variables'][variable_name]
                         assert variable.default == variable_spec['default']
                         assert variable.enum == variable_spec.get('enum')
+
+                security_spec = operation_spec.get('security', [])
+                for idx, security_req in enumerate(operation.security):
+                    assert type(security_req) == SecurityRequirement
+
+                    security_req_spec = security_spec[idx]
+                    for scheme_name in security_req:
+                        security_req[scheme_name] == security_req_spec[
+                            scheme_name]
 
                 responses_spec = operation_spec.get('responses')
 
@@ -224,5 +268,9 @@ class TestPetstore(object):
         if not spec.components:
             return
 
-        for _, schema in iteritems(spec.components.schemas):
+        for schema_name, schema in iteritems(spec.components.schemas):
             assert type(schema) == Schema
+
+            schema_spec = spec_dict['components']['schemas'][schema_name]
+            assert schema.read_only == schema_spec.get('readOnly', False)
+            assert schema.write_only == schema_spec.get('writeOnly', False)

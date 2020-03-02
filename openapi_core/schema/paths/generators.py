@@ -5,6 +5,7 @@ from openapi_core.compat import lru_cache
 from openapi_core.schema.operations.generators import OperationsGenerator
 from openapi_core.schema.parameters.generators import ParametersGenerator
 from openapi_core.schema.paths.models import Path
+from openapi_core.schema.servers.generators import ServersGenerator
 
 
 class PathsGenerator(object):
@@ -15,17 +16,37 @@ class PathsGenerator(object):
 
     def generate(self, paths):
         paths_deref = self.dereferencer.dereference(paths)
-        for path_name, path in iteritems(paths_deref):
-            operations = self.operations_generator.generate(path_name, path)
+        for path_name, path_spec in iteritems(paths_deref):
+            path_deref = self.dereferencer.dereference(path_spec)
+
+            parameters_list = path_deref.get('parameters', [])
+            summary = path_deref.get('summary')
+            description = path_deref.get('description')
+            servers_spec = path_deref.get('servers', [])
+
+            operations = self.operations_generator.generate(
+                path_name, path_deref)
+            servers = self.servers_generator.generate(servers_spec)
             parameters = self.parameters_generator.generate_from_list(
-                path.get('parameters', {})
+                parameters_list)
+            yield (
+                path_name,
+                Path(
+                    path_name, list(operations), parameters=list(parameters),
+                    summary=summary, description=description,
+                    servers=list(servers),
+                ),
             )
-            yield path_name, Path(path_name, list(operations), parameters)
 
     @property
     @lru_cache()
     def operations_generator(self):
         return OperationsGenerator(self.dereferencer, self.schemas_registry)
+
+    @property
+    @lru_cache()
+    def servers_generator(self):
+        return ServersGenerator(self.dereferencer)
 
     @property
     @lru_cache()

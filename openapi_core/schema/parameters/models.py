@@ -1,31 +1,16 @@
 """OpenAPI core parameters models module"""
 import logging
-import warnings
 
 from openapi_core.schema.parameters.enums import (
     ParameterLocation, ParameterStyle,
 )
-from openapi_core.schema.parameters.exceptions import (
-    MissingRequiredParameter, MissingParameter, InvalidParameterValue,
-    EmptyParameterValue,
-)
 from openapi_core.schema.schemas.enums import SchemaType
-from openapi_core.schema.schemas.exceptions import (
-    CastError, ValidateError, UnmarshalError,
-)
 
 log = logging.getLogger(__name__)
 
 
 class Parameter(object):
     """Represents an OpenAPI operation Parameter."""
-
-    PARAMETER_STYLE_DESERIALIZERS = {
-        ParameterStyle.FORM: lambda x: x.split(','),
-        ParameterStyle.SIMPLE: lambda x: x.split(','),
-        ParameterStyle.SPACE_DELIMITED: lambda x: x.split(' '),
-        ParameterStyle.PIPE_DELIMITED: lambda x: x.split('|'),
-    }
 
     def __init__(
             self, name, location, schema=None, required=False,
@@ -63,72 +48,3 @@ class Parameter(object):
     @property
     def default_explode(self):
         return self.style == ParameterStyle.FORM
-
-    def get_dererializer(self):
-        return self.PARAMETER_STYLE_DESERIALIZERS[self.style]
-
-    def deserialize(self, value):
-        if not self.aslist or self.explode:
-            return value
-
-        deserializer = self.get_dererializer()
-        return deserializer(value)
-
-    def get_raw_value(self, request):
-        location = request.parameters[self.location.value]
-
-        if self.name not in location:
-            if self.required:
-                raise MissingRequiredParameter(self.name)
-
-            if not self.schema or self.schema.default is None:
-                raise MissingParameter(self.name)
-
-            return self.schema.default
-
-        if self.aslist and self.explode:
-            return location.getlist(self.name)
-
-        return location[self.name]
-
-    def cast(self, value):
-        if self.deprecated:
-            warnings.warn(
-                "{0} parameter is deprecated".format(self.name),
-                DeprecationWarning,
-            )
-
-        if (self.location == ParameterLocation.QUERY and value == "" and
-                not self.allow_empty_value):
-            raise EmptyParameterValue(self.name)
-
-        if not self.schema:
-            return value
-
-        try:
-            deserialized = self.deserialize(value)
-        except (ValueError, AttributeError) as exc:
-            raise InvalidParameterValue(self.name, exc)
-
-        try:
-            return self.schema.cast(deserialized)
-        except CastError as exc:
-            raise InvalidParameterValue(self.name, exc)
-
-    def unmarshal(self, value, custom_formatters=None, resolver=None):
-        if not self.schema:
-            return value
-
-        try:
-            self.schema.validate(value, resolver=resolver)
-        except ValidateError as exc:
-            raise InvalidParameterValue(self.name, exc)
-
-        try:
-            return self.schema.unmarshal(
-                value,
-                custom_formatters=custom_formatters,
-                strict=True,
-            )
-        except UnmarshalError as exc:
-            raise InvalidParameterValue(self.name, exc)
