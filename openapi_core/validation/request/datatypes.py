@@ -10,19 +10,19 @@ class RequestParameters(object):
     """OpenAPI request parameters dataclass.
 
     Attributes:
-        path
-            Path parameters as dict.
         query
             Query string parameters as MultiDict. Must support getlist method.
         header
             Request headers as dict.
         cookie
             Request cookies as dict.
+        path
+            Path parameters as dict. Gets resolved against spec if empty.
     """
-    path = attr.ib(factory=dict)
     query = attr.ib(factory=ImmutableMultiDict)
     header = attr.ib(factory=dict)
     cookie = attr.ib(factory=dict)
+    path = attr.ib(factory=dict)
 
     def __getitem__(self, location):
         return getattr(self, location)
@@ -63,3 +63,6 @@ class RequestValidationResult(BaseValidationResult):
     body = attr.ib(default=None)
     parameters = attr.ib(factory=RequestParameters)
     security = attr.ib(default=None)
+    server = attr.ib(default=None)
+    path = attr.ib(default=None)
+    operation = attr.ib(default=None)

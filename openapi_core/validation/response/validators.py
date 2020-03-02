@@ -21,14 +21,14 @@ class ResponseValidator(BaseValidator):
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return ResponseValidationResult([exc, ], None, None)
+            return ResponseValidationResult(errors=[exc, ])
 
         try:
             operation_response = self._get_operation_response(
                 operation, response)
         # don't process if operation errors
         except InvalidResponse as exc:
-            return ResponseValidationResult([exc, ], None, None)
+            return ResponseValidationResult(errors=[exc, ])
 
         data, data_errors = self._get_data(response, operation_response)
 
@@ -36,7 +36,11 @@ class ResponseValidator(BaseValidator):
             response, operation_response)
 
         errors = data_errors + headers_errors
-        return ResponseValidationResult(errors, data, headers)
+        return ResponseValidationResult(
+            errors=errors,
+            data=data,
+            headers=headers,
+        )
 
     def _get_operation_response(self, operation, response):
         return operation.get_response(str(response.status_code))
@@ -46,17 +50,20 @@ class ResponseValidator(BaseValidator):
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return ResponseValidationResult([exc, ], None, None)
+            return ResponseValidationResult(errors=[exc, ])
 
         try:
             operation_response = self._get_operation_response(
                 operation, response)
         # don't process if operation errors
         except InvalidResponse as exc:
-            return ResponseValidationResult([exc, ], None, None)
+            return ResponseValidationResult(errors=[exc, ])
 
         data, data_errors = self._get_data(response, operation_response)
-        return ResponseValidationResult(data_errors, data, None)
+        return ResponseValidationResult(
+            errors=data_errors,
+            data=data,
+        )
 
     def _get_data(self, response, operation_response):
         if not operation_response.content:

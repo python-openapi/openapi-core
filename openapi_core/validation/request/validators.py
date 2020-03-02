@@ -26,16 +26,18 @@ class RequestValidator(BaseValidator):
 
     def validate(self, request):
         try:
-            path, operation, _, _, _ = self._find_path(request)
+            path, operation, _, path_result, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return RequestValidationResult([exc, ], None, None, None)
+            return RequestValidationResult(errors=[exc, ])
 
         try:
             security = self._get_security(request, operation)
         except InvalidSecurity as exc:
-            return RequestValidationResult([exc, ], None, None, None)
+            return RequestValidationResult(errors=[exc, ])
 
+        request.parameters.path = request.parameters.path or \
+            path_result.variables
         params, params_errors = self._get_parameters(
             request, chain(
                 iteritems(operation.parameters),
@@ -46,30 +48,43 @@ class RequestValidator(BaseValidator):
         body, body_errors = self._get_body(request, operation)
 
         errors = params_errors + body_errors
-        return RequestValidationResult(errors, body, params, security)
+        return RequestValidationResult(
+            errors=errors,
+            body=body,
+            parameters=params,
+            security=security,
+        )
 
     def _validate_parameters(self, request):
         try:
-            path, operation, _, _, _ = self._find_path(request)
+            path, operation, _, path_result, _ = self._find_path(request)
         except PathError as exc:
-            return RequestValidationResult([exc, ], None, None)
+            return RequestValidationResult(errors=[exc, ])
 
+        request.parameters.path = request.parameters.path or \
+            path_result.variables
         params, params_errors = self._get_parameters(
             request, chain(
                 iteritems(operation.parameters),
                 iteritems(path.parameters)
             )
         )
-        return RequestValidationResult(params_errors, None, params, None)
+        return RequestValidationResult(
+            errors=params_errors,
+            parameters=params,
+        )
 
     def _validate_body(self, request):
         try:
             _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
-            return RequestValidationResult([exc, ], None, None)
+            return RequestValidationResult(errors=[exc, ])
 
         body, body_errors = self._get_body(request, operation)
-        return RequestValidationResult(body_errors, body, None, None)
+        return RequestValidationResult(
+            errors=body_errors,
+            body=body,
+        )
 
     def _get_security(self, request, operation):
         security = operation.security or self.spec.security
