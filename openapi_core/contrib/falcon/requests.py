@@ -2,6 +2,7 @@
 import json
 
 from openapi_core.validation.request.datatypes import OpenAPIRequest, RequestParameters
+from six.moves.urllib.parse import urljoin
 from werkzeug.datastructures import ImmutableMultiDict
 
 
@@ -22,10 +23,9 @@ class FalconOpenAPIRequestFactory:
             header=headers,
             cookie=req.cookies,
         )
+        full_url_pattern = urljoin(req.host, req.uri_template)
         return OpenAPIRequest(
-            host_url=req.host,
-            path=req.path,
-            path_pattern=req.uri_template,
+            full_url_pattern=full_url_pattern,
             method=method,
             parameters=parameters,
             # Support falcon-jsonify.
