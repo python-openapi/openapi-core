@@ -291,6 +291,36 @@ Pyramid
 
 See `pyramid_openapi3  <https://github.com/niteoweb/pyramid_openapi3>`_ project.
 
+Requests
+********
+
+This section describes integration with `Requests <https://requests.readthedocs.io>`__ library.
+
+Low level
+=========
+
+For Requests you can use RequestsOpenAPIRequest a Requests request factory:
+
+.. code-block:: python
+
+   from openapi_core.validation.request.validators import RequestValidator
+   from openapi_core.contrib.requests import RequestsOpenAPIRequest
+
+   openapi_request = RequestsOpenAPIRequest(requests_request)
+   validator = RequestValidator(spec)
+   result = validator.validate(openapi_request)
+
+You can use RequestsOpenAPIResponse as a Requests response factory:
+
+.. code-block:: python
+
+   from openapi_core.validation.response.validators import ResponseValidator
+   from openapi_core.contrib.requests import RequestsOpenAPIResponse
+
+   openapi_response = RequestsOpenAPIResponse(requests_response)
+   validator = ResponseValidator(spec)
+   result = validator.validate(openapi_request, openapi_response)
+
 Related projects
 ################
 * `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__

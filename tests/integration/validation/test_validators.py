@@ -58,7 +58,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
-        assert result.parameters is None
+        assert result.parameters == RequestParameters()
 
     def test_invalid_path(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1')
@@ -68,7 +68,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
-        assert result.parameters is None
+        assert result.parameters == RequestParameters()
 
     def test_invalid_operation(self, validator):
         request = MockRequest(self.host_url, 'patch', '/v1/pets')
@@ -78,7 +78,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.body is None
-        assert result.parameters is None
+        assert result.parameters == RequestParameters()
 
     def test_missing_parameter(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
@@ -259,7 +259,7 @@ class TestRequestValidator(object):
 
         assert result.errors == [InvalidSecurity(), ]
         assert result.body is None
-        assert result.parameters is None
+        assert result.parameters == RequestParameters()
         assert result.security is None
 
     def test_get_pet(self, validator):
@@ -432,7 +432,7 @@ class TestResponseValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.data is None
-        assert result.headers is None
+        assert result.headers == {}
 
     def test_invalid_operation(self, validator):
         request = MockRequest(self.host_url, 'patch', '/v1/pets')
@@ -443,7 +443,7 @@ class TestResponseValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.data is None
-        assert result.headers is None
+        assert result.headers == {}
 
     def test_invalid_response(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
@@ -454,7 +454,7 @@ class TestResponseValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidResponse
         assert result.data is None
-        assert result.headers is None
+        assert result.headers == {}
 
     def test_invalid_content_type(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
