@@ -28,17 +28,30 @@ class TestFlaskOpenAPIView(object):
                 yield client
 
     @pytest.fixture
-    def view_func(self, spec):
+    def details_view_func(self, spec):
         outer = self
 
-        class MyView(FlaskOpenAPIView):
+        class MyDetailsView(FlaskOpenAPIView):
             def get(self, id):
                 return outer.view_response
-        return MyView.as_view('browse_details', spec)
+
+            def post(self, id):
+                return outer.view_response
+        return MyDetailsView.as_view('browse_details', spec)
+
+    @pytest.fixture
+    def list_view_func(self, spec):
+        outer = self
+
+        class MyListView(FlaskOpenAPIView):
+            def get(self):
+                return outer.view_response
+        return MyListView.as_view('browse_list', spec)
 
     @pytest.fixture(autouse=True)
-    def view(self, app, view_func):
-        app.add_url_rule("/browse/<id>/", view_func=view_func)
+    def view(self, app, details_view_func, list_view_func):
+        app.add_url_rule("/browse/<id>/", view_func=details_view_func)
+        app.add_url_rule("/browse/", view_func=list_view_func)
 
     def test_invalid_content_type(self, client):
         self.view_response = make_response('success', 200)
@@ -68,18 +81,60 @@ class TestFlaskOpenAPIView(object):
             'errors': [
                 {
                     'class': (
-                        "<class 'openapi_core.schema.servers.exceptions."
-                        "InvalidServer'>"
+                        "<class 'openapi_core.templating.paths.exceptions."
+                        "ServerNotFound'>"
                     ),
-                    'status': 500,
+                    'status': 400,
                     'title': (
-                        'Invalid request server '
+                        'Server not found for '
                         'https://localhost/browse/{id}/'
                     ),
                 }
             ]
         }
-        assert result.status_code == 500
+        assert result.status_code == 400
+        assert result.json == expected_data
+
+    def test_operation_error(self, client):
+        result = client.post('/browse/12/')
+
+        expected_data = {
+            'errors': [
+                {
+                    'class': (
+                        "<class 'openapi_core.templating.paths.exceptions."
+                        "OperationNotFound'>"
+                    ),
+                    'status': 405,
+                    'title': (
+                        'Operation post not found for '
+                        'http://localhost/browse/{id}/'
+                    ),
+                }
+            ]
+        }
+        assert result.status_code == 405
+        assert result.json == expected_data
+
+    def test_path_error(self, client):
+        result = client.get('/browse/')
+
+        expected_data = {
+            'errors': [
+                {
+                    'class': (
+                        "<class 'openapi_core.templating.paths.exceptions."
+                        "PathNotFound'>"
+                    ),
+                    'status': 404,
+                    'title': (
+                        'Path not found for '
+                        'http://localhost/browse/'
+                    ),
+                }
+            ]
+        }
+        assert result.status_code == 404
         assert result.json == expected_data
 
     def test_endpoint_error(self, client):

@@ -39,12 +39,20 @@ class TestFlaskOpenAPIDecorator(object):
         return view_response
 
     @pytest.fixture(autouse=True)
-    def view(self, app, decorator, view_response):
-        @app.route("/browse/<id>/")
+    def details_view(self, app, decorator, view_response):
+        @app.route("/browse/<id>/", methods=['GET', 'POST'])
         @decorator
         def browse_details(*args, **kwargs):
             return view_response(*args, **kwargs)
         return browse_details
+
+    @pytest.fixture(autouse=True)
+    def list_view(self, app, decorator, view_response):
+        @app.route("/browse/")
+        @decorator
+        def browse_list(*args, **kwargs):
+            return view_response(*args, **kwargs)
+        return browse_list
 
     def test_invalid_content_type(self, client):
         def view_response_callable(*args, **kwargs):
@@ -80,17 +88,60 @@ class TestFlaskOpenAPIDecorator(object):
             'errors': [
                 {
                     'class': (
-                        "<class 'openapi_core.schema.servers.exceptions."
-                        "InvalidServer'>"
+                        "<class 'openapi_core.templating.paths.exceptions."
+                        "ServerNotFound'>"
                     ),
-                    'status': 500,
+                    'status': 400,
                     'title': (
-                        'Invalid request server '
+                        'Server not found for '
                         'https://localhost/browse/{id}/'
                     ),
                 }
             ]
         }
+        assert result.status_code == 400
+        assert result.json == expected_data
+
+    def test_operation_error(self, client):
+        result = client.post('/browse/12/')
+
+        expected_data = {
+            'errors': [
+                {
+                    'class': (
+                        "<class 'openapi_core.templating.paths.exceptions."
+                        "OperationNotFound'>"
+                    ),
+                    'status': 405,
+                    'title': (
+                        'Operation post not found for '
+                        'http://localhost/browse/{id}/'
+                    ),
+                }
+            ]
+        }
+        assert result.status_code == 405
+        assert result.json == expected_data
+
+    def test_path_error(self, client):
+        result = client.get('/browse/')
+
+        expected_data = {
+            'errors': [
+                {
+                    'class': (
+                        "<class 'openapi_core.templating.paths.exceptions."
+                        "PathNotFound'>"
+                    ),
+                    'status': 404,
+                    'title': (
+                        'Path not found for '
+                        'http://localhost/browse/'
+                    ),
+                }
+            ]
+        }
+        assert result.status_code == 404
         assert result.json == expected_data
 
     def test_endpoint_error(self, client):

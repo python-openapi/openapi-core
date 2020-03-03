@@ -5,14 +5,12 @@ from six import iteritems
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.schema.media_types.exceptions import InvalidContentType
-from openapi_core.schema.operations.exceptions import InvalidOperation
 from openapi_core.schema.parameters.exceptions import (
     MissingRequiredParameter, MissingParameter,
 )
-from openapi_core.schema.paths.exceptions import InvalidPath
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
-from openapi_core.schema.servers.exceptions import InvalidServer
 from openapi_core.security.exceptions import SecurityError
+from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
@@ -21,25 +19,16 @@ from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request.datatypes import (
     RequestParameters, RequestValidationResult,
 )
-from openapi_core.validation.util import get_operation_pattern
+from openapi_core.validation.validators import BaseValidator
 
 
-class RequestValidator(object):
-
-    def __init__(
-            self, spec,
-            custom_formatters=None, custom_media_type_deserializers=None,
-    ):
-        self.spec = spec
-        self.custom_formatters = custom_formatters
-        self.custom_media_type_deserializers = custom_media_type_deserializers
+class RequestValidator(BaseValidator):
 
     def validate(self, request):
         try:
-            path = self._get_path(request)
-            operation = self._get_operation(request)
+            path, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
-        except (InvalidServer, InvalidPath, InvalidOperation) as exc:
+        except PathError as exc:
             return RequestValidationResult([exc, ], None, None, None)
 
         try:
@@ -61,9 +50,8 @@ class RequestValidator(object):
 
     def _validate_parameters(self, request):
         try:
-            path = self._get_path(request)
-            operation = self._get_operation(request)
-        except (InvalidServer, InvalidPath, InvalidOperation) as exc:
+            path, operation, _, _, _ = self._find_path(request)
+        except PathError as exc:
             return RequestValidationResult([exc, ], None, None)
 
         params, params_errors = self._get_parameters(
@@ -76,29 +64,12 @@ class RequestValidator(object):
 
     def _validate_body(self, request):
         try:
-            operation = self._get_operation(request)
-        except (InvalidServer, InvalidOperation) as exc:
+            _, operation, _, _, _ = self._find_path(request)
+        except PathError as exc:
             return RequestValidationResult([exc, ], None, None)
 
         body, body_errors = self._get_body(request, operation)
         return RequestValidationResult(body_errors, body, None, None)
-
-    def _get_operation_pattern(self, request):
-        server = self.spec.get_server(request.full_url_pattern)
-
-        return get_operation_pattern(
-            server.default_url, request.full_url_pattern
-        )
-
-    def _get_path(self, request):
-        operation_pattern = self._get_operation_pattern(request)
-
-        return self.spec[operation_pattern]
-
-    def _get_operation(self, request):
-        operation_pattern = self._get_operation_pattern(request)
-
-        return self.spec.get_operation(operation_pattern, request.method)
 
     def _get_security(self, request, operation):
         security = operation.security or self.spec.security
@@ -222,15 +193,6 @@ class RequestValidator(object):
             raise MissingRequestBody(request)
         return request.body
 
-    def _deserialise_media_type(self, media_type, value):
-        from openapi_core.deserializing.media_types.factories import (
-            MediaTypeDeserializersFactory,
-        )
-        deserializers_factory = MediaTypeDeserializersFactory(
-            self.custom_media_type_deserializers)
-        deserializer = deserializers_factory.create(media_type)
-        return deserializer(value)
-
     def _deserialise_parameter(self, param, value):
         from openapi_core.deserializing.parameters.factories import (
             ParameterDeserializersFactory,
@@ -239,27 +201,7 @@ class RequestValidator(object):
         deserializer = deserializers_factory.create(param)
         return deserializer(value)
 
-    def _cast(self, param_or_media_type, value):
-        # return param_or_media_type.cast(value)
-        if not param_or_media_type.schema:
-            return value
-
-        from openapi_core.casting.schemas.factories import SchemaCastersFactory
-        casters_factory = SchemaCastersFactory()
-        caster = casters_factory.create(param_or_media_type.schema)
-        return caster(value)
-
     def _unmarshal(self, param_or_media_type, value):
-        if not param_or_media_type.schema:
-            return value
-
-        from openapi_core.unmarshalling.schemas.factories import (
-            SchemaUnmarshallersFactory,
+        return super(RequestValidator, self)._unmarshal(
+            param_or_media_type, value, context=UnmarshalContext.REQUEST,
         )
-        unmarshallers_factory = SchemaUnmarshallersFactory(
-            self.spec._resolver, self.custom_formatters,
-            context=UnmarshalContext.REQUEST,
-        )
-        unmarshaller = unmarshallers_factory.create(
-            param_or_media_type.schema)
-        return unmarshaller(value)
