@@ -5,10 +5,12 @@ from six.moves.urllib.parse import urljoin
 
 class Server(object):
 
-    def __init__(self, url, variables=None, description=None):
+    def __init__(self, url, variables=None, description=None, extensions=None):
         self.url = url
         self.variables = variables and dict(variables) or {}
         self.description = description
+
+        self.extensions = extensions and dict(extensions) or {}
 
     @property
     def default_url(self):
@@ -38,7 +40,9 @@ class Server(object):
 
 class ServerVariable(object):
 
-    def __init__(self, name, default, enum=None):
+    def __init__(self, name, default, enum=None, extensions=None):
         self.name = name
         self.default = default
         self.enum = enum and list(enum) or []
+
+        self.extensions = extensions and dict(extensions) or {}

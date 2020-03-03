@@ -4,6 +4,7 @@ from six import iteritems
 from openapi_spec_validator.validators import PathItemValidator
 
 from openapi_core.compat import lru_cache
+from openapi_core.schema.extensions.generators import ExtensionsGenerator
 from openapi_core.schema.external_docs.factories import (
     ExternalDocumentationFactory,
 )
@@ -47,6 +48,7 @@ class OperationsGenerator(object):
             servers = self.servers_generator.generate(servers_spec)
             security = self.security_requirements_generator.generate(
                 security_spec)
+            extensions = self.extensions_generator.generate(operation_deref)
 
             external_docs = None
             if 'externalDocs' in operation_deref:
@@ -68,7 +70,7 @@ class OperationsGenerator(object):
                     external_docs=external_docs, security=list(security),
                     request_body=request_body, deprecated=deprecated,
                     operation_id=operation_id, tags=list(tags_list),
-                    servers=list(servers),
+                    servers=list(servers), extensions=extensions,
                 ),
             )
 
@@ -101,3 +103,8 @@ class OperationsGenerator(object):
     @lru_cache()
     def servers_generator(self):
         return ServersGenerator(self.dereferencer)
+
+    @property
+    @lru_cache()
+    def extensions_generator(self):
+        return ExtensionsGenerator(self.dereferencer)

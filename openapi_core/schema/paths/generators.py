@@ -2,6 +2,7 @@
 from six import iteritems
 
 from openapi_core.compat import lru_cache
+from openapi_core.schema.extensions.generators import ExtensionsGenerator
 from openapi_core.schema.operations.generators import OperationsGenerator
 from openapi_core.schema.parameters.generators import ParametersGenerator
 from openapi_core.schema.paths.models import Path
@@ -29,12 +30,14 @@ class PathsGenerator(object):
             servers = self.servers_generator.generate(servers_spec)
             parameters = self.parameters_generator.generate_from_list(
                 parameters_list)
+            extensions = self.extensions_generator.generate(path_deref)
+
             yield (
                 path_name,
                 Path(
                     path_name, list(operations), parameters=list(parameters),
                     summary=summary, description=description,
-                    servers=list(servers),
+                    servers=list(servers), extensions=extensions,
                 ),
             )
 
@@ -52,3 +55,8 @@ class PathsGenerator(object):
     @lru_cache()
     def parameters_generator(self):
         return ParametersGenerator(self.dereferencer, self.schemas_registry)
+
+    @property
+    @lru_cache()
+    def extensions_generator(self):
+        return ExtensionsGenerator(self.dereferencer)

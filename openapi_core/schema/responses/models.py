@@ -8,12 +8,14 @@ class Response(object):
 
     def __init__(
             self, http_status, description, headers=None, content=None,
-            links=None):
+            links=None, extensions=None):
         self.http_status = http_status
         self.description = description
         self.headers = headers and dict(headers) or {}
         self.content = content and Content(content) or Content()
         self.links = links and dict(links) or {}
+
+        self.extensions = extensions and dict(extensions) or {}
 
     def __getitem__(self, mimetype):
         return self.get_content_type(mimetype)

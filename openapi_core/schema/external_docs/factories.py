@@ -1,4 +1,6 @@
 """OpenAPI core external docs factories module"""
+from openapi_core.compat import lru_cache
+from openapi_core.schema.extensions.generators import ExtensionsGenerator
 from openapi_core.schema.external_docs.models import ExternalDocumentation
 
 
@@ -11,4 +13,14 @@ class ExternalDocumentationFactory(object):
         url = external_doc_spec['url']
         description = external_doc_spec.get('description')
 
-        return ExternalDocumentation(url, description=description)
+        extensions = self.extensions_generator.generate(external_doc_spec)
+
+        return ExternalDocumentation(
+            url,
+            description=description, extensions=extensions,
+        )
+
+    @property
+    @lru_cache()
+    def extensions_generator(self):
+        return ExtensionsGenerator(self.dereferencer)

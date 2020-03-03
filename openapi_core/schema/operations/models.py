@@ -10,7 +10,7 @@ class Operation(object):
             self, http_method, path_name, responses, parameters,
             summary=None, description=None, external_docs=None, security=None,
             request_body=None, deprecated=False, operation_id=None, tags=None,
-            servers=None):
+            servers=None, extensions=None):
         self.http_method = http_method
         self.path_name = path_name
         self.responses = dict(responses)
@@ -24,6 +24,8 @@ class Operation(object):
         self.operation_id = operation_id
         self.tags = tags
         self.servers = servers
+
+        self.extensions = extensions and dict(extensions) or {}
 
     def __getitem__(self, name):
         return self.parameters[name]

@@ -6,6 +6,7 @@ from openapi_spec_validator.validators import Dereferencer
 
 from openapi_core.compat import lru_cache
 from openapi_core.schema.components.factories import ComponentsFactory
+from openapi_core.schema.extensions.generators import ExtensionsGenerator
 from openapi_core.schema.infos.factories import InfoFactory
 from openapi_core.schema.paths.generators import PathsGenerator
 from openapi_core.schema.schemas.registries import SchemaRegistry
@@ -39,6 +40,8 @@ class SpecFactory(object):
                 {'url': '/'},
             ]
 
+        extensions = self.extensions_generator.generate(spec_dict_deref)
+
         info = self.info_factory.create(info_spec)
         servers = self.servers_generator.generate(servers_spec)
         paths = self.paths_generator.generate(paths)
@@ -49,7 +52,7 @@ class SpecFactory(object):
 
         spec = Spec(
             info, list(paths), servers=list(servers), components=components,
-            security=list(security),
+            security=list(security), extensions=extensions,
             _resolver=self.spec_resolver,
         )
         return spec
@@ -88,3 +91,8 @@ class SpecFactory(object):
     @lru_cache()
     def security_requirements_generator(self):
         return SecurityRequirementsGenerator(self.dereferencer)
+
+    @property
+    @lru_cache()
+    def extensions_generator(self):
+        return ExtensionsGenerator(self.dereferencer)

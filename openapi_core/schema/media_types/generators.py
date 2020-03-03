@@ -1,6 +1,8 @@
 """OpenAPI core media types generators module"""
 from six import iteritems
 
+from openapi_core.compat import lru_cache
+from openapi_core.schema.extensions.generators import ExtensionsGenerator
 from openapi_core.schema.media_types.models import MediaType
 
 
@@ -21,8 +23,18 @@ class MediaTypeGenerator(object):
             else:
                 example = example_spec
 
+            extensions = self.extensions_generator.generate(media_type)
+
             schema = None
             if schema_spec:
                 schema, _ = self.schemas_registry.get_or_create(schema_spec)
 
-            yield mimetype, MediaType(mimetype, schema=schema, example=example)
+            yield mimetype, MediaType(
+                mimetype,
+                schema=schema, example=example, extensions=extensions,
+            )
+
+    @property
+    @lru_cache()
+    def extensions_generator(self):
+        return ExtensionsGenerator(self.dereferencer)
