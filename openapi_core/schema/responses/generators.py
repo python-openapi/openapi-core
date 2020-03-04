@@ -2,6 +2,7 @@
 from six import iteritems
 
 from openapi_core.compat import lru_cache
+from openapi_core.schema.extensions.generators import ExtensionsGenerator
 from openapi_core.schema.links.generators import LinksGenerator
 from openapi_core.schema.media_types.generators import MediaTypeGenerator
 from openapi_core.schema.parameters.generators import ParametersGenerator
@@ -23,6 +24,8 @@ class ResponsesGenerator(object):
             links_dict = response_deref.get('links', {})
             links = self.links_generator.generate(links_dict)
 
+            extensions = self.extensions_generator.generate(response_deref)
+
             media_types = None
             if content:
                 media_types = self.media_types_generator.generate(content)
@@ -33,7 +36,9 @@ class ResponsesGenerator(object):
 
             yield http_status, Response(
                 http_status, description,
-                content=media_types, headers=parameters, links=links)
+                content=media_types, headers=parameters, links=links,
+                extensions=extensions,
+            )
 
     @property
     @lru_cache()
@@ -49,3 +54,8 @@ class ResponsesGenerator(object):
     @lru_cache()
     def links_generator(self):
         return LinksGenerator(self.dereferencer, self.schemas_registry)
+
+    @property
+    @lru_cache()
+    def extensions_generator(self):
+        return ExtensionsGenerator(self.dereferencer)

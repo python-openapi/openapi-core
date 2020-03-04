@@ -16,12 +16,14 @@ class Spec(object):
 
     def __init__(
             self, info, paths, servers=None, components=None,
-            security=None, _resolver=None):
+            security=None, extensions=None, _resolver=None):
         self.info = info
         self.paths = paths and dict(paths)
         self.servers = servers or []
         self.components = components
         self.security = security
+
+        self.extensions = extensions and dict(extensions) or {}
 
         self._resolver = _resolver
 
