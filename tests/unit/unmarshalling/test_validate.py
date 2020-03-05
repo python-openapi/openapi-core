@@ -312,11 +312,11 @@ class TestSchemaValidate(object):
         u('2018-01-02T23:59:59Z'),
     ])
     @mock.patch(
-        'openapi_core.schema_validator._format.'
+        'openapi_schema_validator._format.'
         'DATETIME_HAS_STRICT_RFC3339', True
     )
     @mock.patch(
-        'openapi_core.schema_validator._format.'
+        'openapi_schema_validator._format.'
         'DATETIME_HAS_ISODATE', False
     )
     def test_string_format_datetime_strict_rfc3339(
@@ -332,11 +332,11 @@ class TestSchemaValidate(object):
         u('2018-01-02T23:59:59Z'),
     ])
     @mock.patch(
-        'openapi_core.schema_validator._format.'
+        'openapi_schema_validator._format.'
         'DATETIME_HAS_STRICT_RFC3339', False
     )
     @mock.patch(
-        'openapi_core.schema_validator._format.'
+        'openapi_schema_validator._format.'
         'DATETIME_HAS_ISODATE', True
     )
     def test_string_format_datetime_isodate(self, value, validator_factory):
