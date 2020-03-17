@@ -390,3 +390,48 @@ class TestPathVariableServerValid(
         BaseTestVariableValid, BaseTestPathServer,
         BaseTestSimplePath, BaseTestVariableServer):
     pass
+
+
+class TestSimilarPaths(
+        BaseTestSpecServer, BaseTestSimpleServer):
+
+    path_name = '/tokens'
+
+    @pytest.fixture
+    def operation_2(self):
+        return Operation('get', '/keys/{id}/tokens', {}, {})
+
+    @pytest.fixture
+    def operations_2(self, operation_2):
+        return {
+            'get': operation_2,
+        }
+
+    @pytest.fixture
+    def path(self, operations):
+        return Path('/tokens', operations)
+
+    @pytest.fixture
+    def path_2(self, operations_2):
+        return Path('/keys/{id}/tokens', operations_2)
+
+    @pytest.fixture
+    def paths(self, path, path_2):
+        return {
+            path.name: path,
+            path_2.name: path_2,
+        }
+
+    def test_valid(self, finder, path_2, operation_2, server):
+        token_id = '123'
+        request_uri = '/keys/{0}/tokens'.format(token_id)
+        request = MockRequest(
+            'http://petstore.swagger.io', 'get', request_uri)
+
+        result = finder.find(request)
+
+        path_result = TemplateResult(path_2.name, {'id': token_id})
+        server_result = TemplateResult(self.server_url, {})
+        assert result == (
+            path_2, operation_2, server, path_result, server_result,
+        )
