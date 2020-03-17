@@ -390,3 +390,53 @@ class TestPathVariableServerValid(
         BaseTestVariableValid, BaseTestPathServer,
         BaseTestSimplePath, BaseTestVariableServer):
     pass
+
+
+class TestPathsFindersFind(
+        BaseTestSpecServer, BaseTestSimpleServer):
+
+    path_name = '/articles/{slug}/comments'
+
+    @pytest.fixture
+    def operation_2(self):
+        return Operation('get', '/articles/{slug}/favorite', {}, {})
+
+    @pytest.fixture
+    def operations_2(self, operation_2):
+        return {
+            'get': operation_2,
+        }
+
+    @pytest.fixture
+    def path(self):
+        return Path('/articles/{slug}/', {})
+
+    @pytest.fixture
+    def path_2(self, operations):
+        return Path('/articles/{slug}/comments', operations)
+
+    @pytest.fixture
+    def path_3(self, operations_2):
+        return Path('/articles/{slug}/favorite', operations_2)
+
+    @pytest.fixture
+    def paths(self, path, path_2, path_3):
+        return {
+            path.name: path,
+            path_2.name: path_2,
+            path_3.name: path_3,
+        }
+
+    def test_paths_order(self, finder, path_2, operation, server):
+        slug = 'test'
+        request_uri = '/articles/{0}/comments'.format(slug)
+        request = MockRequest(
+            'http://petstore.swagger.io', 'get', request_uri)
+
+        result = finder.find(request)
+
+        path_result = TemplateResult(path_2.name, {'slug': slug})
+        server_result = TemplateResult(self.server_url, {})
+        assert result == (
+            path_2, operation, server, path_result, server_result,
+        )
