@@ -283,7 +283,7 @@ class TestRequestValidator(object):
             },
         )
         assert result.security == {
-            'petstore_auth': self.api_key,
+            'petstore_auth': self.api_key_encoded,
         }
 
 
