@@ -1,6 +1,7 @@
 """OpenAPI core templating paths finders module"""
 from more_itertools import peekable
 from six import iteritems
+from six.moves.urllib.parse import urljoin, urlparse
 
 from openapi_core.templating.datatypes import TemplateResult
 from openapi_core.templating.util import parse, search
@@ -63,11 +64,18 @@ class PathFinder(object):
             for server in servers:
                 server_url_pattern = full_url_pattern.rsplit(
                     path_result.resolved, 1)[0]
-                server_url = server.get_absolute_url(self.base_url)
+                server_url = server.url
+                if not server.is_absolute():
+                    # relative to absolute url
+                    if self.base_url is not None:
+                        server_url = urljoin(self.base_url, server.url)
+                    # if no base url check only path part
+                    else:
+                        server_url_pattern = urlparse(server_url_pattern).path
                 if server_url.endswith('/'):
                     server_url = server_url[:-1]
                 # simple path
-                if server_url_pattern.startswith(server_url):
+                if server_url_pattern == server_url:
                     server_result = TemplateResult(server.url, {})
                     yield (
                         path, operation, server,
