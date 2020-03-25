@@ -8,7 +8,7 @@ class RequestsOpenAPIResponseFactory(object):
     def create(cls, response):
         mimetype = response.headers.get('Content-Type')
         return OpenAPIResponse(
-            data=response.raw,
+            data=response.content,
             status_code=response.status_code,
             mimetype=mimetype,
         )
