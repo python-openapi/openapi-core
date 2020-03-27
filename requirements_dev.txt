@@ -6,4 +6,5 @@ falcon==2.0.0
 flask
 django==2.2.10; python_version>="3.0"
 requests==2.22.0
+responses==0.10.12
 webob

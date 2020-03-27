@@ -1,4 +1,6 @@
 import pytest
+import requests
+import responses
 
 from openapi_core.contrib.requests import (
     RequestsOpenAPIRequest, RequestsOpenAPIResponse,
@@ -15,21 +17,25 @@ class TestFlaskOpenAPIValidation(object):
         specfile = 'contrib/requests/data/v3.0/requests_factory.yaml'
         return create_spec(factory.spec_from_file(specfile))
 
-    def test_response_validator_path_pattern(self,
-                                             spec,
-                                             request_factory,
-                                             response_factory):
+    @responses.activate
+    def test_response_validator_path_pattern(self, spec):
+        responses.add(
+            responses.GET, 'http://localhost/browse/12/',
+            json={"data": "data"}, status=200)
         validator = ResponseValidator(spec)
-        request = request_factory('GET', '/browse/12/', subdomain='kb')
+        request = requests.Request('GET', 'http://localhost/browse/12/')
+        request_prepared = request.prepare()
+        session = requests.Session()
+        response = session.send(request_prepared)
         openapi_request = RequestsOpenAPIRequest(request)
-        response = response_factory('{"data": "data"}', status_code=200)
         openapi_response = RequestsOpenAPIResponse(response)
         result = validator.validate(openapi_request, openapi_response)
         assert not result.errors
 
-    def test_request_validator_path_pattern(self, spec, request_factory):
+    @responses.activate
+    def test_request_validator_path_pattern(self, spec):
         validator = RequestValidator(spec)
-        request = request_factory('GET', '/browse/12/', subdomain='kb')
+        request = requests.Request('GET', 'http://localhost/browse/12/')
         openapi_request = RequestsOpenAPIRequest(request)
         result = validator.validate(openapi_request)
         assert not result.errors
