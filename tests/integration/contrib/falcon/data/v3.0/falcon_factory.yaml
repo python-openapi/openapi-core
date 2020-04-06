@@ -13,12 +13,18 @@ paths:
         description: the ID of the resource to retrieve
         schema:
           type: integer
+      - name: detail_level
+        in: query
+        required: false
+        description: optional level of detail to provide
+        schema:
+          type: integer
     get:
       responses:
         200:
           description: Return the resource.
           content:
-            application/json:    
+            application/json:
               schema:
                 type: object
                 required:

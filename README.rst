@@ -260,9 +260,9 @@ For Falcon you can use FalconOpenAPIRequest a Falcon request factory:
 .. code-block:: python
 
    from openapi_core.validation.request.validators import RequestValidator
-   from openapi_core.contrib.falcon import FalconOpenAPIRequest
+   from openapi_core.contrib.falcon import FalconOpenAPIRequestFactory
 
-   openapi_request = FalconOpenAPIRequest(falcon_request)
+   openapi_request = FalconOpenAPIRequestFactory.create(falcon_request)
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
@@ -271,9 +271,9 @@ You can use FalconOpenAPIResponse as a Falcon response factory:
 .. code-block:: python
 
    from openapi_core.validation.response.validators import ResponseValidator
-   from openapi_core.contrib.falcon import FalconOpenAPIResponse
+   from openapi_core.contrib.falcon import FalconOpenAPIResponseFactory
 
-   openapi_response = FalconOpenAPIResponse(falcon_response)
+   openapi_response = FalconOpenAPIResponseFactory.create(falcon_response)
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
 

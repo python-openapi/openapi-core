@@ -23,7 +23,7 @@ class FalconOpenAPIRequestFactory:
         # Support falcon-jsonify.
         body = (
             dumps(request.json) if getattr(request, "json", None)
-            else request.bounded_stream.read()
+            else dumps(request.media)
         )
         mimetype = request.options.default_media_type
         if request.content_type:
@@ -36,8 +36,9 @@ class FalconOpenAPIRequestFactory:
             cookie=request.cookies,
             path=path,
         )
+        url_pattern = request.prefix + request.path
         return OpenAPIRequest(
-            full_url_pattern=request.url,
+            full_url_pattern=url_pattern,
             method=method,
             parameters=parameters,
             body=body,
