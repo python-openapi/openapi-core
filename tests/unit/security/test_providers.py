@@ -34,4 +34,4 @@ class TestHttpProvider(object):
 
         result = provider(request)
 
-        assert result == '1'
+        assert result == jwt

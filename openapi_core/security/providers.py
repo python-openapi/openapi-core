@@ -1,8 +1,6 @@
-import binascii
 import warnings
 
 from openapi_core.security.exceptions import SecurityError
-from openapi_core.security.util import b64decode
 
 
 class BaseProvider(object):
@@ -40,7 +38,5 @@ class HttpProvider(BaseProvider):
         if auth_type.lower() != self.scheme.scheme.value:
             raise SecurityError(
                 'Unknown authorization method %s' % auth_type)
-        try:
-            return b64decode(encoded_credentials).decode('latin1')
-        except binascii.Error:
-            raise SecurityError('Invalid base64 encoding.')
+
+        return encoded_credentials
