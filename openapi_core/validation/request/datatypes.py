@@ -1,6 +1,6 @@
 """OpenAPI core validation request datatypes module"""
 import attr
-from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.datastructures import ImmutableMultiDict, Headers
 
 from openapi_core.validation.datatypes import BaseValidationResult
 
@@ -13,14 +13,14 @@ class RequestParameters(object):
         query
             Query string parameters as MultiDict. Must support getlist method.
         header
-            Request headers as dict.
+            Request headers as Headers.
         cookie
             Request cookies as dict.
         path
             Path parameters as dict. Gets resolved against spec if empty.
     """
     query = attr.ib(factory=ImmutableMultiDict)
-    header = attr.ib(factory=dict)
+    header = attr.ib(factory=Headers, converter=Headers)
     cookie = attr.ib(factory=dict)
     path = attr.ib(factory=dict)
 
