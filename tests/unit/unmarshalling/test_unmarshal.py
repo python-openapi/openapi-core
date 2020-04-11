@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from isodate.tzinfo import UTC, FixedOffset
 import pytest
 
 from openapi_core.schema.media_types.models import MediaType
@@ -199,13 +200,30 @@ class TestSchemaUnmarshallerCall(object):
 
         assert result == datetime.date(2018, 1, 2)
 
-    def test_string_format_datetime(self, unmarshaller_factory):
+    def test_string_format_datetime_invalid(self, unmarshaller_factory):
+        schema = Schema('string', schema_format='date-time')
+        value = '2018-01-02T00:00:00'
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
+    def test_string_format_datetime_utc(self, unmarshaller_factory):
         schema = Schema('string', schema_format='date-time')
         value = '2018-01-02T00:00:00Z'
 
         result = unmarshaller_factory(schema)(value)
 
-        assert result == datetime.datetime(2018, 1, 2, 0, 0)
+        tzinfo = UTC
+        assert result == datetime.datetime(2018, 1, 2, 0, 0, tzinfo=tzinfo)
+
+    def test_string_format_datetime_tz(self, unmarshaller_factory):
+        schema = Schema('string', schema_format='date-time')
+        value = '2020-04-01T12:00:00+02:00'
+
+        result = unmarshaller_factory(schema)(value)
+
+        tzinfo = FixedOffset(2)
+        assert result == datetime.datetime(2020, 4, 1, 12, 0, 0, tzinfo=tzinfo)
 
     def test_string_format_custom(self, unmarshaller_factory):
         formatted = 'x-custom'
