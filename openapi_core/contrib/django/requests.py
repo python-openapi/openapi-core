@@ -39,7 +39,7 @@ class DjangoOpenAPIRequestFactory(object):
         parameters = RequestParameters(
             path=path,
             query=request.GET,
-            header=request.headers,
+            header=request.headers.items(),
             cookie=request.COOKIES,
         )
         full_url_pattern = urljoin(

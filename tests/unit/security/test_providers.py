@@ -15,13 +15,17 @@ class TestHttpProvider(object):
     def provider(self, scheme):
         return HttpProvider(scheme)
 
-    def test_issue29427(self, provider):
+    @pytest.mark.parametrize(
+        'header',
+        ['authorization', 'Authorization', 'AUTHORIZATION'],
+    )
+    def test_header(self, provider, header):
         """Tests HttpProvider against Issue29427
         https://bugs.python.org/issue29427
         """
         jwt = 'MQ'
         headers = {
-            'Authorization': 'Bearer {0}'.format(jwt),
+            header: 'Bearer {0}'.format(jwt),
         }
         request = MockRequest(
             'http://localhost', 'GET', '/pets',
