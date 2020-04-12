@@ -3,7 +3,6 @@ from base64 import b64decode
 import datetime
 from distutils.util import strtobool
 from six import string_types, text_type, integer_types
-import strict_rfc3339
 from uuid import UUID
 
 
@@ -16,11 +15,6 @@ def forcebool(val):
 
 def format_date(value):
     return datetime.datetime.strptime(value, '%Y-%m-%d').date()
-
-
-def format_datetime(value):
-    timestamp = strict_rfc3339.rfc3339_to_timestamp(value)
-    return datetime.datetime.utcfromtimestamp(timestamp)
 
 
 def format_uuid(value):

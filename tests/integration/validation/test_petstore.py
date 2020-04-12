@@ -3,6 +3,7 @@ import pytest
 from datetime import datetime
 from base64 import b64encode
 from uuid import UUID
+from isodate.tzinfo import UTC
 from six import text_type
 
 from openapi_core.casting.schemas.exceptions import CastError
@@ -1090,7 +1091,7 @@ class TestPetstore(object):
 
         assert parameters == RequestParameters()
         assert isinstance(body, BaseModel)
-        assert body.created == datetime(2016, 4, 16, 16, 6, 5)
+        assert body.created == datetime(2016, 4, 16, 16, 6, 5, tzinfo=UTC)
         assert body.name == pet_name
 
         code = 400
