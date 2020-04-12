@@ -408,6 +408,18 @@ class TestSchemaUnmarshallerCall(object):
 
         assert result == 1.2
 
+    def test_object_nullable(self, unmarshaller_factory):
+        schema = Schema(
+            'object',
+            properties={
+                'foo': Schema('object', nullable=True),
+            },
+        )
+        value = {'foo': None}
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == {'foo': None}
+
     def test_schema_any_one_of(self, unmarshaller_factory):
         schema = Schema(one_of=[
             Schema('string'),

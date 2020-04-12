@@ -157,9 +157,16 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
     def model_factory(self):
         return ModelFactory()
 
-    def __call__(self, value=NoValue):
-        value = super(ObjectUnmarshaller, self).__call__(value)
+    def unmarshal(self, value):
+        try:
+            value = self.formatter.unmarshal(value)
+        except ValueError as exc:
+            raise InvalidSchemaFormatValue(
+                value, self.schema.format, exc)
+        else:
+            return self._unmarshal_object(value)
 
+    def _unmarshal_object(self, value=NoValue):
         if self.schema.one_of:
             properties = None
             for one_of_schema in self.schema.one_of:
