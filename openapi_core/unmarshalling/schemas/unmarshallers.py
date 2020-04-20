@@ -1,6 +1,8 @@
 from functools import partial
 import logging
 
+from isodate.isodatetime import parse_datetime
+
 from openapi_schema_validator._types import (
     is_array, is_bool, is_integer,
     is_object, is_number, is_string,
@@ -20,7 +22,7 @@ from openapi_core.unmarshalling.schemas.exceptions import (
 )
 from openapi_core.unmarshalling.schemas.formatters import Formatter
 from openapi_core.unmarshalling.schemas.util import (
-    forcebool, format_date, format_datetime, format_byte, format_uuid,
+    forcebool, format_date, format_byte, format_uuid,
     format_number,
 )
 
@@ -77,7 +79,7 @@ class StringUnmarshaller(PrimitiveTypeUnmarshaller):
             partial(oas30_format_checker.check, format='date'), format_date),
         SchemaFormat.DATETIME: Formatter.from_callables(
             partial(oas30_format_checker.check, format='date-time'),
-            format_datetime),
+            parse_datetime),
         SchemaFormat.BINARY: Formatter.from_callables(
             partial(oas30_format_checker.check, format='binary'), binary_type),
         SchemaFormat.UUID: Formatter.from_callables(
@@ -157,9 +159,16 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
     def model_factory(self):
         return ModelFactory()
 
-    def __call__(self, value=NoValue):
-        value = super(ObjectUnmarshaller, self).__call__(value)
+    def unmarshal(self, value):
+        try:
+            value = self.formatter.unmarshal(value)
+        except ValueError as exc:
+            raise InvalidSchemaFormatValue(
+                value, self.schema.format, exc)
+        else:
+            return self._unmarshal_object(value)
 
+    def _unmarshal_object(self, value=NoValue):
         if self.schema.one_of:
             properties = None
             for one_of_schema in self.schema.one_of:

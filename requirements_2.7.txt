@@ -1,3 +1,4 @@
+isodate==0.6.0
 openapi-spec-validator
 openapi-schema-validator
 six
