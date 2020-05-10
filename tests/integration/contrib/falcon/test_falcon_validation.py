@@ -32,3 +32,12 @@ class TestFalconOpenAPIValidation(object):
         openapi_request = FalconOpenAPIRequestFactory.create(request)
         result = validator.validate(openapi_request)
         assert not result.errors
+
+    def test_request_validator_with_query(self, spec, request_factory):
+        validator = RequestValidator(spec)
+        request = request_factory('GET', '/browse/12',
+                                  query_string='detail_level=2',
+                                  subdomain='kb')
+        openapi_request = FalconOpenAPIRequestFactory.create(request)
+        result = validator.validate(openapi_request)
+        assert not result.errors
