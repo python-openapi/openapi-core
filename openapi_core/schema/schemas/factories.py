@@ -1,6 +1,7 @@
 """OpenAPI core schemas factories module"""
 import logging
 
+from lazy_object_proxy import Proxy
 from six import iteritems
 
 from openapi_core.compat import lru_cache
@@ -98,6 +99,9 @@ class SchemaFactory(object):
         return PropertiesGenerator(self.dereferencer, self)
 
     def _create_items(self, items_spec):
+        if '$ref' in items_spec:
+            return Proxy(lambda: self.create(items_spec))
+
         return self.create(items_spec)
 
 

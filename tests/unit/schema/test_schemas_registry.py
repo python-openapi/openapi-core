@@ -20,6 +20,12 @@ class TestSchemaRegistryGetOrCreate(object):
                 'suberror': {
                     '$ref': '#/components/schemas/Error',
                 },
+                'suberrors': {
+                    'items': {
+                        '$ref': '#/components/schemas/Error'
+                    },
+                    'type': 'array'
+                }
             },
         }
 
@@ -47,3 +53,9 @@ class TestSchemaRegistryGetOrCreate(object):
 
         assert schema.properties['suberror'] ==\
             schema.properties['suberror'].properties['suberror']
+
+    def test_array_recursion(self, schemas_registry, schema_dict):
+        schema, _ = schemas_registry.get_or_create(schema_dict)
+
+        assert schema.properties['suberrors'].items ==\
+            schema.properties['suberrors'].items.properties['suberrors'].items
