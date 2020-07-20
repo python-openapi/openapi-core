@@ -86,7 +86,7 @@ class SchemaUnmarshallersFactory(object):
         }
         if self.context is not None:
             kwargs[self.CONTEXT_VALIDATION[self.context]] = True
-        return OAS30Validator(schema.__newdict__, **kwargs)
+        return OAS30Validator(schema.__dict__, **kwargs)
 
     def _get_format_checker(self):
         fc = deepcopy(oas30_format_checker)

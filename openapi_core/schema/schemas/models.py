@@ -67,12 +67,8 @@ class Schema(object):
 
         self._source = _source
 
-    # Overriding object.__dict__ is a VERY bad idea as it totally breaks any
-    # possibility of pickling this object.  Pickling marshalls via object.__dict__
-    # via default __getstate__ and __setstate__ methods.  This is now renamed to
-    # keep the functionality for the validators, but keep pickling operational.
     @property
-    def __newdict__(self):
+    def __dict__(self):
         return self._source or self.to_dict()
 
     def to_dict(self):
