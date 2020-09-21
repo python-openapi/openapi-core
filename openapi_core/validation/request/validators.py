@@ -161,12 +161,7 @@ class RequestValidator(BaseValidator):
             return None, [exc, ]
 
         try:
-            deserialised = self._deserialise_media_type(media_type, raw_body)
-        except DeserializeError as exc:
-            return None, [exc, ]
-
-        try:
-            casted = self._cast(media_type, deserialised)
+            casted = self._cast(media_type, raw_body)
         except CastError as exc:
             return None, [exc, ]
 
