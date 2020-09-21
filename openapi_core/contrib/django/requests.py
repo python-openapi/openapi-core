@@ -39,11 +39,10 @@ class DjangoOpenAPIRequestFactory(object):
         parameters = RequestParameters(
             path=path,
             query=request.GET,
-            header=request.headers.items(),
+            header=(request.headers or {}).items(),
             cookie=request.COOKIES,
         )
-        full_url_pattern = urljoin(
-            request._current_scheme_host, path_pattern)
+        full_url_pattern = urljoin("{}://{}".format(request.scheme, request.get_host()), path_pattern)
         return OpenAPIRequest(
             full_url_pattern=full_url_pattern,
             method=method,
