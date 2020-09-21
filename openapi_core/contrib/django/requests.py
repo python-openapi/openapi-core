@@ -48,6 +48,6 @@ class DjangoOpenAPIRequestFactory(object):
             full_url_pattern=full_url_pattern,
             method=method,
             parameters=parameters,
-            body=request.body,
+            body=request.data,
             mimetype=request.content_type,
         )
