@@ -36,10 +36,16 @@ class DjangoOpenAPIRequestFactory(object):
             path_pattern = '/' + route
 
         path = request.resolver_match and request.resolver_match.kwargs or {}
+
+        try:
+            headers = (request.headers or {}).items()
+        except AttributeError:
+            headers = []
+
         parameters = RequestParameters(
             path=path,
             query=request.GET,
-            header=(request.headers or {}).items(),
+            header=headers,
             cookie=request.COOKIES,
         )
         full_url_pattern = urljoin("{}://{}".format(request.scheme, request.get_host()), path_pattern)
