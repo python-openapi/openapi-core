@@ -39,8 +39,9 @@ class PathFinder(object):
             raise ServerNotFound(request.full_url_pattern)
 
     def _get_paths_iter(self, full_url_pattern):
+        template_paths = []
         for path_pattern, path in iteritems(self.spec.paths):
-            # simple path
+            # simple path. Return right away since it is always the most concrete
             if full_url_pattern.endswith(path_pattern):
                 path_result = TemplateResult(path_pattern, {})
                 yield (path, path_result)
@@ -49,7 +50,11 @@ class PathFinder(object):
                 result = search(path_pattern, full_url_pattern)
                 if result:
                     path_result = TemplateResult(path_pattern, result.named)
-                    yield (path, path_result)
+                    template_paths.append((path, path_result))
+
+        # Fewer variables -> more concrete path
+        for path in sorted(template_paths, key=lambda p: len(p[1].variables)):
+            yield path
 
     def _get_operations_iter(self, request_method, paths_iter):
         for path, path_result in paths_iter:
