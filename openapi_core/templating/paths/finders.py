@@ -41,7 +41,8 @@ class PathFinder(object):
     def _get_paths_iter(self, full_url_pattern):
         template_paths = []
         for path_pattern, path in iteritems(self.spec.paths):
-            # simple path. Return right away since it is always the most concrete
+            # simple path.
+            # Return right away since it is always the most concrete
             if full_url_pattern.endswith(path_pattern):
                 path_result = TemplateResult(path_pattern, {})
                 yield (path, path_result)
