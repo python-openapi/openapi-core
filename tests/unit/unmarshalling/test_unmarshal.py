@@ -352,6 +352,27 @@ class TestSchemaUnmarshallerCall(object):
 
         assert result == value
 
+    def test_array_null(self, unmarshaller_factory):
+        schema = Schema(
+            'array',
+            items=Schema('integer'),
+        )
+        value = None
+
+        with pytest.raises(TypeError):
+            unmarshaller_factory(schema)(value)
+
+    def test_array_nullable(self, unmarshaller_factory):
+        schema = Schema(
+            'array',
+            items=Schema('integer'),
+            nullable=True,
+        )
+        value = None
+        result = unmarshaller_factory(schema)(value)
+
+        assert result is None
+
     def test_array_of_string_string_invalid(self, unmarshaller_factory):
         schema = Schema('array', items=Schema('string'))
         value = '123'

@@ -144,7 +144,8 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
 
     def __call__(self, value=NoValue):
         value = super(ArrayUnmarshaller, self).__call__(value)
-
+        if value is None and self.schema.nullable:
+            return None
         return list(map(self.items_unmarshaller, value))
 
 
