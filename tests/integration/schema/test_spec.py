@@ -152,14 +152,15 @@ class TestPetstore(object):
                         assert variable.default == variable_spec['default']
                         assert variable.enum == variable_spec.get('enum')
 
-                security_spec = operation_spec.get('security', [])
-                for idx, security_req in enumerate(operation.security):
-                    assert type(security_req) == SecurityRequirement
+                security_spec = operation_spec.get('security')
+                if security_spec is not None:
+                    for idx, security_req in enumerate(operation.security):
+                        assert type(security_req) == SecurityRequirement
 
-                    security_req_spec = security_spec[idx]
-                    for scheme_name in security_req:
-                        security_req[scheme_name] == security_req_spec[
-                            scheme_name]
+                        security_req_spec = security_spec[idx]
+                        for scheme_name in security_req:
+                            security_req[scheme_name] == security_req_spec[
+                                scheme_name]
 
                 responses_spec = operation_spec.get('responses')
 
