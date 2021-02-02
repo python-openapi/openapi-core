@@ -87,7 +87,10 @@ class RequestValidator(BaseValidator):
         )
 
     def _get_security(self, request, operation):
-        security = operation.security or self.spec.security
+        security = self.spec.security
+        if operation.security is not None:
+            security = operation.security
+
         if not security:
             return {}
 

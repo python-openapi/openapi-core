@@ -42,12 +42,16 @@ class OperationsGenerator(object):
             tags_list = operation_deref.get('tags', [])
             summary = operation_deref.get('summary')
             description = operation_deref.get('description')
-            security_spec = operation_deref.get('security', [])
             servers_spec = operation_deref.get('servers', [])
 
             servers = self.servers_generator.generate(servers_spec)
-            security = self.security_requirements_generator.generate(
-                security_spec)
+
+            security = None
+            if 'security' in operation_deref:
+                security_spec = operation_deref.get('security')
+                security = self.security_requirements_generator.generate(
+                    security_spec)
+
             extensions = self.extensions_generator.generate(operation_deref)
 
             external_docs = None
@@ -67,7 +71,7 @@ class OperationsGenerator(object):
                 Operation(
                     http_method, path_name, responses, list(parameters),
                     summary=summary, description=description,
-                    external_docs=external_docs, security=list(security),
+                    external_docs=external_docs, security=security,
                     request_body=request_body, deprecated=deprecated,
                     operation_id=operation_id, tags=list(tags_list),
                     servers=list(servers), extensions=extensions,

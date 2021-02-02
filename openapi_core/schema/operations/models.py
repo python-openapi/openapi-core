@@ -18,7 +18,7 @@ class Operation(object):
         self.summary = summary
         self.description = description
         self.external_docs = external_docs
-        self.security = security
+        self.security = security and list(security)
         self.request_body = request_body
         self.deprecated = deprecated
         self.operation_id = operation_id
