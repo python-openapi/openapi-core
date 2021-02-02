@@ -31,4 +31,10 @@ reports-cleanup:
 
 test-cleanup: test-cache-cleanup reports-cleanup
 
+docs-html:
+	sphinx-build -b html docs docs/_build
+
+docs-cleanup:
+	@rm -rf docs/_build
+
 cleanup: dist-cleanup test-cleanup
