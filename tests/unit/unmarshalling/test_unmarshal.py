@@ -466,6 +466,23 @@ class TestSchemaUnmarshallerCall(object):
         ])
         assert unmarshaller_factory(schema)(['hello']) == ['hello']
 
+    def test_schema_any_all_of(self, unmarshaller_factory):
+        schema = Schema(all_of=[
+            Schema('array', items=Schema('string')),
+        ])
+        assert unmarshaller_factory(schema)(['hello']) == ['hello']
+
+    def test_schema_any_all_of_any(self, unmarshaller_factory):
+        schema = Schema(all_of=[
+            Schema(),
+            Schema('string', schema_format='date'),
+        ])
+        value = '2018-01-02'
+
+        result = unmarshaller_factory(schema)(value)
+
+        assert result == datetime.date(2018, 1, 2)
+
     def test_schema_any(self, unmarshaller_factory):
         schema = Schema()
         assert unmarshaller_factory(schema)('string') == 'string'
