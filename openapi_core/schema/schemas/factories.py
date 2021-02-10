@@ -31,6 +31,7 @@ class SchemaFactory(object):
         deprecated = schema_deref.get('deprecated', False)
         all_of_spec = schema_deref.get('allOf', None)
         one_of_spec = schema_deref.get('oneOf', None)
+        any_of_spec = schema_deref.get('anyOf', None)
         additional_properties_spec = schema_deref.get('additionalProperties',
                                                       True)
         min_items = schema_deref.get('minItems', None)
@@ -63,6 +64,10 @@ class SchemaFactory(object):
         if one_of_spec:
             one_of = list(map(self.create, one_of_spec))
 
+        any_of = []
+        if any_of_spec:
+            any_of = list(map(self.create, any_of_spec))
+
         items = None
         if items_spec:
             items = self._create_items(items_spec)
@@ -75,7 +80,7 @@ class SchemaFactory(object):
             schema_type=schema_type, properties=properties,
             items=items, schema_format=schema_format, required=required,
             default=default, nullable=nullable, enum=enum,
-            deprecated=deprecated, all_of=all_of, one_of=one_of,
+            deprecated=deprecated, all_of=all_of, one_of=one_of, any_of=any_of,
             additional_properties=additional_properties,
             min_items=min_items, max_items=max_items, min_length=min_length,
             max_length=max_length, pattern=pattern, unique_items=unique_items,
@@ -117,6 +122,10 @@ class SchemaDictFactory(object):
         Contribution(
             'one_of',
             dest_prop_name='oneOf', is_list=True, dest_default=[],
+        ),
+        Contribution(
+            'any_of',
+            dest_prop_name='anyOf', is_list=True, dest_default=[],
         ),
         Contribution(
             'additional_properties',

@@ -187,6 +187,23 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             if properties is None:
                 log.warning("valid oneOf schema not found")
 
+        if self.schema.any_of:
+            properties = None
+            for any_of_schema in self.schema.any_of:
+                try:
+                    unmarshalled = self._unmarshal_properties(
+                        value, any_of_schema)
+                except (UnmarshalError, ValueError):
+                    pass
+                else:
+                    if properties is not None:
+                        log.warning("multiple valid anyOf schemas found")
+                        continue
+                    properties = unmarshalled
+
+            if properties is None:
+                log.warning("valid anyOf schema not found")
+
         else:
             properties = self._unmarshal_properties(value)
 
@@ -196,13 +213,19 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
         return properties
 
-    def _unmarshal_properties(self, value=NoValue, one_of_schema=None):
+    def _unmarshal_properties(self, value=NoValue, one_of_schema=None,
+                              any_of_schema=None):
         all_props = self.schema.get_all_properties()
         all_props_names = self.schema.get_all_properties_names()
 
         if one_of_schema is not None:
             all_props.update(one_of_schema.get_all_properties())
             all_props_names |= one_of_schema.\
+                get_all_properties_names()
+
+        if any_of_schema is not None:
+            all_props.update(any_of_schema.get_all_properties())
+            all_props_names |= any_of_schema.\
                 get_all_properties_names()
 
         value_props_names = value.keys()
@@ -253,6 +276,10 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         if one_of_schema:
             return self.unmarshallers_factory.create(one_of_schema)(value)
 
+        any_of_schema = self._get_any_of_schema(value)
+        if any_of_schema:
+            return self.unmarshallers_factory.create(any_of_schema)(value)
+
         all_of_schema = self._get_all_of_schema(value)
         if all_of_schema:
             return self.unmarshallers_factory.create(all_of_schema)(value)
@@ -275,6 +302,18 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         if not self.schema.one_of:
             return
         for subschema in self.schema.one_of:
+            unmarshaller = self.unmarshallers_factory.create(subschema)
+            try:
+                unmarshaller.validate(value)
+            except ValidateError:
+                continue
+            else:
+                return subschema
+
+    def _get_any_of_schema(self, value):
+        if not self.schema.any_of:
+            return
+        for subschema in self.schema.any_of:
             unmarshaller = self.unmarshallers_factory.create(subschema)
             try:
                 unmarshaller.validate(value)

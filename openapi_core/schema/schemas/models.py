@@ -21,7 +21,7 @@ class Schema(object):
     def __init__(
             self, schema_type=None, properties=None, items=None,
             schema_format=None, required=None, default=NoValue, nullable=False,
-            enum=None, deprecated=False, all_of=None, one_of=None,
+            enum=None, deprecated=False, all_of=None, one_of=None, any_of=None,
             additional_properties=True, min_items=None, max_items=None,
             min_length=None, max_length=None, pattern=None, unique_items=False,
             minimum=None, maximum=None, multiple_of=None,
@@ -40,6 +40,7 @@ class Schema(object):
         self.deprecated = deprecated
         self.all_of = all_of and list(all_of) or []
         self.one_of = one_of and list(one_of) or []
+        self.any_of = any_of and list(any_of) or []
         self.additional_properties = additional_properties
         self.min_items = int(min_items) if min_items is not None else None
         self.max_items = int(max_items) if max_items is not None else None

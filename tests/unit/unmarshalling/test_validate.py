@@ -529,6 +529,80 @@ class TestSchemaValidate(object):
 
         assert result is None
 
+    @pytest.mark.parametrize('value', [Model(), ])
+    def test_object_multiple_any_of(self, value, validator_factory):
+        any_of = [
+            Schema('object'), Schema('object'),
+        ]
+        schema = Schema('object', any_of=any_of)
+
+        with pytest.raises(InvalidSchemaValue):
+            validator_factory(schema).validate(value)
+
+    @pytest.mark.parametrize('value', [{}, ])
+    def test_object_different_type_any_of(self, value, validator_factory):
+        any_of = [
+            Schema('integer'), Schema('string'),
+        ]
+        schema = Schema('object', any_of=any_of)
+
+        with pytest.raises(InvalidSchemaValue):
+            validator_factory(schema).validate(value)
+
+    @pytest.mark.parametrize('value', [{}, ])
+    def test_object_no_any_of(self, value, validator_factory):
+        any_of = [
+            Schema(
+                'object',
+                properties={'test1': Schema('string')},
+                required=['test1', ],
+            ),
+            Schema(
+                'object',
+                properties={'test2': Schema('string')},
+                required=['test2', ],
+            ),
+        ]
+        schema = Schema('object', any_of=any_of)
+
+        with pytest.raises(InvalidSchemaValue):
+            validator_factory(schema).validate(value)
+
+    @pytest.mark.parametrize('value', [
+        {
+            'foo': u("FOO"),
+        },
+        {
+            'foo': u("FOO"),
+            'bar': u("BAR"),
+        },
+    ])
+    def test_unambiguous_any_of(self, value, validator_factory):
+        any_of = [
+            Schema(
+                'object',
+                properties={
+                    'foo': Schema('string'),
+                },
+                additional_properties=False,
+                required=['foo'],
+            ),
+            Schema(
+                'object',
+                properties={
+                    'foo': Schema('string'),
+                    'bar': Schema('string'),
+                },
+                additional_properties=False,
+                required=['foo', 'bar'],
+            ),
+        ]
+        schema = Schema('object', any_of=any_of)
+
+        result = validator_factory(schema).validate(value)
+
+        assert result is None
+
     @pytest.mark.parametrize('value', [{}, ])
     def test_object_default_property(self, value, validator_factory):
         schema = Schema('object', default='value1')
