@@ -466,7 +466,7 @@ class TestSchemaValidate(object):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [{}, ])
-    def test_object_defferent_type_one_of(self, value, validator_factory):
+    def test_object_different_type_one_of(self, value, validator_factory):
         one_of = [
             Schema('integer'), Schema('string'),
         ]
@@ -620,7 +620,7 @@ class TestSchemaValidate(object):
         assert result is None
 
     @pytest.mark.parametrize('value', [{'additional': 1}, ])
-    def test_object_additional_propetries(self, value, validator_factory):
+    def test_object_additional_properties(self, value, validator_factory):
         schema = Schema('object')
 
         result = validator_factory(schema).validate(value)
@@ -628,7 +628,7 @@ class TestSchemaValidate(object):
         assert result is None
 
     @pytest.mark.parametrize('value', [{'additional': 1}, ])
-    def test_object_additional_propetries_false(
+    def test_object_additional_properties_false(
             self, value, validator_factory):
         schema = Schema('object', additional_properties=False)
 
@@ -636,7 +636,7 @@ class TestSchemaValidate(object):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [{'additional': 1}, ])
-    def test_object_additional_propetries_object(
+    def test_object_additional_properties_object(
             self, value, validator_factory):
         additional_properties = Schema('integer')
         schema = Schema('object', additional_properties=additional_properties)
