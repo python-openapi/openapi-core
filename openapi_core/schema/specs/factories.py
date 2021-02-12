@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """OpenAPI core specs factories module"""
 
-from openapi_spec_validator import openapi_v3_spec_validator
 from openapi_spec_validator.validators import Dereferencer
 
 from openapi_core.compat import lru_cache
@@ -19,14 +18,10 @@ from openapi_core.schema.specs.models import Spec
 
 class SpecFactory(object):
 
-    def __init__(self, spec_resolver, config=None):
+    def __init__(self, spec_resolver):
         self.spec_resolver = spec_resolver
-        self.config = config or {}
 
     def create(self, spec_dict, spec_url=''):
-        if self.config.get('validate_spec', True):
-            openapi_v3_spec_validator.validate(spec_dict, spec_url=spec_url)
-
         spec_dict_deref = self.dereferencer.dereference(spec_dict)
 
         info_spec = spec_dict_deref.get('info', {})
