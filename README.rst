@@ -156,6 +156,17 @@ Supported security types:
 Customizations
 ##############
 
+Spec validation
+***************
+
+By default, spec dict is validated on spec creation time. Disabling the validation can improve the performance.
+
+.. code-block:: python
+
+   from openapi_core import create_spec
+
+   spec = create_spec(spec_dict, validate_spec=False)
+
 Deserializers
 *************
 
