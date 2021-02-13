@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy
 import warnings
 
 from openapi_schema_validator import OAS30Validator, oas30_format_checker
@@ -89,7 +89,7 @@ class SchemaUnmarshallersFactory(object):
         return OAS30Validator(schema.__dict__, **kwargs)
 
     def _get_format_checker(self):
-        fc = deepcopy(oas30_format_checker)
+        fc = copy(oas30_format_checker)
         for name, formatter in self.custom_formatters.items():
             fc.checks(name)(formatter.validate)
         return fc
