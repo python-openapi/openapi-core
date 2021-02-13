@@ -1,7 +1,6 @@
-from copy import copy
 import warnings
 
-from openapi_schema_validator import OAS30Validator, oas30_format_checker
+from openapi_schema_validator import OAS30Validator
 
 from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
 from openapi_core.schema.schemas.models import Schema
@@ -35,8 +34,11 @@ class SchemaUnmarshallersFactory(object):
         UnmarshalContext.RESPONSE: 'read',
     }
 
-    def __init__(self, resolver=None, custom_formatters=None, context=None):
+    def __init__(
+            self, resolver=None, format_checker=None,
+            custom_formatters=None, context=None):
         self.resolver = resolver
+        self.format_checker = format_checker
         if custom_formatters is None:
             custom_formatters = {}
         self.custom_formatters = custom_formatters
@@ -79,17 +81,10 @@ class SchemaUnmarshallersFactory(object):
             return default_formatters.get(schema_format)
 
     def get_validator(self, schema):
-        format_checker = self._get_format_checker()
         kwargs = {
             'resolver': self.resolver,
-            'format_checker': format_checker,
+            'format_checker': self.format_checker,
         }
         if self.context is not None:
             kwargs[self.CONTEXT_VALIDATION[self.context]] = True
         return OAS30Validator(schema.__dict__, **kwargs)
-
-    def _get_format_checker(self):
-        fc = copy(oas30_format_checker)
-        for name, formatter in self.custom_formatters.items():
-            fc.checks(name)(formatter.validate)
-        return fc
