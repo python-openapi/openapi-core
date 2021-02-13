@@ -1,4 +1,5 @@
 """OpenAPI core validation validators module"""
+from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 
 class BaseValidator(object):
@@ -10,8 +11,10 @@ class BaseValidator(object):
     ):
         self.spec = spec
         self.base_url = base_url
-        self.custom_formatters = custom_formatters
+        self.custom_formatters = custom_formatters or {}
         self.custom_media_type_deserializers = custom_media_type_deserializers
+
+        self.format_checker = build_format_checker(**self.custom_formatters)
 
     def _find_path(self, request):
         from openapi_core.templating.paths.finders import PathFinder
@@ -45,8 +48,8 @@ class BaseValidator(object):
             SchemaUnmarshallersFactory,
         )
         unmarshallers_factory = SchemaUnmarshallersFactory(
-            self.spec._resolver, self.custom_formatters,
-            context=context,
+            self.spec._resolver, self.format_checker,
+            self.custom_formatters, context=context,
         )
         unmarshaller = unmarshallers_factory.create(
             param_or_media_type.schema)

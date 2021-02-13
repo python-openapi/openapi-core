@@ -18,12 +18,16 @@ from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
 from openapi_core.unmarshalling.schemas.formatters import Formatter
+from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 
 @pytest.fixture
 def unmarshaller_factory():
     def create_unmarshaller(schema, custom_formatters=None, context=None):
+        custom_formatters = custom_formatters or {}
+        format_checker = build_format_checker(**custom_formatters)
         return SchemaUnmarshallersFactory(
+            format_checker=format_checker,
             custom_formatters=custom_formatters, context=context).create(
                 schema)
     return create_unmarshaller

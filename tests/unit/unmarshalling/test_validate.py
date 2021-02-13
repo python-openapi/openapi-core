@@ -12,6 +12,7 @@ from openapi_core.unmarshalling.schemas.factories import (
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError, InvalidSchemaValue,
 )
+from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 from six import b, u
 
@@ -21,7 +22,9 @@ class TestSchemaValidate(object):
     @pytest.fixture
     def validator_factory(self):
         def create_validator(schema):
-            return SchemaUnmarshallersFactory().create(schema)
+            format_checker = build_format_checker()
+            return SchemaUnmarshallersFactory(
+                format_checker=format_checker).create(schema)
         return create_validator
 
     @pytest.mark.parametrize('schema_type', [
