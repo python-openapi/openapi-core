@@ -476,6 +476,52 @@ class TestSchemaUnmarshallerCall(object):
         ])
         assert unmarshaller_factory(schema)(['hello']) == ['hello']
 
+    @pytest.mark.parametrize('value', [
+        {
+            'somestr': {},
+            'someint': 123,
+        },
+        {
+            'somestr': [
+                'content1', 'content2'
+            ],
+            'someint': 123,
+        },
+        {
+            'somestr': 123,
+            'someint': 123,
+        },
+        {
+            'somestr': 'content',
+            'someint': 123,
+            'not_in_scheme_prop': 123,
+        },
+    ])
+    def test_schema_any_all_of_invalid_properties(
+            self, value, unmarshaller_factory):
+        schema = Schema(
+            all_of=[
+                Schema(
+                    'object',
+                    required=['somestr'],
+                    properties={
+                        'somestr': Schema('string'),
+                    },
+                ),
+                Schema(
+                    'object',
+                    required=['someint'],
+                    properties={
+                        'someint': Schema('integer'),
+                    },
+                ),
+            ],
+            additional_properties=False,
+        )
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(schema)(value)
+
     def test_schema_any_all_of_any(self, unmarshaller_factory):
         schema = Schema(all_of=[
             Schema(),

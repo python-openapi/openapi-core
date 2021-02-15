@@ -248,7 +248,7 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
     ]
 
-    def __call__(self, value=NoValue):
+    def unmarshal(self, value=NoValue):
         one_of_schema = self._get_one_of_schema(value)
         if one_of_schema:
             return self.unmarshallers_factory.create(one_of_schema)(value)
