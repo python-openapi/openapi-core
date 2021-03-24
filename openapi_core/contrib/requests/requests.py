@@ -26,11 +26,10 @@ class RequestsOpenAPIRequestFactory(object):
         method = request.method.lower()
 
         # Cookies
+        cookie = {}
         if request._cookies is not None:
             # cookies are stored in a cookiejar object
             cookie = request._cookies.get_dict()
-        else:
-            cookie = {}
 
         # Preparing a request formats the URL with params, strip them out again
         o = urlparse(request.url)

@@ -10,7 +10,7 @@ from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestFlaskOpenAPIValidation(object):
+class TestRequestsOpenAPIValidation(object):
 
     @pytest.fixture
     def spec(self, factory):
@@ -20,10 +20,16 @@ class TestFlaskOpenAPIValidation(object):
     @responses.activate
     def test_response_validator_path_pattern(self, spec):
         responses.add(
-            responses.GET, 'http://localhost/browse/12/',
-            json={"data": "data"}, status=200)
+            responses.POST, 'http://localhost/browse/12/?q=string',
+            json={"data": "data"}, status=200, match_querystring=True,
+        )
         validator = ResponseValidator(spec)
-        request = requests.Request('GET', 'http://localhost/browse/12/')
+        request = requests.Request(
+            'POST', 'http://localhost/browse/12/',
+            params={'q': 'string'},
+            headers={'content-type': 'application/json'},
+            json={'param1': 1},
+        )
         request_prepared = request.prepare()
         session = requests.Session()
         response = session.send(request_prepared)
@@ -32,10 +38,27 @@ class TestFlaskOpenAPIValidation(object):
         result = validator.validate(openapi_request, openapi_response)
         assert not result.errors
 
-    @responses.activate
     def test_request_validator_path_pattern(self, spec):
         validator = RequestValidator(spec)
-        request = requests.Request('GET', 'http://localhost/browse/12/')
+        request = requests.Request(
+            'POST', 'http://localhost/browse/12/',
+            params={'q': 'string'},
+            headers={'content-type': 'application/json'},
+            json={'param1': 1},
+        )
         openapi_request = RequestsOpenAPIRequest(request)
+        result = validator.validate(openapi_request)
+        assert not result.errors
+
+    def test_request_validator_prepared_request(self, spec):
+        validator = RequestValidator(spec)
+        request = requests.Request(
+            'POST', 'http://localhost/browse/12/',
+            params={'q': 'string'},
+            headers={'content-type': 'application/json'},
+            json={'param1': 1},
+        )
+        request_prepared = request.prepare()
+        openapi_request = RequestsOpenAPIRequest(request_prepared)
         result = validator.validate(openapi_request)
         assert not result.errors
