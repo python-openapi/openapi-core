@@ -1,3 +1,6 @@
+from email.mime.multipart import MIMEMultipart
+from email.mime.nonmultipart import MIMENonMultipart
+
 import pytest
 
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -5,6 +8,24 @@ from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
 from openapi_core.schema.media_types.models import MediaType
+
+
+class MIMEFormdata(MIMENonMultipart):
+    def __init__(self, keyname, *args, **kwargs):
+        super(MIMEFormdata, self).__init__(*args, **kwargs)
+        self.add_header(
+            "Content-Disposition", "form-data; name=\"%s\"" % keyname)
+
+
+def encode_multipart_formdata(fields):
+    m = MIMEMultipart("form-data")
+
+    for field, value in fields.items():
+        data = MIMEFormdata(field, "text", "plain")
+        data.set_payload(value)
+        m.attach(data)
+
+    return m
 
 
 class TestMediaTypeDeserializer(object):
@@ -31,7 +52,7 @@ class TestMediaTypeDeserializer(object):
 
         assert result == {}
 
-    def test_form_urlencoded_empty(self, deserializer_factory):
+    def test_urlencoded_form_empty(self, deserializer_factory):
         media_type = MediaType('application/x-www-form-urlencoded')
         value = ''
 
@@ -39,13 +60,30 @@ class TestMediaTypeDeserializer(object):
 
         assert result == {}
 
-    def test_form_urlencoded_simple(self, deserializer_factory):
+    def test_urlencoded_form_simple(self, deserializer_factory):
         media_type = MediaType('application/x-www-form-urlencoded')
         value = 'param1=test'
 
         result = deserializer_factory(media_type)(value)
 
         assert result == {'param1': 'test'}
+
+    @pytest.mark.parametrize('value', [b'', ''])
+    def test_data_form_empty(self, deserializer_factory, value):
+        media_type = MediaType('multipart/form-data')
+
+        result = deserializer_factory(media_type)(value)
+
+        assert result == {}
+
+    def test_data_form_simple(self, deserializer_factory):
+        media_type = MediaType('multipart/form-data')
+        formdata = encode_multipart_formdata({'param1': 'test'})
+        value = str(formdata)
+
+        result = deserializer_factory(media_type)(value)
+
+        assert result == {'param1': b'test'}
 
     def test_custom_simple(self, deserializer_factory):
         custom_mimetype = 'application/custom'
