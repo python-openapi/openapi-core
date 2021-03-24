@@ -1,4 +1,4 @@
-from openapi_core.deserializing.media_types.util import json_loads
+from openapi_core.deserializing.media_types.util import json_loads, form_loads
 
 from openapi_core.deserializing.media_types.deserializers import (
     PrimitiveDeserializer,
@@ -9,6 +9,7 @@ class MediaTypeDeserializersFactory(object):
 
     MEDIA_TYPE_DESERIALIZERS = {
         'application/json': json_loads,
+        'application/x-www-form-urlencoded': form_loads,
     }
 
     def __init__(self, custom_deserializers=None):
