@@ -1,4 +1,4 @@
-from email.parser import BytesParser
+from email.parser import Parser
 from json import loads
 
 from six import binary_type
@@ -17,10 +17,10 @@ def urlencoded_form_loads(value):
 
 
 def data_form_loads(value):
-    if issubclass(type(value), str):
-        value = value.encode()
-    parser = BytesParser()
-    parts = parser.parsebytes(value)
+    if issubclass(type(value), binary_type):
+        value = value.decode('ASCII', errors='surrogateescape')
+    parser = Parser()
+    parts = parser.parsestr(value, headersonly=False)
     return dict(
         (
             part.get_param('name', header='content-disposition'),

@@ -1,31 +1,12 @@
-from email.mime.multipart import MIMEMultipart
-from email.mime.nonmultipart import MIMENonMultipart
-
 import pytest
+
+from six import b, u
 
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
 from openapi_core.schema.media_types.models import MediaType
-
-
-class MIMEFormdata(MIMENonMultipart):
-    def __init__(self, keyname, *args, **kwargs):
-        super(MIMEFormdata, self).__init__(*args, **kwargs)
-        self.add_header(
-            "Content-Disposition", "form-data; name=\"%s\"" % keyname)
-
-
-def encode_multipart_formdata(fields):
-    m = MIMEMultipart("form-data")
-
-    for field, value in fields.items():
-        data = MIMEFormdata(field, "text", "plain")
-        data.set_payload(value)
-        m.attach(data)
-
-    return m
 
 
 class TestMediaTypeDeserializer(object):
@@ -68,7 +49,7 @@ class TestMediaTypeDeserializer(object):
 
         assert result == {'param1': 'test'}
 
-    @pytest.mark.parametrize('value', [b'', ''])
+    @pytest.mark.parametrize('value', [b(''), u('')])
     def test_data_form_empty(self, deserializer_factory, value):
         media_type = MediaType('multipart/form-data')
 
@@ -78,12 +59,19 @@ class TestMediaTypeDeserializer(object):
 
     def test_data_form_simple(self, deserializer_factory):
         media_type = MediaType('multipart/form-data')
-        formdata = encode_multipart_formdata({'param1': 'test'})
-        value = str(formdata)
+        value = b(
+            'Content-Type: multipart/form-data; boundary="'
+            '===============2872712225071193122=="\n'
+            'MIME-Version: 1.0\n\n'
+            '--===============2872712225071193122==\n'
+            'Content-Type: text/plain\nMIME-Version: 1.0\n'
+            'Content-Disposition: form-data; name="param1"\n\ntest\n'
+            '--===============2872712225071193122==--\n'
+        )
 
         result = deserializer_factory(media_type)(value)
 
-        assert result == {'param1': b'test'}
+        assert result == {'param1': b('test')}
 
     def test_custom_simple(self, deserializer_factory):
         custom_mimetype = 'application/custom'
