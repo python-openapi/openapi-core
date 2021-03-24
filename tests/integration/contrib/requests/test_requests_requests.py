@@ -15,6 +15,7 @@ class TestRequestsOpenAPIRequest(object):
         query = ImmutableMultiDict([])
         headers = request.headers
         cookies = {}
+        prepared = request.prepare()
         assert openapi_request.parameters == RequestParameters(
             path=path,
             query=query,
@@ -23,7 +24,7 @@ class TestRequestsOpenAPIRequest(object):
         )
         assert openapi_request.method == request.method.lower()
         assert openapi_request.full_url_pattern == 'http://localhost/'
-        assert openapi_request.body == request.data
+        assert openapi_request.body == prepared.body
         assert openapi_request.mimetype == 'application/json'
 
     def test_multiple_values(self, request_factory, request):
@@ -44,9 +45,10 @@ class TestRequestsOpenAPIRequest(object):
             header=headers,
             cookie=cookies,
         )
+        prepared = request.prepare()
         assert openapi_request.method == request.method.lower()
         assert openapi_request.full_url_pattern == 'http://localhost/'
-        assert openapi_request.body == request.data
+        assert openapi_request.body == prepared.body
         assert openapi_request.mimetype == 'application/json'
 
     def test_url_rule(self, request_factory, request):
@@ -57,7 +59,9 @@ class TestRequestsOpenAPIRequest(object):
         # empty when not bound to spec
         path = {}
         query = ImmutableMultiDict([])
-        headers = request.headers
+        headers = (
+            ('Content-Type', 'application/json'),
+        )
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -65,8 +69,9 @@ class TestRequestsOpenAPIRequest(object):
             header=headers,
             cookie=cookies,
         )
+        prepared = request.prepare()
         assert openapi_request.method == request.method.lower()
         assert openapi_request.full_url_pattern == \
             'http://localhost/browse/12/'
-        assert openapi_request.body == request.data
+        assert openapi_request.body == prepared.body
         assert openapi_request.mimetype == 'application/json'
