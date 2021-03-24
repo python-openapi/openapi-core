@@ -8,3 +8,4 @@ django==2.2.13; python_version>="3.0"
 requests==2.22.0
 responses==0.10.12
 webob
+strict-rfc3339==0.7
