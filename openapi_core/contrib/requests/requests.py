@@ -1,8 +1,8 @@
 """OpenAPI core contrib requests requests module"""
-from typing import Union
+from __future__ import absolute_import
 from werkzeug.datastructures import ImmutableMultiDict
-from requests import Request, PreparedRequest
-from urllib.parse import urlparse, parse_qs
+from requests import Request
+from six.moves.urllib.parse import urlparse, parse_qs
 
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,
@@ -12,7 +12,7 @@ from openapi_core.validation.request.datatypes import (
 class RequestsOpenAPIRequestFactory(object):
 
     @classmethod
-    def create(cls, request: Union[Request, PreparedRequest]) -> OpenAPIRequest:
+    def create(cls, request):
         """
         Converts a requests request to an OpenAPI one
 
@@ -40,12 +40,13 @@ class RequestsOpenAPIRequestFactory(object):
         # gets deduced by path finder against spec
         path = {}
 
-        # Order matters because all python requests issued from a session include
-        # Accept */* which does not necessarily match the content type
+        # Order matters because all python requests issued from a session
+        # include Accept */* which does not necessarily match the content type
         mimetype = request.headers.get('Content-Type') or \
             request.headers.get('Accept')
 
-        # Headers - request.headers is not an instance of dict, which is expected
+        # Headers - request.headers is not an instance of dict
+        # which is expected
         header = dict(request.headers)
 
         # Body
