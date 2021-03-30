@@ -181,31 +181,6 @@ class TestPetstore(object):
 
                     assert response.description == description_spec
 
-                    for mimetype, media_type in iteritems(response.content):
-                        assert type(media_type) == MediaType
-                        assert media_type.mimetype == mimetype
-
-                        content_spec = response_spec['content'][mimetype]
-
-                        example_spec = content_spec.get('example')
-                        assert media_type.example == example_spec
-
-                        schema_spec = content_spec.get('schema')
-                        assert bool(schema_spec) == bool(media_type.schema)
-
-                        if not schema_spec:
-                            continue
-
-                        # @todo: test with defererence
-                        if '$ref' in schema_spec:
-                            continue
-
-                        assert type(media_type.schema) == Schema
-                        assert media_type.schema.type.value ==\
-                            schema_spec['type']
-                        assert media_type.schema.required == schema_spec.get(
-                            'required', [])
-
                     for parameter_name, parameter in iteritems(
                             response.headers):
                         assert type(parameter) == Parameter
@@ -260,6 +235,36 @@ class TestPetstore(object):
                                 schema_spec.get('format')
                             assert media_type.schema.required == \
                                 schema_spec.get('required', False)
+
+                    content_spec = response_spec.get('content')
+
+                    if not content_spec:
+                        continue
+
+                    for mimetype, media_type in iteritems(response.content):
+                        assert type(media_type) == MediaType
+                        assert media_type.mimetype == mimetype
+
+                        content_spec = response_spec['content'][mimetype]
+
+                        example_spec = content_spec.get('example')
+                        assert media_type.example == example_spec
+
+                        schema_spec = content_spec.get('schema')
+                        assert bool(schema_spec) == bool(media_type.schema)
+
+                        if not schema_spec:
+                            continue
+
+                        # @todo: test with defererence
+                        if '$ref' in schema_spec:
+                            continue
+
+                        assert type(media_type.schema) == Schema
+                        assert media_type.schema.type.value ==\
+                            schema_spec['type']
+                        assert media_type.schema.required == schema_spec.get(
+                            'required', [])
 
                 request_body_spec = operation_spec.get('requestBody')
 
