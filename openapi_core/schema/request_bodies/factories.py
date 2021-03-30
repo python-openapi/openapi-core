@@ -1,7 +1,7 @@
 """OpenAPI core request bodies factories module"""
 from openapi_core.compat import lru_cache
+from openapi_core.schema.content.factories import ContentFactory
 from openapi_core.schema.extensions.generators import ExtensionsGenerator
-from openapi_core.schema.media_types.generators import MediaTypeGenerator
 from openapi_core.schema.request_bodies.models import RequestBody
 
 
@@ -14,21 +14,21 @@ class RequestBodyFactory(object):
     def create(self, request_body_spec):
         request_body_deref = self.dereferencer.dereference(
             request_body_spec)
-        content = request_body_deref['content']
-        media_types = self.media_types_generator.generate(content)
+        content_spec = request_body_deref['content']
+        content = self.content_factory.create(content_spec)
         required = request_body_deref.get('required', False)
 
         extensions = self.extensions_generator.generate(request_body_deref)
 
         return RequestBody(
-            media_types,
+            content,
             required=required, extensions=extensions,
         )
 
     @property
     @lru_cache()
-    def media_types_generator(self):
-        return MediaTypeGenerator(self.dereferencer, self.schemas_registry)
+    def content_factory(self):
+        return ContentFactory(self.dereferencer, self.schemas_registry)
 
     @property
     @lru_cache()

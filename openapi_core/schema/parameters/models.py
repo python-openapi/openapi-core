@@ -15,7 +15,7 @@ class Parameter(object):
     def __init__(
             self, name, location, schema=None, required=False,
             deprecated=False, allow_empty_value=False,
-            items=None, style=None, explode=None):
+            items=None, style=None, explode=None, content=None):
         self.name = name
         self.location = ParameterLocation(location)
         self.schema = schema
@@ -30,6 +30,7 @@ class Parameter(object):
         self.items = items
         self.style = ParameterStyle(style or self.default_style)
         self.explode = self.default_explode if explode is None else explode
+        self.content = content
 
     @property
     def aslist(self):
