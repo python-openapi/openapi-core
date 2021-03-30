@@ -67,6 +67,20 @@ paths:
             items:
               $ref: "#/components/schemas/Tag"
           explode: false
+        - name: coordinates
+          in: query
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - lat
+                  - long
+                properties:
+                  lat:
+                    type: number
+                  long:
+                    type: number
       responses:
         '200':
           $ref: "#/components/responses/PetsResponse"

@@ -1,4 +1,6 @@
 """OpenAPI core parameters factories module"""
+from openapi_core.compat import lru_cache
+from openapi_core.schema.content.factories import ContentFactory
 from openapi_core.schema.parameters.models import Parameter
 
 
@@ -25,9 +27,19 @@ class ParameterFactory(object):
         if schema_spec:
             schema, _ = self.schemas_registry.get_or_create(schema_spec)
 
+        content_spec = parameter_deref.get('content', None)
+        content = None
+        if content_spec:
+            content = self.content_factory.create(content_spec)
+
         return Parameter(
             parameter_name, parameter_in,
             schema=schema, required=required,
             allow_empty_value=allow_empty_value,
-            style=style, explode=explode,
+            style=style, explode=explode, content=content,
         )
+
+    @property
+    @lru_cache()
+    def content_factory(self):
+        return ContentFactory(self.dereferencer, self.schemas_registry)

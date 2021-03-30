@@ -40,23 +40,23 @@ class TestPetstore(object):
         api_key_bytes_enc = b64encode(api_key_bytes)
         return text_type(api_key_bytes_enc, 'utf8')
 
-    @pytest.fixture
+    @pytest.fixture(scope='module')
     def spec_uri(self):
         return "file://tests/integration/data/v3.0/petstore.yaml"
 
-    @pytest.fixture
+    @pytest.fixture(scope='module')
     def spec_dict(self, factory):
         return factory.spec_from_file("data/v3.0/petstore.yaml")
 
-    @pytest.fixture
+    @pytest.fixture(scope='module')
     def spec(self, spec_dict, spec_uri):
         return create_spec(spec_dict, spec_uri)
 
-    @pytest.fixture
+    @pytest.fixture(scope='module')
     def request_validator(self, spec):
         return RequestValidator(spec)
 
-    @pytest.fixture
+    @pytest.fixture(scope='module')
     def response_validator(self, spec):
         return ResponseValidator(spec)
 

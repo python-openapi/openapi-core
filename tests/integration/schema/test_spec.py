@@ -231,6 +231,36 @@ class TestPetstore(object):
                         assert parameter.schema.required == schema_spec.get(
                             'required', [])
 
+                        content_spec = parameter_spec.get('content')
+                        assert bool(content_spec) == bool(parameter.content)
+
+                        if not content_spec:
+                            continue
+
+                        for mimetype, media_type in iteritems(
+                                parameter.content):
+                            assert type(media_type) == MediaType
+                            assert media_type.mimetype == mimetype
+
+                            media_spec = parameter_spec['content'][mimetype]
+                            schema_spec = media_spec.get('schema')
+                            assert bool(schema_spec) == bool(media_type.schema)
+
+                            if not schema_spec:
+                                continue
+
+                            # @todo: test with defererence
+                            if '$ref' in schema_spec:
+                                continue
+
+                            assert type(media_type.schema) == Schema
+                            assert media_type.schema.type.value ==\
+                                schema_spec['type']
+                            assert media_type.schema.format ==\
+                                schema_spec.get('format')
+                            assert media_type.schema.required == \
+                                schema_spec.get('required', False)
+
                 request_body_spec = operation_spec.get('requestBody')
 
                 assert bool(request_body_spec) == bool(operation.request_body)
