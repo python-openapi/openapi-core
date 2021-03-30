@@ -1,5 +1,7 @@
 import pytest
 
+from six import b, u
+
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
@@ -31,7 +33,7 @@ class TestMediaTypeDeserializer(object):
 
         assert result == {}
 
-    def test_form_urlencoded_empty(self, deserializer_factory):
+    def test_urlencoded_form_empty(self, deserializer_factory):
         media_type = MediaType('application/x-www-form-urlencoded')
         value = ''
 
@@ -39,13 +41,37 @@ class TestMediaTypeDeserializer(object):
 
         assert result == {}
 
-    def test_form_urlencoded_simple(self, deserializer_factory):
+    def test_urlencoded_form_simple(self, deserializer_factory):
         media_type = MediaType('application/x-www-form-urlencoded')
         value = 'param1=test'
 
         result = deserializer_factory(media_type)(value)
 
         assert result == {'param1': 'test'}
+
+    @pytest.mark.parametrize('value', [b(''), u('')])
+    def test_data_form_empty(self, deserializer_factory, value):
+        media_type = MediaType('multipart/form-data')
+
+        result = deserializer_factory(media_type)(value)
+
+        assert result == {}
+
+    def test_data_form_simple(self, deserializer_factory):
+        media_type = MediaType('multipart/form-data')
+        value = b(
+            'Content-Type: multipart/form-data; boundary="'
+            '===============2872712225071193122=="\n'
+            'MIME-Version: 1.0\n\n'
+            '--===============2872712225071193122==\n'
+            'Content-Type: text/plain\nMIME-Version: 1.0\n'
+            'Content-Disposition: form-data; name="param1"\n\ntest\n'
+            '--===============2872712225071193122==--\n'
+        )
+
+        result = deserializer_factory(media_type)(value)
+
+        assert result == {'param1': b('test')}
 
     def test_custom_simple(self, deserializer_factory):
         custom_mimetype = 'application/custom'
