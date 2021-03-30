@@ -2,9 +2,9 @@
 from six import iteritems
 
 from openapi_core.compat import lru_cache
+from openapi_core.schema.content.factories import ContentFactory
 from openapi_core.schema.extensions.generators import ExtensionsGenerator
 from openapi_core.schema.links.generators import LinksGenerator
-from openapi_core.schema.media_types.generators import MediaTypeGenerator
 from openapi_core.schema.parameters.generators import ParametersGenerator
 from openapi_core.schema.responses.models import Response
 
@@ -20,15 +20,15 @@ class ResponsesGenerator(object):
             response_deref = self.dereferencer.dereference(response)
             description = response_deref['description']
             headers = response_deref.get('headers')
-            content = response_deref.get('content')
+            content_spec = response_deref.get('content')
             links_dict = response_deref.get('links', {})
             links = self.links_generator.generate(links_dict)
 
             extensions = self.extensions_generator.generate(response_deref)
 
-            media_types = None
-            if content:
-                media_types = self.media_types_generator.generate(content)
+            content = None
+            if content_spec:
+                content = self.content_factory.create(content_spec)
 
             parameters = None
             if headers:
@@ -36,14 +36,14 @@ class ResponsesGenerator(object):
 
             yield http_status, Response(
                 http_status, description,
-                content=media_types, headers=parameters, links=links,
+                content=content, headers=parameters, links=links,
                 extensions=extensions,
             )
 
     @property
     @lru_cache()
-    def media_types_generator(self):
-        return MediaTypeGenerator(self.dereferencer, self.schemas_registry)
+    def content_factory(self):
+        return ContentFactory(self.dereferencer, self.schemas_registry)
 
     @property
     @lru_cache()
