@@ -1,10 +1,10 @@
 """OpenAPI core validation response validators module"""
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.responses.exceptions import (
     InvalidResponse, MissingResponseContent,
 )
+from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
@@ -70,8 +70,9 @@ class ResponseValidator(BaseValidator):
             return None, []
 
         try:
-            media_type = operation_response[response.mimetype]
-        except InvalidContentType as exc:
+            media_type = self._get_media_type(
+                operation_response.content, response)
+        except MediaTypeFinderError as exc:
             return None, [exc, ]
 
         try:

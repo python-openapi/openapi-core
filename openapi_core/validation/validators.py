@@ -21,6 +21,11 @@ class BaseValidator(object):
         finder = PathFinder(self.spec, base_url=self.base_url)
         return finder.find(request)
 
+    def _get_media_type(self, content, request_or_response):
+        from openapi_core.templating.media_types.finders import MediaTypeFinder
+        finder = MediaTypeFinder(content)
+        return finder.find(request_or_response)
+
     def _deserialise_media_type(self, media_type, value):
         from openapi_core.deserializing.media_types.factories import (
             MediaTypeDeserializersFactory,
