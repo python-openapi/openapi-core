@@ -1,6 +1,4 @@
 """OpenAPI core responses models module"""
-from openapi_core.schema.content.exceptions import MimeTypeNotFound
-from openapi_core.schema.media_types.exceptions import InvalidContentType
 
 
 class Response(object):
@@ -15,12 +13,3 @@ class Response(object):
         self.links = links and dict(links) or {}
 
         self.extensions = extensions and dict(extensions) or {}
-
-    def __getitem__(self, mimetype):
-        return self.get_content_type(mimetype)
-
-    def get_content_type(self, mimetype):
-        try:
-            return self.content[mimetype]
-        except MimeTypeNotFound:
-            raise InvalidContentType(mimetype)

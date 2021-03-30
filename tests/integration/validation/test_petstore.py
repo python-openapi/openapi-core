@@ -12,7 +12,6 @@ from openapi_core.deserializing.parameters.exceptions import (
     EmptyParameterValue,
 )
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.parameters.exceptions import (
     MissingRequiredParameter,
 )
@@ -20,6 +19,7 @@ from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.shortcuts import (
     create_spec, validate_parameters, validate_body, validate_data,
 )
+from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     ServerNotFound,
 )
@@ -662,7 +662,7 @@ class TestPetstore(object):
             },
         )
 
-        with pytest.raises(InvalidContentType):
+        with pytest.raises(MediaTypeNotFound):
             validate_body(spec, request)
 
     def test_post_pets_missing_cookie(self, spec, spec_dict):

@@ -5,7 +5,7 @@ from falcon.constants import MEDIA_JSON
 from falcon.status_codes import (
     HTTP_400, HTTP_404, HTTP_405, HTTP_415,
 )
-from openapi_core.schema.media_types.exceptions import InvalidContentType
+from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     ServerNotFound, OperationNotFound, PathNotFound,
 )
@@ -17,7 +17,7 @@ class FalconOpenAPIErrorsHandler(object):
         ServerNotFound: 400,
         OperationNotFound: 405,
         PathNotFound: 404,
-        InvalidContentType: 415,
+        MediaTypeNotFound: 415,
     }
 
     FALCON_STATUS_CODES = {

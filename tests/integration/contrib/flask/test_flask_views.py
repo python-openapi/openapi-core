@@ -63,12 +63,13 @@ class TestFlaskOpenAPIView(object):
             'errors': [
                 {
                     'class': (
-                        "<class 'openapi_core.schema.media_types.exceptions."
-                        "InvalidContentType'>"
+                        "<class 'openapi_core.templating.media_types."
+                        "exceptions.MediaTypeNotFound'>"
                     ),
                     'status': 415,
                     'title': (
-                        'Content for following mimetype not found: text/html'
+                        "Content for the following mimetype not found: "
+                        "text/html. Valid mimetypes: ['application/json']"
                     )
                 }
             ]

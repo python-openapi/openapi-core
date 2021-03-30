@@ -5,9 +5,6 @@ from six import text_type
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.media_types.exceptions import (
-    InvalidContentType,
-)
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
@@ -15,6 +12,7 @@ from openapi_core.schema.responses.exceptions import (
     MissingResponseContent, InvalidResponse,
 )
 from openapi_core.shortcuts import create_spec
+from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     PathNotFound, OperationNotFound,
 )
@@ -184,7 +182,7 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidContentType
+        assert type(result.errors[0]) == MediaTypeNotFound
         assert result.body is None
         assert result.parameters == RequestParameters(
             header={
@@ -463,7 +461,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidContentType
+        assert type(result.errors[0]) == MediaTypeNotFound
         assert result.data is None
         assert result.headers == {}
 

@@ -4,12 +4,12 @@ from six import iteritems
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.media_types.exceptions import InvalidContentType
 from openapi_core.schema.parameters.exceptions import (
     MissingRequiredParameter, MissingParameter,
 )
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.security.exceptions import SecurityError
+from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
@@ -154,8 +154,9 @@ class RequestValidator(BaseValidator):
             return None, []
 
         try:
-            media_type = operation.request_body[request.mimetype]
-        except InvalidContentType as exc:
+            media_type = self._get_media_type(
+                operation.request_body.content, request)
+        except MediaTypeFinderError as exc:
             return None, [exc, ]
 
         try:
