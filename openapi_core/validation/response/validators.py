@@ -1,11 +1,10 @@
 """OpenAPI core validation response validators module"""
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.responses.exceptions import (
-    InvalidResponse, MissingResponseContent,
-)
+from openapi_core.schema.responses.exceptions import MissingResponseContent
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
+from openapi_core.templating.responses.exceptions import ResponseFinderError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
@@ -27,7 +26,7 @@ class ResponseValidator(BaseValidator):
             operation_response = self._get_operation_response(
                 operation, response)
         # don't process if operation errors
-        except InvalidResponse as exc:
+        except ResponseFinderError as exc:
             return ResponseValidationResult(errors=[exc, ])
 
         data, data_errors = self._get_data(response, operation_response)
@@ -43,7 +42,9 @@ class ResponseValidator(BaseValidator):
         )
 
     def _get_operation_response(self, operation, response):
-        return operation.get_response(str(response.status_code))
+        from openapi_core.templating.responses.finders import ResponseFinder
+        finder = ResponseFinder(operation.responses)
+        return finder.find(str(response.status_code))
 
     def _validate_data(self, request, response):
         try:
@@ -56,7 +57,7 @@ class ResponseValidator(BaseValidator):
             operation_response = self._get_operation_response(
                 operation, response)
         # don't process if operation errors
-        except InvalidResponse as exc:
+        except ResponseFinderError as exc:
             return ResponseValidationResult(errors=[exc, ])
 
         data, data_errors = self._get_data(response, operation_response)
