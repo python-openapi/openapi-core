@@ -8,14 +8,13 @@ from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
-from openapi_core.schema.responses.exceptions import (
-    MissingResponseContent, InvalidResponse,
-)
+from openapi_core.schema.responses.exceptions import MissingResponseContent
 from openapi_core.shortcuts import create_spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     PathNotFound, OperationNotFound,
 )
+from openapi_core.templating.responses.exceptions import ResponseNotFound
 from openapi_core.testing import MockRequest, MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.exceptions import InvalidSecurity
@@ -450,7 +449,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidResponse
+        assert type(result.errors[0]) == ResponseNotFound
         assert result.data is None
         assert result.headers == {}
 

@@ -6,7 +6,7 @@ class TestLinkSpec(object):
     def test_no_param(self, factory):
         spec_dict = factory.spec_from_file("data/v3.0/links.yaml")
         spec = create_spec(spec_dict)
-        resp = spec['/status']['get'].get_response()
+        resp = spec['/status']['get'].responses['default']
 
         assert len(resp.links) == 1
 
@@ -20,7 +20,7 @@ class TestLinkSpec(object):
     def test_param(self, factory):
         spec_dict = factory.spec_from_file("data/v3.0/links.yaml")
         spec = create_spec(spec_dict)
-        resp = spec['/status/{resourceId}']['get'].get_response()
+        resp = spec['/status/{resourceId}']['get'].responses['default']
 
         assert len(resp.links) == 1
 
