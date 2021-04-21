@@ -26,7 +26,7 @@ class FalconOpenAPIRequestFactory:
             media = request.get_media(default_when_empty=default)
         else:
             media = request.media if request.media else default
-        # # Support falcon-jsonify.
+        # Support falcon-jsonify.
         body = (
             dumps(getattr(request, "json", media))
         )
