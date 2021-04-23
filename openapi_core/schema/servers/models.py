@@ -1,6 +1,8 @@
 """OpenAPI core servers models module"""
 from six import iteritems
 
+from openapi_core.schema.servers.utils import is_absolute
+
 
 class Server(object):
 
@@ -30,7 +32,7 @@ class Server(object):
     def is_absolute(self, url=None):
         if url is None:
             url = self.url
-        return url.startswith('//') or '://' in url
+        return is_absolute(url)
 
 
 class ServerVariable(object):

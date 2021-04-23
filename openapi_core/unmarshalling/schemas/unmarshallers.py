@@ -15,6 +15,9 @@ from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
 from openapi_core.schema.schemas.models import Schema
 from openapi_core.schema.schemas.types import NoValue
+from openapi_core.spec.schemas import (
+    get_all_properties, get_all_properties_names
+)
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError, InvalidSchemaValue,
@@ -40,7 +43,7 @@ class PrimitiveTypeUnmarshaller(object):
 
     def __call__(self, value=NoValue):
         if value is NoValue:
-            value = self.schema.default
+            value = self.schema.getkey('default')
         if value is None:
             return
 
@@ -51,21 +54,24 @@ class PrimitiveTypeUnmarshaller(object):
     def _formatter_validate(self, value):
         result = self.formatter.validate(value)
         if not result:
-            raise InvalidSchemaValue(value, self.schema.type)
+            schema_type = self.schema.getkey('type', 'any')
+            raise InvalidSchemaValue(value, schema_type)
 
     def validate(self, value):
         errors_iter = self.validator.iter_errors(value)
         errors = tuple(errors_iter)
         if errors:
+            schema_type = self.schema.getkey('type', 'any')
             raise InvalidSchemaValue(
-                value, self.schema.type, schema_errors=errors)
+                value, schema_type, schema_errors=errors)
 
     def unmarshal(self, value):
         try:
             return self.formatter.unmarshal(value)
         except ValueError as exc:
+            schema_format = self.schema.getkey('format')
             raise InvalidSchemaFormatValue(
-                value, self.schema.format, exc)
+                value, schema_format, exc)
 
 
 class StringUnmarshaller(PrimitiveTypeUnmarshaller):
@@ -140,11 +146,11 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
 
     @property
     def items_unmarshaller(self):
-        return self.unmarshallers_factory.create(self.schema.items)
+        return self.unmarshallers_factory.create(self.schema / 'items')
 
     def __call__(self, value=NoValue):
         value = super(ArrayUnmarshaller, self).__call__(value)
-        if value is None and self.schema.nullable:
+        if value is None and self.schema.getkey('nullable', False):
             return None
         return list(map(self.items_unmarshaller, value))
 
@@ -170,9 +176,9 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             return self._unmarshal_object(value)
 
     def _unmarshal_object(self, value=NoValue):
-        if self.schema.one_of:
+        if 'oneOf' in self.schema:
             properties = None
-            for one_of_schema in self.schema.one_of:
+            for one_of_schema in self.schema / 'oneOf':
                 try:
                     unmarshalled = self._unmarshal_properties(
                         value, one_of_schema)
@@ -190,46 +196,49 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         else:
             properties = self._unmarshal_properties(value)
 
-        if 'x-model' in self.schema.extensions:
-            extension = self.schema.extensions['x-model']
-            return self.model_factory.create(properties, name=extension.value)
+        if 'x-model' in self.schema:
+            name = self.schema['x-model']
+            return self.model_factory.create(properties, name=name)
 
         return properties
 
     def _unmarshal_properties(self, value=NoValue, one_of_schema=None):
-        all_props = self.schema.get_all_properties()
-        all_props_names = self.schema.get_all_properties_names()
+        all_props = get_all_properties(self.schema)
+        all_props_names = get_all_properties_names(self.schema)
 
         if one_of_schema is not None:
-            all_props.update(one_of_schema.get_all_properties())
-            all_props_names |= one_of_schema.\
-                get_all_properties_names()
+            all_props.update(get_all_properties(one_of_schema))
+            all_props_names |= get_all_properties_names(one_of_schema)
 
         value_props_names = value.keys()
         extra_props = set(value_props_names) - set(all_props_names)
 
         properties = {}
-        if isinstance(self.schema.additional_properties, Schema):
+        additional_properties = self.schema.getkey('additionalProperties', True)
+        if isinstance(additional_properties, dict):
+            additional_prop_schema = self.schema / 'additionalProperties'
             for prop_name in extra_props:
                 prop_value = value[prop_name]
                 properties[prop_name] = self.unmarshallers_factory.create(
-                    self.schema.additional_properties)(prop_value)
-        elif self.schema.additional_properties is True:
+                    additional_prop_schema)(prop_value)
+        elif additional_properties is True:
             for prop_name in extra_props:
                 prop_value = value[prop_name]
                 properties[prop_name] = prop_value
 
         for prop_name, prop in iteritems(all_props):
-            if self.context == UnmarshalContext.REQUEST and prop.read_only:
+            read_only = prop.getkey('readOnly', False)
+            if self.context == UnmarshalContext.REQUEST and read_only:
                 continue
-            if self.context == UnmarshalContext.RESPONSE and prop.write_only:
+            write_only = prop.getkey('writeOnly', False)
+            if self.context == UnmarshalContext.RESPONSE and write_only:
                 continue
             try:
                 prop_value = value[prop_name]
             except KeyError:
-                if prop.default is NoValue:
+                if 'default' not in prop:
                     continue
-                prop_value = prop.default
+                prop_value = prop['default']
 
             properties[prop_name] = self.unmarshallers_factory.create(
                 prop)(prop_value)
@@ -244,8 +253,8 @@ class AnyUnmarshaller(ComplexUnmarshaller):
     }
 
     SCHEMA_TYPES_ORDER = [
-        SchemaType.OBJECT, SchemaType.ARRAY, SchemaType.BOOLEAN,
-        SchemaType.INTEGER, SchemaType.NUMBER, SchemaType.STRING,
+        'object', 'array', 'boolean',
+        'integer', 'number', 'string',
     ]
 
     def unmarshal(self, value=NoValue):
@@ -272,9 +281,11 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         return value
 
     def _get_one_of_schema(self, value):
-        if not self.schema.one_of:
+        if 'oneOf' not in self.schema:
             return
-        for subschema in self.schema.one_of:
+
+        one_of_schemas = self.schema / 'oneOf'
+        for subschema in one_of_schemas:
             unmarshaller = self.unmarshallers_factory.create(subschema)
             try:
                 unmarshaller.validate(value)
@@ -284,10 +295,12 @@ class AnyUnmarshaller(ComplexUnmarshaller):
                 return subschema
 
     def _get_all_of_schema(self, value):
-        if not self.schema.all_of:
+        if 'allOf' not in self.schema:
             return
-        for subschema in self.schema.all_of:
-            if subschema.type == SchemaType.ANY:
+
+        all_of_schemas = self.schema / 'allOf'
+        for subschema in all_of_schemas:
+            if 'type' not in subschema:
                 continue
             unmarshaller = self.unmarshallers_factory.create(subschema)
             try:

@@ -9,6 +9,7 @@ from openapi_core.schema.parameters.exceptions import (
 )
 from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.security.exceptions import SecurityError
+from openapi_core.spec.parameters import get_aslist, get_explode
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
@@ -38,10 +39,17 @@ class RequestValidator(BaseValidator):
 
         request.parameters.path = request.parameters.path or \
             path_result.variables
+
+        operation_params = operation.get('parameters', [])
+        operation_params_iter = operation_params and \
+            iter(operation_params) or []
+        path_params = path.get('parameters', [])
+        params_params_iter = path_params and \
+            iter(path_params) or []
         params, params_errors = self._get_parameters(
             request, chain(
-                iteritems(operation.parameters),
-                iteritems(path.parameters)
+                operation_params_iter,
+                params_params_iter,
             )
         )
 
@@ -63,10 +71,17 @@ class RequestValidator(BaseValidator):
 
         request.parameters.path = request.parameters.path or \
             path_result.variables
+
+        operation_params = operation.get('parameters', [])
+        operation_params_iter = operation_params and \
+            iter(operation_params) or []
+        path_params = path.get('parameters', [])
+        params_params_iter = path_params and \
+            iter(path_params) or []
         params, params_errors = self._get_parameters(
             request, chain(
-                iteritems(operation.parameters),
-                iteritems(path.parameters)
+                operation_params_iter,
+                params_params_iter,
             )
         )
         return RequestValidationResult(
@@ -87,9 +102,11 @@ class RequestValidator(BaseValidator):
         )
 
     def _get_security(self, request, operation):
-        security = self.spec.security
-        if operation.security is not None:
-            security = operation.security
+        security = None
+        if 'security' in self.spec:
+            security = self.spec / 'security'
+        if 'security' in operation:
+            security = operation / 'security'
 
         if not security:
             return {}
@@ -99,7 +116,7 @@ class RequestValidator(BaseValidator):
                 return {
                     scheme_name: self._get_security_value(
                         scheme_name, request)
-                    for scheme_name in security_requirement
+                    for scheme_name in security_requirement.keys()
                 }
             except SecurityError:
                 continue
@@ -110,21 +127,26 @@ class RequestValidator(BaseValidator):
         errors = []
         seen = set()
         locations = {}
-        for param_name, param in params:
-            if (param_name, param.location.value) in seen:
+        for param in params:
+            param_name = param['name']
+            param_location = param['in']
+            if (param_name, param_location) in seen:
                 # skip parameter already seen
                 # e.g. overriden path item paremeter on operation
                 continue
-            seen.add((param_name, param.location.value))
+            seen.add((param_name, param_location))
             try:
                 raw_value = self._get_parameter_value(param, request)
             except MissingRequiredParameter as exc:
                 errors.append(exc)
                 continue
             except MissingParameter:
-                if not param.schema or not param.schema.has_default():
+                if 'schema' not in param:
                     continue
-                casted = param.schema.default
+                schema = param / 'schema'
+                if 'default' not in schema:
+                    continue
+                casted = schema['default']
             else:
                 try:
                     deserialised = self._deserialise_parameter(
@@ -144,28 +166,29 @@ class RequestValidator(BaseValidator):
             except (ValidateError, UnmarshalError) as exc:
                 errors.append(exc)
             else:
-                locations.setdefault(param.location.value, {})
-                locations[param.location.value][param_name] = unmarshalled
+                locations.setdefault(param_location, {})
+                locations[param_location][param_name] = unmarshalled
 
         return RequestParameters(**locations), errors
 
     def _get_body(self, request, operation):
-        if operation.request_body is None:
+        if not 'requestBody' in operation:
             return None, []
 
+        request_body = operation / 'requestBody'
         try:
-            media_type = self._get_media_type(
-                operation.request_body.content, request)
+            media_type, mimetype = self._get_media_type(
+                request_body / 'content', request)
         except MediaTypeFinderError as exc:
             return None, [exc, ]
 
         try:
-            raw_body = self._get_body_value(operation.request_body, request)
+            raw_body = self._get_body_value(request_body, request)
         except MissingRequestBody as exc:
             return None, [exc, ]
 
         try:
-            deserialised = self._deserialise_media_type(media_type, raw_body)
+            deserialised = self._deserialise_data(mimetype, raw_body)
         except DeserializeError as exc:
             return None, [exc, ]
 
@@ -182,33 +205,37 @@ class RequestValidator(BaseValidator):
         return body, []
 
     def _get_security_value(self, scheme_name, request):
-        scheme = self.spec.components.security_schemes.get(scheme_name)
-        if not scheme:
+        security_schemes = self.spec / 'components#securitySchemes'
+        if scheme_name not in security_schemes:
             return
-
+        scheme = security_schemes[scheme_name]
         from openapi_core.security.factories import SecurityProviderFactory
         security_provider_factory = SecurityProviderFactory()
         security_provider = security_provider_factory.create(scheme)
         return security_provider(request)
 
     def _get_parameter_value(self, param, request):
-        location = request.parameters[param.location.value]
+        param_location = param['in']
+        location = request.parameters[param_location]
 
-        if param.name not in location:
-            if param.required:
-                raise MissingRequiredParameter(param.name)
+        if param['name'] not in location:
+            if param.getkey('required', False):
+                raise MissingRequiredParameter(param['name'])
 
-            raise MissingParameter(param.name)
+            raise MissingParameter(param['name'])
 
-        if param.aslist and param.explode:
+        aslist = get_aslist(param)
+        explode = get_explode(param)
+        if aslist and explode:
             if hasattr(location, 'getall'):
-                return location.getall(param.name)
-            return location.getlist(param.name)
+                return location.getall(param['name'])
+            return location.getlist(param['name'])
 
-        return location[param.name]
+        return location[param['name']]
 
     def _get_body_value(self, request_body, request):
-        if not request.body and request_body.required:
+        required = request_body.getkey('required', False)
+        if not request.body and required:
             raise MissingRequestBody(request)
         return request.body
 

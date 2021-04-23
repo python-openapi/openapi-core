@@ -14,7 +14,7 @@ class PrimitiveCaster(object):
         try:
             return self.caster_callable(value)
         except (ValueError, TypeError):
-            raise CastError(value, self.schema.type.value)
+            raise CastError(value, self.schema['type'])
 
 
 class DummyCaster(object):
@@ -31,7 +31,7 @@ class ArrayCaster(object):
 
     @property
     def items_caster(self):
-        return self.casters_factory.create(self.schema.items)
+        return self.casters_factory.create(self.schema / 'items')
 
     def __call__(self, value):
         if value in (None, NoValue):

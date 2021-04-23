@@ -7,17 +7,15 @@ class ResponseFinder(object):
         self.responses = responses
 
     def find(self, http_status='default'):
-        try:
-            return self.responses[http_status]
-        except KeyError:
-            pass
+        if http_status in self.responses:
+            return self.responses / http_status
 
         # try range
         http_status_range = '{0}XX'.format(http_status[0])
         if http_status_range in self.responses:
-            return self.responses[http_status_range]
+            return self.responses / http_status_range
 
         if 'default' not in self.responses:
             raise ResponseNotFound(http_status, self.responses)
 
-        return self.responses['default']
+        return self.responses / 'default'

@@ -43,7 +43,7 @@ class ResponseValidator(BaseValidator):
 
     def _get_operation_response(self, operation, response):
         from openapi_core.templating.responses.finders import ResponseFinder
-        finder = ResponseFinder(operation.responses)
+        finder = ResponseFinder(operation / 'responses')
         return finder.find(str(response.status_code))
 
     def _validate_data(self, request, response):
@@ -67,12 +67,12 @@ class ResponseValidator(BaseValidator):
         )
 
     def _get_data(self, response, operation_response):
-        if not operation_response.content:
+        if 'content' not in operation_response:
             return None, []
 
         try:
-            media_type = self._get_media_type(
-                operation_response.content, response)
+            media_type, mimetype = self._get_media_type(
+                operation_response / 'content', response)
         except MediaTypeFinderError as exc:
             return None, [exc, ]
 
@@ -82,7 +82,7 @@ class ResponseValidator(BaseValidator):
             return None, [exc, ]
 
         try:
-            deserialised = self._deserialise_media_type(media_type, raw_data)
+            deserialised = self._deserialise_data(mimetype, raw_data)
         except DeserializeError as exc:
             return None, [exc, ]
 

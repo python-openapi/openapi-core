@@ -6,31 +6,32 @@ class TestLinkSpec(object):
     def test_no_param(self, factory):
         spec_dict = factory.spec_from_file("data/v3.0/links.yaml")
         spec = create_spec(spec_dict)
-        resp = spec['/status']['get'].responses['default']
+        resp = spec / 'paths#/status#get#responses#default'
 
-        assert len(resp.links) == 1
+        links = resp / 'links'
+        assert len(links) == 1
 
-        link = resp.links['noParamLink']
-
-        assert link.operationId == 'noParOp'
-        assert link.server is None
-        assert link.request_body is None
-        assert len(link.parameters) == 0
+        link = links / 'noParamLink'
+        assert link['operationId'] == 'noParOp'
+        assert 'server' not in link
+        assert 'requestBody' not in link
+        assert 'parameters' not in link
 
     def test_param(self, factory):
         spec_dict = factory.spec_from_file("data/v3.0/links.yaml")
         spec = create_spec(spec_dict)
-        resp = spec['/status/{resourceId}']['get'].responses['default']
+        resp = spec / 'paths#/status/{resourceId}#get#responses#default'
 
-        assert len(resp.links) == 1
+        links = resp / 'links'
+        assert len(links) == 1
 
-        link = resp.links['paramLink']
+        link = links / 'paramLink'
+        assert link['operationId'] == 'paramOp'
+        assert 'server' not in link
+        assert link['requestBody'] == 'test'
 
-        assert link.operationId == 'paramOp'
-        assert link.server is None
-        assert link.request_body == 'test'
-        assert len(link.parameters) == 1
+        parameters = link['parameters']
+        assert len(parameters) == 1
 
-        param = link.parameters['opParam']
-
+        param = parameters['opParam']
         assert param == '$request.path.resourceId'

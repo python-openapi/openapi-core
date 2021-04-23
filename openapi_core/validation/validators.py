@@ -26,36 +26,38 @@ class BaseValidator(object):
         finder = MediaTypeFinder(content)
         return finder.find(request_or_response)
 
-    def _deserialise_media_type(self, media_type, value):
+    def _deserialise_data(self, mimetype, value):
         from openapi_core.deserializing.media_types.factories import (
             MediaTypeDeserializersFactory,
         )
         deserializers_factory = MediaTypeDeserializersFactory(
             self.custom_media_type_deserializers)
-        deserializer = deserializers_factory.create(media_type)
+        deserializer = deserializers_factory.create(mimetype)
         return deserializer(value)
 
     def _cast(self, param_or_media_type, value):
         # return param_or_media_type.cast(value)
-        if not param_or_media_type.schema:
+        if not 'schema' in param_or_media_type:
             return value
 
         from openapi_core.casting.schemas.factories import SchemaCastersFactory
         casters_factory = SchemaCastersFactory()
-        caster = casters_factory.create(param_or_media_type.schema)
+        schema = param_or_media_type / 'schema'
+        caster = casters_factory.create(schema)
         return caster(value)
 
     def _unmarshal(self, param_or_media_type, value, context):
-        if not param_or_media_type.schema:
+        if not 'schema' in param_or_media_type:
             return value
 
         from openapi_core.unmarshalling.schemas.factories import (
             SchemaUnmarshallersFactory,
         )
+        spec_resolver = self.spec.accessor.dereferencer.resolver_manager.resolver
         unmarshallers_factory = SchemaUnmarshallersFactory(
-            self.spec._resolver, self.format_checker,
+            spec_resolver, self.format_checker,
             self.custom_formatters, context=context,
         )
-        unmarshaller = unmarshallers_factory.create(
-            param_or_media_type.schema)
+        schema = param_or_media_type / 'schema'
+        unmarshaller = unmarshallers_factory.create(schema)
         return unmarshaller(value)

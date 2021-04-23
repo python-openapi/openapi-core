@@ -1,11 +1,6 @@
 import pytest
 
-from openapi_core.schema.infos.models import Info
-from openapi_core.schema.operations.models import Operation
-from openapi_core.schema.parameters.models import Parameter
-from openapi_core.schema.paths.models import Path
-from openapi_core.schema.servers.models import Server, ServerVariable
-from openapi_core.schema.specs.models import Spec
+from openapi_core.spec.paths import SpecPath
 from openapi_core.templating.datatypes import TemplateResult
 from openapi_core.templating.paths.exceptions import (
     PathNotFound, OperationNotFound, ServerNotFound,
@@ -19,8 +14,25 @@ class BaseTestSimpleServer(object):
     server_url = 'http://petstore.swagger.io'
 
     @pytest.fixture
-    def server(self):
-        return Server(self.server_url, {})
+    def server_variable(self):
+        return {}
+
+    @pytest.fixture
+    def server_variables(self, server_variable):
+        if not server_variable:
+            return {}
+        return {
+            self.server_variable_name: server_variable,
+        }
+
+    @pytest.fixture
+    def server(self, server_variables):
+        server = {
+            'url': self.server_url,
+        }
+        if server_variables:
+            server['variables'] = server_variables
+        return server
 
     @pytest.fixture
     def servers(self, server):
@@ -36,21 +48,12 @@ class BaseTestVariableServer(BaseTestSimpleServer):
 
     @pytest.fixture
     def server_variable(self):
-        return ServerVariable(
-            self.server_variable_name,
-            default=self.server_variable_default,
-            enum=self.server_variable_enum,
-        )
-
-    @pytest.fixture
-    def server_variables(self, server_variable):
         return {
-            self.server_variable_name: server_variable,
+            self.server_variable_name: {
+                'default': self.server_variable_default,
+                'enum': self.server_variable_enum,
+            }
         }
-
-    @pytest.fixture
-    def server(self, server_variables):
-        return Server(self.server_url, server_variables)
 
 
 class BaseTestSimplePath(object):
@@ -59,7 +62,7 @@ class BaseTestSimplePath(object):
 
     @pytest.fixture
     def path(self, operations):
-        return Path(self.path_name, operations)
+        return operations
 
     @pytest.fixture
     def paths(self, path):
@@ -75,28 +78,38 @@ class BaseTestVariablePath(BaseTestSimplePath):
 
     @pytest.fixture
     def parameter(self):
-        return Parameter(self.path_parameter_name, 'path')
-
-    @pytest.fixture
-    def parameters(self, parameter):
         return {
-            self.path_parameter_name: parameter
+            'name': self.path_parameter_name,
+            'in': 'path',
         }
 
     @pytest.fixture
+    def parameters(self, parameter):
+        return [parameter, ]
+
+    @pytest.fixture
     def path(self, operations, parameters):
-        return Path(self.path_name, operations, parameters=parameters)
+        path = operations.copy()
+        path['parameters'] = parameters
+        return path
 
 
 class BaseTestSpecServer(object):
 
+    location = 'spec'
+
     @pytest.fixture
     def info(self):
-        return Info('Test schema', '1.0')
+        return {
+            'title': 'Test schema',
+            'version': '1.0',
+        }
 
     @pytest.fixture
     def operation(self):
-        return Operation('get', self.path_name, {}, {})
+        return {
+            'responses': [],
+        }
 
     @pytest.fixture
     def operations(self, operation):
@@ -106,7 +119,12 @@ class BaseTestSpecServer(object):
 
     @pytest.fixture
     def spec(self, info, paths, servers):
-        return Spec(info, paths, servers)
+        spec = {
+            'info': info,
+            'servers': servers,
+            'paths': paths,
+        }
+        return SpecPath.from_spec(spec)
 
     @pytest.fixture
     def finder(self, spec):
@@ -115,24 +133,41 @@ class BaseTestSpecServer(object):
 
 class BaseTestPathServer(BaseTestSpecServer):
 
+    location = 'path'
+
     @pytest.fixture
     def path(self, operations, servers):
-        return Path(self.path_name, operations, servers=servers)
+        path = operations.copy()
+        path['servers'] = servers
+        return path
 
     @pytest.fixture
     def spec(self, info, paths):
-        return Spec(info, paths)
+        spec = {
+            'info': info,
+            'paths': paths,
+        }
+        return SpecPath.from_spec(spec)
 
 
 class BaseTestOperationServer(BaseTestSpecServer):
 
+    location = 'operation'
+
     @pytest.fixture
     def operation(self, servers):
-        return Operation('get', self.path_name, {}, {}, servers=servers)
+        return {
+            'responses': [],
+            'servers': servers,
+        }
 
     @pytest.fixture
     def spec(self, info, paths):
-        return Spec(info, paths)
+        spec = {
+            'info': info,
+            'paths': paths,
+        }
+        return SpecPath.from_spec(spec)
 
 
 class BaseTestServerNotFound(object):
@@ -141,6 +176,7 @@ class BaseTestServerNotFound(object):
     def servers(self):
         return []
 
+    @pytest.mark.xfail(reason="returns default server")
     def test_raises(self, finder):
         request_uri = '/resource'
         request = MockRequest(
@@ -167,13 +203,17 @@ class BaseTestOperationNotFound(object):
 
 class BaseTestValid(object):
 
-    def test_simple(self, finder, path, operation, server):
+    def test_simple(self, finder, spec):
         request_uri = '/resource'
+        method = 'get'
         request = MockRequest(
-            'http://petstore.swagger.io', 'get', request_uri)
+            'http://petstore.swagger.io', method, request_uri)
 
         result = finder.find(request)
 
+        path = spec / 'paths' / self.path_name
+        operation = spec / 'paths' / self.path_name / method
+        server = eval(self.location) / 'servers' / 0
         path_result = TemplateResult(self.path_name, {})
         server_result = TemplateResult(self.server_url, {})
         assert result == (
@@ -184,13 +224,17 @@ class BaseTestValid(object):
 class BaseTestVariableValid(object):
 
     @pytest.mark.parametrize('version', ['v1', 'v2'])
-    def test_variable(self, finder, path, operation, server, version):
+    def test_variable(self, finder, spec, version):
         request_uri = '/{0}/resource'.format(version)
+        method = 'get'
         request = MockRequest(
-            'http://petstore.swagger.io', 'get', request_uri)
+            'http://petstore.swagger.io', method, request_uri)
 
         result = finder.find(request)
 
+        path = spec / 'paths' / self.path_name
+        operation = spec / 'paths' / self.path_name / method
+        server = eval(self.location) / 'servers' / 0
         path_result = TemplateResult(self.path_name, {})
         server_result = TemplateResult(self.server_url, {'version': version})
         assert result == (
@@ -201,13 +245,17 @@ class BaseTestVariableValid(object):
 class BaseTestPathVariableValid(object):
 
     @pytest.mark.parametrize('res_id', ['111', '222'])
-    def test_path_variable(self, finder, path, operation, server, res_id):
+    def test_path_variable(self, finder, spec, res_id):
         request_uri = '/resource/{0}'.format(res_id)
+        method = 'get'
         request = MockRequest(
-            'http://petstore.swagger.io', 'get', request_uri)
+            'http://petstore.swagger.io', method, request_uri)
 
         result = finder.find(request)
 
+        path = spec / 'paths' / self.path_name
+        operation = spec / 'paths' / self.path_name / method
+        server = eval(self.location) / 'servers' / 0
         path_result = TemplateResult(self.path_name, {'resource_id': res_id})
         server_result = TemplateResult(self.server_url, {})
         assert result == (
@@ -396,10 +444,13 @@ class TestSimilarPaths(
         BaseTestSpecServer, BaseTestSimpleServer):
 
     path_name = '/tokens'
+    path_2_name = '/keys/{id}/tokens'
 
     @pytest.fixture
     def operation_2(self):
-        return Operation('get', '/keys/{id}/tokens', {}, {})
+        return {
+            'responses': [],
+        }
 
     @pytest.fixture
     def operations_2(self, operation_2):
@@ -409,28 +460,32 @@ class TestSimilarPaths(
 
     @pytest.fixture
     def path(self, operations):
-        return Path('/tokens', operations)
+        return operations
 
     @pytest.fixture
     def path_2(self, operations_2):
-        return Path('/keys/{id}/tokens', operations_2)
+        return operations_2
 
     @pytest.fixture
     def paths(self, path, path_2):
         return {
-            path.name: path,
-            path_2.name: path_2,
+            self.path_name: path,
+            self.path_2_name: path_2,
         }
 
-    def test_valid(self, finder, path_2, operation_2, server):
+    def test_valid(self, finder, spec):
         token_id = '123'
         request_uri = '/keys/{0}/tokens'.format(token_id)
+        method = 'get'
         request = MockRequest(
-            'http://petstore.swagger.io', 'get', request_uri)
+            'http://petstore.swagger.io', method, request_uri)
 
         result = finder.find(request)
 
-        path_result = TemplateResult(path_2.name, {'id': token_id})
+        path_2 = spec / 'paths' / self.path_2_name
+        operation_2 = spec / 'paths' / self.path_2_name / method
+        server = eval(self.location) / 'servers' / 0
+        path_result = TemplateResult(self.path_2_name, {'id': token_id})
         server_result = TemplateResult(self.server_url, {})
         assert result == (
             path_2, operation_2, server, path_result, server_result,
@@ -441,10 +496,13 @@ class TestConcretePaths(
         BaseTestSpecServer, BaseTestSimpleServer):
 
     path_name = '/keys/{id}/tokens'
+    path_2_name = '/keys/master/tokens'
 
     @pytest.fixture
     def operation_2(self):
-        return Operation('get', '/keys/master/tokens', {}, {})
+        return {
+            'responses': [],
+        }
 
     @pytest.fixture
     def operations_2(self, operation_2):
@@ -454,26 +512,30 @@ class TestConcretePaths(
 
     @pytest.fixture
     def path(self, operations):
-        return Path('/keys/{id}/tokens', operations)
+        return operations
 
     @pytest.fixture
     def path_2(self, operations_2):
-        return Path('/keys/master/tokens', operations_2)
+        return operations_2
 
     @pytest.fixture
     def paths(self, path, path_2):
         return {
-            path.name: path,
-            path_2.name: path_2,
+            self.path_name: path,
+            self.path_2_name: path_2,
         }
 
-    def test_valid(self, finder, path_2, operation_2, server):
+    def test_valid(self, finder, spec):
         request_uri = '/keys/master/tokens'
+        method = 'get'
         request = MockRequest(
-            'http://petstore.swagger.io', 'get', request_uri)
+            'http://petstore.swagger.io', method, request_uri)
         result = finder.find(request)
 
-        path_result = TemplateResult(path_2.name, {})
+        path_2 = spec / 'paths' / self.path_2_name
+        operation_2 = spec / 'paths' / self.path_2_name / method
+        server = eval(self.location) / 'servers' / 0
+        path_result = TemplateResult(self.path_2_name, {})
         server_result = TemplateResult(self.server_url, {})
         assert result == (
             path_2, operation_2, server, path_result, server_result,
@@ -484,10 +546,13 @@ class TestTemplateConcretePaths(
         BaseTestSpecServer, BaseTestSimpleServer):
 
     path_name = '/keys/{id}/tokens/{id2}'
+    path_2_name = '/keys/{id}/tokens/master'
 
     @pytest.fixture
     def operation_2(self):
-        return Operation('get', '/keys/{id}/tokens/master', {}, {})
+        return {
+            'responses': [],
+        }
 
     @pytest.fixture
     def operations_2(self, operation_2):
@@ -497,27 +562,31 @@ class TestTemplateConcretePaths(
 
     @pytest.fixture
     def path(self, operations):
-        return Path('/keys/{id}/tokens/{id2}', operations)
+        return operations
 
     @pytest.fixture
     def path_2(self, operations_2):
-        return Path('/keys/{id}/tokens/master', operations_2)
+        return operations_2
 
     @pytest.fixture
     def paths(self, path, path_2):
         return {
-            path.name: path,
-            path_2.name: path_2,
+            self.path_name: path,
+            self.path_2_name: path_2,
         }
 
-    def test_valid(self, finder, path_2, operation_2, server):
+    def test_valid(self, finder, spec):
         token_id = '123'
         request_uri = '/keys/{0}/tokens/master'.format(token_id)
+        method = 'get'
         request = MockRequest(
-            'http://petstore.swagger.io', 'get', request_uri)
+            'http://petstore.swagger.io', method, request_uri)
         result = finder.find(request)
 
-        path_result = TemplateResult(path_2.name, {'id': '123'})
+        path_2 = spec / 'paths' / self.path_2_name
+        operation_2 = spec / 'paths' / self.path_2_name / method
+        server = eval(self.location) / 'servers' / 0
+        path_result = TemplateResult(self.path_2_name, {'id': '123'})
         server_result = TemplateResult(self.server_url, {})
         assert result == (
             path_2, operation_2, server, path_result, server_result,

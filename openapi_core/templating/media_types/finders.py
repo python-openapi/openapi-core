@@ -12,13 +12,11 @@ class MediaTypeFinder(object):
         self.content = content
 
     def find(self, request):
-        try:
-            return self.content[request.mimetype]
-        except KeyError:
-            pass
+        if request.mimetype in self.content:
+            return self.content / request.mimetype, request.mimetype
 
-        for key, value in iteritems(self.content):
+        for key, value in self.content.items():
             if fnmatch.fnmatch(request.mimetype, key):
-                return value
+                return value, key
 
         raise MediaTypeNotFound(request.mimetype, list(self.content.keys()))

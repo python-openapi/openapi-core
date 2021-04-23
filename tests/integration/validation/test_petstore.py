@@ -15,7 +15,6 @@ from openapi_core.extensions.models.models import BaseModel
 from openapi_core.schema.parameters.exceptions import (
     MissingRequiredParameter,
 )
-from openapi_core.schema.schemas.enums import SchemaType
 from openapi_core.shortcuts import (
     create_spec, validate_parameters, validate_body, validate_data,
 )
@@ -187,7 +186,7 @@ class TestPetstore(object):
         schema_errors = response_result.errors[0].schema_errors
         assert response_result.errors == [
             InvalidSchemaValue(
-                type=SchemaType.OBJECT,
+                type='object',
                 value=response_data_json,
                 schema_errors=schema_errors,
             ),
