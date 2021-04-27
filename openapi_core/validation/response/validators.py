@@ -1,4 +1,6 @@
 """OpenAPI core validation response validators module"""
+from __future__ import division
+
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.exceptions import MissingResponseContent

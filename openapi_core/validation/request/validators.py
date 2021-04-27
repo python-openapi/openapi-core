@@ -1,4 +1,5 @@
 """OpenAPI core validation request validators module"""
+from __future__ import division
 from itertools import chain
 from six import iteritems
 
@@ -8,7 +9,7 @@ from openapi_core.exceptions import (
     MissingRequiredParameter, MissingParameter, MissingRequestBody,
 )
 from openapi_core.security.exceptions import SecurityError
-from openapi_core.spec.parameters import get_aslist, get_explode
+from openapi_core.schema.parameters import get_aslist, get_explode
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext

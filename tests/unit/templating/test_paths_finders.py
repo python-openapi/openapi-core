@@ -1,3 +1,4 @@
+from __future__ import division
 import pytest
 
 from openapi_core.spec.paths import SpecPath

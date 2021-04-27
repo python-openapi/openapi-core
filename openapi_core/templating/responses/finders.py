@@ -1,3 +1,5 @@
+from __future__ import division
+
 from openapi_core.templating.responses.exceptions import ResponseNotFound
 
 

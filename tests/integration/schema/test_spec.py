@@ -1,10 +1,11 @@
+from __future__ import division
 import pytest
 from base64 import b64encode
 from six import iteritems, text_type
 
 from openapi_core.shortcuts import create_spec
-from openapi_core.spec.servers import get_server_url
-from openapi_core.spec.specs import get_spec_url
+from openapi_core.schema.servers import get_server_url
+from openapi_core.schema.specs import get_spec_url
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 

@@ -1,4 +1,6 @@
-from openapi_core.spec.servers import get_server_url
+from __future__ import division
+
+from openapi_core.schema.servers import get_server_url
 
 
 def get_spec_url(spec, index=0):

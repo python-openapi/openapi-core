@@ -1,4 +1,5 @@
 """OpenAPI core templating media types finders module"""
+from __future__ import division
 import fnmatch
 
 from six import iteritems

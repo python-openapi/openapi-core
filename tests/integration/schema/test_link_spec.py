@@ -1,3 +1,5 @@
+from __future__ import division
+
 from openapi_core.shortcuts import create_spec
 
 

@@ -2,7 +2,7 @@ from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
     EmptyParameterValue,
 )
-from openapi_core.spec.parameters import get_aslist, get_explode, get_style
+from openapi_core.schema.parameters import get_aslist, get_explode, get_style
 
 
 class PrimitiveDeserializer(object):

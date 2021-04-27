@@ -1,3 +1,4 @@
+from __future__ import division
 from functools import partial
 import logging
 
@@ -12,7 +13,7 @@ from six import text_type, binary_type
 from six import iteritems
 
 from openapi_core.extensions.models.factories import ModelFactory
-from openapi_core.spec.schemas import (
+from openapi_core.schema.schemas import (
     get_all_properties, get_all_properties_names
 )
 from openapi_core.types import NoValue

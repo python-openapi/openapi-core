@@ -1,4 +1,6 @@
 """OpenAPI core validation validators module"""
+from __future__ import division
+
 from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 
