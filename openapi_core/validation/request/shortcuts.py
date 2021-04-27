@@ -1,12 +1,10 @@
 """OpenAPI core validation request shortcuts module"""
 import warnings
 
-from openapi_core.schema.media_types.exceptions import OpenAPIMediaTypeError
-from openapi_core.schema.parameters.exceptions import OpenAPIParameterError
-from openapi_core.schema.request_bodies.exceptions import (
-    OpenAPIRequestBodyError,
+from openapi_core.exceptions import (
+    OpenAPIMediaTypeError, OpenAPIParameterError, OpenAPIRequestBodyError,
+    OpenAPISchemaError,
 )
-from openapi_core.schema.schemas.exceptions import OpenAPISchemaError
 from openapi_core.validation.request.validators import RequestValidator
 
 ERRORS_BODY = (

@@ -12,9 +12,7 @@ from openapi_core.deserializing.parameters.exceptions import (
     EmptyParameterValue,
 )
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.schema.parameters.exceptions import (
-    MissingRequiredParameter,
-)
+from openapi_core.exceptions import MissingRequiredParameter
 from openapi_core.shortcuts import (
     create_spec, validate_parameters, validate_body, validate_data,
 )

@@ -1,5 +1,5 @@
 from openapi_core.casting.schemas.exceptions import CastError
-from openapi_core.schema.schemas.types import NoValue
+from openapi_core.types import NoValue
 
 
 class PrimitiveCaster(object):

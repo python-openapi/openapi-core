@@ -4,7 +4,7 @@ import mock
 import pytest
 
 from openapi_core.extensions.models.models import Model
-from openapi_core.schema.schemas.exceptions import OpenAPISchemaError
+from openapi_core.exceptions import OpenAPISchemaError
 from openapi_core.spec.paths import SpecPath
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,

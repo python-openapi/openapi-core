@@ -2,7 +2,6 @@ from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
     EmptyParameterValue,
 )
-from openapi_core.schema.parameters.enums import ParameterLocation
 from openapi_core.spec.parameters import get_aslist, get_explode, get_style
 
 

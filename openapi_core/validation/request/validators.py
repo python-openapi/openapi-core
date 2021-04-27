@@ -4,10 +4,9 @@ from six import iteritems
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.parameters.exceptions import (
-    MissingRequiredParameter, MissingParameter,
+from openapi_core.exceptions import (
+    MissingRequiredParameter, MissingParameter, MissingRequestBody,
 )
-from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
 from openapi_core.security.exceptions import SecurityError
 from openapi_core.spec.parameters import get_aslist, get_explode
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError

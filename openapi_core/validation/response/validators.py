@@ -1,7 +1,7 @@
 """OpenAPI core validation response validators module"""
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.responses.exceptions import MissingResponseContent
+from openapi_core.exceptions import MissingResponseContent
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.responses.exceptions import ResponseFinderError

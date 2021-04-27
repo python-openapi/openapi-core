@@ -2,8 +2,6 @@ import warnings
 
 from openapi_schema_validator import OAS30Validator
 
-from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
-from openapi_core.schema.schemas.models import Schema
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
@@ -74,13 +72,11 @@ class SchemaUnmarshallersFactory(object):
 
         return klass(formatter, validator, **kwargs)
 
-    def get_formatter(self, default_formatters, type_format=SchemaFormat.NONE):
+    def get_formatter(self, default_formatters, type_format=None):
         try:
-            schema_format = SchemaFormat(type_format)
-        except ValueError:
-            return self.custom_formatters.get(type_format)
-        else:
-            return default_formatters.get(schema_format)
+            return self.custom_formatters[type_format]
+        except KeyError:
+            return default_formatters.get(type_format)
 
     def get_validator(self, schema):
         kwargs = {

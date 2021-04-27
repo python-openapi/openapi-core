@@ -12,12 +12,10 @@ from six import text_type, binary_type
 from six import iteritems
 
 from openapi_core.extensions.models.factories import ModelFactory
-from openapi_core.schema.schemas.enums import SchemaFormat, SchemaType
-from openapi_core.schema.schemas.models import Schema
-from openapi_core.schema.schemas.types import NoValue
 from openapi_core.spec.schemas import (
     get_all_properties, get_all_properties_names
 )
+from openapi_core.types import NoValue
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError, InvalidSchemaValue,
@@ -77,20 +75,20 @@ class PrimitiveTypeUnmarshaller(object):
 class StringUnmarshaller(PrimitiveTypeUnmarshaller):
 
     FORMATTERS = {
-        SchemaFormat.NONE: Formatter.from_callables(
+        None: Formatter.from_callables(
             partial(is_string, None), text_type),
-        SchemaFormat.PASSWORD: Formatter.from_callables(
+        'password': Formatter.from_callables(
             partial(oas30_format_checker.check, format='password'), text_type),
-        SchemaFormat.DATE: Formatter.from_callables(
+        'date': Formatter.from_callables(
             partial(oas30_format_checker.check, format='date'), format_date),
-        SchemaFormat.DATETIME: Formatter.from_callables(
+        'date-time': Formatter.from_callables(
             partial(oas30_format_checker.check, format='date-time'),
             parse_datetime),
-        SchemaFormat.BINARY: Formatter.from_callables(
+        'binary': Formatter.from_callables(
             partial(oas30_format_checker.check, format='binary'), binary_type),
-        SchemaFormat.UUID: Formatter.from_callables(
+        'uuid': Formatter.from_callables(
             partial(oas30_format_checker.check, format='uuid'), format_uuid),
-        SchemaFormat.BYTE: Formatter.from_callables(
+        'byte': Formatter.from_callables(
             partial(oas30_format_checker.check, format='byte'), format_byte),
     }
 
@@ -98,11 +96,11 @@ class StringUnmarshaller(PrimitiveTypeUnmarshaller):
 class IntegerUnmarshaller(PrimitiveTypeUnmarshaller):
 
     FORMATTERS = {
-        SchemaFormat.NONE: Formatter.from_callables(
+        None: Formatter.from_callables(
             partial(is_integer, None), int),
-        SchemaFormat.INT32: Formatter.from_callables(
+        'int32': Formatter.from_callables(
             partial(oas30_format_checker.check, format='int32'), int),
-        SchemaFormat.INT64: Formatter.from_callables(
+        'int64': Formatter.from_callables(
             partial(oas30_format_checker.check, format='int64'), int),
     }
 
@@ -110,11 +108,11 @@ class IntegerUnmarshaller(PrimitiveTypeUnmarshaller):
 class NumberUnmarshaller(PrimitiveTypeUnmarshaller):
 
     FORMATTERS = {
-        SchemaFormat.NONE: Formatter.from_callables(
+        None: Formatter.from_callables(
             partial(is_number, None), format_number),
-        SchemaFormat.FLOAT: Formatter.from_callables(
+        'float': Formatter.from_callables(
             partial(oas30_format_checker.check, format='float'), float),
-        SchemaFormat.DOUBLE: Formatter.from_callables(
+        'double': Formatter.from_callables(
             partial(oas30_format_checker.check, format='double'), float),
     }
 
@@ -122,7 +120,7 @@ class NumberUnmarshaller(PrimitiveTypeUnmarshaller):
 class BooleanUnmarshaller(PrimitiveTypeUnmarshaller):
 
     FORMATTERS = {
-        SchemaFormat.NONE: Formatter.from_callables(
+        None: Formatter.from_callables(
             partial(is_bool, None), forcebool),
     }
 
@@ -140,7 +138,7 @@ class ComplexUnmarshaller(PrimitiveTypeUnmarshaller):
 class ArrayUnmarshaller(ComplexUnmarshaller):
 
     FORMATTERS = {
-        SchemaFormat.NONE: Formatter.from_callables(
+        None: Formatter.from_callables(
             partial(is_array, None), list),
     }
 
@@ -158,7 +156,7 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
 class ObjectUnmarshaller(ComplexUnmarshaller):
 
     FORMATTERS = {
-        SchemaFormat.NONE: Formatter.from_callables(
+        None: Formatter.from_callables(
             partial(is_object, None), dict),
     }
 
@@ -249,7 +247,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 class AnyUnmarshaller(ComplexUnmarshaller):
 
     FORMATTERS = {
-        SchemaFormat.NONE: Formatter(),
+        None: Formatter(),
     }
 
     SCHEMA_TYPES_ORDER = [

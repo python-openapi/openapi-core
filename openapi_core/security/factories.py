@@ -1,4 +1,3 @@
-from openapi_core.schema.security_schemes.enums import SecuritySchemeType
 from openapi_core.security.providers import (
     ApiKeyProvider, HttpProvider, UnsupportedProvider,
 )

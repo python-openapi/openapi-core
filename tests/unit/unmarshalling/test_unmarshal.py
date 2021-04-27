@@ -4,8 +4,8 @@ import uuid
 from isodate.tzinfo import UTC, FixedOffset
 import pytest
 
-from openapi_core.schema.schemas.types import NoValue
 from openapi_core.spec.paths import SpecPath
+from openapi_core.types import NoValue
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     InvalidSchemaFormatValue, InvalidSchemaValue, UnmarshalError,
