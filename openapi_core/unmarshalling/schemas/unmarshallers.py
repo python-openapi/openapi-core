@@ -213,7 +213,8 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         extra_props = set(value_props_names) - set(all_props_names)
 
         properties = {}
-        additional_properties = self.schema.getkey('additionalProperties', True)
+        additional_properties = self.schema.getkey(
+            'additionalProperties', True)
         if isinstance(additional_properties, dict):
             additional_prop_schema = self.schema / 'additionalProperties'
             for prop_name in extra_props:

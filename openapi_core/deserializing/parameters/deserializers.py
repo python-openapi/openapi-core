@@ -16,7 +16,6 @@ class PrimitiveDeserializer(object):
         self.style = get_style(self.param)
 
     def __call__(self, value):
-        style = get_style(self.param)
         if (self.param['in'] == 'query' and value == "" and
                 not self.param.getkey('allowEmptyValue', False)):
             raise EmptyParameterValue(

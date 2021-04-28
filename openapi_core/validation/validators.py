@@ -39,7 +39,7 @@ class BaseValidator(object):
 
     def _cast(self, param_or_media_type, value):
         # return param_or_media_type.cast(value)
-        if not 'schema' in param_or_media_type:
+        if 'schema' not in param_or_media_type:
             return value
 
         from openapi_core.casting.schemas.factories import SchemaCastersFactory
@@ -49,13 +49,14 @@ class BaseValidator(object):
         return caster(value)
 
     def _unmarshal(self, param_or_media_type, value, context):
-        if not 'schema' in param_or_media_type:
+        if 'schema' not in param_or_media_type:
             return value
 
         from openapi_core.unmarshalling.schemas.factories import (
             SchemaUnmarshallersFactory,
         )
-        spec_resolver = self.spec.accessor.dereferencer.resolver_manager.resolver
+        spec_resolver = self.spec.accessor.dereferencer.resolver_manager.\
+            resolver
         unmarshallers_factory = SchemaUnmarshallersFactory(
             spec_resolver, self.format_checker,
             self.custom_formatters, context=context,

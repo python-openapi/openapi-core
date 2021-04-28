@@ -1,7 +1,6 @@
 """OpenAPI core validation request validators module"""
 from __future__ import division
 from itertools import chain
-from six import iteritems
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -172,7 +171,7 @@ class RequestValidator(BaseValidator):
         return RequestParameters(**locations), errors
 
     def _get_body(self, request, operation):
-        if not 'requestBody' in operation:
+        if 'requestBody' not in operation:
             return None, []
 
         request_body = operation / 'requestBody'

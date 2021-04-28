@@ -2,7 +2,6 @@
 from __future__ import division
 
 from more_itertools import peekable
-from six import iteritems
 from six.moves.urllib.parse import urljoin, urlparse
 
 from openapi_core.schema.servers import is_absolute

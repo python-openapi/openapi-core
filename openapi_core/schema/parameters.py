@@ -19,6 +19,6 @@ def get_explode(param):
     if 'explode' in param:
         return param['explode']
 
-    #determine default
+    # determine default
     style = get_style(param)
     return style == 'form'

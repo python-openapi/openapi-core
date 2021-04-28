@@ -2,8 +2,6 @@
 from __future__ import division
 import fnmatch
 
-from six import iteritems
-
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 
 
