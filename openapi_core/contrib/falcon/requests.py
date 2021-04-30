@@ -3,6 +3,7 @@ from json import dumps
 
 from werkzeug.datastructures import ImmutableMultiDict
 
+from openapi_core.contrib.falcon.compat import get_request_media
 from openapi_core.validation.request.datatypes import (
     OpenAPIRequest, RequestParameters,
 )
@@ -21,11 +22,7 @@ class FalconOpenAPIRequestFactory:
         # gets deduced by path finder against spec
         path = {}
 
-        # in falcon 3 we must hadle empty media or an exception will be raised
-        if hasattr(request, "get_media"):
-            media = request.get_media(default_when_empty=default)
-        else:
-            media = request.media if request.media else default
+        media = get_request_media(request, default=default)
         # Support falcon-jsonify.
         body = (
             dumps(getattr(request, "json", media))

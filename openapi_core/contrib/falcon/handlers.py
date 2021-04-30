@@ -5,6 +5,8 @@ from falcon.constants import MEDIA_JSON
 from falcon.status_codes import (
     HTTP_400, HTTP_404, HTTP_405, HTTP_415,
 )
+
+from openapi_core.contrib.falcon.compat import set_response_text
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     ServerNotFound, OperationNotFound, PathNotFound,
@@ -41,11 +43,7 @@ class FalconOpenAPIErrorsHandler(object):
         resp.content_type = MEDIA_JSON
         resp.status = cls.FALCON_STATUS_CODES.get(
             data_error_max['status'], HTTP_400)
-        # in falcon 3 body is deprecated
-        if hasattr(resp, 'text'):
-            resp.text = data_str
-        else:
-            resp.body = data_str
+        set_response_text(resp, data_str)
         resp.complete = True
 
     @classmethod
