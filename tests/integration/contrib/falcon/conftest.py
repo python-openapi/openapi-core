@@ -43,7 +43,7 @@ def response_factory(environ_factory):
             data, status_code=200, content_type='application/json'):
         options = ResponseOptions()
         resp = Response(options)
-        resp.text = data
+        resp.body = data
         resp.content_type = content_type
         resp.status = HTTP_200
         return resp
