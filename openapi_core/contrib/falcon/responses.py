@@ -13,8 +13,14 @@ class FalconOpenAPIResponseFactory(object):
         else:
             mimetype = response.options.default_media_type
 
+        # in falcon 3 body is deprecated
+        if hasattr(response, "text"):
+            data = response.text
+        else:
+            data = response.body
+
         return OpenAPIResponse(
-            data=response.body,
+            data=data,
             status_code=status_code,
             mimetype=mimetype,
         )

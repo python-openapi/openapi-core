@@ -1,6 +1,6 @@
 from json import dumps
 
-from falcon import API
+from falcon import App
 from falcon.testing import TestClient
 import pytest
 
@@ -24,7 +24,7 @@ class TestFalconOpenAPIMiddleware(object):
 
     @pytest.fixture
     def app(self, middleware):
-        return API(middleware=[middleware])
+        return App(middleware=[middleware])
 
     @pytest.yield_fixture
     def client(self, app):
@@ -67,7 +67,7 @@ class TestFalconOpenAPIMiddleware(object):
             })
             response.content_type = MEDIA_HTML
             response.status = HTTP_200
-            response.body = 'success'
+            response.text = 'success'
         self.view_response_callable = view_response_callable
         headers = {'Content-Type': 'application/json'}
         result = client.simulate_get(
@@ -190,7 +190,7 @@ class TestFalconOpenAPIMiddleware(object):
             })
             response.status = HTTP_200
             response.content_type = MEDIA_JSON
-            response.body = dumps({
+            response.text = dumps({
                 'data': 'data',
             })
         self.view_response_callable = view_response_callable

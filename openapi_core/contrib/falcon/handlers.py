@@ -36,11 +36,16 @@ class FalconOpenAPIErrorsHandler(object):
         data = {
             'errors': data_errors,
         }
+        data_str = dumps(data)
         data_error_max = max(data_errors, key=lambda x: x['status'])
         resp.content_type = MEDIA_JSON
         resp.status = cls.FALCON_STATUS_CODES.get(
             data_error_max['status'], HTTP_400)
-        resp.body = dumps(data)
+        # in falcon 3 body is deprecated
+        if hasattr(resp, 'text'):
+            resp.text = data_str
+        else:
+            resp.body = data_str
         resp.complete = True
 
     @classmethod
