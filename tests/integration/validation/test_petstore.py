@@ -1150,7 +1150,6 @@ class TestPetstore(object):
         rootCause = 'Tag already exist'
         additionalinfo = 'Tag Dog already exist'
         data_json = {
-            'code': code,
             'message': message,
             'correlationId': str(correlationId),
             'rootCause': rootCause,
