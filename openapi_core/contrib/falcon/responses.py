@@ -1,4 +1,5 @@
 """OpenAPI core contrib falcon responses module"""
+from openapi_core.contrib.falcon.compat import get_response_text
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
@@ -13,8 +14,10 @@ class FalconOpenAPIResponseFactory(object):
         else:
             mimetype = response.options.default_media_type
 
+        data = get_response_text(response)
+
         return OpenAPIResponse(
-            data=response.body,
+            data=data,
             status_code=status_code,
             mimetype=mimetype,
         )

@@ -1,6 +1,6 @@
 from json import dumps
 
-from falcon import API
+from falcon import API as App
 from falcon.testing import TestClient
 import pytest
 
@@ -24,7 +24,7 @@ class TestFalconOpenAPIMiddleware(object):
 
     @pytest.fixture
     def app(self, middleware):
-        return API(middleware=[middleware])
+        return App(middleware=[middleware])
 
     @pytest.yield_fixture
     def client(self, app):

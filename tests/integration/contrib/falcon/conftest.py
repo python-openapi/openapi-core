@@ -33,7 +33,6 @@ def request_factory(environ_factory, router):
         options = RequestOptions()
         # return create_req(options=options, **environ)
         req = Request(environ, options)
-        resource, method_map, params, req.uri_template = router.find(path, req)
         return req
     return create_request
 
