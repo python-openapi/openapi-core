@@ -5,7 +5,9 @@ pytest-cov==2.5.1
 falcon==2.0.0; python_version<"3.0"
 falcon==3.0.0; python_version>="3.0"
 flask
+django==1.11.29; python_version<"3.0"
 django==2.2.18; python_version>="3.0"
+djangorestframework==3.9.4
 requests==2.22.0
 responses==0.10.12
 webob
