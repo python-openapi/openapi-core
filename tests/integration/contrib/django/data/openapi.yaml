@@ -1,0 +1,26 @@
+openapi: '3.0.0'
+info:
+  version: '0.0.1'
+  title: Test Service
+paths:
+  '/test/{pk}':
+    get:
+      responses:
+        '200':
+          description: Default
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  test:
+                    type: string
+                required:
+                  - test
+      parameters:
+        - required: true
+          in: path
+          name: pk
+          schema:
+            type: integer
+            minimum: 1
