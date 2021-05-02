@@ -4,8 +4,7 @@ import mock
 import pytest
 
 from openapi_core.extensions.models.models import Model
-from openapi_core.schema.schemas.exceptions import OpenAPISchemaError
-from openapi_core.schema.schemas.models import Schema
+from openapi_core.spec.paths import SpecPath
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
@@ -31,7 +30,10 @@ class TestSchemaValidate(object):
         'boolean', 'array', 'integer', 'number', 'string',
     ])
     def test_null(self, schema_type, validator_factory):
-        schema = Schema(schema_type)
+        spec = {
+            'type': schema_type,
+        }
+        schema = SpecPath.from_spec(spec)
         value = None
 
         with pytest.raises(InvalidSchemaValue):
@@ -41,26 +43,35 @@ class TestSchemaValidate(object):
         'boolean', 'array', 'integer', 'number', 'string',
     ])
     def test_nullable(self, schema_type, validator_factory):
-        schema = Schema(schema_type, nullable=True)
+        spec = {
+            'type': schema_type,
+            'nullable': True,
+        }
+        schema = SpecPath.from_spec(spec)
         value = None
 
         result = validator_factory(schema).validate(value)
 
         assert result is None
 
-    @pytest.mark.xfail(
-        reason="validation does not care about custom formats atm")
     def test_string_format_custom_missing(self, validator_factory):
         custom_format = 'custom'
-        schema = Schema('string', schema_format=custom_format)
+        spec = {
+            'type': 'string',
+            'format': custom_format,
+        }
+        schema = SpecPath.from_spec(spec)
         value = 'x'
 
-        with pytest.raises(OpenAPISchemaError):
+        with pytest.raises(FormatterNotFoundError):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [False, True])
     def test_boolean(self, value, validator_factory):
-        schema = Schema('boolean')
+        spec = {
+            'type': 'boolean',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -68,21 +79,33 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [1, 3.14, u('true'), [True, False]])
     def test_boolean_invalid(self, value, validator_factory):
-        schema = Schema('boolean')
+        spec = {
+            'type': 'boolean',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [(1, 2)])
     def test_array_no_schema(self, value, validator_factory):
-        schema = Schema('array')
+        spec = {
+            'type': 'array',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [[1, 2]])
     def test_array(self, value, validator_factory):
-        schema = Schema('array', items=Schema('integer'))
+        spec = {
+            'type': 'array',
+            'items': {
+                'type': 'integer',
+            },
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -90,14 +113,20 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [False, 1, 3.14, u('true'), (3, 4)])
     def test_array_invalid(self, value, validator_factory):
-        schema = Schema('array')
+        spec = {
+            'type': 'array',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [1, 3])
     def test_integer(self, value, validator_factory):
-        schema = Schema('integer')
+        spec = {
+            'type': 'integer',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -105,21 +134,32 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [False, 3.14, u('true'), [1, 2]])
     def test_integer_invalid(self, value, validator_factory):
-        schema = Schema('integer')
+        spec = {
+            'type': 'integer',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [0, 1, 2])
     def test_integer_minimum_invalid(self, value, validator_factory):
-        schema = Schema('integer', minimum=3)
+        spec = {
+            'type': 'integer',
+            'minimum': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [4, 5, 6])
     def test_integer_minimum(self, value, validator_factory):
-        schema = Schema('integer', minimum=3)
+        spec = {
+            'type': 'integer',
+            'minimum': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -127,14 +167,22 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [4, 5, 6])
     def test_integer_maximum_invalid(self, value, validator_factory):
-        schema = Schema('integer', maximum=3)
+        spec = {
+            'type': 'integer',
+            'maximum': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [0, 1, 2])
     def test_integer_maximum(self, value, validator_factory):
-        schema = Schema('integer', maximum=3)
+        spec = {
+            'type': 'integer',
+            'maximum': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -142,14 +190,22 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [1, 2, 4])
     def test_integer_multiple_of_invalid(self, value, validator_factory):
-        schema = Schema('integer', multiple_of=3)
+        spec = {
+            'type': 'integer',
+            'multipleOf': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [3, 6, 18])
     def test_integer_multiple_of(self, value, validator_factory):
-        schema = Schema('integer', multiple_of=3)
+        spec = {
+            'type': 'integer',
+            'multipleOf': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -157,7 +213,10 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [1, 3.14])
     def test_number(self, value, validator_factory):
-        schema = Schema('number')
+        spec = {
+            'type': 'number',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -165,21 +224,32 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [False, 'true', [1, 3]])
     def test_number_invalid(self, value, validator_factory):
-        schema = Schema('number')
+        spec = {
+            'type': 'number',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [0, 1, 2])
     def test_number_minimum_invalid(self, value, validator_factory):
-        schema = Schema('number', minimum=3)
+        spec = {
+            'type': 'number',
+            'minimum': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [3, 4, 5])
     def test_number_minimum(self, value, validator_factory):
-        schema = Schema('number', minimum=3)
+        spec = {
+            'type': 'number',
+            'minimum': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -187,14 +257,24 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [1, 2, 3])
     def test_number_exclusive_minimum_invalid(self, value, validator_factory):
-        schema = Schema('number', minimum=3, exclusive_minimum=3)
+        spec = {
+            'type': 'number',
+            'minimum': 3,
+            'exclusiveMinimum': True,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [4, 5, 6])
     def test_number_exclusive_minimum(self, value, validator_factory):
-        schema = Schema('number', minimum=3)
+        spec = {
+            'type': 'number',
+            'minimum': 3,
+            'exclusiveMinimum': True,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -202,14 +282,22 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [4, 5, 6])
     def test_number_maximum_invalid(self, value, validator_factory):
-        schema = Schema('number', maximum=3)
+        spec = {
+            'type': 'number',
+            'maximum': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [1, 2, 3])
     def test_number_maximum(self, value, validator_factory):
-        schema = Schema('number', maximum=3)
+        spec = {
+            'type': 'number',
+            'maximum': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -217,14 +305,24 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [3, 4, 5])
     def test_number_exclusive_maximum_invalid(self, value, validator_factory):
-        schema = Schema('number', maximum=3, exclusive_maximum=True)
+        spec = {
+            'type': 'number',
+            'maximum': 3,
+            'exclusiveMaximum': True,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [0, 1, 2])
     def test_number_exclusive_maximum(self, value, validator_factory):
-        schema = Schema('number', maximum=3, exclusive_maximum=True)
+        spec = {
+            'type': 'number',
+            'maximum': 3,
+            'exclusiveMaximum': True,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -232,14 +330,22 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [1, 2, 4])
     def test_number_multiple_of_invalid(self, value, validator_factory):
-        schema = Schema('number', multiple_of=3)
+        spec = {
+            'type': 'number',
+            'multipleOf': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [3, 6, 18])
     def test_number_multiple_of(self, value, validator_factory):
-        schema = Schema('number', multiple_of=3)
+        spec = {
+            'type': 'number',
+            'multipleOf': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -247,7 +353,10 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [u('true'), b('test')])
     def test_string(self, value, validator_factory):
-        schema = Schema('string')
+        spec = {
+            'type': 'string',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -255,7 +364,10 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [False, 1, 3.14, [1, 3]])
     def test_string_invalid(self, value, validator_factory):
-        schema = Schema('string')
+        spec = {
+            'type': 'string',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -265,7 +377,11 @@ class TestSchemaValidate(object):
         datetime.datetime(1989, 1, 2),
     ])
     def test_string_format_date_invalid(self, value, validator_factory):
-        schema = Schema('string', schema_format='date')
+        spec = {
+            'type': 'string',
+            'format': 'date',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -274,7 +390,11 @@ class TestSchemaValidate(object):
         u('1989-01-02'), u('2018-01-02'),
     ])
     def test_string_format_date(self, value, validator_factory):
-        schema = Schema('string', schema_format='date')
+        spec = {
+            'type': 'string',
+            'format': 'date',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -284,7 +404,11 @@ class TestSchemaValidate(object):
         u('12345678-1234-5678-1234-567812345678'),
     ])
     def test_string_format_uuid(self, value, validator_factory):
-        schema = Schema('string', schema_format='uuid')
+        spec = {
+            'type': 'string',
+            'format': 'uuid',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -295,7 +419,11 @@ class TestSchemaValidate(object):
         datetime.date(2018, 1, 2), datetime.datetime(2018, 1, 2, 23, 59, 59),
     ])
     def test_string_format_uuid_invalid(self, value, validator_factory):
-        schema = Schema('string', schema_format='uuid')
+        spec = {
+            'type': 'string',
+            'format': 'uuid',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -305,7 +433,11 @@ class TestSchemaValidate(object):
         u('1989-01-02'),
     ])
     def test_string_format_datetime_invalid(self, value, validator_factory):
-        schema = Schema('string', schema_format='date-time')
+        spec = {
+            'type': 'string',
+            'format': 'date-time',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -324,7 +456,11 @@ class TestSchemaValidate(object):
     )
     def test_string_format_datetime_strict_rfc3339(
             self, value, validator_factory):
-        schema = Schema('string', schema_format='date-time')
+        spec = {
+            'type': 'string',
+            'format': 'date-time',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -343,7 +479,11 @@ class TestSchemaValidate(object):
         'DATETIME_HAS_ISODATE', True
     )
     def test_string_format_datetime_isodate(self, value, validator_factory):
-        schema = Schema('string', schema_format='date-time')
+        spec = {
+            'type': 'string',
+            'format': 'date-time',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -354,7 +494,11 @@ class TestSchemaValidate(object):
         u('1989-01-02T00:00:00Z'),
     ])
     def test_string_format_binary_invalid(self, value, validator_factory):
-        schema = Schema('string', schema_format='binary')
+        spec = {
+            'type': 'string',
+            'format': 'binary',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -363,7 +507,11 @@ class TestSchemaValidate(object):
         b('stream'), b('text'),
     ])
     def test_string_format_binary(self, value, validator_factory):
-        schema = Schema('string', schema_format='binary')
+        spec = {
+            'type': 'string',
+            'format': 'binary',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -373,7 +521,11 @@ class TestSchemaValidate(object):
         b('dGVzdA=='), u('dGVzdA=='),
     ])
     def test_string_format_byte(self, value, validator_factory):
-        schema = Schema('string', schema_format='byte')
+        spec = {
+            'type': 'string',
+            'format': 'byte',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -383,7 +535,11 @@ class TestSchemaValidate(object):
         u('tsssst'), b('tsssst'), b('tesddddsdsdst'),
     ])
     def test_string_format_byte_invalid(self, value, validator_factory):
-        schema = Schema('string', schema_format='byte')
+        spec = {
+            'type': 'string',
+            'format': 'byte',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -394,21 +550,33 @@ class TestSchemaValidate(object):
     ])
     def test_string_format_unknown(self, value, validator_factory):
         unknown_format = 'unknown'
-        schema = Schema('string', schema_format=unknown_format)
+        spec = {
+            'type': 'string',
+            'format': unknown_format,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(FormatterNotFoundError):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [u(""), u("a"), u("ab")])
     def test_string_min_length_invalid(self, value, validator_factory):
-        schema = Schema('string', min_length=3)
+        spec = {
+            'type': 'string',
+            'minLength': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [u("abc"), u("abcd")])
     def test_string_min_length(self, value, validator_factory):
-        schema = Schema('string', min_length=3)
+        spec = {
+            'type': 'string',
+            'minLength': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -416,21 +584,33 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [u(""), ])
     def test_string_max_length_invalid_schema(self, value, validator_factory):
-        schema = Schema('string', max_length=-1)
+        spec = {
+            'type': 'string',
+            'maxLength': -1,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [u("ab"), u("abc")])
     def test_string_max_length_invalid(self, value, validator_factory):
-        schema = Schema('string', max_length=1)
+        spec = {
+            'type': 'string',
+            'maxLength': 1,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [u(""), u("a")])
     def test_string_max_length(self, value, validator_factory):
-        schema = Schema('string', max_length=1)
+        spec = {
+            'type': 'string',
+            'maxLength': 1,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -438,14 +618,22 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [u("foo"), u("bar")])
     def test_string_pattern_invalid(self, value, validator_factory):
-        schema = Schema('string', pattern='baz')
+        spec = {
+            'type': 'string',
+            'pattern': 'baz',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [u("bar"), u("foobar")])
     def test_string_pattern(self, value, validator_factory):
-        schema = Schema('string', pattern='bar')
+        spec = {
+            'type': 'string',
+            'pattern': 'bar',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -453,7 +641,10 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', ['true', False, 1, 3.14, [1, 3]])
     def test_object_not_an_object(self, value, validator_factory):
-        schema = Schema('object')
+        spec = {
+            'type': 'object',
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -461,9 +652,18 @@ class TestSchemaValidate(object):
     @pytest.mark.parametrize('value', [Model(), ])
     def test_object_multiple_one_of(self, value, validator_factory):
         one_of = [
-            Schema('object'), Schema('object'),
+            {
+                'type': 'object',
+            },
+            {
+                'type': 'object',
+            },
         ]
-        schema = Schema('object', one_of=one_of)
+        spec = {
+            'type': 'object',
+            'oneOf': one_of,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -471,9 +671,18 @@ class TestSchemaValidate(object):
     @pytest.mark.parametrize('value', [{}, ])
     def test_object_different_type_one_of(self, value, validator_factory):
         one_of = [
-            Schema('integer'), Schema('string'),
+            {
+                'type': 'integer',
+            },
+            {
+                'type': 'string',
+            },
         ]
-        schema = Schema('object', one_of=one_of)
+        spec = {
+            'type': 'object',
+            'oneOf': one_of,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -481,18 +690,30 @@ class TestSchemaValidate(object):
     @pytest.mark.parametrize('value', [{}, ])
     def test_object_no_one_of(self, value, validator_factory):
         one_of = [
-            Schema(
-                'object',
-                properties={'test1': Schema('string')},
-                required=['test1', ],
-            ),
-            Schema(
-                'object',
-                properties={'test2': Schema('string')},
-                required=['test2', ],
-            ),
+            {
+                'type': 'object',
+                'required': ['test1', ],
+                'properties': {
+                    'test1': {
+                        'type': 'string',
+                    },
+                },
+            },
+            {
+                'type': 'object',
+                'required': ['test2', ],
+                'properties': {
+                    'test2': {
+                        'type': 'string',
+                    },
+                },
+            },
         ]
-        schema = Schema('object', one_of=one_of)
+        spec = {
+            'type': 'object',
+            'oneOf': one_of,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -508,25 +729,35 @@ class TestSchemaValidate(object):
     ])
     def test_unambiguous_one_of(self, value, validator_factory):
         one_of = [
-            Schema(
-                'object',
-                properties={
-                    'foo': Schema('string'),
+            {
+                'type': 'object',
+                'required': ['foo', ],
+                'properties': {
+                    'foo': {
+                        'type': 'string',
+                    },
                 },
-                additional_properties=False,
-                required=['foo'],
-            ),
-            Schema(
-                'object',
-                properties={
-                    'foo': Schema('string'),
-                    'bar': Schema('string'),
+                'additionalProperties': False,
+            },
+            {
+                'type': 'object',
+                'required': ['foo', 'bar'],
+                'properties': {
+                    'foo': {
+                        'type': 'string',
+                    },
+                    'bar': {
+                        'type': 'string',
+                    },
                 },
-                additional_properties=False,
-                required=['foo', 'bar'],
-            ),
+                'additionalProperties': False,
+            },
         ]
-        schema = Schema('object', one_of=one_of)
+        spec = {
+            'type': 'object',
+            'oneOf': one_of,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -534,7 +765,11 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [{}, ])
     def test_object_default_property(self, value, validator_factory):
-        schema = Schema('object', default='value1')
+        spec = {
+            'type': 'object',
+            'default': 'value1',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -543,7 +778,11 @@ class TestSchemaValidate(object):
     @pytest.mark.parametrize('value', [{}, ])
     def test_object_min_properties_invalid_schema(
             self, value, validator_factory):
-        schema = Schema('object', min_properties=2)
+        spec = {
+            'type': 'object',
+            'minProperties': 2,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -554,12 +793,15 @@ class TestSchemaValidate(object):
         {'a': 1, 'b': 2, 'c': 3},
     ])
     def test_object_min_properties_invalid(self, value, validator_factory):
-        schema = Schema(
-            'object',
-            properties={k: Schema('number')
-                        for k in ['a', 'b', 'c']},
-            min_properties=4,
-        )
+        spec = {
+            'type': 'object',
+            'properties': {
+                k: {'type': 'number'}
+                for k in ['a', 'b', 'c']
+            },
+            'minProperties': 4,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -570,13 +812,15 @@ class TestSchemaValidate(object):
         {'a': 1, 'b': 2, 'c': 3},
     ])
     def test_object_min_properties(self, value, validator_factory):
-        schema = Schema(
-            'object',
-            properties={k: Schema('number')
-                        for k in ['a', 'b', 'c']},
-            min_properties=1,
-        )
-
+        spec = {
+            'type': 'object',
+            'properties': {
+                k: {'type': 'number'}
+                for k in ['a', 'b', 'c']
+            },
+            'minProperties': 1,
+        }
+        schema = SpecPath.from_spec(spec)
         result = validator_factory(schema).validate(value)
 
         assert result is None
@@ -584,7 +828,11 @@ class TestSchemaValidate(object):
     @pytest.mark.parametrize('value', [{}, ])
     def test_object_max_properties_invalid_schema(
             self, value, validator_factory):
-        schema = Schema('object', max_properties=-1)
+        spec = {
+            'type': 'object',
+            'maxProperties': -1,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -595,12 +843,15 @@ class TestSchemaValidate(object):
         {'a': 1, 'b': 2, 'c': 3},
     ])
     def test_object_max_properties_invalid(self, value, validator_factory):
-        schema = Schema(
-            'object',
-            properties={k: Schema('number')
-                        for k in ['a', 'b', 'c']},
-            max_properties=0,
-        )
+        spec = {
+            'type': 'object',
+            'properties': {
+                k: {'type': 'number'}
+                for k in ['a', 'b', 'c']
+            },
+            'maxProperties': 0,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -611,12 +862,15 @@ class TestSchemaValidate(object):
         {'a': 1, 'b': 2, 'c': 3},
     ])
     def test_object_max_properties(self, value, validator_factory):
-        schema = Schema(
-            'object',
-            properties={k: Schema('number')
-                        for k in ['a', 'b', 'c']},
-            max_properties=3,
-        )
+        spec = {
+            'type': 'object',
+            'properties': {
+                k: {'type': 'number'}
+                for k in ['a', 'b', 'c']
+            },
+            'maxProperties': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -624,7 +878,10 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [{'additional': 1}, ])
     def test_object_additional_properties(self, value, validator_factory):
-        schema = Schema('object')
+        spec = {
+            'type': 'object',
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -633,7 +890,11 @@ class TestSchemaValidate(object):
     @pytest.mark.parametrize('value', [{'additional': 1}, ])
     def test_object_additional_properties_false(
             self, value, validator_factory):
-        schema = Schema('object', additional_properties=False)
+        spec = {
+            'type': 'object',
+            'additionalProperties': False,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
@@ -641,8 +902,14 @@ class TestSchemaValidate(object):
     @pytest.mark.parametrize('value', [{'additional': 1}, ])
     def test_object_additional_properties_object(
             self, value, validator_factory):
-        additional_properties = Schema('integer')
-        schema = Schema('object', additional_properties=additional_properties)
+        additional_properties = {
+            'type': 'integer',
+        }
+        spec = {
+            'type': 'object',
+            'additionalProperties': additional_properties,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -650,22 +917,28 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [[], [1], [1, 2]])
     def test_list_min_items_invalid(self, value, validator_factory):
-        schema = Schema(
-            'array',
-            items=Schema('number'),
-            min_items=3,
-        )
+        spec = {
+            'type': 'array',
+            'items': {
+                'type': 'number',
+            },
+            'minItems': 3,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(Exception):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [[], [1], [1, 2]])
     def test_list_min_items(self, value, validator_factory):
-        schema = Schema(
-            'array',
-            items=Schema('number'),
-            min_items=0,
-        )
+        spec = {
+            'type': 'array',
+            'items': {
+                'type': 'number',
+            },
+            'minItems': 0,
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -673,33 +946,42 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [[], ])
     def test_list_max_items_invalid_schema(self, value, validator_factory):
-        schema = Schema(
-            'array',
-            items=Schema('number'),
-            max_items=-1,
-        )
+        spec = {
+            'type': 'array',
+            'items': {
+                'type': 'number',
+            },
+            'maxItems': -1,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [[1, 2], [2, 3, 4]])
     def test_list_max_items_invalid(self, value, validator_factory):
-        schema = Schema(
-            'array',
-            items=Schema('number'),
-            max_items=1,
-        )
+        spec = {
+            'type': 'array',
+            'items': {
+                'type': 'number',
+            },
+            'maxItems': 1,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(Exception):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [[1, 2, 1], [2, 2]])
     def test_list_unique_items_invalid(self, value, validator_factory):
-        schema = Schema(
-            'array',
-            items=Schema('number'),
-            unique_items=True,
-        )
+        spec = {
+            'type': 'array',
+            'items': {
+                'type': 'number',
+            },
+            'uniqueItems': True,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(Exception):
             validator_factory(schema).validate(value)
@@ -717,13 +999,18 @@ class TestSchemaValidate(object):
         },
     ])
     def test_object_with_properties(self, value, validator_factory):
-        schema = Schema(
-            'object',
-            properties={
-                'somestr': Schema('string'),
-                'someint': Schema('integer'),
-            },
-        )
+        spec = {
+            'type': 'object',
+            'properties': {
+                'somestr': {
+                    'type': 'string',
+                },
+                'someint': {
+                    'type': 'integer',
+                }
+            }
+        }
+        schema = SpecPath.from_spec(spec)
 
         result = validator_factory(schema).validate(value)
 
@@ -751,14 +1038,19 @@ class TestSchemaValidate(object):
         },
     ])
     def test_object_with_invalid_properties(self, value, validator_factory):
-        schema = Schema(
-            'object',
-            properties={
-                'somestr': Schema('string'),
-                'someint': Schema('integer'),
+        spec = {
+            'type': 'object',
+            'properties': {
+                'somestr': {
+                    'type': 'string',
+                },
+                'someint': {
+                    'type': 'integer',
+                }
             },
-            additional_properties=False,
-        )
+            'additionalProperties': False,
+        }
+        schema = SpecPath.from_spec(spec)
 
         with pytest.raises(Exception):
             validator_factory(schema).validate(value)

@@ -2,7 +2,7 @@ from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
     EmptyParameterValue,
 )
-from openapi_core.schema.parameters.enums import ParameterLocation
+from openapi_core.schema.parameters import get_aslist, get_explode, get_style
 
 
 class PrimitiveDeserializer(object):
@@ -11,15 +11,19 @@ class PrimitiveDeserializer(object):
         self.param = param
         self.deserializer_callable = deserializer_callable
 
-    def __call__(self, value):
-        if (self.param.location == ParameterLocation.QUERY and value == "" and
-                not self.param.allow_empty_value):
-            raise EmptyParameterValue(
-                value, self.param.style, self.param.name)
+        self.aslist = get_aslist(self.param)
+        self.explode = get_explode(self.param)
+        self.style = get_style(self.param)
 
-        if not self.param.aslist or self.param.explode:
+    def __call__(self, value):
+        if (self.param['in'] == 'query' and value == "" and
+                not self.param.getkey('allowEmptyValue', False)):
+            raise EmptyParameterValue(
+                value, self.style, self.param['name'])
+
+        if not self.aslist or self.explode:
             return value
         try:
             return self.deserializer_callable(value)
         except (ValueError, TypeError, AttributeError):
-            raise DeserializeError(value, self.param.style)
+            raise DeserializeError(value, self.style)

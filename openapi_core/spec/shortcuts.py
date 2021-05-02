@@ -1,10 +1,11 @@
-"""OpenAPI core schema shortcuts module"""
+"""OpenAPI core spec shortcuts module"""
 from jsonschema.validators import RefResolver
 from openapi_spec_validator import (
     default_handlers, openapi_v3_spec_validator,
 )
+from openapi_spec_validator.validators import Dereferencer
 
-from openapi_core.schema.specs.factories import SpecFactory
+from openapi_core.spec.paths import SpecPath
 
 
 def create_spec(
@@ -16,5 +17,5 @@ def create_spec(
 
     spec_resolver = RefResolver(
         spec_url, spec_dict, handlers=handlers)
-    spec_factory = SpecFactory(spec_resolver)
-    return spec_factory.create(spec_dict, spec_url=spec_url)
+    dereferencer = Dereferencer(spec_resolver)
+    return SpecPath.from_spec(spec_dict, dereferencer)

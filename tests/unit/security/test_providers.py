@@ -1,15 +1,22 @@
 import pytest
 
-from openapi_core.schema.security_schemes.models import SecurityScheme
 from openapi_core.security.providers import HttpProvider
+from openapi_core.spec.paths import SpecPath
 from openapi_core.testing import MockRequest
 
 
 class TestHttpProvider(object):
 
     @pytest.fixture
-    def scheme(self):
-        return SecurityScheme('http', scheme='bearer')
+    def spec(self):
+        return {
+            'type': 'http',
+            'scheme': 'bearer',
+        }
+
+    @pytest.fixture
+    def scheme(self, spec):
+        return SpecPath.from_spec(spec)
 
     @pytest.fixture
     def provider(self, scheme):

@@ -6,9 +6,9 @@ from six import text_type
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
-from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
-from openapi_core.schema.responses.exceptions import MissingResponseContent
+from openapi_core.exceptions import (
+    MissingRequiredParameter, MissingRequestBody, MissingResponseContent,
+)
 from openapi_core.shortcuts import create_spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (

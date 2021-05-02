@@ -2,8 +2,6 @@ import warnings
 
 from openapi_schema_validator import OAS30Validator
 
-from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
-from openapi_core.schema.schemas.models import Schema
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
@@ -18,15 +16,15 @@ from openapi_core.unmarshalling.schemas.unmarshallers import (
 class SchemaUnmarshallersFactory(object):
 
     PRIMITIVE_UNMARSHALLERS = {
-        SchemaType.STRING: StringUnmarshaller,
-        SchemaType.INTEGER: IntegerUnmarshaller,
-        SchemaType.NUMBER: NumberUnmarshaller,
-        SchemaType.BOOLEAN: BooleanUnmarshaller,
+        'string': StringUnmarshaller,
+        'integer': IntegerUnmarshaller,
+        'number': NumberUnmarshaller,
+        'boolean': BooleanUnmarshaller,
     }
     COMPLEX_UNMARSHALLERS = {
-        SchemaType.ARRAY: ArrayUnmarshaller,
-        SchemaType.OBJECT: ObjectUnmarshaller,
-        SchemaType.ANY: AnyUnmarshaller,
+        'array': ArrayUnmarshaller,
+        'object': ObjectUnmarshaller,
+        'any': AnyUnmarshaller,
     }
 
     CONTEXT_VALIDATION = {
@@ -46,12 +44,13 @@ class SchemaUnmarshallersFactory(object):
 
     def create(self, schema, type_override=None):
         """Create unmarshaller from the schema."""
-        if not isinstance(schema, Schema):
-            raise TypeError("schema not type of Schema")
-        if schema.deprecated:
+        if schema is None:
+            raise TypeError("Invalid schema")
+
+        if schema.getkey('deprecated', False):
             warnings.warn("The schema is deprecated", DeprecationWarning)
 
-        schema_type = type_override or schema.type
+        schema_type = type_override or schema.getkey('type', 'any')
         if schema_type in self.PRIMITIVE_UNMARSHALLERS:
             klass = self.PRIMITIVE_UNMARSHALLERS[schema_type]
             kwargs = dict(schema=schema)
@@ -63,22 +62,21 @@ class SchemaUnmarshallersFactory(object):
                 context=self.context,
             )
 
-        formatter = self.get_formatter(klass.FORMATTERS, schema.format)
+        schema_format = schema.getkey('format')
+        formatter = self.get_formatter(klass.FORMATTERS, schema_format)
 
         if formatter is None:
-            raise FormatterNotFoundError(schema.format)
+            raise FormatterNotFoundError(schema_format)
 
         validator = self.get_validator(schema)
 
         return klass(formatter, validator, **kwargs)
 
-    def get_formatter(self, default_formatters, type_format=SchemaFormat.NONE):
+    def get_formatter(self, default_formatters, type_format=None):
         try:
-            schema_format = SchemaFormat(type_format)
-        except ValueError:
-            return self.custom_formatters.get(type_format)
-        else:
-            return default_formatters.get(schema_format)
+            return self.custom_formatters[type_format]
+        except KeyError:
+            return default_formatters.get(type_format)
 
     def get_validator(self, schema):
         kwargs = {
@@ -87,4 +85,5 @@ class SchemaUnmarshallersFactory(object):
         }
         if self.context is not None:
             kwargs[self.CONTEXT_VALIDATION[self.context]] = True
-        return OAS30Validator(schema.__dict__, **kwargs)
+        with schema.open() as schema_dict:
+            return OAS30Validator(schema_dict, **kwargs)

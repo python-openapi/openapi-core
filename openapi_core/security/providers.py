@@ -18,10 +18,12 @@ class UnsupportedProvider(BaseProvider):
 class ApiKeyProvider(BaseProvider):
 
     def __call__(self, request):
-        source = getattr(request.parameters, self.scheme.apikey_in.value)
-        if self.scheme.name not in source:
+        name = self.scheme['name']
+        location = self.scheme['in']
+        source = getattr(request.parameters, location)
+        if name not in source:
             raise SecurityError("Missing api key parameter.")
-        return source.get(self.scheme.name)
+        return source[name]
 
 
 class HttpProvider(BaseProvider):
@@ -35,7 +37,8 @@ class HttpProvider(BaseProvider):
         except ValueError:
             raise SecurityError('Could not parse authorization header.')
 
-        if auth_type.lower() != self.scheme.scheme.value:
+        scheme = self.scheme['scheme']
+        if auth_type.lower() != scheme:
             raise SecurityError(
                 'Unknown authorization method %s' % auth_type)
 

@@ -6,7 +6,6 @@ from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
-from openapi_core.schema.media_types.models import MediaType
 
 
 class TestMediaTypeDeserializer(object):
@@ -19,46 +18,46 @@ class TestMediaTypeDeserializer(object):
         return create_deserializer
 
     def test_json_empty(self, deserializer_factory):
-        media_type = MediaType('application/json')
+        mimetype = 'application/json'
         value = ''
 
         with pytest.raises(DeserializeError):
-            deserializer_factory(media_type)(value)
+            deserializer_factory(mimetype)(value)
 
     def test_json_empty_object(self, deserializer_factory):
-        media_type = MediaType('application/json')
+        mimetype = 'application/json'
         value = "{}"
 
-        result = deserializer_factory(media_type)(value)
+        result = deserializer_factory(mimetype)(value)
 
         assert result == {}
 
     def test_urlencoded_form_empty(self, deserializer_factory):
-        media_type = MediaType('application/x-www-form-urlencoded')
+        mimetype = 'application/x-www-form-urlencoded'
         value = ''
 
-        result = deserializer_factory(media_type)(value)
+        result = deserializer_factory(mimetype)(value)
 
         assert result == {}
 
     def test_urlencoded_form_simple(self, deserializer_factory):
-        media_type = MediaType('application/x-www-form-urlencoded')
+        mimetype = 'application/x-www-form-urlencoded'
         value = 'param1=test'
 
-        result = deserializer_factory(media_type)(value)
+        result = deserializer_factory(mimetype)(value)
 
         assert result == {'param1': 'test'}
 
     @pytest.mark.parametrize('value', [b(''), u('')])
     def test_data_form_empty(self, deserializer_factory, value):
-        media_type = MediaType('multipart/form-data')
+        mimetype = 'multipart/form-data'
 
-        result = deserializer_factory(media_type)(value)
+        result = deserializer_factory(mimetype)(value)
 
         assert result == {}
 
     def test_data_form_simple(self, deserializer_factory):
-        media_type = MediaType('multipart/form-data')
+        mimetype = 'multipart/form-data'
         value = b(
             'Content-Type: multipart/form-data; boundary="'
             '===============2872712225071193122=="\n'
@@ -69,13 +68,12 @@ class TestMediaTypeDeserializer(object):
             '--===============2872712225071193122==--\n'
         )
 
-        result = deserializer_factory(media_type)(value)
+        result = deserializer_factory(mimetype)(value)
 
         assert result == {'param1': b('test')}
 
     def test_custom_simple(self, deserializer_factory):
         custom_mimetype = 'application/custom'
-        media_type = MediaType(custom_mimetype)
         value = "{}"
 
         def custom_deserializer(value):
@@ -85,6 +83,6 @@ class TestMediaTypeDeserializer(object):
         }
 
         result = deserializer_factory(
-            media_type, custom_deserializers=custom_deserializers)(value)
+            custom_mimetype, custom_deserializers=custom_deserializers)(value)
 
         assert result == 'custom'

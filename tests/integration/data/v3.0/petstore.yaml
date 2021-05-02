@@ -38,6 +38,7 @@ paths:
             default: 1
         - name: limit
           in: query
+          style: form
           description: How many items to return at one time (max 100)
           required: true
           schema:
@@ -334,12 +335,12 @@ components:
     Error:
       type: object
       required:
-        - code
         - message
       properties:
         code:
           type: integer
           format: int32
+          default: 400
         message:
           type: string
     ExtendedError:
