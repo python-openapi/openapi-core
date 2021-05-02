@@ -6,19 +6,6 @@ class OpenAPIError(Exception):
     pass
 
 
-class OpenAPIMediaTypeError(OpenAPIError):
-    pass
-
-
-@attr.s(hash=True)
-class InvalidContentType(OpenAPIMediaTypeError):
-    mimetype = attr.ib()
-
-    def __str__(self):
-        return "Content for following mimetype not found: {0}".format(
-            self.mimetype)
-
-
 class OpenAPIParameterError(OpenAPIError):
     pass
 
@@ -67,7 +54,3 @@ class MissingResponseContent(OpenAPIResponseError):
 
     def __str__(self):
         return "Missing response content"
-
-
-class OpenAPISchemaError(OpenAPIError):
-    pass

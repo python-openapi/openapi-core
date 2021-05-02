@@ -4,7 +4,6 @@ import mock
 import pytest
 
 from openapi_core.extensions.models.models import Model
-from openapi_core.exceptions import OpenAPISchemaError
 from openapi_core.spec.paths import SpecPath
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
@@ -55,8 +54,6 @@ class TestSchemaValidate(object):
 
         assert result is None
 
-    @pytest.mark.xfail(
-        reason="validation does not care about custom formats atm")
     def test_string_format_custom_missing(self, validator_factory):
         custom_format = 'custom'
         spec = {
@@ -66,7 +63,7 @@ class TestSchemaValidate(object):
         schema = SpecPath.from_spec(spec)
         value = 'x'
 
-        with pytest.raises(OpenAPISchemaError):
+        with pytest.raises(FormatterNotFoundError):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [False, True])

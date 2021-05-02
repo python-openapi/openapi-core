@@ -1,18 +1,7 @@
 """OpenAPI core validation request shortcuts module"""
 import warnings
 
-from openapi_core.exceptions import (
-    OpenAPIMediaTypeError, OpenAPIParameterError, OpenAPIRequestBodyError,
-    OpenAPISchemaError,
-)
 from openapi_core.validation.request.validators import RequestValidator
-
-ERRORS_BODY = (
-    OpenAPIRequestBodyError, OpenAPIMediaTypeError, OpenAPISchemaError,
-)
-ERRORS_PARAMETERS = (
-    OpenAPIParameterError,
-)
 
 
 def validate_request(validator, request, failsafe=None):
