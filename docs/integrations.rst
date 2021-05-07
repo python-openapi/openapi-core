@@ -196,3 +196,8 @@ You can use RequestsOpenAPIResponse as a Requests response factory:
    openapi_response = RequestsOpenAPIResponse(requests_response)
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
+
+Tornado
+-------
+
+See `tornado-openapi3  <https://github.com/correl/tornado-openapi3>`_ project.
