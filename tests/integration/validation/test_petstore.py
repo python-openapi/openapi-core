@@ -365,6 +365,69 @@ class TestPetstore(object):
 
         assert body is None
 
+    def test_get_pets_param_order(self, spec):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = {
+            'limit': None,
+            'order': 'desc',
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        parameters = validate_parameters(spec, request)
+
+        assert parameters == RequestParameters(
+            query={
+                'limit': None,
+                'order': 'desc',
+                'page': 1,
+                'search': '',
+            }
+        )
+
+        body = validate_body(spec, request)
+
+        assert body is None
+
+    @pytest.mark.xfail(
+        reason="No parameters deserialization support for complex scenarios"
+    )
+    def test_get_pets_param_coordinates(self, spec):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        coordinates = {
+            'lat': 1.12,
+            'lon': 32.12,
+        }
+        query_params = {
+            'limit': None,
+            'coordinates': json.dumps(coordinates),
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        parameters = validate_parameters(spec, request)
+
+        assert parameters == RequestParameters(
+            query={
+                'limit': None,
+                'page': 1,
+                'search': '',
+                'coordinates': coordinates,
+            }
+        )
+
+        body = validate_body(spec, request)
+
+        assert body is None
+
     def test_post_birds(self, spec, spec_dict):
         host_url = 'https://staging.gigantic-server.com/v1'
         path_pattern = '/v1/pets'

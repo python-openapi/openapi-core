@@ -60,6 +60,13 @@ paths:
             items:
               type: integer
               format: int32
+        - name: order
+          in: query
+          schema:
+            oneOf:
+              - type: string
+              - type: integer
+                format: int32
         - name: tags
           in: query
           description: Filter pets with tags
