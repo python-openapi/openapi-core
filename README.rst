@@ -132,7 +132,13 @@ Response object should be instance of OpenAPIResponse class (See `Integrations <
 
 Related projects
 ################
+* `bottle-openapi-3 <https://github.com/cope-systems/bottle-openapi-3>`__
+   OpenAPI 3.0 Support for the Bottle Web Framework
 * `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__
+   Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger) and OpenAPI 3.0 specification
 * `openapi-schema-validator <https://github.com/p1c2u/openapi-schema-validator>`__
+   Python library that validates schema against the OpenAPI Schema Specification v3.0.
 * `pyramid_openapi3 <https://github.com/niteoweb/pyramid_openapi3>`__
+   Pyramid addon for OpenAPI3 validation of requests and responses.
 * `tornado-openapi3 <https://github.com/correl/tornado-openapi3>`__
+   Tornado OpenAPI 3 request and response validation library.
