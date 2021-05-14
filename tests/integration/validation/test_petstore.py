@@ -1230,3 +1230,39 @@ class TestPetstore(object):
         assert response_result.data.correlationId == correlationId
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo
+
+    def test_delete_tags_with_requestbody(
+            self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        ids = [1, 2, 3]
+        data_json = {
+            'ids': ids,
+        }
+        data = json.dumps(data_json)
+        request = MockRequest(
+            host_url, 'DELETE', '/tags',
+            path_pattern=path_pattern, data=data,
+        )
+
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
+
+        assert parameters == RequestParameters()
+        assert isinstance(body, BaseModel)
+        assert body.ids == ids
+
+    def test_delete_tags_no_requestbody(
+            self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        request = MockRequest(
+            host_url, 'DELETE', '/tags',
+            path_pattern=path_pattern,
+        )
+
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
+
+        assert parameters == RequestParameters()
+        assert body is None
