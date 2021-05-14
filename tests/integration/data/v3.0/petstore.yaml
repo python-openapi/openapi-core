@@ -202,6 +202,22 @@ paths:
           description: Null response
         default:
           $ref: "#/components/responses/ErrorResponse"
+    delete:
+      summary: Delete tags
+      operationId: deleteTag
+      tags:
+        - tags
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagDelete'
+      responses:
+        '200':
+          description: Null response
+        default:
+          $ref: "#/components/responses/ErrorResponse"
 components:
   schemas:
     Utctime:
@@ -334,6 +350,18 @@ components:
           $ref: "#/components/schemas/Utctime"
         name:
           type: string
+      additionalProperties: false
+    TagDelete:
+      type: object
+      x-model: TagDelete
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int64
       additionalProperties: false
     TagList:
       type: array

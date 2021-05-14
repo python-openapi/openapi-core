@@ -7,7 +7,8 @@ from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.exceptions import (
-    MissingRequiredParameter, MissingRequestBody, MissingResponseContent,
+    MissingRequiredParameter, MissingRequiredRequestBody,
+    MissingResponseContent,
 )
 from openapi_core.shortcuts import create_spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
@@ -154,7 +155,7 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == MissingRequestBody
+        assert type(result.errors[0]) == MissingRequiredRequestBody
         assert result.body is None
         assert result.parameters == RequestParameters(
             header={
@@ -166,6 +167,7 @@ class TestRequestValidator(object):
         )
 
     def test_invalid_content_type(self, validator):
+        data = "csv,data"
         headers = {
             'api_key': self.api_key_encoded,
         }
@@ -174,7 +176,7 @@ class TestRequestValidator(object):
         }
         request = MockRequest(
             'https://development.gigantic-server.com', 'post', '/v1/pets',
-            path_pattern='/v1/pets', mimetype='text/csv',
+            path_pattern='/v1/pets', mimetype='text/csv', data=data,
             headers=headers, cookies=cookies,
         )
 

@@ -5,7 +5,8 @@ from itertools import chain
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.exceptions import (
-    MissingRequiredParameter, MissingParameter, MissingRequestBody,
+    MissingRequiredParameter, MissingParameter,
+    MissingRequiredRequestBody, MissingRequestBody,
 )
 from openapi_core.security.exceptions import SecurityError
 from openapi_core.schema.parameters import get_aslist, get_explode
@@ -175,15 +176,18 @@ class RequestValidator(BaseValidator):
             return None, []
 
         request_body = operation / 'requestBody'
+
+        try:
+            raw_body = self._get_body_value(request_body, request)
+        except MissingRequiredRequestBody as exc:
+            return None, [exc, ]
+        except MissingRequestBody:
+            return None, []
+
         try:
             media_type, mimetype = self._get_media_type(
                 request_body / 'content', request)
         except MediaTypeFinderError as exc:
-            return None, [exc, ]
-
-        try:
-            raw_body = self._get_body_value(request_body, request)
-        except MissingRequestBody as exc:
             return None, [exc, ]
 
         try:
@@ -233,8 +237,9 @@ class RequestValidator(BaseValidator):
         return location[param['name']]
 
     def _get_body_value(self, request_body, request):
-        required = request_body.getkey('required', False)
-        if not request.body and required:
+        if not request.body:
+            if request_body.getkey('required', False):
+                raise MissingRequiredRequestBody(request)
             raise MissingRequestBody(request)
         return request.body
 

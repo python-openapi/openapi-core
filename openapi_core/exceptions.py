@@ -36,8 +36,21 @@ class OpenAPIRequestBodyError(OpenAPIError):
     pass
 
 
+class MissingRequestBodyError(OpenAPIRequestBodyError):
+    """Missing request body error"""
+    pass
+
+
 @attr.s(hash=True)
-class MissingRequestBody(OpenAPIRequestBodyError):
+class MissingRequestBody(MissingRequestBodyError):
+    request = attr.ib()
+
+    def __str__(self):
+        return "Missing request body"
+
+
+@attr.s(hash=True)
+class MissingRequiredRequestBody(MissingRequestBodyError):
     request = attr.ib()
 
     def __str__(self):
