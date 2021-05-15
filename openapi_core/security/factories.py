@@ -8,12 +8,11 @@ class SecurityProviderFactory(object):
     PROVIDERS = {
         'apiKey': ApiKeyProvider,
         'http': HttpProvider,
+        'oauth2': UnsupportedProvider,
+        'openIdConnect': UnsupportedProvider,
     }
 
     def create(self, scheme):
         scheme_type = scheme['type']
-        if scheme_type == 'apiKey':
-            return ApiKeyProvider(scheme)
-        elif scheme_type == 'http':
-            return HttpProvider(scheme)
-        return UnsupportedProvider(scheme)
+        provider_class = self.PROVIDERS[scheme_type]
+        return provider_class(scheme)
