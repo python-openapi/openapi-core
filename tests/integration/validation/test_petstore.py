@@ -139,6 +139,38 @@ class TestPetstore(object):
         assert response_result.data.data[0].id == 1
         assert response_result.data.data[0].name == 'Cat'
 
+    def test_get_pets_response_no_schema(self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = {
+            'limit': '20',
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
+
+        assert parameters == RequestParameters(
+            query={
+                'limit': 20,
+                'page': 1,
+                'search': '',
+            }
+        )
+        assert body is None
+
+        data = '<html></html>'
+        response = MockResponse(data, status_code=404, mimetype='text/html')
+
+        response_result = response_validator.validate(request, response)
+
+        assert response_result.errors == []
+        assert response_result.data == data
+
     def test_get_pets_invalid_response(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
@@ -393,9 +425,6 @@ class TestPetstore(object):
 
         assert body is None
 
-    @pytest.mark.xfail(
-        reason="No parameters deserialization support for complex scenarios"
-    )
     def test_get_pets_param_coordinates(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
@@ -453,8 +482,13 @@ class TestPetstore(object):
         headers = {
             'api_key': self.api_key_encoded,
         }
+        userdata = {
+            'name': 'user1',
+        }
+        userdata_json = json.dumps(userdata)
         cookies = {
             'user': '123',
+            'userdata': userdata_json,
         }
 
         request = MockRequest(
@@ -471,6 +505,9 @@ class TestPetstore(object):
             },
             cookie={
                 'user': 123,
+                'userdata': {
+                    'name': 'user1',
+                },
             },
         )
 

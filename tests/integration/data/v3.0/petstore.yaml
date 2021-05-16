@@ -83,15 +83,17 @@ paths:
                 type: object
                 required:
                   - lat
-                  - long
+                  - lon
                 properties:
                   lat:
                     type: number
-                  long:
+                  lon:
                     type: number
       responses:
         '200':
           $ref: "#/components/responses/PetsResponse"
+        '404':
+          $ref: "#/components/responses/HtmlResponse"
     post:
       summary: Create a pet
       description: Creates new pet entry
@@ -119,6 +121,13 @@ paths:
             type: integer
             format: int32
           required: true
+        - name: userdata
+          in: cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Userdata'
+          required: false
       requestBody:
         required: true
         content:
@@ -128,6 +137,7 @@ paths:
             example:
               name: "Pet"
               wings: []
+          text/plain: {}
       responses:
         '201':
           description: Null response
@@ -220,6 +230,13 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
 components:
   schemas:
+    Userdata:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
     Utctime:
       oneOf:
         - type: string
@@ -406,6 +423,10 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ExtendedError"
+    HtmlResponse:
+      description: HTML page
+      content:
+        text/html: {}
     PetsResponse:
       description: An paged array of pets
       headers:

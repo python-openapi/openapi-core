@@ -1,5 +1,3 @@
-import warnings
-
 from openapi_core.deserializing.parameters.deserializers import (
     PrimitiveDeserializer,
 )
@@ -16,12 +14,6 @@ class ParameterDeserializersFactory(object):
     }
 
     def create(self, param):
-        if param.getkey('deprecated', False):
-            warnings.warn(
-                "{0} parameter is deprecated".format(param['name']),
-                DeprecationWarning,
-            )
-
         style = get_style(param)
 
         deserialize_callable = self.PARAMETER_STYLE_DESERIALIZERS[style]

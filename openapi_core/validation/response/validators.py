@@ -105,8 +105,12 @@ class ResponseValidator(BaseValidator):
         except CastError as exc:
             return None, [exc, ]
 
+        if 'schema' not in media_type:
+            return casted, []
+
+        schema = media_type / 'schema'
         try:
-            data = self._unmarshal(media_type, casted)
+            data = self._unmarshal(schema, casted)
         except (ValidateError, UnmarshalError) as exc:
             return None, [exc, ]
 
