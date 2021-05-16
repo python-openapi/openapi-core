@@ -52,19 +52,10 @@ class BaseValidator(object):
         deserializer = self.media_type_deserializers_factory.create(mimetype)
         return deserializer(value)
 
-    def _cast(self, param_or_media_type, value):
-        # return param_or_media_type.cast(value)
-        if 'schema' not in param_or_media_type:
-            return value
-
-        schema = param_or_media_type / 'schema'
+    def _cast(self, schema, value):
         caster = self.schema_casters_factory.create(schema)
         return caster(value)
 
-    def _unmarshal(self, param_or_media_type, value):
-        if 'schema' not in param_or_media_type:
-            return value
-
-        schema = param_or_media_type / 'schema'
+    def _unmarshal(self, schema, value):
         unmarshaller = self.schema_unmarshallers_factory.create(schema)
         return unmarshaller(value)

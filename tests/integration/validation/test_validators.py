@@ -194,6 +194,66 @@ class TestRequestValidator(object):
             },
         )
 
+    def test_invalid_complex_parameter(self, validator, spec_dict):
+        pet_name = 'Cat'
+        pet_tag = 'cats'
+        pet_street = 'Piekna'
+        pet_city = 'Warsaw'
+        data_json = {
+            'name': pet_name,
+            'tag': pet_tag,
+            'position': 2,
+            'address': {
+                'street': pet_street,
+                'city': pet_city,
+            },
+            'ears': {
+                'healthy': True,
+            }
+        }
+        data = json.dumps(data_json)
+        headers = {
+            'api_key': self.api_key_encoded,
+        }
+        userdata = {
+            'name': 1,
+        }
+        userdata_json = json.dumps(userdata)
+        cookies = {
+            'user': '123',
+            'userdata': userdata_json,
+        }
+        request = MockRequest(
+            'https://development.gigantic-server.com', 'post', '/v1/pets',
+            path_pattern='/v1/pets', data=data,
+            headers=headers, cookies=cookies,
+        )
+
+        result = validator.validate(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidSchemaValue
+        assert result.parameters == RequestParameters(
+            header={
+                'api_key': self.api_key,
+            },
+            cookie={
+                'user': 123,
+            },
+        )
+        assert result.security == {}
+
+        schemas = spec_dict['components']['schemas']
+        pet_model = schemas['PetCreate']['x-model']
+        address_model = schemas['Address']['x-model']
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert result.body.tag == pet_tag
+        assert result.body.position == 2
+        assert result.body.address.__class__.__name__ == address_model
+        assert result.body.address.street == pet_street
+        assert result.body.address.city == pet_city
+
     def test_post_pets(self, validator, spec_dict):
         pet_name = 'Cat'
         pet_tag = 'cats'
@@ -247,6 +307,35 @@ class TestRequestValidator(object):
         assert result.body.address.__class__.__name__ == address_model
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
+
+    def test_post_pets_plain_no_schema(self, validator, spec_dict):
+        data = 'plain text'
+        headers = {
+            'api_key': self.api_key_encoded,
+        }
+        cookies = {
+            'user': '123',
+        }
+        request = MockRequest(
+            'https://development.gigantic-server.com', 'post', '/v1/pets',
+            path_pattern='/v1/pets', data=data,
+            headers=headers, cookies=cookies,
+            mimetype='text/plain',
+        )
+
+        result = validator.validate(request)
+
+        assert result.errors == []
+        assert result.parameters == RequestParameters(
+            header={
+                'api_key': self.api_key,
+            },
+            cookie={
+                'user': 123,
+            },
+        )
+        assert result.security == {}
+        assert result.body == data
 
     def test_get_pet_unauthorized(self, validator):
         request = MockRequest(

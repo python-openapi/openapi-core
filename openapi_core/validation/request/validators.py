@@ -1,6 +1,7 @@
 """OpenAPI core validation request validators module"""
 from __future__ import division
 from itertools import chain
+import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -160,40 +161,51 @@ class RequestValidator(BaseValidator):
                 continue
             seen.add((param_name, param_location))
             try:
-                raw_value = self._get_parameter_value(param, request)
-            except MissingRequiredParameter as exc:
+                value = self._get_parameter(param, request)
+            except MissingParameter:
+                continue
+            except (
+                MissingRequiredParameter, DeserializeError,
+                CastError, ValidateError, UnmarshalError,
+            ) as exc:
                 errors.append(exc)
                 continue
-            except MissingParameter:
-                if 'schema' not in param:
-                    continue
-                schema = param / 'schema'
-                if 'default' not in schema:
-                    continue
-                casted = schema['default']
-            else:
-                try:
-                    deserialised = self._deserialise_parameter(
-                        param, raw_value)
-                except DeserializeError as exc:
-                    errors.append(exc)
-                    continue
-
-                try:
-                    casted = self._cast(param, deserialised)
-                except CastError as exc:
-                    errors.append(exc)
-                    continue
-
-            try:
-                unmarshalled = self._unmarshal(param, casted)
-            except (ValidateError, UnmarshalError) as exc:
-                errors.append(exc)
             else:
                 locations.setdefault(param_location, {})
-                locations[param_location][param_name] = unmarshalled
+                locations[param_location][param_name] = value
 
         return RequestParameters(**locations), errors
+
+    def _get_parameter(self, param, request):
+        if param.getkey('deprecated', False):
+            warnings.warn(
+                "{0} parameter is deprecated".format(param['name']),
+                DeprecationWarning,
+            )
+
+        try:
+            raw_value = self._get_parameter_value(param, request)
+        except MissingParameter:
+            if 'schema' not in param:
+                raise
+            schema = param / 'schema'
+            if 'default' not in schema:
+                raise
+            casted = schema['default']
+        else:
+            # Simple scenario
+            if 'content' not in param:
+                deserialised = self._deserialise_parameter(param, raw_value)
+                schema = param / 'schema'
+            # Complex scenario
+            else:
+                content = param / 'content'
+                mimetype, media_type = next(content.items())
+                deserialised = self._deserialise_data(mimetype, raw_value)
+                schema = media_type / 'schema'
+            casted = self._cast(schema, deserialised)
+        unmarshalled = self._unmarshal(schema, casted)
+        return unmarshalled
 
     def _get_body(self, request, operation):
         if 'requestBody' not in operation:
@@ -224,8 +236,12 @@ class RequestValidator(BaseValidator):
         except CastError as exc:
             return None, [exc, ]
 
+        if 'schema' not in media_type:
+            return casted, []
+
+        schema = media_type / 'schema'
         try:
-            body = self._unmarshal(media_type, casted)
+            body = self._unmarshal(schema, casted)
         except (ValidateError, UnmarshalError) as exc:
             return None, [exc, ]
 

@@ -17,20 +17,6 @@ class TestParameterDeserializer(object):
             return ParameterDeserializersFactory().create(param)
         return create_deserializer
 
-    def test_deprecated(self, deserializer_factory):
-        spec = {
-            'name': 'param',
-            'in': 'query',
-            'deprecated': True,
-        }
-        param = SpecPath.from_spec(spec)
-        value = 'test'
-
-        with pytest.warns(DeprecationWarning):
-            result = deserializer_factory(param)(value)
-
-        assert result == value
-
     def test_query_empty(self, deserializer_factory):
         spec = {
             'name': 'param',
