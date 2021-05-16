@@ -11,11 +11,23 @@ from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
 )
+from openapi_core.unmarshalling.schemas.factories import (
+    SchemaUnmarshallersFactory,
+)
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.validators import BaseValidator
 
 
 class ResponseValidator(BaseValidator):
+
+    @property
+    def schema_unmarshallers_factory(self):
+        spec_resolver = self.spec.accessor.dereferencer.resolver_manager.\
+            resolver
+        return SchemaUnmarshallersFactory(
+            spec_resolver, self.format_checker,
+            self.custom_formatters, context=UnmarshalContext.RESPONSE,
+        )
 
     def validate(self, request, response):
         try:
@@ -113,8 +125,3 @@ class ResponseValidator(BaseValidator):
             raise MissingResponseContent(response)
 
         return response.data
-
-    def _unmarshal(self, param_or_media_type, value):
-        return super(ResponseValidator, self)._unmarshal(
-            param_or_media_type, value, context=UnmarshalContext.RESPONSE,
-        )
