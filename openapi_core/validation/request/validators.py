@@ -4,17 +4,24 @@ from itertools import chain
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
+from openapi_core.deserializing.parameters.factories import (
+    ParameterDeserializersFactory,
+)
 from openapi_core.exceptions import (
     MissingRequiredParameter, MissingParameter,
     MissingRequiredRequestBody, MissingRequestBody,
 )
 from openapi_core.security.exceptions import SecurityError
+from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.schema.parameters import get_aslist, get_explode
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError,
+)
+from openapi_core.unmarshalling.schemas.factories import (
+    SchemaUnmarshallersFactory,
 )
 from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request.datatypes import (
@@ -24,6 +31,23 @@ from openapi_core.validation.validators import BaseValidator
 
 
 class RequestValidator(BaseValidator):
+
+    @property
+    def schema_unmarshallers_factory(self):
+        spec_resolver = self.spec.accessor.dereferencer.resolver_manager.\
+            resolver
+        return SchemaUnmarshallersFactory(
+            spec_resolver, self.format_checker,
+            self.custom_formatters, context=UnmarshalContext.REQUEST,
+        )
+
+    @property
+    def security_provider_factory(self):
+        return SecurityProviderFactory()
+
+    @property
+    def parameter_deserializers_factory(self):
+        return ParameterDeserializersFactory()
 
     def validate(self, request):
         try:
@@ -212,9 +236,7 @@ class RequestValidator(BaseValidator):
         if scheme_name not in security_schemes:
             return
         scheme = security_schemes[scheme_name]
-        from openapi_core.security.factories import SecurityProviderFactory
-        security_provider_factory = SecurityProviderFactory()
-        security_provider = security_provider_factory.create(scheme)
+        security_provider = self.security_provider_factory.create(scheme)
         return security_provider(request)
 
     def _get_parameter_value(self, param, request):
@@ -244,14 +266,5 @@ class RequestValidator(BaseValidator):
         return request.body
 
     def _deserialise_parameter(self, param, value):
-        from openapi_core.deserializing.parameters.factories import (
-            ParameterDeserializersFactory,
-        )
-        deserializers_factory = ParameterDeserializersFactory()
-        deserializer = deserializers_factory.create(param)
+        deserializer = self.parameter_deserializers_factory.create(param)
         return deserializer(value)
-
-    def _unmarshal(self, param_or_media_type, value):
-        return super(RequestValidator, self)._unmarshal(
-            param_or_media_type, value, context=UnmarshalContext.REQUEST,
-        )
