@@ -6,6 +6,32 @@ class OpenAPIError(Exception):
     pass
 
 
+class OpenAPIHeaderError(OpenAPIError):
+    pass
+
+
+class MissingHeaderError(OpenAPIHeaderError):
+    """Missing header error"""
+    pass
+
+
+@attr.s(hash=True)
+class MissingHeader(MissingHeaderError):
+    name = attr.ib()
+
+    def __str__(self):
+        return "Missing header (without default value): {0}".format(
+            self.name)
+
+
+@attr.s(hash=True)
+class MissingRequiredHeader(MissingHeaderError):
+    name = attr.ib()
+
+    def __str__(self):
+        return "Missing required header: {0}".format(self.name)
+
+
 class OpenAPIParameterError(OpenAPIError):
     pass
 

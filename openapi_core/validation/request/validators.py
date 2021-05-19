@@ -5,9 +5,6 @@ import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.deserializing.parameters.factories import (
-    ParameterDeserializersFactory,
-)
 from openapi_core.exceptions import (
     MissingRequiredParameter, MissingParameter,
     MissingRequiredRequestBody, MissingRequestBody,
@@ -45,10 +42,6 @@ class RequestValidator(BaseValidator):
     @property
     def security_provider_factory(self):
         return SecurityProviderFactory()
-
-    @property
-    def parameter_deserializers_factory(self):
-        return ParameterDeserializersFactory()
 
     def validate(self, request):
         try:
@@ -177,35 +170,23 @@ class RequestValidator(BaseValidator):
         return RequestParameters(**locations), errors
 
     def _get_parameter(self, param, request):
-        if param.getkey('deprecated', False):
+        name = param['name']
+        deprecated = param.getkey('deprecated', False)
+        if deprecated:
             warnings.warn(
-                "{0} parameter is deprecated".format(param['name']),
+                "{0} parameter is deprecated".format(name),
                 DeprecationWarning,
             )
 
+        param_location = param['in']
+        location = request.parameters[param_location]
         try:
-            raw_value = self._get_parameter_value(param, request)
-        except MissingParameter:
-            if 'schema' not in param:
-                raise
-            schema = param / 'schema'
-            if 'default' not in schema:
-                raise
-            casted = schema['default']
-        else:
-            # Simple scenario
-            if 'content' not in param:
-                deserialised = self._deserialise_parameter(param, raw_value)
-                schema = param / 'schema'
-            # Complex scenario
-            else:
-                content = param / 'content'
-                mimetype, media_type = next(content.items())
-                deserialised = self._deserialise_data(mimetype, raw_value)
-                schema = media_type / 'schema'
-            casted = self._cast(schema, deserialised)
-        unmarshalled = self._unmarshal(schema, casted)
-        return unmarshalled
+            return self._get_param_or_header_value(param, location)
+        except KeyError:
+            required = param.getkey('required', False)
+            if required:
+                raise MissingRequiredParameter(name)
+            raise MissingParameter(name)
 
     def _get_body(self, request, operation):
         if 'requestBody' not in operation:
@@ -280,7 +261,3 @@ class RequestValidator(BaseValidator):
                 raise MissingRequiredRequestBody(request)
             raise MissingRequestBody(request)
         return request.body
-
-    def _deserialise_parameter(self, param, value):
-        deserializer = self.parameter_deserializers_factory.create(param)
-        return deserializer(value)

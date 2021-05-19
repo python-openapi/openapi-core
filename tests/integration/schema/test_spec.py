@@ -190,13 +190,13 @@ class TestPetstore(object):
                         assert schema.getkey('required') == schema_spec.get(
                             'required')
 
+                        content = parameter.get('content', {})
                         content_spec = parameter_spec.get('content')
-                        assert bool(content_spec) == bool(parameter.content)
+                        assert bool(content_spec) == bool(content)
 
                         if not content_spec:
                             continue
 
-                        content = parameter.get('content', {})
                         for mimetype, media_type in iteritems(content):
                             media_spec = parameter_spec['content'][mimetype]
                             schema = media_type.get('schema')

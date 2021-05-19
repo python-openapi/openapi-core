@@ -41,6 +41,7 @@ paths:
           style: form
           description: How many items to return at one time (max 100)
           required: true
+          deprecated: true
           schema:
             type: integer
             format: int32
@@ -226,6 +227,13 @@ paths:
       responses:
         '200':
           description: Null response
+          headers:
+            x-delete-confirm:
+              description: Confirmation automation
+              deprecated: true
+              schema:
+                type: boolean
+              required: true
         default:
           $ref: "#/components/responses/ErrorResponse"
 components:
@@ -430,6 +438,10 @@ components:
     PetsResponse:
       description: An paged array of pets
       headers:
+        content-type:
+          description: Content type
+          schema:
+            type: string
         x-next:
           description: A link to the next page of responses
           schema:
