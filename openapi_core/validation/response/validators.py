@@ -1,9 +1,12 @@
 """OpenAPI core validation response validators module"""
 from __future__ import division
+import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.exceptions import MissingResponseContent
+from openapi_core.exceptions import (
+    MissingHeader, MissingRequiredHeader, MissingResponseContent,
+)
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.responses.exceptions import ResponseFinderError
@@ -117,12 +120,48 @@ class ResponseValidator(BaseValidator):
         return data, []
 
     def _get_headers(self, response, operation_response):
+        if 'headers' not in operation_response:
+            return {}, []
+
+        headers = operation_response / 'headers'
+
         errors = []
+        validated = {}
+        for name, header in headers.items():
+            # ignore Content-Type header
+            if name.lower() == "content-type":
+                continue
+            try:
+                value = self._get_header(name, header, response)
+            except MissingHeader:
+                continue
+            except (
+                MissingRequiredHeader, DeserializeError,
+                CastError, ValidateError, UnmarshalError,
+            ) as exc:
+                errors.append(exc)
+                continue
+            else:
+                validated[name] = value
 
-        # @todo: implement
-        headers = {}
+        return validated, errors
 
-        return headers, errors
+    def _get_header(self, name, header, response):
+        deprecated = header.getkey('deprecated', False)
+        if deprecated:
+            warnings.warn(
+                "{0} header is deprecated".format(name),
+                DeprecationWarning,
+            )
+
+        try:
+            return self._get_param_or_header_value(
+                header, response.headers, name=name)
+        except KeyError:
+            required = header.getkey('required', False)
+            if required:
+                raise MissingRequiredHeader(name)
+            raise MissingHeader(name)
 
     def _get_data_value(self, response):
         if not response.data:

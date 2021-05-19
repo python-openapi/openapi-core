@@ -12,7 +12,9 @@ from openapi_core.deserializing.parameters.exceptions import (
     EmptyParameterValue,
 )
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.exceptions import MissingRequiredParameter
+from openapi_core.exceptions import (
+    MissingRequiredHeader, MissingRequiredParameter,
+)
 from openapi_core.shortcuts import (
     create_spec, validate_parameters, validate_body, validate_data,
 )
@@ -69,7 +71,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = validate_parameters(spec, request)
         body = validate_body(spec, request)
 
         assert parameters == RequestParameters(
@@ -85,13 +88,20 @@ class TestPetstore(object):
             'data': [],
         }
         data = json.dumps(data_json)
-        response = MockResponse(data)
+        headers = {
+            'Content-Type': 'application/json',
+            'x-next': 'next-url',
+        }
+        response = MockResponse(data, headers=headers)
 
         response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
         assert response_result.data.data == []
+        assert response_result.headers == {
+            'x-next': 'next-url',
+        }
 
     def test_get_pets_response(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -367,6 +377,34 @@ class TestPetstore(object):
 
         with pytest.raises(EmptyParameterValue):
             validate_parameters(spec, request)
+        body = validate_body(spec, request)
+
+        assert body is None
+
+    def test_get_pets_allow_empty_value(self, spec):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/pets'
+        query_params = {
+            'limit': 20,
+            'search': '',
+        }
+
+        request = MockRequest(
+            host_url, 'GET', '/pets',
+            path_pattern=path_pattern, args=query_params,
+        )
+
+        with pytest.warns(DeprecationWarning):
+            parameters = validate_parameters(spec, request)
+
+        assert parameters == RequestParameters(
+            query={
+                'page': 1,
+                'limit': 20,
+                'search': '',
+            }
+        )
+
         body = validate_body(spec, request)
 
         assert body is None
@@ -1303,3 +1341,28 @@ class TestPetstore(object):
 
         assert parameters == RequestParameters()
         assert body is None
+
+    def test_delete_tags_raises_missing_required_response_header(
+            self, spec, response_validator):
+        host_url = 'http://petstore.swagger.io/v1'
+        path_pattern = '/v1/tags'
+        request = MockRequest(
+            host_url, 'DELETE', '/tags',
+            path_pattern=path_pattern,
+        )
+
+        parameters = validate_parameters(spec, request)
+        body = validate_body(spec, request)
+
+        assert parameters == RequestParameters()
+        assert body is None
+
+        data = None
+        response = MockResponse(data, status_code=200)
+
+        with pytest.warns(DeprecationWarning):
+            response_result = response_validator.validate(request, response)
+        assert response_result.errors == [
+            MissingRequiredHeader(name='x-delete-confirm'),
+        ]
+        assert response_result.data is None
