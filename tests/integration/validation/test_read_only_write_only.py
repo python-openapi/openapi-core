@@ -19,7 +19,7 @@ def request_validator(spec):
     return RequestValidator(spec)
 
 
-@pytest.fixture('class')
+@pytest.fixture(scope='class')
 def spec(factory):
     spec_dict = factory.spec_from_file("data/v3.0/read_only_write_only.yaml")
     return create_spec(spec_dict)
