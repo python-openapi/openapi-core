@@ -62,7 +62,9 @@ class TestFlaskOpenAPIDecorator(object):
             assert request.openapi.parameters == RequestParameters(path={
                 'id': 12,
             })
-            return make_response('success', 200)
+            resp = make_response('success', 200)
+            resp.headers['X-Rate-Limit'] = '12'
+            return resp
         self.view_response_callable = view_response_callable
         result = client.get('/browse/12/')
 
@@ -172,7 +174,9 @@ class TestFlaskOpenAPIDecorator(object):
             assert request.openapi.parameters == RequestParameters(path={
                 'id': 12,
             })
-            return jsonify(data='data')
+            resp = jsonify(data='data')
+            resp.headers['X-Rate-Limit'] = '12'
+            return resp
         self.view_response_callable = view_response_callable
 
         result = client.get('/browse/12/')

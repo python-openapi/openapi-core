@@ -9,5 +9,6 @@ class FlaskOpenAPIResponseFactory(object):
         return OpenAPIResponse(
             data=response.data,
             status_code=response._status_code,
+            headers=response.headers,
             mimetype=response.mimetype,
         )

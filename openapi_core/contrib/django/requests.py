@@ -4,7 +4,7 @@ import re
 from six.moves.urllib.parse import urljoin
 
 from openapi_core.contrib.django.compat import (
-    get_headers, get_current_scheme_host,
+    get_request_headers, get_current_scheme_host,
 )
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,
@@ -39,7 +39,7 @@ class DjangoOpenAPIRequestFactory(object):
             path_pattern = '/' + route
 
         path = request.resolver_match and request.resolver_match.kwargs or {}
-        headers = get_headers(request)
+        headers = get_request_headers(request)
         parameters = RequestParameters(
             path=path,
             query=request.GET,

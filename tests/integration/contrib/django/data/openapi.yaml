@@ -17,6 +17,12 @@ paths:
                     type: string
                 required:
                   - test
+          headers:
+            X-Rate-Limit:
+              description: Rate limit
+              schema:
+                type: integer
+              required: true
       parameters:
         - required: true
           in: path

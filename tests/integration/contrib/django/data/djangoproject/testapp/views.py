@@ -30,6 +30,7 @@ class TestView(APIView):
             "test": "test_val",
         }
         django_response = JsonResponse(response_dict)
+        django_response['X-Rate-Limit'] = '12'
 
         openapi_response = DjangoOpenAPIResponse(django_response)
         validator = ResponseValidator(spec)

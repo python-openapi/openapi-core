@@ -55,6 +55,7 @@ class TestFlaskOpenAPIView(object):
 
     def test_invalid_content_type(self, client):
         self.view_response = make_response('success', 200)
+        self.view_response.headers['X-Rate-Limit'] = '12'
 
         result = client.get('/browse/12/')
 
@@ -158,8 +159,31 @@ class TestFlaskOpenAPIView(object):
         assert result.status_code == 400
         assert result.json == expected_data
 
+    def test_missing_required_header(self, client):
+        self.view_response = jsonify(data='data')
+
+        result = client.get('/browse/12/')
+
+        expected_data = {
+            'errors': [
+                {
+                    'class': (
+                        "<class 'openapi_core.exceptions."
+                        "MissingRequiredHeader'>"
+                    ),
+                    'status': 400,
+                    'title': (
+                        "Missing required header: X-Rate-Limit"
+                    )
+                }
+            ]
+        }
+        assert result.status_code == 400
+        assert result.json == expected_data
+
     def test_valid(self, client):
         self.view_response = jsonify(data='data')
+        self.view_response.headers['X-Rate-Limit'] = '12'
 
         result = client.get('/browse/12/')
 
