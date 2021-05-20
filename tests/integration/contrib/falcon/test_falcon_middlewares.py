@@ -68,6 +68,7 @@ class TestFalconOpenAPIMiddleware(object):
             response.content_type = MEDIA_HTML
             response.status = HTTP_200
             response.body = 'success'
+            response.set_header('X-Rate-Limit', '12')
         self.view_response_callable = view_response_callable
         headers = {'Content-Type': 'application/json'}
         result = client.simulate_get(
@@ -193,6 +194,7 @@ class TestFalconOpenAPIMiddleware(object):
             response.body = dumps({
                 'data': 'data',
             })
+            response.set_header('X-Rate-Limit', '12')
         self.view_response_callable = view_response_callable
 
         headers = {'Content-Type': 'application/json'}

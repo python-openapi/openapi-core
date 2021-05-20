@@ -44,6 +44,12 @@ paths:
                 properties:
                   data:
                     type: string
+          headers:
+            X-Rate-Limit:
+              description: Rate limit
+              schema:
+                type: integer
+              required: true
         default:
           description: Return errors.
           content:

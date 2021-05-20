@@ -4,10 +4,16 @@ from openapi_core.contrib.django.backports import (
 )
 
 
-def get_headers(req):
+def get_request_headers(req):
     # in Django 1 headers is not defined
     return req.headers if hasattr(req, 'headers') else \
         HttpHeaders(req.META)
+
+
+def get_response_headers(resp):
+    # in Django 2 headers is not defined
+    return resp.headers if hasattr(resp, 'headers') else \
+        dict(resp._headers.values())
 
 
 def get_current_scheme_host(req):

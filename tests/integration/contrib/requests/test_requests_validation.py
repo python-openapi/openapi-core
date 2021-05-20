@@ -22,6 +22,7 @@ class TestRequestsOpenAPIValidation(object):
         responses.add(
             responses.POST, 'http://localhost/browse/12/?q=string',
             json={"data": "data"}, status=200, match_querystring=True,
+            headers={'X-Rate-Limit': '12'},
         )
         validator = ResponseValidator(spec)
         request = requests.Request(

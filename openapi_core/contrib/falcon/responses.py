@@ -19,5 +19,6 @@ class FalconOpenAPIResponseFactory(object):
         return OpenAPIResponse(
             data=data,
             status_code=status_code,
+            headers=response.headers,
             mimetype=mimetype,
         )
