@@ -1,11 +1,13 @@
 Usage
 =====
 
-Firstly create your specification:
+Firstly create your specification: object
 
-.. code-block:: python
-
+   from json import load
    from openapi_core import create_spec
+
+   with open('openapi.json', 'r') as spec_file:
+      spec_dict = load(spec_file)
 
    spec = create_spec(spec_dict)
 
@@ -13,7 +15,7 @@ Firstly create your specification:
 Request
 -------
 
-Now you can use it to validate requests
+Now you can use it to validate against requests
 
 .. code-block:: python
 
@@ -48,7 +50,7 @@ Request object should be instance of OpenAPIRequest class (See :doc:`integration
 Response
 --------
 
-You can also validate responses
+You can also validate against responses
 
 .. code-block:: python
 
