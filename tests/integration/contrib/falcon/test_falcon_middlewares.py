@@ -26,7 +26,7 @@ class TestFalconOpenAPIMiddleware(object):
     def app(self, middleware):
         return App(middleware=[middleware])
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def client(self, app):
         return TestClient(app)
 

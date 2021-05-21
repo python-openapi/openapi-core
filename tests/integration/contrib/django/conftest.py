@@ -1,10 +1,11 @@
-import mock
-import pytest
 import os
 import sys
+from unittest import mock
+
+import pytest
 
 
-@pytest.yield_fixture(autouse=True, scope='module')
+@pytest.fixture(autouse=True, scope='module')
 def django_setup():
     directory = os.path.abspath(os.path.dirname(__file__))
     django_project_dir = os.path.join(directory, 'data')

@@ -1,7 +1,6 @@
 from base64 import b64encode
 import json
 import pytest
-from six import text_type
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -34,7 +33,7 @@ class TestRequestValidator(object):
     def api_key_encoded(self):
         api_key_bytes = self.api_key.encode('utf8')
         api_key_bytes_enc = b64encode(api_key_bytes)
-        return text_type(api_key_bytes_enc, 'utf8')
+        return str(api_key_bytes_enc, 'utf8')
 
     @pytest.fixture(scope='session')
     def spec_dict(self, factory):

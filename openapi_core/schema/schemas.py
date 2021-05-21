@@ -1,11 +1,9 @@
 from __future__ import division
 
-from six import iteritems
-
 
 def get_all_properties(schema):
     properties = schema.get('properties', {})
-    properties_dict = dict(iteritems(properties))
+    properties_dict = dict(properties.items())
 
     if 'allOf'not in schema:
         return properties_dict

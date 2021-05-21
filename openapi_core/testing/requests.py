@@ -1,5 +1,6 @@
 """OpenAPI core testing requests module"""
-from six.moves.urllib.parse import urljoin
+from urllib.parse import urljoin
+
 from werkzeug.datastructures import ImmutableMultiDict
 
 from openapi_core.validation.request.datatypes import (

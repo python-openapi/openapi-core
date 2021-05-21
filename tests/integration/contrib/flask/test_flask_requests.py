@@ -1,4 +1,5 @@
-from six.moves.urllib.parse import urljoin
+from urllib.parse import urljoin
+
 from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
 
 from openapi_core.contrib.flask import FlaskOpenAPIRequest

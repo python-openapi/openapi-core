@@ -1,7 +1,5 @@
 import pytest
 
-from six import b, u
-
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
@@ -48,7 +46,7 @@ class TestMediaTypeDeserializer(object):
 
         assert result == {'param1': 'test'}
 
-    @pytest.mark.parametrize('value', [b(''), u('')])
+    @pytest.mark.parametrize('value', [b'', ''])
     def test_data_form_empty(self, deserializer_factory, value):
         mimetype = 'multipart/form-data'
 
@@ -58,19 +56,19 @@ class TestMediaTypeDeserializer(object):
 
     def test_data_form_simple(self, deserializer_factory):
         mimetype = 'multipart/form-data'
-        value = b(
-            'Content-Type: multipart/form-data; boundary="'
-            '===============2872712225071193122=="\n'
-            'MIME-Version: 1.0\n\n'
-            '--===============2872712225071193122==\n'
-            'Content-Type: text/plain\nMIME-Version: 1.0\n'
-            'Content-Disposition: form-data; name="param1"\n\ntest\n'
-            '--===============2872712225071193122==--\n'
+        value = (
+            b'Content-Type: multipart/form-data; boundary="'
+            b'===============2872712225071193122=="\n'
+            b'MIME-Version: 1.0\n\n'
+            b'--===============2872712225071193122==\n'
+            b'Content-Type: text/plain\nMIME-Version: 1.0\n'
+            b'Content-Disposition: form-data; name="param1"\n\ntest\n'
+            b'--===============2872712225071193122==--\n'
         )
 
         result = deserializer_factory(mimetype)(value)
 
-        assert result == {'param1': b('test')}
+        assert result == {'param1': b'test'}
 
     def test_custom_simple(self, deserializer_factory):
         custom_mimetype = 'application/custom'

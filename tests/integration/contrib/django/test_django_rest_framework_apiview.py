@@ -1,7 +1,5 @@
 import pytest
 
-from six import b
-
 
 class TestDjangoRESTFrameworkAPIView(object):
 
@@ -17,4 +15,4 @@ class TestDjangoRESTFrameworkAPIView(object):
 
         response = view(request, pk='4')
 
-        assert response.content == b('{"test": "test_val"}')
+        assert response.content == b'{"test": "test_val"}'

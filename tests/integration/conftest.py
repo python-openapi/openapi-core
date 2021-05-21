@@ -1,8 +1,8 @@
 from os import path
+from urllib import request
 
 from openapi_spec_validator.schemas import read_yaml_file
 import pytest
-from six.moves.urllib import request
 from yaml import safe_load
 
 

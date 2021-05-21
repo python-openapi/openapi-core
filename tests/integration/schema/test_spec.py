@@ -1,7 +1,6 @@
 from __future__ import division
 import pytest
 from base64 import b64encode
-from six import iteritems, text_type
 
 from openapi_core.shortcuts import create_spec
 from openapi_core.schema.servers import get_server_url
@@ -18,7 +17,7 @@ class TestPetstore(object):
     def api_key_encoded(self):
         api_key_bytes = self.api_key.encode('utf8')
         api_key_bytes_enc = b64encode(api_key_bytes)
-        return text_type(api_key_bytes_enc, 'utf8')
+        return str(api_key_bytes_enc, 'utf8')
 
     @pytest.fixture
     def spec_uri(self):
@@ -65,7 +64,7 @@ class TestPetstore(object):
         security_spec = spec_dict.get('security', [])
         for idx, security_reqs in enumerate(security):
             security_reqs_spec = security_spec[idx]
-            for scheme_name, security_req in iteritems(security_reqs):
+            for scheme_name, security_req in security_reqs.items():
                 security_req == security_reqs_spec[scheme_name]
 
         assert get_spec_url(spec) == url
@@ -77,13 +76,13 @@ class TestPetstore(object):
             assert get_server_url(server) == url
 
             variables = server / 'variables'
-            for variable_name, variable in iteritems(variables):
+            for variable_name, variable in variables.items():
                 variable_spec = server_spec['variables'][variable_name]
                 assert variable['default'] == variable_spec['default']
                 assert variable['enum'] == variable_spec.get('enum')
 
         paths = spec / 'paths'
-        for path_name, path in iteritems(paths):
+        for path_name, path in paths.items():
             path_spec = spec_dict['paths'][path_name]
             assert path.getkey('summary') == path_spec.get('summary')
             assert path.getkey('description') == path_spec.get('description')
@@ -97,7 +96,7 @@ class TestPetstore(object):
                 assert server.description == server_spec.get('description')
 
                 variables = server.get('variables', {})
-                for variable_name, variable in iteritems(variables):
+                for variable_name, variable in variables.items():
                     variable_spec = server_spec['variables'][variable_name]
                     assert variable['default'] == variable_spec['default']
                     assert variable.getkey('enum') == variable_spec.get('enum')
@@ -136,7 +135,7 @@ class TestPetstore(object):
                         'description')
 
                     variables = server.get('variables', {})
-                    for variable_name, variable in iteritems(variables):
+                    for variable_name, variable in variables.items():
                         variable_spec = server_spec['variables'][variable_name]
                         assert variable['default'] == variable_spec['default']
                         assert variable.getkey('enum') == variable_spec.get(
@@ -147,13 +146,12 @@ class TestPetstore(object):
                 if security_spec is not None:
                     for idx, security_reqs in enumerate(security):
                         security_reqs_spec = security_spec[idx]
-                        for scheme_name, security_req in iteritems(
-                                security_reqs):
+                        for scheme_name, security_req in security_reqs.items():
                             security_req == security_reqs_spec[scheme_name]
 
                 responses = operation / 'responses'
                 responses_spec = operation_spec.get('responses')
-                for http_status, response in iteritems(responses):
+                for http_status, response in responses.items():
                     response_spec = responses_spec[http_status]
 
                     if not response_spec:
@@ -168,7 +166,7 @@ class TestPetstore(object):
                     assert response.getkey('description') == description_spec
 
                     headers = response.get('headers', {})
-                    for parameter_name, parameter in iteritems(headers):
+                    for parameter_name, parameter in headers.items():
                         headers_spec = response_spec['headers']
                         parameter_spec = headers_spec[parameter_name]
 
@@ -197,7 +195,7 @@ class TestPetstore(object):
                         if not content_spec:
                             continue
 
-                        for mimetype, media_type in iteritems(content):
+                        for mimetype, media_type in content.items():
                             media_spec = parameter_spec['content'][mimetype]
                             schema = media_type.get('schema')
                             schema_spec = media_spec.get('schema')
@@ -223,7 +221,7 @@ class TestPetstore(object):
                         continue
 
                     content = response.get('content', {})
-                    for mimetype, media_type in iteritems(content):
+                    for mimetype, media_type in content.items():
                         content_spec = response_spec['content'][mimetype]
 
                         example_spec = content_spec.get('example')
@@ -255,7 +253,7 @@ class TestPetstore(object):
                     request_body_spec.get('required')
 
                 content = request_body / 'content'
-                for mimetype, media_type in iteritems(content):
+                for mimetype, media_type in content.items():
                     content_spec = request_body_spec['content'][mimetype]
                     schema_spec = content_spec.get('schema')
 
@@ -281,7 +279,7 @@ class TestPetstore(object):
             return
 
         schemas = components.get('schemas', {})
-        for schema_name, schema in iteritems(schemas):
+        for schema_name, schema in schemas.items():
             schema_spec = spec_dict['components']['schemas'][schema_name]
             assert schema.getkey('readOnly') == schema_spec.get('readOnly')
             assert schema.getkey('writeOnly') == schema_spec.get('writeOnly')

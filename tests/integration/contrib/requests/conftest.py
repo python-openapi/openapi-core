@@ -1,8 +1,9 @@
+from io import BytesIO
+from urllib.parse import urljoin, parse_qs
+
 import pytest
 from requests.models import Request, Response
 from requests.structures import CaseInsensitiveDict
-from six import BytesIO, b
-from six.moves.urllib.parse import urljoin, parse_qs
 from urllib3.response import HTTPResponse
 
 
@@ -26,7 +27,7 @@ def request_factory():
 def response_factory():
     def create_response(
             data, status_code=200, content_type='application/json'):
-        fp = BytesIO(b(data))
+        fp = BytesIO(bytes(data, 'latin-1'))
         raw = HTTPResponse(fp, preload_content=False)
         resp = Response()
         resp.headers = CaseInsensitiveDict({

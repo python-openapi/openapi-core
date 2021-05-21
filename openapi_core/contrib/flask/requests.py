@@ -1,7 +1,7 @@
 """OpenAPI core contrib flask requests module"""
 import re
 
-from six.moves.urllib.parse import urljoin
+from urllib.parse import urljoin
 
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,

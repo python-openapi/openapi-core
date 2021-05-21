@@ -1,8 +1,9 @@
 """OpenAPI core contrib requests requests module"""
 from __future__ import absolute_import
+from urllib.parse import urlparse, parse_qs
+
 from werkzeug.datastructures import ImmutableMultiDict
 from requests import Request
-from six.moves.urllib.parse import urlparse, parse_qs
 
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,

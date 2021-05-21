@@ -1,7 +1,7 @@
 """OpenAPI core contrib django requests module"""
 import re
 
-from six.moves.urllib.parse import urljoin
+from urllib.parse import urljoin
 
 from openapi_core.contrib.django.compat import (
     get_request_headers, get_current_scheme_host,
