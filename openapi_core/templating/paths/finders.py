@@ -1,8 +1,8 @@
 """OpenAPI core templating paths finders module"""
 from __future__ import division
+from urllib.parse import urljoin, urlparse
 
 from more_itertools import peekable
-from six.moves.urllib.parse import urljoin, urlparse
 
 from openapi_core.schema.servers import is_absolute
 from openapi_core.templating.datatypes import TemplateResult

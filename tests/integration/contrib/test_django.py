@@ -1,7 +1,6 @@
 import sys
 
 import pytest
-from six import b
 
 from openapi_core.contrib.django import (
     DjangoOpenAPIRequest, DjangoOpenAPIResponse,
@@ -56,7 +55,7 @@ class BaseTestDjango(object):
     def response_factory(self):
         from django.http import HttpResponse
 
-        def create(content=b(''), status_code=None):
+        def create(content=b'', status_code=None):
             return HttpResponse(content, status=status_code)
 
         return create
@@ -148,7 +147,7 @@ class TestDjangoOpenAPIResponse(BaseTestDjango):
 
         openapi_response = DjangoOpenAPIResponse(response)
 
-        assert openapi_response.data == b('foo\nbar\nbaz\n')
+        assert openapi_response.data == b'foo\nbar\nbaz\n'
         assert openapi_response.status_code == response.status_code
         assert openapi_response.mimetype == response["Content-Type"]
 
@@ -176,7 +175,7 @@ class TestDjangoOpenAPIValidation(BaseTestDjango):
         request = request_factory.get('/admin/auth/group/1/')
         request.resolver_match = resolve('/admin/auth/group/1/')
         openapi_request = DjangoOpenAPIRequest(request)
-        response = response_factory(b('Some item'))
+        response = response_factory(b'Some item')
         openapi_response = DjangoOpenAPIResponse(response)
         result = validator.validate(openapi_request, openapi_response)
         assert not result.errors

@@ -1,5 +1,6 @@
 from __future__ import division
-import mock
+from unittest import mock
+
 import pytest
 
 from openapi_core.spec.paths import SpecPath

@@ -1,6 +1,6 @@
 import datetime
+from unittest import mock
 
-import mock
 import pytest
 
 from openapi_core.extensions.models.models import Model
@@ -12,8 +12,6 @@ from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError, InvalidSchemaValue,
 )
 from openapi_core.unmarshalling.schemas.util import build_format_checker
-
-from six import b, u
 
 
 class TestSchemaValidate(object):
@@ -77,7 +75,7 @@ class TestSchemaValidate(object):
 
         assert result is None
 
-    @pytest.mark.parametrize('value', [1, 3.14, u('true'), [True, False]])
+    @pytest.mark.parametrize('value', [1, 3.14, 'true', [True, False]])
     def test_boolean_invalid(self, value, validator_factory):
         spec = {
             'type': 'boolean',
@@ -111,7 +109,7 @@ class TestSchemaValidate(object):
 
         assert result is None
 
-    @pytest.mark.parametrize('value', [False, 1, 3.14, u('true'), (3, 4)])
+    @pytest.mark.parametrize('value', [False, 1, 3.14, 'true', (3, 4)])
     def test_array_invalid(self, value, validator_factory):
         spec = {
             'type': 'array',
@@ -132,7 +130,7 @@ class TestSchemaValidate(object):
 
         assert result is None
 
-    @pytest.mark.parametrize('value', [False, 3.14, u('true'), [1, 2]])
+    @pytest.mark.parametrize('value', [False, 3.14, 'true', [1, 2]])
     def test_integer_invalid(self, value, validator_factory):
         spec = {
             'type': 'integer',
@@ -351,7 +349,7 @@ class TestSchemaValidate(object):
 
         assert result is None
 
-    @pytest.mark.parametrize('value', [u('true'), b('test')])
+    @pytest.mark.parametrize('value', ['true', b'test'])
     def test_string(self, value, validator_factory):
         spec = {
             'type': 'string',
@@ -373,7 +371,7 @@ class TestSchemaValidate(object):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [
-        b('true'), u('test'), False, 1, 3.14, [1, 3],
+        b'true', 'test', False, 1, 3.14, [1, 3],
         datetime.datetime(1989, 1, 2),
     ])
     def test_string_format_date_invalid(self, value, validator_factory):
@@ -387,7 +385,7 @@ class TestSchemaValidate(object):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [
-        u('1989-01-02'), u('2018-01-02'),
+        '1989-01-02', '2018-01-02',
     ])
     def test_string_format_date(self, value, validator_factory):
         spec = {
@@ -401,7 +399,7 @@ class TestSchemaValidate(object):
         assert result is None
 
     @pytest.mark.parametrize('value', [
-        u('12345678-1234-5678-1234-567812345678'),
+        '12345678-1234-5678-1234-567812345678',
     ])
     def test_string_format_uuid(self, value, validator_factory):
         spec = {
@@ -415,7 +413,7 @@ class TestSchemaValidate(object):
         assert result is None
 
     @pytest.mark.parametrize('value', [
-        b('true'), u('true'), False, 1, 3.14, [1, 3],
+        b'true', 'true', False, 1, 3.14, [1, 3],
         datetime.date(2018, 1, 2), datetime.datetime(2018, 1, 2, 23, 59, 59),
     ])
     def test_string_format_uuid_invalid(self, value, validator_factory):
@@ -429,8 +427,8 @@ class TestSchemaValidate(object):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [
-        b('true'), u('true'), False, 1, 3.14, [1, 3],
-        u('1989-01-02'),
+        b'true', 'true', False, 1, 3.14, [1, 3],
+        '1989-01-02',
     ])
     def test_string_format_datetime_invalid(self, value, validator_factory):
         spec = {
@@ -443,8 +441,8 @@ class TestSchemaValidate(object):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [
-        u('1989-01-02T00:00:00Z'),
-        u('2018-01-02T23:59:59Z'),
+        '1989-01-02T00:00:00Z',
+        '2018-01-02T23:59:59Z',
     ])
     @mock.patch(
         'openapi_schema_validator._format.'
@@ -467,8 +465,8 @@ class TestSchemaValidate(object):
         assert result is None
 
     @pytest.mark.parametrize('value', [
-        u('1989-01-02T00:00:00Z'),
-        u('2018-01-02T23:59:59Z'),
+        '1989-01-02T00:00:00Z',
+        '2018-01-02T23:59:59Z',
     ])
     @mock.patch(
         'openapi_schema_validator._format.'
@@ -490,8 +488,8 @@ class TestSchemaValidate(object):
         assert result is None
 
     @pytest.mark.parametrize('value', [
-        u('true'), False, 1, 3.14, [1, 3], u('1989-01-02'),
-        u('1989-01-02T00:00:00Z'),
+        'true', False, 1, 3.14, [1, 3], '1989-01-02',
+        '1989-01-02T00:00:00Z',
     ])
     def test_string_format_binary_invalid(self, value, validator_factory):
         spec = {
@@ -504,7 +502,7 @@ class TestSchemaValidate(object):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [
-        b('stream'), b('text'),
+        b'stream', b'text',
     ])
     def test_string_format_binary(self, value, validator_factory):
         spec = {
@@ -518,7 +516,7 @@ class TestSchemaValidate(object):
         assert result is None
 
     @pytest.mark.parametrize('value', [
-        b('dGVzdA=='), u('dGVzdA=='),
+        b'dGVzdA==', 'dGVzdA==',
     ])
     def test_string_format_byte(self, value, validator_factory):
         spec = {
@@ -532,7 +530,7 @@ class TestSchemaValidate(object):
         assert result is None
 
     @pytest.mark.parametrize('value', [
-        u('tsssst'), b('tsssst'), b('tesddddsdsdst'),
+        'tsssst', b'tsssst', b'tesddddsdsdst',
     ])
     def test_string_format_byte_invalid(self, value, validator_factory):
         spec = {
@@ -545,7 +543,7 @@ class TestSchemaValidate(object):
             validator_factory(schema).validate(value)
 
     @pytest.mark.parametrize('value', [
-        u('test'), b('stream'), datetime.date(1989, 1, 2),
+        'test', b'stream', datetime.date(1989, 1, 2),
         datetime.datetime(1989, 1, 2, 0, 0, 0),
     ])
     def test_string_format_unknown(self, value, validator_factory):
@@ -559,7 +557,7 @@ class TestSchemaValidate(object):
         with pytest.raises(FormatterNotFoundError):
             validator_factory(schema).validate(value)
 
-    @pytest.mark.parametrize('value', [u(""), u("a"), u("ab")])
+    @pytest.mark.parametrize('value', ["", "a", "ab"])
     def test_string_min_length_invalid(self, value, validator_factory):
         spec = {
             'type': 'string',
@@ -570,7 +568,7 @@ class TestSchemaValidate(object):
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
-    @pytest.mark.parametrize('value', [u("abc"), u("abcd")])
+    @pytest.mark.parametrize('value', ["abc", "abcd"])
     def test_string_min_length(self, value, validator_factory):
         spec = {
             'type': 'string',
@@ -582,7 +580,7 @@ class TestSchemaValidate(object):
 
         assert result is None
 
-    @pytest.mark.parametrize('value', [u(""), ])
+    @pytest.mark.parametrize('value', ["", ])
     def test_string_max_length_invalid_schema(self, value, validator_factory):
         spec = {
             'type': 'string',
@@ -593,7 +591,7 @@ class TestSchemaValidate(object):
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
-    @pytest.mark.parametrize('value', [u("ab"), u("abc")])
+    @pytest.mark.parametrize('value', ["ab", "abc"])
     def test_string_max_length_invalid(self, value, validator_factory):
         spec = {
             'type': 'string',
@@ -604,7 +602,7 @@ class TestSchemaValidate(object):
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
-    @pytest.mark.parametrize('value', [u(""), u("a")])
+    @pytest.mark.parametrize('value', ['', 'a'])
     def test_string_max_length(self, value, validator_factory):
         spec = {
             'type': 'string',
@@ -616,7 +614,7 @@ class TestSchemaValidate(object):
 
         assert result is None
 
-    @pytest.mark.parametrize('value', [u("foo"), u("bar")])
+    @pytest.mark.parametrize('value', ['foo', 'bar'])
     def test_string_pattern_invalid(self, value, validator_factory):
         spec = {
             'type': 'string',
@@ -627,7 +625,7 @@ class TestSchemaValidate(object):
         with pytest.raises(InvalidSchemaValue):
             validator_factory(schema).validate(value)
 
-    @pytest.mark.parametrize('value', [u("bar"), u("foobar")])
+    @pytest.mark.parametrize('value', ['bar', 'foobar'])
     def test_string_pattern(self, value, validator_factory):
         spec = {
             'type': 'string',
@@ -720,11 +718,11 @@ class TestSchemaValidate(object):
 
     @pytest.mark.parametrize('value', [
         {
-            'foo': u("FOO"),
+            'foo': 'FOO',
         },
         {
-            'foo': u("FOO"),
-            'bar': u("BAR"),
+            'foo': 'FOO',
+            'bar': 'BAR',
         },
     ])
     def test_unambiguous_one_of(self, value, validator_factory):
@@ -991,10 +989,10 @@ class TestSchemaValidate(object):
             'someint': 123,
         },
         {
-            'somestr': u('content'),
+            'somestr': 'content',
         },
         {
-            'somestr': u('content'),
+            'somestr': 'content',
             'someint': 123,
         },
     ])

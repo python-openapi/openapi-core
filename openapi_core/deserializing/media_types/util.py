@@ -1,13 +1,11 @@
 from email.parser import Parser
 from json import loads
-
-from six import binary_type
-from six.moves.urllib.parse import parse_qsl
+from urllib.parse import parse_qsl
 
 
 def json_loads(value):
     # python 3.5 doesn't support binary input fix
-    if isinstance(value, (binary_type, )):
+    if isinstance(value, (bytes, )):
         value = value.decode()
     return loads(value)
 
@@ -17,7 +15,7 @@ def urlencoded_form_loads(value):
 
 
 def data_form_loads(value):
-    if issubclass(type(value), binary_type):
+    if issubclass(type(value), bytes):
         value = value.decode('ASCII', errors='surrogateescape')
     parser = Parser()
     parts = parser.parsestr(value, headersonly=False)

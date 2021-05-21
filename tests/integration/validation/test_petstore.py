@@ -4,7 +4,6 @@ from datetime import datetime
 from base64 import b64encode
 from uuid import UUID
 from isodate.tzinfo import UTC
-from six import text_type
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -38,7 +37,7 @@ class TestPetstore(object):
     def api_key_encoded(self):
         api_key_bytes = self.api_key.encode('utf8')
         api_key_bytes_enc = b64encode(api_key_bytes)
-        return text_type(api_key_bytes_enc, 'utf8')
+        return str(api_key_bytes_enc, 'utf8')
 
     @pytest.fixture(scope='module')
     def spec_uri(self):

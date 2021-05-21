@@ -9,8 +9,6 @@ from openapi_schema_validator._types import (
     is_object, is_number, is_string,
 )
 from openapi_schema_validator._format import oas30_format_checker
-from six import text_type, binary_type
-from six import iteritems
 
 from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas import (
@@ -77,16 +75,16 @@ class StringUnmarshaller(PrimitiveTypeUnmarshaller):
 
     FORMATTERS = {
         None: Formatter.from_callables(
-            partial(is_string, None), text_type),
+            partial(is_string, None), str),
         'password': Formatter.from_callables(
-            partial(oas30_format_checker.check, format='password'), text_type),
+            partial(oas30_format_checker.check, format='password'), str),
         'date': Formatter.from_callables(
             partial(oas30_format_checker.check, format='date'), format_date),
         'date-time': Formatter.from_callables(
             partial(oas30_format_checker.check, format='date-time'),
             parse_datetime),
         'binary': Formatter.from_callables(
-            partial(oas30_format_checker.check, format='binary'), binary_type),
+            partial(oas30_format_checker.check, format='binary'), bytes),
         'uuid': Formatter.from_callables(
             partial(oas30_format_checker.check, format='uuid'), format_uuid),
         'byte': Formatter.from_callables(
@@ -226,7 +224,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
                 prop_value = value[prop_name]
                 properties[prop_name] = prop_value
 
-        for prop_name, prop in iteritems(all_props):
+        for prop_name, prop in all_props.items():
             read_only = prop.getkey('readOnly', False)
             if self.context == UnmarshalContext.REQUEST and read_only:
                 continue

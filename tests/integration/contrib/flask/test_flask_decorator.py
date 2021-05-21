@@ -26,7 +26,7 @@ class TestFlaskOpenAPIDecorator(object):
         app.config['TESTING'] = True
         return app
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def client(self, app):
         with app.test_client() as client:
             with app.app_context():

@@ -302,9 +302,7 @@ class TestSchemaUnmarshallerCall(object):
 
         with pytest.raises(
             FormatterNotFoundError,
-            message=(
-                'Formatter not found for custom format'
-            ),
+            match='Formatter not found for custom format',
         ):
             unmarshaller_factory(schema)(value)
 
