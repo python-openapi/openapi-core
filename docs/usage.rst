@@ -3,6 +3,8 @@ Usage
 
 Firstly create your specification: object
 
+.. code-block:: python
+
    from json import load
    from openapi_core import create_spec
 
