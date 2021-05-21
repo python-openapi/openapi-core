@@ -16,7 +16,8 @@ from openapi_core.exceptions import (
     MissingRequiredHeader, MissingRequiredParameter,
 )
 from openapi_core.shortcuts import (
-    create_spec, validate_parameters, validate_body, validate_data,
+    create_spec, spec_validate_parameters, spec_validate_body,
+    spec_validate_security, spec_validate_data, spec_validate_headers,
 )
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
@@ -72,8 +73,8 @@ class TestPetstore(object):
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+            parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -115,8 +116,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -161,8 +162,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -193,8 +194,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -219,7 +220,7 @@ class TestPetstore(object):
         response = MockResponse(response_data)
 
         with pytest.raises(InvalidSchemaValue):
-            validate_data(spec, request, response)
+            spec_validate_data(spec, request, response)
 
         response_result = response_validator.validate(request, response)
 
@@ -246,8 +247,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -284,8 +285,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -323,9 +324,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(DeserializeError):
-            validate_parameters(spec, request)
+            spec_validate_parameters(spec, request)
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -342,9 +343,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(CastError):
-            validate_parameters(spec, request)
+            spec_validate_parameters(spec, request)
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -357,9 +358,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(MissingRequiredParameter):
-            validate_parameters(spec, request)
+            spec_validate_parameters(spec, request)
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -376,8 +377,8 @@ class TestPetstore(object):
         )
 
         with pytest.raises(EmptyParameterValue):
-            validate_parameters(spec, request)
-        body = validate_body(spec, request)
+            spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -395,7 +396,7 @@ class TestPetstore(object):
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = validate_parameters(spec, request)
+            parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -405,7 +406,7 @@ class TestPetstore(object):
             }
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -421,7 +422,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -431,7 +432,7 @@ class TestPetstore(object):
             }
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -448,7 +449,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -459,7 +460,7 @@ class TestPetstore(object):
             }
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -480,7 +481,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             query={
@@ -491,7 +492,7 @@ class TestPetstore(object):
             }
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -535,7 +536,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -549,7 +550,7 @@ class TestPetstore(object):
             },
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -562,6 +563,10 @@ class TestPetstore(object):
         assert body.address.street == pet_street
         assert body.address.city == pet_city
         assert body.healthy == pet_healthy
+
+        security = spec_validate_security(spec, request)
+
+        assert security == {}
 
     def test_post_cats(self, spec, spec_dict):
         host_url = 'https://staging.gigantic-server.com/v1'
@@ -598,7 +603,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -609,7 +614,7 @@ class TestPetstore(object):
             },
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -658,7 +663,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -669,7 +674,7 @@ class TestPetstore(object):
             },
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -706,7 +711,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -718,7 +723,7 @@ class TestPetstore(object):
         )
 
         with pytest.raises(InvalidSchemaValue):
-            validate_body(spec, request)
+            spec_validate_body(spec, request)
 
     def test_post_cats_only_required_body(self, spec, spec_dict):
         host_url = 'https://staging.gigantic-server.com/v1'
@@ -745,7 +750,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -756,7 +761,7 @@ class TestPetstore(object):
             },
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -786,7 +791,7 @@ class TestPetstore(object):
             headers=headers, cookies=cookies,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             header={
@@ -798,7 +803,7 @@ class TestPetstore(object):
         )
 
         with pytest.raises(MediaTypeNotFound):
-            validate_body(spec, request)
+            spec_validate_body(spec, request)
 
     def test_post_pets_missing_cookie(self, spec, spec_dict):
         host_url = 'https://staging.gigantic-server.com/v1'
@@ -823,9 +828,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(MissingRequiredParameter):
-            validate_parameters(spec, request)
+            spec_validate_parameters(spec, request)
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -857,9 +862,9 @@ class TestPetstore(object):
         )
 
         with pytest.raises(MissingRequiredParameter):
-            validate_parameters(spec, request)
+            spec_validate_parameters(spec, request)
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         schemas = spec_dict['components']['schemas']
         pet_model = schemas['PetCreate']['x-model']
@@ -890,10 +895,10 @@ class TestPetstore(object):
         )
 
         with pytest.raises(ServerNotFound):
-            validate_parameters(spec, request)
+            spec_validate_parameters(spec, request)
 
         with pytest.raises(ServerNotFound):
-            validate_body(spec, request)
+            spec_validate_body(spec, request)
 
         data_id = 1
         data_name = 'test'
@@ -910,7 +915,7 @@ class TestPetstore(object):
         response = MockResponse(data)
 
         with pytest.raises(ServerNotFound):
-            validate_data(spec, request, response)
+            spec_validate_data(spec, request, response)
 
     def test_get_pet(self, spec, response_validator):
         host_url = 'http://petstore.swagger.io/v1'
@@ -918,12 +923,17 @@ class TestPetstore(object):
         view_args = {
             'petId': '1',
         }
+        auth = 'authuser'
+        headers = {
+            'Authorization': 'Basic {auth}'.format(auth=auth),
+        }
         request = MockRequest(
             host_url, 'GET', '/pets/1',
             path_pattern=path_pattern, view_args=view_args,
+            headers=headers,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             path={
@@ -931,9 +941,15 @@ class TestPetstore(object):
             }
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
+
+        security = spec_validate_security(spec, request)
+
+        assert security == {
+            'petstore_auth': auth,
+        }
 
         data_id = 1
         data_name = 'test'
@@ -968,7 +984,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, view_args=view_args,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             path={
@@ -976,7 +992,7 @@ class TestPetstore(object):
             }
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -1010,7 +1026,7 @@ class TestPetstore(object):
             path_pattern=path_pattern, view_args=view_args,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters(
             path={
@@ -1018,7 +1034,7 @@ class TestPetstore(object):
             }
         )
 
-        body = validate_body(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert body is None
 
@@ -1039,8 +1055,8 @@ class TestPetstore(object):
             path_pattern=path_pattern,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert body is None
@@ -1070,12 +1086,12 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters()
 
         with pytest.raises(InvalidSchemaValue):
-            validate_body(spec, request)
+            spec_validate_body(spec, request)
 
     def test_post_tags_empty_body(self, spec, spec_dict):
         host_url = 'http://petstore.swagger.io/v1'
@@ -1088,12 +1104,12 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters()
 
         with pytest.raises(InvalidSchemaValue):
-            validate_body(spec, request)
+            spec_validate_body(spec, request)
 
     def test_post_tags_wrong_property_type(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
@@ -1106,12 +1122,12 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
 
         assert parameters == RequestParameters()
 
         with pytest.raises(InvalidSchemaValue):
-            validate_body(spec, request)
+            spec_validate_body(spec, request)
 
     def test_post_tags_additional_properties(
             self, spec, response_validator):
@@ -1128,8 +1144,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert isinstance(body, BaseModel)
@@ -1174,8 +1190,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert isinstance(body, BaseModel)
@@ -1221,8 +1237,8 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert isinstance(body, BaseModel)
@@ -1242,7 +1258,7 @@ class TestPetstore(object):
         response_data = json.dumps(response_data_json)
         response = MockResponse(response_data, status_code=404)
 
-        data = validate_data(spec, request, response)
+        data = spec_validate_data(spec, request, response)
 
         assert isinstance(data, BaseModel)
         assert data.code == code
@@ -1276,9 +1292,9 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = validate_parameters(spec, request)
+        parameters = spec_validate_parameters(spec, request)
         with pytest.raises(InvalidSchemaValue):
-            validate_body(spec, request)
+            spec_validate_body(spec, request)
 
         assert parameters == RequestParameters()
 
@@ -1320,12 +1336,29 @@ class TestPetstore(object):
             path_pattern=path_pattern, data=data,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert isinstance(body, BaseModel)
         assert body.ids == ids
+
+        data = None
+        headers = {
+            'x-delete-confirm': 'true',
+        }
+        response = MockResponse(data, status_code=200, headers=headers)
+
+        with pytest.warns(DeprecationWarning):
+            response_result = response_validator.validate(request, response)
+        assert response_result.errors == []
+        assert response_result.data is None
+
+        response_headers = spec_validate_headers(spec, request, response)
+
+        assert response_headers == {
+            'x-delete-confirm': True,
+        }
 
     def test_delete_tags_no_requestbody(
             self, spec, response_validator):
@@ -1336,8 +1369,8 @@ class TestPetstore(object):
             path_pattern=path_pattern,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert body is None
@@ -1351,8 +1384,8 @@ class TestPetstore(object):
             path_pattern=path_pattern,
         )
 
-        parameters = validate_parameters(spec, request)
-        body = validate_body(spec, request)
+        parameters = spec_validate_parameters(spec, request)
+        body = spec_validate_body(spec, request)
 
         assert parameters == RequestParameters()
         assert body is None
@@ -1360,8 +1393,7 @@ class TestPetstore(object):
         data = None
         response = MockResponse(data, status_code=200)
 
-        with pytest.warns(DeprecationWarning):
-            response_result = response_validator.validate(request, response)
+        response_result = response_validator.validate(request, response)
         assert response_result.errors == [
             MissingRequiredHeader(name='x-delete-confirm'),
         ]

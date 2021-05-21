@@ -1,4 +1,5 @@
 from __future__ import division
+from itertools import chain
 
 
 def get_aslist(param_or_header):
@@ -52,3 +53,8 @@ def get_value(param_or_header, location, name=None):
         return location.getlist(name)
 
     return location[name]
+
+
+def iter_params(*lists):
+    iters = map(lambda l: l and iter(l) or [], lists)
+    return chain(*iters)

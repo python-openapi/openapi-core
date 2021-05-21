@@ -21,7 +21,7 @@ from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.validators import BaseValidator
 
 
-class ResponseValidator(BaseValidator):
+class BaseResponseValidator(BaseValidator):
 
     @property
     def schema_unmarshallers_factory(self):
@@ -32,56 +32,15 @@ class ResponseValidator(BaseValidator):
             self.custom_formatters, context=UnmarshalContext.RESPONSE,
         )
 
-    def validate(self, request, response):
-        try:
-            _, operation, _, _, _ = self._find_path(request)
-        # don't process if operation errors
-        except PathError as exc:
-            return ResponseValidationResult(errors=[exc, ])
-
-        try:
-            operation_response = self._get_operation_response(
+    def _find_operation_response(self, request, response):
+        _, operation, _, _, _ = self._find_path(request)
+        return self._get_operation_response(
                 operation, response)
-        # don't process if operation errors
-        except ResponseFinderError as exc:
-            return ResponseValidationResult(errors=[exc, ])
-
-        data, data_errors = self._get_data(response, operation_response)
-
-        headers, headers_errors = self._get_headers(
-            response, operation_response)
-
-        errors = data_errors + headers_errors
-        return ResponseValidationResult(
-            errors=errors,
-            data=data,
-            headers=headers,
-        )
 
     def _get_operation_response(self, operation, response):
         from openapi_core.templating.responses.finders import ResponseFinder
         finder = ResponseFinder(operation / 'responses')
         return finder.find(str(response.status_code))
-
-    def _validate_data(self, request, response):
-        try:
-            _, operation, _, _, _ = self._find_path(request)
-        # don't process if operation errors
-        except PathError as exc:
-            return ResponseValidationResult(errors=[exc, ])
-
-        try:
-            operation_response = self._get_operation_response(
-                operation, response)
-        # don't process if operation errors
-        except ResponseFinderError as exc:
-            return ResponseValidationResult(errors=[exc, ])
-
-        data, data_errors = self._get_data(response, operation_response)
-        return ResponseValidationResult(
-            errors=data_errors,
-            data=data,
-        )
 
     def _get_data(self, response, operation_response):
         if 'content' not in operation_response:
@@ -118,6 +77,12 @@ class ResponseValidator(BaseValidator):
             return None, [exc, ]
 
         return data, []
+
+    def _get_data_value(self, response):
+        if not response.data:
+            raise MissingResponseContent(response)
+
+        return response.data
 
     def _get_headers(self, response, operation_response):
         if 'headers' not in operation_response:
@@ -163,8 +128,62 @@ class ResponseValidator(BaseValidator):
                 raise MissingRequiredHeader(name)
             raise MissingHeader(name)
 
-    def _get_data_value(self, response):
-        if not response.data:
-            raise MissingResponseContent(response)
 
-        return response.data
+class ResponseDataValidator(BaseResponseValidator):
+
+    def validate(self, request, response):
+        try:
+            operation_response = self._find_operation_response(
+                request, response)
+        # don't process if operation errors
+        except (PathError, ResponseFinderError) as exc:
+            return ResponseValidationResult(errors=[exc, ])
+
+        data, data_errors = self._get_data(response, operation_response)
+
+        return ResponseValidationResult(
+            errors=data_errors,
+            data=data,
+        )
+
+
+class ResponseHeadersValidator(BaseResponseValidator):
+
+    def validate(self, request, response):
+        try:
+            operation_response = self._find_operation_response(
+                request, response)
+        # don't process if operation errors
+        except (PathError, ResponseFinderError) as exc:
+            return ResponseValidationResult(errors=[exc, ])
+
+        headers, headers_errors = self._get_headers(
+            response, operation_response)
+
+        return ResponseValidationResult(
+            errors=headers_errors,
+            headers=headers,
+        )
+
+
+class ResponseValidator(BaseResponseValidator):
+
+    def validate(self, request, response):
+        try:
+            operation_response = self._find_operation_response(
+                request, response)
+        # don't process if operation errors
+        except (PathError, ResponseFinderError) as exc:
+            return ResponseValidationResult(errors=[exc, ])
+
+        data, data_errors = self._get_data(response, operation_response)
+
+        headers, headers_errors = self._get_headers(
+            response, operation_response)
+
+        errors = data_errors + headers_errors
+        return ResponseValidationResult(
+            errors=errors,
+            data=data,
+            headers=headers,
+        )

@@ -10,8 +10,8 @@ from openapi_core.validation.response.shortcuts import spec_validate_data
 class TestSpecValidateData(object):
 
     @mock.patch(
-        'openapi_core.validation.response.shortcuts.ResponseValidator.'
-        '_validate_data'
+        'openapi_core.validation.response.shortcuts.ResponseDataValidator.'
+        'validate'
     )
     def test_no_factories(self, mock_validate):
         spec = mock.sentinel.spec
@@ -26,8 +26,8 @@ class TestSpecValidateData(object):
         mock_validate.aasert_called_once_with(request, response)
 
     @mock.patch(
-        'openapi_core.validation.response.shortcuts.ResponseValidator.'
-        '_validate_data'
+        'openapi_core.validation.response.shortcuts.ResponseDataValidator.'
+        'validate'
     )
     def test_no_factories_error(self, mock_validate):
         spec = mock.sentinel.spec
@@ -41,8 +41,8 @@ class TestSpecValidateData(object):
         mock_validate.aasert_called_once_with(request, response)
 
     @mock.patch(
-        'openapi_core.validation.response.shortcuts.ResponseValidator.'
-        '_validate_data'
+        'openapi_core.validation.response.shortcuts.ResponseDataValidator.'
+        'validate'
     )
     def test_factories(self, mock_validate):
         spec = mock.sentinel.spec
@@ -65,8 +65,8 @@ class TestSpecValidateData(object):
         )
 
     @mock.patch(
-        'openapi_core.validation.response.shortcuts.ResponseValidator.'
-        '_validate_data'
+        'openapi_core.validation.response.shortcuts.ResponseDataValidator.'
+        'validate'
     )
     def test_factories_error(self, mock_validate):
         spec = mock.sentinel.spec
