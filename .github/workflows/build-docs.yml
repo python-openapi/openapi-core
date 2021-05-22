@@ -6,7 +6,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -22,10 +22,10 @@ jobs:
         pip install -e .
     - name: Build documentation
       run: |
-        python -m sphinx -T -b html -d _build/doctrees -D language=en . _build/html --color -n -W
+        python -m sphinx -T -b html -d docs/_build/doctrees -D language=en docs docs/_build/html -n -W
     - uses: actions/upload-artifact@v2
-      name: 🚀 Upload docs as artifact
+      name: Upload docs as artifact
       with:
-        name: airflow-website
+        name: docs-html
         path: './docs/_build/html'
         if-no-files-found: error
