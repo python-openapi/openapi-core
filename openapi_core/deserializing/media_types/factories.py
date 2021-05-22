@@ -1,5 +1,7 @@
+from json import loads
+
 from openapi_core.deserializing.media_types.util import (
-    json_loads, urlencoded_form_loads, data_form_loads,
+    urlencoded_form_loads, data_form_loads,
 )
 
 from openapi_core.deserializing.media_types.deserializers import (
@@ -10,7 +12,7 @@ from openapi_core.deserializing.media_types.deserializers import (
 class MediaTypeDeserializersFactory(object):
 
     MEDIA_TYPE_DESERIALIZERS = {
-        'application/json': json_loads,
+        'application/json': loads,
         'application/x-www-form-urlencoded': urlencoded_form_loads,
         'multipart/form-data': data_form_loads,
     }

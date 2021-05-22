@@ -1,13 +1,5 @@
 from email.parser import Parser
-from json import loads
 from urllib.parse import parse_qsl
-
-
-def json_loads(value):
-    # python 3.5 doesn't support binary input fix
-    if isinstance(value, (bytes, )):
-        value = value.decode()
-    return loads(value)
 
 
 def urlencoded_form_loads(value):
