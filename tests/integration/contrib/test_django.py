@@ -44,7 +44,7 @@ class BaseTestDjango(object):
         django.setup()
         settings.ROOT_URLCONF = (
             path('admin/', admin.site.urls),
-            re_path('test/test-regexp/$', lambda d: None)
+            re_path('^test/test-regexp/$', lambda d: None)
         )
 
     @pytest.fixture
