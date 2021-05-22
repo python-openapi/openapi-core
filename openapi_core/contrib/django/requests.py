@@ -36,7 +36,7 @@ class DjangoOpenAPIRequestFactory(object):
         else:
             route = cls.path_regex.sub(
                 r'{\1}', request.resolver_match.route)
-            # Delete start marker and expression marker to allow concatenation.
+            # Delete start and end marker to allow concatenation.
             if route[:1] == "^":
                 route = route[1:]
             if route[-1:] == "$":
