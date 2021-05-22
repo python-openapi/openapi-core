@@ -9,3 +9,5 @@ requests==2.22.0
 responses==0.10.12
 webob
 strict-rfc3339==0.7
+sphinx==4.0.2
+sphinx-rtd-theme==0.5.2
