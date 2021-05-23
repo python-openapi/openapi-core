@@ -1,7 +1,6 @@
 from __future__ import division
 
 from openapi_core.casting.schemas.exceptions import CastError
-from openapi_core.types import NoValue
 
 
 class PrimitiveCaster(object):
@@ -11,7 +10,7 @@ class PrimitiveCaster(object):
         self.caster_callable = caster_callable
 
     def __call__(self, value):
-        if value in (None, NoValue):
+        if value is None:
             return value
         try:
             return self.caster_callable(value)
@@ -36,6 +35,6 @@ class ArrayCaster(object):
         return self.casters_factory.create(self.schema / 'items')
 
     def __call__(self, value):
-        if value in (None, NoValue):
+        if value is None:
             return value
         return list(map(self.items_caster, value))
