@@ -5,7 +5,6 @@ from isodate.tzinfo import UTC, FixedOffset
 import pytest
 
 from openapi_core.spec.paths import SpecPath
-from openapi_core.types import NoValue
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     InvalidSchemaFormatValue, InvalidSchemaValue, UnmarshalError,
@@ -157,34 +156,6 @@ class TestSchemaUnmarshallerCall(object):
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller_factory(schema)(value)
-
-    def test_string_default(self, unmarshaller_factory):
-        default_value = 'default'
-        spec = {
-            'type': 'string',
-            'default': default_value,
-        }
-        schema = SpecPath.from_spec(spec)
-        value = NoValue
-
-        result = unmarshaller_factory(schema)(value)
-
-        assert result == default_value
-
-    @pytest.mark.parametrize('default_value', ['default', None])
-    def test_string_default_nullable(
-            self, default_value, unmarshaller_factory):
-        spec = {
-            'type': 'string',
-            'default': default_value,
-            'nullable': True,
-        }
-        schema = SpecPath.from_spec(spec)
-        value = NoValue
-
-        result = unmarshaller_factory(schema)(value)
-
-        assert result == default_value
 
     def test_string_format_date(self, unmarshaller_factory):
         spec = {
@@ -360,19 +331,6 @@ class TestSchemaUnmarshallerCall(object):
 
         with pytest.raises(UnmarshalError):
             unmarshaller_factory(schema)(value)
-
-    def test_integer_default(self, unmarshaller_factory):
-        default_value = 123
-        spec = {
-            'type': 'integer',
-            'default': default_value,
-        }
-        schema = SpecPath.from_spec(spec)
-        value = NoValue
-
-        result = unmarshaller_factory(schema)(value)
-
-        assert result == default_value
 
     def test_integer_default_nullable(self, unmarshaller_factory):
         default_value = 123

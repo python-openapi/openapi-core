@@ -14,7 +14,6 @@ from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas import (
     get_all_properties, get_all_properties_names
 )
-from openapi_core.types import NoValue
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError, InvalidSchemaValue,
@@ -38,9 +37,7 @@ class PrimitiveTypeUnmarshaller(object):
         self.validator = validator
         self.schema = schema
 
-    def __call__(self, value=NoValue):
-        if value is NoValue:
-            value = self.schema.getkey('default')
+    def __call__(self, value):
         if value is None:
             return
 
@@ -145,7 +142,7 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
     def items_unmarshaller(self):
         return self.unmarshallers_factory.create(self.schema / 'items')
 
-    def __call__(self, value=NoValue):
+    def __call__(self, value):
         value = super(ArrayUnmarshaller, self).__call__(value)
         if value is None and self.schema.getkey('nullable', False):
             return None
@@ -172,7 +169,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         else:
             return self._unmarshal_object(value)
 
-    def _unmarshal_object(self, value=NoValue):
+    def _unmarshal_object(self, value):
         if 'oneOf' in self.schema:
             properties = None
             for one_of_schema in self.schema / 'oneOf':
@@ -199,7 +196,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
         return properties
 
-    def _unmarshal_properties(self, value=NoValue, one_of_schema=None):
+    def _unmarshal_properties(self, value, one_of_schema=None):
         all_props = get_all_properties(self.schema)
         all_props_names = get_all_properties_names(self.schema)
 
@@ -255,7 +252,7 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         'integer', 'number', 'string',
     ]
 
-    def unmarshal(self, value=NoValue):
+    def unmarshal(self, value):
         one_of_schema = self._get_one_of_schema(value)
         if one_of_schema:
             return self.unmarshallers_factory.create(one_of_schema)(value)
