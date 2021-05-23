@@ -1,12 +1,15 @@
 """OpenAPI core contrib django requests module"""
 import re
+from typing import Dict
 from urllib.parse import urljoin
 
+from django.http.request import HttpRequest
 from werkzeug.datastructures import ImmutableMultiDict, Headers
 
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,
 )
+from openapi_core.validation.request.factories import BaseOpenAPIRequestFactory
 
 # https://docs.djangoproject.com/en/2.2/topics/http/urls/
 #
@@ -21,11 +24,14 @@ from openapi_core.validation.request.datatypes import (
 PATH_PARAMETER_PATTERN = r'(?:[^\/]*?)<(?:(?:.*?:))*?(\w+)>(?:[^\/]*)'
 
 
-class DjangoOpenAPIRequestFactory:
+class DjangoOpenAPIRequestFactory(BaseOpenAPIRequestFactory):
 
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
-    def create(self, request):
+    def create(self, request: HttpRequest) -> OpenAPIRequest:
+        assert request.content_type is not None
+        assert request.method is not None
+
         return OpenAPIRequest(
             full_url_pattern=self._get_full_url_pattern(request),
             method=self._get_method(request),
@@ -34,7 +40,7 @@ class DjangoOpenAPIRequestFactory:
             mimetype=self._get_mimetype(request),
         )
 
-    def _get_parameters(self, request):
+    def _get_parameters(self, request: HttpRequest) -> RequestParameters:
         return RequestParameters(
             path=self._get_path(request),
             query=self._get_query(request),
@@ -42,19 +48,19 @@ class DjangoOpenAPIRequestFactory:
             cookie=self._get_cookie(request),
         )
 
-    def _get_path(self, request):
+    def _get_path(self, request: HttpRequest) -> dict:
         return request.resolver_match and request.resolver_match.kwargs or {}
 
-    def _get_query(self, request):
+    def _get_query(self, request: HttpRequest) -> ImmutableMultiDict:
         return ImmutableMultiDict(request.GET)
 
-    def _get_header(self, request):
+    def _get_header(self, request: HttpRequest) -> Headers:
         return Headers(request.headers.items())
 
-    def _get_cookie(self, request):
+    def _get_cookie(self, request: HttpRequest) -> ImmutableMultiDict:
         return ImmutableMultiDict(dict(request.COOKIES))
 
-    def _get_full_url_pattern(self, request):
+    def _get_full_url_pattern(self, request: HttpRequest) -> str:
         if request.resolver_match is None:
             path_pattern = request.path
         else:
@@ -70,11 +76,11 @@ class DjangoOpenAPIRequestFactory:
         current_scheme_host = request._current_scheme_host
         return urljoin(current_scheme_host, path_pattern)
 
-    def _get_method(self, request):
+    def _get_method(self, request: HttpRequest) -> str:
         return request.method.lower()
 
-    def _get_body(self, request):
+    def _get_body(self, request: HttpRequest) -> str:
         return request.body
 
-    def _get_mimetype(self, request):
+    def _get_mimetype(self, request: HttpRequest) -> str:
         return request.content_type

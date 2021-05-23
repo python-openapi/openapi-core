@@ -54,22 +54,21 @@ class TestFlaskOpenAPIRequest:
         assert openapi_request.mimetype == request.mimetype
 
     def test_url_rule(self, request_factory, request):
-        request = request_factory('GET', '/browse/12/', subdomain='kb')
+        uri = '/browse/12/'
+        request = request_factory('GET', uri, subdomain='kb')
 
         openapi_request = FlaskOpenAPIRequest(request)
 
-        path = {'id': 12}
         query = ImmutableMultiDict([])
         headers = Headers(request.headers)
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
-            path=path,
             query=query,
             header=headers,
             cookie=cookies,
         )
         assert openapi_request.method == request.method.lower()
         assert openapi_request.full_url_pattern == \
-            urljoin(request.host_url, '/browse/{id}/')
+            urljoin(request.host_url, uri)
         assert openapi_request.body == request.data
         assert openapi_request.mimetype == request.mimetype

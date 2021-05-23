@@ -1,4 +1,4 @@
-from typing import List
+from typing import Tuple
 
 from dataclasses import dataclass, field
 
@@ -24,7 +24,7 @@ class UnmarshallerError(UnmarshalError):
 class InvalidSchemaValue(ValidateError):
     value: str
     type: str
-    schema_errors: List[Exception] = field(default_factory=list)
+    schema_errors: Tuple[Exception, ...] = field(default_factory=tuple)
 
     def __str__(self):
         return (

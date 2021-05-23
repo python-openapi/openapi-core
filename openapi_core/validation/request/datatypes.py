@@ -36,9 +36,12 @@ class OpenAPIRequest:
 
     Attributes:
         full_url_pattern
-            The matched url with scheme, host and path pattern.
+            The url with scheme, host and path.
+            If it's already matched path pattern also make sure you provide
+            path parameters
             For example:
             https://localhost:8000/api/v1/pets
+            https://localhost:8000/api/v1/pets/1
             https://localhost:8000/api/v1/pets/{pet_id}
         method
             The request method, as lowercase string.
@@ -62,14 +65,14 @@ class OpenAPIRequest:
 
 @dataclass
 class Parameters:
-    query: Dict = field(default_factory=dict)
-    header: Dict = field(default_factory=dict)
-    cookie: Dict = field(default_factory=dict)
-    path: Dict = field(default_factory=dict)
+    query: Dict[str, str] = field(default_factory=dict)
+    header: Dict[str, str] = field(default_factory=dict)
+    cookie: Dict[str, str] = field(default_factory=dict)
+    path: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
 class RequestValidationResult(BaseValidationResult):
     body: Optional[str] = None
     parameters: Parameters = field(default_factory=Parameters)
-    security: Optional[Dict[str, str]] = None
+    security: Optional[Dict[str, Optional[str]]] = None

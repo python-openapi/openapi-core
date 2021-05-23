@@ -33,6 +33,7 @@ def request_factory(map, environ_factory):
     def create_request(method, path, subdomain=None, query_string=None):
         environ = environ_factory(query_string=query_string)
         req = Request(environ)
+        req.path = path
         urls = map.bind_to_environ(
             environ, server_name=server_name, subdomain=subdomain)
         req.url_rule, req.view_args = urls.match(

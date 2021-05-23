@@ -6,7 +6,6 @@ from uuid import UUID
 from isodate.tzinfo import UTC
 
 from openapi_core.casting.schemas.exceptions import CastError
-from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
     EmptyQueryParameterValue,
 )
@@ -315,11 +314,11 @@ class TestPetstore:
         assert isinstance(response_result.data, BaseModel)
         assert response_result.data.data == []
 
-    def test_get_pets_parameter_deserialization_error(self, spec):
+    def test_get_pets_parameter_type_error(self, spec):
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         query_params = {
-            'limit': 1,
+            'limit': '1',
             'tags': 12,
         }
 
@@ -329,7 +328,7 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            with pytest.raises(DeserializeError):
+            with pytest.raises(AssertionError):
                 spec_validate_parameters(spec, request)
 
         body = spec_validate_body(spec, request)
@@ -395,7 +394,7 @@ class TestPetstore:
         host_url = 'http://petstore.swagger.io/v1'
         path_pattern = '/v1/pets'
         query_params = {
-            'limit': 20,
+            'limit': '20',
             'search': '',
         }
 

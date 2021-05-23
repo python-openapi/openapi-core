@@ -23,44 +23,41 @@ class RequestsOpenAPIRequestFactory:
         if isinstance(request, Request):
             request = request.prepare()
 
-        # Method
-        method = request.method.lower()
-
         # Cookies
         cookie = {}
         if request._cookies is not None:
             # cookies are stored in a cookiejar object
             cookie = request._cookies.get_dict()
-
+        params_cookie: ImmutableMultiDict = ImmutableMultiDict(cookie)
         # Preparing a request formats the URL with params, strip them out again
         o = urlparse(request.url)
-        params = parse_qs(o.query)
-        # extract the URL without query parameters
-        url = o._replace(query=None).geturl()
-
-        # Order matters because all python requests issued from a session
-        # include Accept */* which does not necessarily match the content type
-        mimetype = request.headers.get('Content-Type') or \
-            request.headers.get('Accept')
-
+        params_query: ImmutableMultiDict = ImmutableMultiDict(
+            parse_qs(o.query))
         # Headers - request.headers is not an instance of Headers
         # which is expected
-        header = Headers(dict(request.headers))
+        params_header: Headers = Headers(dict(request.headers))
+        # Path gets deduced by path finder against spec
+        req_parameters = RequestParameters(
+            query=params_query,
+            header=params_header,
+            cookie=params_cookie,
+        )
 
+        # extract the URL without query parameters
+        req_full_url_pattern: str = o._replace(query=None).geturl()
+        # Method
+        req_method = request.method.lower()
         # Body
         # TODO: figure out if request._body_position is relevant
-        body = request.body
-
-        # Path gets deduced by path finder against spec
-        parameters = RequestParameters(
-            query=ImmutableMultiDict(params),
-            header=header,
-            cookie=cookie,
-        )
+        req_body: str = request.body
+        # Order matters because all python requests issued from a session
+        # include Accept */* which does not necessarily match the content type
+        req_mimetype: str = request.headers.get('Content-Type') or \
+            request.headers.get('Accept')
         return OpenAPIRequest(
-            full_url_pattern=url,
-            method=method,
-            parameters=parameters,
-            body=body,
-            mimetype=mimetype,
+            full_url_pattern=req_full_url_pattern,
+            method=req_method,
+            parameters=req_parameters,
+            body=req_body,
+            mimetype=req_mimetype,
         )

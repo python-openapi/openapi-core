@@ -1,4 +1,6 @@
 """OpenAPI core validation exceptions module"""
+from typing import Union
+
 from dataclasses import dataclass
 
 from openapi_core.exceptions import OpenAPIError

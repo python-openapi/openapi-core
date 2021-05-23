@@ -97,7 +97,7 @@ class TestFlaskOpenAPIDecorator:
                     'status': 400,
                     'title': (
                         'Server not found for '
-                        'https://localhost/browse/{id}/'
+                        'https://localhost/browse/12/'
                     ),
                 }
             ]
@@ -118,7 +118,7 @@ class TestFlaskOpenAPIDecorator:
                     'status': 405,
                     'title': (
                         'Operation post not found for '
-                        'http://localhost/browse/{id}/'
+                        'http://localhost/browse/12/'
                     ),
                 }
             ]

@@ -1,11 +1,13 @@
 """OpenAPI core validation response validators module"""
+from typing import Any, Dict, Sequence, Tuple
 import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.exceptions import (
-    MissingHeader, MissingRequiredHeader, MissingResponseContent,
+    MissingHeader, MissingRequiredHeader,
 )
+from openapi_core.spec.paths import SpecPath
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.responses.exceptions import ResponseFinderError
@@ -16,14 +18,19 @@ from openapi_core.unmarshalling.schemas.exceptions import (
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
-from openapi_core.validation.response.datatypes import ResponseValidationResult
+from openapi_core.validation.request.datatypes import OpenAPIRequest
+from openapi_core.validation.response.datatypes import (
+    OpenAPIResponse, ResponseValidationResult,
+)
+from openapi_core.validation.response.exceptions import MissingResponseContent
+from openapi_core.validation.response.types import DataErrors, HeadersErrors
 from openapi_core.validation.validators import BaseValidator
 
 
 class BaseResponseValidator(BaseValidator):
 
     @property
-    def schema_unmarshallers_factory(self):
+    def schema_unmarshallers_factory(self) -> SchemaUnmarshallersFactory:
         spec_resolver = self.spec.accessor.dereferencer.resolver_manager.\
             resolver
         return SchemaUnmarshallersFactory(
@@ -31,17 +38,29 @@ class BaseResponseValidator(BaseValidator):
             self.custom_formatters, context=UnmarshalContext.RESPONSE,
         )
 
-    def _find_operation_response(self, request, response):
+    def _find_operation_response(
+        self,
+        request: OpenAPIRequest,
+        response: OpenAPIResponse,
+    ) -> SpecPath:
         _, operation, _, _, _ = self._find_path(request)
         return self._get_operation_response(
                 operation, response)
 
-    def _get_operation_response(self, operation, response):
+    def _get_operation_response(
+        self,
+        operation: SpecPath,
+        response: OpenAPIResponse,
+    ) -> SpecPath:
         from openapi_core.templating.responses.finders import ResponseFinder
         finder = ResponseFinder(operation / 'responses')
         return finder.find(str(response.status_code))
 
-    def _get_data(self, response, operation_response):
+    def _get_data(
+        self,
+        response: OpenAPIResponse,
+        operation_response: SpecPath,
+    ) -> Tuple[Any, Sequence[DataErrors]]:
         if 'content' not in operation_response:
             return None, []
 
@@ -77,13 +96,17 @@ class BaseResponseValidator(BaseValidator):
 
         return data, []
 
-    def _get_data_value(self, response):
+    def _get_data_value(self, response: OpenAPIResponse) -> str:
         if not response.data:
             raise MissingResponseContent(response)
 
         return response.data
 
-    def _get_headers(self, response, operation_response):
+    def _get_headers(
+        self,
+        response: OpenAPIResponse,
+        operation_response: SpecPath,
+    ) -> Tuple[Dict, Sequence[HeadersErrors]]:
         if 'headers' not in operation_response:
             return {}, []
 
@@ -110,7 +133,12 @@ class BaseResponseValidator(BaseValidator):
 
         return validated, errors
 
-    def _get_header(self, name, header, response):
+    def _get_header(
+        self,
+        name: str,
+        header: SpecPath,
+        response: OpenAPIResponse,
+    ) -> Any:
         deprecated = header.getkey('deprecated', False)
         if deprecated:
             warnings.warn(
@@ -130,7 +158,11 @@ class BaseResponseValidator(BaseValidator):
 
 class ResponseDataValidator(BaseResponseValidator):
 
-    def validate(self, request, response):
+    def validate(
+        self,
+        request: OpenAPIRequest,
+        response: OpenAPIResponse,
+    ) -> ResponseValidationResult:
         try:
             operation_response = self._find_operation_response(
                 request, response)
@@ -148,7 +180,11 @@ class ResponseDataValidator(BaseResponseValidator):
 
 class ResponseHeadersValidator(BaseResponseValidator):
 
-    def validate(self, request, response):
+    def validate(
+        self,
+        request: OpenAPIRequest,
+        response: OpenAPIResponse,
+    ) -> ResponseValidationResult:
         try:
             operation_response = self._find_operation_response(
                 request, response)
@@ -167,7 +203,11 @@ class ResponseHeadersValidator(BaseResponseValidator):
 
 class ResponseValidator(BaseResponseValidator):
 
-    def validate(self, request, response):
+    def validate(
+        self,
+        request: OpenAPIRequest,
+        response: OpenAPIResponse,
+    ) -> ResponseValidationResult:
         try:
             operation_response = self._find_operation_response(
                 request, response)

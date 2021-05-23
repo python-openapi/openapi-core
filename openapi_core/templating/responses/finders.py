@@ -1,21 +1,26 @@
+from openapi_core.spec.paths import SpecPath
 from openapi_core.templating.responses.exceptions import ResponseNotFound
 
 
 class ResponseFinder:
 
-    def __init__(self, responses):
+    def __init__(self, responses: SpecPath):
         self.responses = responses
 
-    def find(self, http_status='default'):
+    def find(self, http_status: str = 'default') -> SpecPath:
+        response: SpecPath
         if http_status in self.responses:
-            return self.responses / http_status
+            response = self.responses / http_status
+            return response
 
         # try range
         http_status_range = f'{http_status[0]}XX'
         if http_status_range in self.responses:
-            return self.responses / http_status_range
+            response = self.responses / http_status_range
+            return response
 
         if 'default' not in self.responses:
             raise ResponseNotFound(http_status, list(self.responses.keys()))
 
-        return self.responses / 'default'
+        response = self.responses / 'default'
+        return response

@@ -9,9 +9,11 @@ from openapi_core.spec.paths import SpecPath
 
 
 def create_spec(
-    spec_dict, spec_url='', handlers=default_handlers,
-    validate_spec=True,
-):
+    spec_dict: dict,
+    spec_url: str = '',
+    handlers: dict = default_handlers,
+    validate_spec: bool = True,
+) -> SpecPath:
     if validate_spec:
         openapi_v3_spec_validator.validate(spec_dict, spec_url=spec_url)
 

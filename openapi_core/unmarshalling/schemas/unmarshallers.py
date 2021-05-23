@@ -1,8 +1,10 @@
 from functools import partial
 import logging
+from typing import Any, Dict, Optional, TYPE_CHECKING, Union
 
 from isodate.isodatetime import parse_datetime
 
+from openapi_schema_validator import OAS30Validator
 from openapi_schema_validator._types import (
     is_array, is_bool, is_integer,
     is_object, is_number, is_string,
@@ -13,6 +15,7 @@ from openapi_core.extensions.models.factories import ModelFactory
 from openapi_core.schema.schemas import (
     get_all_properties, get_all_properties_names
 )
+from openapi_core.spec.paths import SpecPath
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError, InvalidSchemaValue,
@@ -23,20 +26,27 @@ from openapi_core.unmarshalling.schemas.util import (
     forcebool, format_date, format_byte, format_uuid,
     format_number,
 )
+if TYPE_CHECKING:
+    from openapi_core.unmarshalling.schemas.factories import (
+        SchemaUnmarshallersFactory,
+    )
 
 log = logging.getLogger(__name__)
 
 
 class BaseSchemaUnmarshaller:
 
-    FORMATTERS = {
+    FORMATTERS: Dict[Optional[str], Formatter] = {
         None: Formatter(),
     }
 
-    def __init__(self, schema):
+    def __init__(self, schema: SpecPath):
         self.schema = schema
 
-    def __call__(self, value):
+    def __call__(
+        self,
+        value: Optional[Union[int, float, bool, str, list, dict]],
+    ) -> Any:
         if value is None:
             return
 
@@ -44,41 +54,61 @@ class BaseSchemaUnmarshaller:
 
         return self.unmarshal(value)
 
-    def validate(self, value):
+    def validate(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ) -> None:
         raise NotImplementedError
 
-    def unmarshal(self, value):
+    def unmarshal(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ):
         raise NotImplementedError
 
 
 class PrimitiveTypeUnmarshaller(BaseSchemaUnmarshaller):
 
-    def __init__(self, schema, formatter, validator):
+    def __init__(
+        self,
+        schema: SpecPath,
+        formatter: Formatter,
+        validator: OAS30Validator,
+    ):
         super().__init__(schema)
         self.formatter = formatter
         self.validator = validator
 
-    def _formatter_validate(self, value):
+    def _formatter_validate(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ) -> None:
         result = self.formatter.validate(value)
         if not result:
             schema_type = self.schema.getkey('type', 'any')
-            raise InvalidSchemaValue(value, schema_type)
+            raise InvalidSchemaValue(str(value), schema_type)
 
-    def validate(self, value):
+    def validate(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ) -> None:
         errors_iter = self.validator.iter_errors(value)
         errors = tuple(errors_iter)
         if errors:
             schema_type = self.schema.getkey('type', 'any')
             raise InvalidSchemaValue(
-                value, schema_type, schema_errors=errors)
+                str(value), schema_type, schema_errors=errors)
 
-    def unmarshal(self, value):
+    def unmarshal(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ):
         try:
             return self.formatter.unmarshal(value)
         except ValueError as exc:
             schema_format = self.schema.getkey('format')
             raise InvalidSchemaFormatValue(
-                value, schema_format, exc)
+                str(value), schema_format, exc)
 
 
 class StringUnmarshaller(PrimitiveTypeUnmarshaller):
@@ -137,8 +167,13 @@ class BooleanUnmarshaller(PrimitiveTypeUnmarshaller):
 class ComplexUnmarshaller(PrimitiveTypeUnmarshaller):
 
     def __init__(
-            self, schema, formatter, validator, unmarshallers_factory,
-            context=None):
+        self,
+        schema: SpecPath,
+        formatter: Formatter,
+        validator: OAS30Validator,
+        unmarshallers_factory: 'SchemaUnmarshallersFactory',
+        context: Optional[UnmarshalContext] = None,
+    ):
         super().__init__(schema, formatter, validator)
         self.unmarshallers_factory = unmarshallers_factory
         self.context = context
@@ -152,11 +187,15 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
     }
 
     @property
-    def items_unmarshaller(self):
+    def items_unmarshaller(self) -> BaseSchemaUnmarshaller:
         return self.unmarshallers_factory.create(self.schema / 'items')
 
-    def __call__(self, value):
+    def __call__(
+        self,
+        value: Optional[Union[int, float, bool, str, list, dict]],
+    ) -> Optional[list]:
         value = super().__call__(value)
+        assert isinstance(value, list)
         if value is None and self.schema.getkey('nullable', False):
             return None
         return list(map(self.items_unmarshaller, value))
@@ -170,19 +209,23 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
     }
 
     @property
-    def model_factory(self):
+    def model_factory(self) -> ModelFactory:
         return ModelFactory()
 
-    def unmarshal(self, value):
+    def unmarshal(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ) -> dict:
+        assert isinstance(value, dict)
         try:
             value = self.formatter.unmarshal(value)
         except ValueError as exc:
             raise InvalidSchemaFormatValue(
-                value, self.schema.format, exc)
+                str(value), self.schema.format, exc)
         else:
             return self._unmarshal_object(value)
 
-    def _unmarshal_object(self, value):
+    def _unmarshal_object(self, value: dict):
         if 'oneOf' in self.schema:
             properties = None
             for one_of_schema in self.schema / 'oneOf':
@@ -209,7 +252,11 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
         return properties
 
-    def _unmarshal_properties(self, value, one_of_schema=None):
+    def _unmarshal_properties(
+        self,
+        value: dict,
+        one_of_schema: Optional[SpecPath] = None,
+    ) -> dict:
         all_props = get_all_properties(self.schema)
         all_props_names = get_all_properties_names(self.schema)
 
@@ -261,7 +308,10 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         'integer', 'number', 'string',
     ]
 
-    def unmarshal(self, value):
+    def unmarshal(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ):
         one_of_schema = self._get_one_of_schema(value)
         if one_of_schema:
             return self.unmarshallers_factory.create(one_of_schema)(value)
@@ -284,9 +334,12 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         log.warning("failed to unmarshal any type")
         return value
 
-    def _get_one_of_schema(self, value):
+    def _get_one_of_schema(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ) -> Optional[SpecPath]:
         if 'oneOf' not in self.schema:
-            return
+            return None
 
         one_of_schemas = self.schema / 'oneOf'
         for subschema in one_of_schemas:
@@ -297,10 +350,14 @@ class AnyUnmarshaller(ComplexUnmarshaller):
                 continue
             else:
                 return subschema
+        return None
 
-    def _get_all_of_schema(self, value):
+    def _get_all_of_schema(
+        self,
+        value: Union[int, float, bool, str, list, dict],
+    ) -> Optional[SpecPath]:
         if 'allOf' not in self.schema:
-            return
+            return None
 
         all_of_schemas = self.schema / 'allOf'
         for subschema in all_of_schemas:
@@ -313,3 +370,4 @@ class AnyUnmarshaller(ComplexUnmarshaller):
                 continue
             else:
                 return subschema
+        return None

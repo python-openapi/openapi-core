@@ -1,4 +1,7 @@
-def get_all_properties(schema):
+from openapi_core.spec.paths import SpecPath
+
+
+def get_all_properties(schema: SpecPath) -> dict:
     properties = schema.get('properties', {})
     properties_dict = dict(list(properties.items()))
 
@@ -12,6 +15,6 @@ def get_all_properties(schema):
     return properties_dict
 
 
-def get_all_properties_names(schema):
+def get_all_properties_names(schema: SpecPath) -> set:
     all_properties = get_all_properties(schema)
     return set(all_properties.keys())

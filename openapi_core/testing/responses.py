@@ -10,10 +10,10 @@ class MockResponseFactory:
     def create(
             cls, data, status_code=200, headers=None,
             mimetype='application/json'):
-        headers = Headers(headers or {})
+        resp_headers: Headers = Headers(headers or {})
         return OpenAPIResponse(
             data=data,
             status_code=status_code,
-            headers=headers,
+            headers=resp_headers,
             mimetype=mimetype,
         )

@@ -26,7 +26,7 @@ class ParameterDeserializeError(BaseParameterDeserializeError):
 class EmptyQueryParameterValue(BaseParameterDeserializeError):
     name: str
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(location='query')
         self.name = name
 

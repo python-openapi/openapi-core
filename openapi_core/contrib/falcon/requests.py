@@ -1,6 +1,7 @@
 """OpenAPI core contrib falcon responses module"""
 from json import dumps
 
+from falcon import Request
 from werkzeug.datastructures import ImmutableMultiDict, Headers
 
 from openapi_core.validation.request.datatypes import (
@@ -15,7 +16,7 @@ class FalconOpenAPIRequestFactory:
             default_when_empty = {}
         self.default_when_empty = default_when_empty
 
-    def create(self, request):
+    def create(self, request: Request) -> OpenAPIRequest:
         """
         Create OpenAPIRequest from falcon Request and route params.
         """
