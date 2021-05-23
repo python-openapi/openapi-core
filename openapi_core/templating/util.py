@@ -10,12 +10,16 @@ class ExtendedParser(Parser):
             path_parameter_field)
 
 
-def parse_path_parameter(text):
-    return text
+class PathParameter(object):
+
+    name = "PathParameter"
+    pattern = r"[^\/]+"
+
+    def __call__(self, text):
+        return text
 
 
-parse_path_parameter.pattern = r"[^\/]+"
-parse_path_parameter.name = "PathParameter"
+parse_path_parameter = PathParameter()
 
 
 def search(path_pattern, full_url_pattern):
