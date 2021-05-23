@@ -19,7 +19,7 @@ class BaseTestDjango(object):
         import django
         from django.conf import settings
         from django.contrib import admin
-        from django.urls import path
+        from django.urls import path, re_path
 
         if settings.configured:
             return
@@ -44,6 +44,7 @@ class BaseTestDjango(object):
         django.setup()
         settings.ROOT_URLCONF = (
             path('admin/', admin.site.urls),
+            re_path('^test/test-regexp/$', lambda d: None)
         )
 
     @pytest.fixture
@@ -135,6 +136,31 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.method == request.method.lower()
         assert openapi_request.full_url_pattern == \
             request._current_scheme_host + "/admin/auth/group/{object_id}/"
+        assert openapi_request.body == request.body
+        assert openapi_request.mimetype == request.content_type
+
+    def test_url_regexp_pattern(self, request_factory):
+        from django.urls import resolve
+        request = request_factory.get('/test/test-regexp/')
+        request.resolver_match = resolve('/test/test-regexp/')
+
+        openapi_request = DjangoOpenAPIRequest(request)
+
+        path = {}
+        query = {}
+        headers = {
+            'Cookie': '',
+        }
+        cookies = {}
+        assert openapi_request.parameters == RequestParameters(
+            path=path,
+            query=query,
+            header=headers,
+            cookie=cookies,
+        )
+        assert openapi_request.method == request.method.lower()
+        assert openapi_request.full_url_pattern == \
+               request._current_scheme_host + "/test/test-regexp/"
         assert openapi_request.body == request.body
         assert openapi_request.mimetype == request.content_type
 
