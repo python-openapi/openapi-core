@@ -18,25 +18,24 @@ class FlaskOpenAPIRequestFactory:
 
     @classmethod
     def create(cls, request):
-        method = request.method.lower()
+        params_header: Headers = Headers(request.headers)
+        req_parameters = RequestParameters(
+            path=request.view_args,
+            query=request.args,
+            header=params_header,
+            cookie=request.cookies,
+        )
 
         if request.url_rule is None:
             path_pattern = request.path
         else:
             path_pattern = cls.path_regex.sub(r'{\1}', request.url_rule.rule)
-
-        header = Headers(request.headers)
-        parameters = RequestParameters(
-            path=request.view_args,
-            query=request.args,
-            header=header,
-            cookie=request.cookies,
-        )
-        full_url_pattern = urljoin(request.host_url, path_pattern)
+        req_full_url_pattern: str = urljoin(request.host_url, path_pattern)
+        req_method: str = request.method.lower()
         return OpenAPIRequest(
-            full_url_pattern=full_url_pattern,
-            method=method,
-            parameters=parameters,
+            full_url_pattern=req_full_url_pattern,
+            method=req_method,
+            parameters=req_parameters,
             body=request.data,
             mimetype=request.mimetype,
         )

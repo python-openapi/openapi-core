@@ -9,12 +9,12 @@ class DjangoOpenAPIResponseFactory:
 
     @classmethod
     def create(cls, response):
-        mimetype = response["Content-Type"]
         headers = get_response_headers(response)
-        header = Headers(headers.items())
+        resp_headers: Headers = Headers(headers.items())
+        resp_mimetype: str = response["Content-Type"]
         return OpenAPIResponse(
             data=response.content,
             status_code=response.status_code,
-            headers=header,
-            mimetype=mimetype,
+            headers=resp_headers,
+            mimetype=resp_mimetype,
         )

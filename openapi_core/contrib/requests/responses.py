@@ -8,11 +8,11 @@ class RequestsOpenAPIResponseFactory:
 
     @classmethod
     def create(cls, response):
-        mimetype = response.headers.get('Content-Type')
-        headers = Headers(dict(response.headers))
+        resp_headers: Headers = Headers(dict(response.headers))
+        resp_mimetype: str = response.headers.get('Content-Type')
         return OpenAPIResponse(
             data=response.content,
             status_code=response.status_code,
-            headers=headers,
-            mimetype=mimetype,
+            headers=resp_headers,
+            mimetype=resp_mimetype,
         )

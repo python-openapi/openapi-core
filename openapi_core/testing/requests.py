@@ -1,4 +1,5 @@
 """OpenAPI core testing requests module"""
+from typing import Dict
 from urllib.parse import urljoin
 
 from werkzeug.datastructures import Headers, ImmutableMultiDict
@@ -17,23 +18,24 @@ class MockRequestFactory:
             mimetype='application/json'):
         path_pattern = path_pattern or path
 
-        path = view_args or {}
-        query = ImmutableMultiDict(args or {})
-        header = Headers(headers or {})
-        cookie = ImmutableMultiDict(cookies or {})
-        parameters = RequestParameters(
-            path=path,
-            query=query,
-            header=header,
-            cookie=cookie,
+        params_path: Dict = view_args or {}
+        params_query: ImmutableMultiDict = ImmutableMultiDict(args or {})
+        params_header: Headers = Headers(headers or {})
+        params_cookie: ImmutableMultiDict = ImmutableMultiDict(cookies or {})
+        req_parameters = RequestParameters(
+            path=params_path,
+            query=params_query,
+            header=params_header,
+            cookie=params_cookie,
         )
-        method = method.lower()
-        body = data or ''
-        full_url_pattern = urljoin(host_url, path_pattern)
+
+        req_method: str = method.lower()
+        req_body: str = data or ''
+        req_full_url_pattern: str = urljoin(host_url, path_pattern)
         return OpenAPIRequest(
-            full_url_pattern=full_url_pattern,
-            method=method,
-            parameters=parameters,
-            body=body,
+            full_url_pattern=req_full_url_pattern,
+            method=req_method,
+            parameters=req_parameters,
+            body=req_body,
             mimetype=mimetype,
         )

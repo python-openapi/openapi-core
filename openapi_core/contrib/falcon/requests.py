@@ -16,32 +16,32 @@ class FalconOpenAPIRequestFactory:
         """
         Create OpenAPIRequest from falcon Request and route params.
         """
-        default = default_when_empty
-        method = request.method.lower()
-
-        media = get_request_media(request, default=default)
-        # Support falcon-jsonify.
-        body = (
-            dumps(getattr(request, "json", media))
-        )
-        mimetype = request.options.default_media_type
-        if request.content_type:
-            mimetype = request.content_type.partition(";")[0]
-
-        query = ImmutableMultiDict(list(request.params.items()))
-        header = Headers(request.headers)
-
+        query = list(request.params.items())
+        params_query: ImmutableMultiDict = ImmutableMultiDict(query)
+        params_header: Headers = Headers(request.headers)
         # Path gets deduced by path finder against spec
-        parameters = RequestParameters(
-            query=query,
-            header=header,
+        req_parameters = RequestParameters(
+            query=params_query,
+            header=params_header,
             cookie=request.cookies,
         )
-        url_pattern = request.prefix + request.path
+
+        default = default_when_empty
+        media = get_request_media(request, default=default)
+        req_method: str = request.method.lower()
+        # Support falcon-jsonify.
+        req_body: str = (
+            dumps(getattr(request, "json", media))
+        )
+        req_mimetype: str = request.options.default_media_type
+        if request.content_type:
+            req_mimetype = request.content_type.partition(";")[0]
+
+        req_full_url_pattern: str = request.prefix + request.path
         return OpenAPIRequest(
-            full_url_pattern=url_pattern,
-            method=method,
-            parameters=parameters,
-            body=body,
-            mimetype=mimetype,
+            full_url_pattern=req_full_url_pattern,
+            method=req_method,
+            parameters=req_parameters,
+            body=req_body,
+            mimetype=req_mimetype,
         )

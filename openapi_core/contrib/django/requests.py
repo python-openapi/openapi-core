@@ -1,5 +1,6 @@
 """OpenAPI core contrib django requests module"""
 import re
+from typing import Dict
 from urllib.parse import urljoin
 
 from werkzeug.datastructures import ImmutableMultiDict, Headers
@@ -30,8 +31,6 @@ class DjangoOpenAPIRequestFactory:
 
     @classmethod
     def create(cls, request):
-        method = request.method.lower()
-
         if request.resolver_match is None:
             path_pattern = request.path
         else:
@@ -45,22 +44,26 @@ class DjangoOpenAPIRequestFactory:
             path_pattern = '/' + route
 
         request_headers = get_request_headers(request)
-        path = request.resolver_match and request.resolver_match.kwargs or {}
-        query = ImmutableMultiDict(request.GET)
-        header = Headers(request_headers.items())
-        cookie = ImmutableMultiDict(dict(request.COOKIES))
-        parameters = RequestParameters(
-            path=path,
-            query=query,
-            header=header,
-            cookie=cookie,
+        params_path: Dict = request.resolver_match and \
+            request.resolver_match.kwargs or {}
+        params_query: ImmutableMultiDict = ImmutableMultiDict(request.GET)
+        params_header: Headers = Headers(request_headers.items())
+        params_cookie: ImmutableMultiDict = ImmutableMultiDict(
+            dict(request.COOKIES))
+        req_parameters = RequestParameters(
+            path=params_path,
+            query=params_query,
+            header=params_header,
+            cookie=params_cookie,
         )
+
         current_scheme_host = get_current_scheme_host(request)
-        full_url_pattern = urljoin(current_scheme_host, path_pattern)
+        req_full_url_pattern: str = urljoin(current_scheme_host, path_pattern)
+        req_method: str = request.method.lower()
         return OpenAPIRequest(
-            full_url_pattern=full_url_pattern,
-            method=method,
-            parameters=parameters,
+            full_url_pattern=req_full_url_pattern,
+            method=req_method,
+            parameters=req_parameters,
             body=request.body,
             mimetype=request.content_type,
         )

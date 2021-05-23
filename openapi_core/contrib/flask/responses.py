@@ -8,10 +8,10 @@ class FlaskOpenAPIResponseFactory:
 
     @classmethod
     def create(cls, response):
-        header = Headers(response.headers)
+        resp_headers: Headers = Headers(response.headers)
         return OpenAPIResponse(
             data=response.data,
             status_code=response._status_code,
-            headers=header,
+            headers=resp_headers,
             mimetype=response.mimetype,
         )

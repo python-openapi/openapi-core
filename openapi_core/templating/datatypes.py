@@ -1,12 +1,12 @@
-from typing import Dict, Optional
+from typing import Dict
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
 class TemplateResult:
-    pattern: Optional[str] = None
-    variables: Optional[Dict] = None
+    pattern: str
+    variables: Dict = field(default_factory=dict)
 
     @property
     def resolved(self):

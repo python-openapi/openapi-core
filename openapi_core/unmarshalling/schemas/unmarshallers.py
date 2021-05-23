@@ -1,5 +1,6 @@
 from functools import partial
 import logging
+from typing import Dict, Optional
 
 from isodate.isodatetime import parse_datetime
 
@@ -29,7 +30,9 @@ log = logging.getLogger(__name__)
 
 class PrimitiveTypeUnmarshaller:
 
-    FORMATTERS = {}
+    FORMATTERS: Dict[Optional[str], Formatter] = {
+        None: Formatter(),
+    }
 
     def __init__(self, formatter, validator, schema):
         self.formatter = formatter
@@ -241,10 +244,6 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
 
 class AnyUnmarshaller(ComplexUnmarshaller):
-
-    FORMATTERS = {
-        None: Formatter(),
-    }
 
     SCHEMA_TYPES_ORDER = [
         'object', 'array', 'boolean',
