@@ -1,7 +1,8 @@
 """OpenAPI core contrib django requests module"""
 import re
-
 from urllib.parse import urljoin
+
+from werkzeug.datastructures import ImmutableMultiDict, Headers
 
 from openapi_core.contrib.django.compat import (
     get_request_headers, get_current_scheme_host,
@@ -43,13 +44,16 @@ class DjangoOpenAPIRequestFactory:
                 route = route[:-1]
             path_pattern = '/' + route
 
+        request_headers = get_request_headers(request)
         path = request.resolver_match and request.resolver_match.kwargs or {}
-        headers = get_request_headers(request)
+        query = ImmutableMultiDict(request.GET)
+        header = Headers(request_headers.items())
+        cookie = ImmutableMultiDict(dict(request.COOKIES))
         parameters = RequestParameters(
             path=path,
-            query=request.GET,
-            header=list(headers.items()),
-            cookie=request.COOKIES,
+            query=query,
+            header=header,
+            cookie=cookie,
         )
         current_scheme_host = get_current_scheme_host(request)
         full_url_pattern = urljoin(current_scheme_host, path_pattern)

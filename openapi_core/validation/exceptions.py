@@ -1,5 +1,5 @@
 """OpenAPI core validation exceptions module"""
-import attr
+from dataclasses import dataclass
 
 from openapi_core.exceptions import OpenAPIError
 
@@ -8,7 +8,7 @@ class ValidationError(OpenAPIError):
     pass
 
 
-@attr.s(hash=True)
+@dataclass
 class InvalidSecurity(ValidationError):
 
     def __str__(self):

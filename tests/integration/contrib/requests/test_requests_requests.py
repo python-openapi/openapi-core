@@ -4,6 +4,9 @@ from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.validation.request.datatypes import RequestParameters
 
 
+from werkzeug.datastructures import Headers
+
+
 class TestRequestsOpenAPIRequest:
 
     def test_simple(self, request_factory, request):
@@ -13,7 +16,7 @@ class TestRequestsOpenAPIRequest:
 
         path = {}
         query = ImmutableMultiDict([])
-        headers = request.headers
+        headers = Headers(dict(request.headers))
         cookies = {}
         prepared = request.prepare()
         assert openapi_request.parameters == RequestParameters(
@@ -37,7 +40,7 @@ class TestRequestsOpenAPIRequest:
         query = ImmutableMultiDict([
             ('a', 'b'), ('a', 'c'),
         ])
-        headers = request.headers
+        headers = Headers(dict(request.headers))
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -59,9 +62,9 @@ class TestRequestsOpenAPIRequest:
         # empty when not bound to spec
         path = {}
         query = ImmutableMultiDict([])
-        headers = (
-            ('Content-Type', 'application/json'),
-        )
+        headers = Headers({
+            'Content-Type': 'application/json',
+        })
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,

@@ -2,7 +2,7 @@
 
 from urllib.parse import urlparse, parse_qs
 
-from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.datastructures import ImmutableMultiDict, Headers
 from requests import Request
 
 from openapi_core.validation.request.datatypes import (
@@ -43,9 +43,9 @@ class RequestsOpenAPIRequestFactory:
         mimetype = request.headers.get('Content-Type') or \
             request.headers.get('Accept')
 
-        # Headers - request.headers is not an instance of dict
+        # Headers - request.headers is not an instance of Headers
         # which is expected
-        header = dict(request.headers)
+        header = Headers(dict(request.headers))
 
         # Body
         # TODO: figure out if request._body_position is relevant

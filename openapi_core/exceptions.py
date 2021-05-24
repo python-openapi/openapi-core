@@ -1,5 +1,8 @@
 """OpenAPI core exceptions module"""
-import attr
+from dataclasses import dataclass
+
+from openapi_core.validation.request.datatypes import OpenAPIRequest
+from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
 class OpenAPIError(Exception):
@@ -15,18 +18,18 @@ class MissingHeaderError(OpenAPIHeaderError):
     pass
 
 
-@attr.s(hash=True)
+@dataclass
 class MissingHeader(MissingHeaderError):
-    name = attr.ib()
+    name: str
 
     def __str__(self):
         return "Missing header (without default value): {0}".format(
             self.name)
 
 
-@attr.s(hash=True)
+@dataclass
 class MissingRequiredHeader(MissingHeaderError):
-    name = attr.ib()
+    name: str
 
     def __str__(self):
         return "Missing required header: {0}".format(self.name)
@@ -41,18 +44,18 @@ class MissingParameterError(OpenAPIParameterError):
     pass
 
 
-@attr.s(hash=True)
+@dataclass
 class MissingParameter(MissingParameterError):
-    name = attr.ib()
+    name: str
 
     def __str__(self):
         return "Missing parameter (without default value): {0}".format(
             self.name)
 
 
-@attr.s(hash=True)
+@dataclass
 class MissingRequiredParameter(MissingParameterError):
-    name = attr.ib()
+    name: str
 
     def __str__(self):
         return "Missing required parameter: {0}".format(self.name)
@@ -67,17 +70,17 @@ class MissingRequestBodyError(OpenAPIRequestBodyError):
     pass
 
 
-@attr.s(hash=True)
+@dataclass
 class MissingRequestBody(MissingRequestBodyError):
-    request = attr.ib()
+    request: OpenAPIRequest
 
     def __str__(self):
         return "Missing request body"
 
 
-@attr.s(hash=True)
+@dataclass
 class MissingRequiredRequestBody(MissingRequestBodyError):
-    request = attr.ib()
+    request: OpenAPIRequest
 
     def __str__(self):
         return "Missing required request body"
@@ -87,9 +90,9 @@ class OpenAPIResponseError(OpenAPIError):
     pass
 
 
-@attr.s(hash=True)
+@dataclass
 class MissingResponseContent(OpenAPIResponseError):
-    response = attr.ib()
+    response: OpenAPIResponse
 
     def __str__(self):
         return "Missing response content"
