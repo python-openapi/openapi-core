@@ -38,9 +38,6 @@ class RequestsOpenAPIRequestFactory:
         # extract the URL without query parameters
         url = o._replace(query=None).geturl()
 
-        # gets deduced by path finder against spec
-        path = {}
-
         # Order matters because all python requests issued from a session
         # include Accept */* which does not necessarily match the content type
         mimetype = request.headers.get('Content-Type') or \
@@ -54,11 +51,11 @@ class RequestsOpenAPIRequestFactory:
         # TODO: figure out if request._body_position is relevant
         body = request.body
 
+        # Path gets deduced by path finder against spec
         parameters = RequestParameters(
             query=ImmutableMultiDict(params),
             header=header,
             cookie=cookie,
-            path=path,
         )
         return OpenAPIRequest(
             full_url_pattern=url,
