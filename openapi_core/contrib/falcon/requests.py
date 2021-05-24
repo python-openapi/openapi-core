@@ -19,9 +19,6 @@ class FalconOpenAPIRequestFactory:
         default = default_when_empty
         method = request.method.lower()
 
-        # gets deduced by path finder against spec
-        path = {}
-
         media = get_request_media(request, default=default)
         # Support falcon-jsonify.
         body = (
@@ -32,11 +29,12 @@ class FalconOpenAPIRequestFactory:
             mimetype = request.content_type.partition(";")[0]
 
         query = ImmutableMultiDict(list(request.params.items()))
+
+        # Path gets deduced by path finder against spec
         parameters = RequestParameters(
             query=query,
             header=request.headers,
             cookie=request.cookies,
-            path=path,
         )
         url_pattern = request.prefix + request.path
         return OpenAPIRequest(
