@@ -8,7 +8,7 @@ from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestFlaskOpenAPIValidation(object):
+class TestFlaskOpenAPIValidation:
 
     @pytest.fixture
     def flask_spec(self, factory):

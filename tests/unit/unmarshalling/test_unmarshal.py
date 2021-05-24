@@ -29,7 +29,7 @@ def unmarshaller_factory():
     return create_unmarshaller
 
 
-class TestUnmarshal(object):
+class TestUnmarshal:
 
     def test_no_schema(self, unmarshaller_factory):
         schema = None
@@ -72,7 +72,7 @@ class TestUnmarshal(object):
             ).unmarshal(value)
 
 
-class TestSchemaUnmarshallerCall(object):
+class TestSchemaUnmarshallerCall:
 
     def test_deprecated(self, unmarshaller_factory):
         spec = {

@@ -13,7 +13,7 @@ from openapi_core.unmarshalling.schemas.unmarshallers import (
 )
 
 
-class SchemaUnmarshallersFactory(object):
+class SchemaUnmarshallersFactory:
 
     PRIMITIVE_UNMARSHALLERS = {
         'string': StringUnmarshaller,

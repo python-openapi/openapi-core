@@ -4,7 +4,7 @@ from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.validation.request.datatypes import RequestParameters
 
 
-class TestRequestsOpenAPIRequest(object):
+class TestRequestsOpenAPIRequest:
 
     def test_simple(self, request_factory, request):
         request = request_factory('GET', '/', subdomain='www')

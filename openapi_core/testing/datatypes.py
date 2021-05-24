@@ -1,4 +1,4 @@
-class ResultMock(object):
+class ResultMock:
 
     def __init__(
             self, body=None, parameters=None, data=None, error_to_raise=None):

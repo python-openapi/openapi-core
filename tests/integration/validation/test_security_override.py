@@ -19,7 +19,7 @@ def spec(factory):
     return create_spec(spec_dict)
 
 
-class TestSecurityOverride(object):
+class TestSecurityOverride:
 
     host_url = 'http://petstore.swagger.io'
 

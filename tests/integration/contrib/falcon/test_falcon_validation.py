@@ -7,7 +7,7 @@ from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestFalconOpenAPIValidation(object):
+class TestFalconOpenAPIValidation:
 
     @pytest.fixture
     def spec(self, factory):

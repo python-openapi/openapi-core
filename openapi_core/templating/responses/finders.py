@@ -1,9 +1,7 @@
-from __future__ import division
-
 from openapi_core.templating.responses.exceptions import ResponseNotFound
 
 
-class ResponseFinder(object):
+class ResponseFinder:
 
     def __init__(self, responses):
         self.responses = responses

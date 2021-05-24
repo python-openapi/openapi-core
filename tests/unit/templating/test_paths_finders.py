@@ -10,7 +10,7 @@ from openapi_core.templating.paths.finders import PathFinder
 from openapi_core.testing import MockRequest
 
 
-class BaseTestSimpleServer(object):
+class BaseTestSimpleServer:
 
     server_url = 'http://petstore.swagger.io'
 
@@ -57,7 +57,7 @@ class BaseTestVariableServer(BaseTestSimpleServer):
         }
 
 
-class BaseTestSimplePath(object):
+class BaseTestSimplePath:
 
     path_name = '/resource'
 
@@ -95,7 +95,7 @@ class BaseTestVariablePath(BaseTestSimplePath):
         return path
 
 
-class BaseTestSpecServer(object):
+class BaseTestSpecServer:
 
     location = 'spec'
 
@@ -171,7 +171,7 @@ class BaseTestOperationServer(BaseTestSpecServer):
         return SpecPath.from_spec(spec)
 
 
-class BaseTestServerNotFound(object):
+class BaseTestServerNotFound:
 
     @pytest.fixture
     def servers(self):
@@ -187,7 +187,7 @@ class BaseTestServerNotFound(object):
             finder.find(request)
 
 
-class BaseTestOperationNotFound(object):
+class BaseTestOperationNotFound:
 
     @pytest.fixture
     def operations(self):
@@ -202,7 +202,7 @@ class BaseTestOperationNotFound(object):
             finder.find(request)
 
 
-class BaseTestValid(object):
+class BaseTestValid:
 
     def test_simple(self, finder, spec):
         request_uri = '/resource'
@@ -222,7 +222,7 @@ class BaseTestValid(object):
         )
 
 
-class BaseTestVariableValid(object):
+class BaseTestVariableValid:
 
     @pytest.mark.parametrize('version', ['v1', 'v2'])
     def test_variable(self, finder, spec, version):
@@ -243,7 +243,7 @@ class BaseTestVariableValid(object):
         )
 
 
-class BaseTestPathVariableValid(object):
+class BaseTestPathVariableValid:
 
     @pytest.mark.parametrize('res_id', ['111', '222'])
     def test_path_variable(self, finder, spec, res_id):
@@ -264,7 +264,7 @@ class BaseTestPathVariableValid(object):
         )
 
 
-class BaseTestPathNotFound(object):
+class BaseTestPathNotFound:
 
     @pytest.fixture
     def paths(self):

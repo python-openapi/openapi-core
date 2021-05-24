@@ -23,7 +23,7 @@ from openapi_core.validation.request.datatypes import (
 PATH_PARAMETER_PATTERN = r'(?:[^\/]*?)<(?:(?:.*?:))*?(\w+)>(?:[^\/]*)'
 
 
-class DjangoOpenAPIRequestFactory(object):
+class DjangoOpenAPIRequestFactory:
 
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
@@ -48,7 +48,7 @@ class DjangoOpenAPIRequestFactory(object):
         parameters = RequestParameters(
             path=path,
             query=request.GET,
-            header=headers.items(),
+            header=list(headers.items()),
             cookie=request.COOKIES,
         )
         current_scheme_host = get_current_scheme_host(request)

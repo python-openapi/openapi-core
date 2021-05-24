@@ -1,7 +1,7 @@
 import pytest
 
 
-class TestDjangoRESTFrameworkAPIView(object):
+class TestDjangoRESTFrameworkAPIView:
 
     @pytest.fixture
     def api_request_factory(self):

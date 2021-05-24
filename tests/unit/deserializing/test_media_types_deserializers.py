@@ -6,7 +6,7 @@ from openapi_core.deserializing.media_types.factories import (
 )
 
 
-class TestMediaTypeDeserializer(object):
+class TestMediaTypeDeserializer:
 
     @pytest.fixture
     def deserializer_factory(self):

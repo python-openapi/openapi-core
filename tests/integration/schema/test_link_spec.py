@@ -3,7 +3,7 @@ from __future__ import division
 from openapi_core.shortcuts import create_spec
 
 
-class TestLinkSpec(object):
+class TestLinkSpec:
 
     def test_no_param(self, factory):
         spec_dict = factory.spec_from_file("data/v3.0/links.yaml")

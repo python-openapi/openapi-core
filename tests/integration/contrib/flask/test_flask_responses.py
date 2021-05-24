@@ -1,7 +1,7 @@
 from openapi_core.contrib.flask import FlaskOpenAPIResponse
 
 
-class TestFlaskOpenAPIResponse(object):
+class TestFlaskOpenAPIResponse:
 
     def test_invalid_server(self, response_factory):
         response = response_factory('Not Found', status_code=404)

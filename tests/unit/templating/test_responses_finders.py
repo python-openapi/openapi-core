@@ -7,7 +7,7 @@ from openapi_core.spec.paths import SpecPath
 from openapi_core.templating.responses.finders import ResponseFinder
 
 
-class TestResponses(object):
+class TestResponses:
 
     @pytest.fixture(scope='class')
     def spec(self):

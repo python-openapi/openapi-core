@@ -14,7 +14,7 @@ from openapi_core.unmarshalling.schemas.exceptions import (
 from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 
-class TestSchemaValidate(object):
+class TestSchemaValidate:
 
     @pytest.fixture
     def validator_factory(self):

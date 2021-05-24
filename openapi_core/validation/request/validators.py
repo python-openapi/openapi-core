@@ -1,5 +1,4 @@
 """OpenAPI core validation request validators module"""
-from __future__ import division
 import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
@@ -108,7 +107,7 @@ class BaseRequestValidator(BaseValidator):
                 return {
                     scheme_name: self._get_security_value(
                         scheme_name, request)
-                    for scheme_name in security_requirement.keys()
+                    for scheme_name in list(security_requirement.keys())
                 }
             except SecurityError:
                 continue

@@ -29,7 +29,7 @@ from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestPetstore(object):
+class TestPetstore:
 
     api_key = '12345'
 

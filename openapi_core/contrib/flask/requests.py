@@ -11,7 +11,7 @@ from openapi_core.validation.request.datatypes import (
 PATH_PARAMETER_PATTERN = r'<(?:(?:string|int|float|path|uuid):)?(\w+)>'
 
 
-class FlaskOpenAPIRequestFactory(object):
+class FlaskOpenAPIRequestFactory:
 
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 

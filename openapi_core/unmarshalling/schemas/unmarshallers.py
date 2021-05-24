@@ -1,4 +1,3 @@
-from __future__ import division
 from functools import partial
 import logging
 
@@ -28,7 +27,7 @@ from openapi_core.unmarshalling.schemas.util import (
 log = logging.getLogger(__name__)
 
 
-class PrimitiveTypeUnmarshaller(object):
+class PrimitiveTypeUnmarshaller:
 
     FORMATTERS = {}
 
@@ -126,7 +125,7 @@ class ComplexUnmarshaller(PrimitiveTypeUnmarshaller):
     def __init__(
             self, formatter, validator, schema, unmarshallers_factory,
             context=None):
-        super(ComplexUnmarshaller, self).__init__(formatter, validator, schema)
+        super().__init__(formatter, validator, schema)
         self.unmarshallers_factory = unmarshallers_factory
         self.context = context
 
@@ -143,7 +142,7 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
         return self.unmarshallers_factory.create(self.schema / 'items')
 
     def __call__(self, value):
-        value = super(ArrayUnmarshaller, self).__call__(value)
+        value = super().__call__(value)
         if value is None and self.schema.getkey('nullable', False):
             return None
         return list(map(self.items_unmarshaller, value))
@@ -204,7 +203,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             all_props.update(get_all_properties(one_of_schema))
             all_props_names |= get_all_properties_names(one_of_schema)
 
-        value_props_names = value.keys()
+        value_props_names = list(value.keys())
         extra_props = set(value_props_names) - set(all_props_names)
 
         properties = {}
@@ -221,7 +220,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
                 prop_value = value[prop_name]
                 properties[prop_name] = prop_value
 
-        for prop_name, prop in all_props.items():
+        for prop_name, prop in list(all_props.items()):
             read_only = prop.getkey('readOnly', False)
             if self.context == UnmarshalContext.REQUEST and read_only:
                 continue

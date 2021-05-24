@@ -1,7 +1,7 @@
 """OpenAPI X-Model extension models module"""
 
 
-class BaseModel(object):
+class BaseModel:
     """Base class for OpenAPI X-Model."""
 
     @property

@@ -2,7 +2,7 @@
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
-class RequestsOpenAPIResponseFactory(object):
+class RequestsOpenAPIResponseFactory:
 
     @classmethod
     def create(cls, response):

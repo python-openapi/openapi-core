@@ -2,7 +2,7 @@
 from flask.globals import request
 
 
-class FlaskRequestProvider(object):
+class FlaskRequestProvider:
 
     @classmethod
     def provide(self, *args, **kwargs):

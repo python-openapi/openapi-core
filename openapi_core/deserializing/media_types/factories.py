@@ -9,7 +9,7 @@ from openapi_core.deserializing.media_types.deserializers import (
 )
 
 
-class MediaTypeDeserializersFactory(object):
+class MediaTypeDeserializersFactory:
 
     MEDIA_TYPE_DESERIALIZERS = {
         'application/json': loads,

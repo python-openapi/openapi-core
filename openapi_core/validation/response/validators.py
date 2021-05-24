@@ -1,5 +1,4 @@
 """OpenAPI core validation response validators module"""
-from __future__ import division
 import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
@@ -92,7 +91,7 @@ class BaseResponseValidator(BaseValidator):
 
         errors = []
         validated = {}
-        for name, header in headers.items():
+        for name, header in list(headers.items()):
             # ignore Content-Type header
             if name.lower() == "content-type":
                 continue

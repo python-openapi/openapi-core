@@ -1,5 +1,4 @@
 """OpenAPI core templating paths finders module"""
-from __future__ import division
 from urllib.parse import urljoin, urlparse
 
 from more_itertools import peekable
@@ -12,7 +11,7 @@ from openapi_core.templating.paths.exceptions import (
 )
 
 
-class PathFinder(object):
+class PathFinder:
 
     def __init__(self, spec, base_url=None):
         self.spec = spec
@@ -43,7 +42,7 @@ class PathFinder(object):
     def _get_paths_iter(self, full_url_pattern):
         template_paths = []
         paths = self.spec / 'paths'
-        for path_pattern, path in paths.items():
+        for path_pattern, path in list(paths.items()):
             # simple path.
             # Return right away since it is always the most concrete
             if full_url_pattern.endswith(path_pattern):

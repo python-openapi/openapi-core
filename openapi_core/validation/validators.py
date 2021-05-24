@@ -1,6 +1,4 @@
 """OpenAPI core validation validators module"""
-from __future__ import division
-
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
@@ -13,7 +11,7 @@ from openapi_core.templating.paths.finders import PathFinder
 from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 
-class BaseValidator(object):
+class BaseValidator:
 
     def __init__(
             self, spec,

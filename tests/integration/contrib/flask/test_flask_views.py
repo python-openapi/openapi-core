@@ -5,7 +5,7 @@ from openapi_core.contrib.flask.views import FlaskOpenAPIView
 from openapi_core.shortcuts import create_spec
 
 
-class TestFlaskOpenAPIView(object):
+class TestFlaskOpenAPIView:
 
     view_response = None
 

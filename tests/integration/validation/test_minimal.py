@@ -9,7 +9,7 @@ from openapi_core.validation.request.datatypes import RequestParameters
 from openapi_core.validation.request.validators import RequestValidator
 
 
-class TestMinimal(object):
+class TestMinimal:
 
     servers = [
         "http://minimal.test/",

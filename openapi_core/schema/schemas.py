@@ -1,9 +1,6 @@
-from __future__ import division
-
-
 def get_all_properties(schema):
     properties = schema.get('properties', {})
-    properties_dict = dict(properties.items())
+    properties_dict = dict(list(properties.items()))
 
     if 'allOf'not in schema:
         return properties_dict

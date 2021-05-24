@@ -1,9 +1,7 @@
-from __future__ import division
-
 from openapi_core.casting.schemas.exceptions import CastError
 
 
-class PrimitiveCaster(object):
+class PrimitiveCaster:
 
     def __init__(self, schema, caster_callable):
         self.schema = schema
@@ -18,13 +16,13 @@ class PrimitiveCaster(object):
             raise CastError(value, self.schema['type'])
 
 
-class DummyCaster(object):
+class DummyCaster:
 
     def __call__(self, value):
         return value
 
 
-class ArrayCaster(object):
+class ArrayCaster:
 
     def __init__(self, schema, casters_factory):
         self.schema = schema

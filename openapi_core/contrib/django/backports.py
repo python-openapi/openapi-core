@@ -8,11 +8,11 @@ class HttpHeaders(dict):
 
     def __init__(self, environ):
         headers = {}
-        for header, value in environ.items():
+        for header, value in list(environ.items()):
             name = self.parse_header_name(header)
             if name:
                 headers[name] = value
-        super(HttpHeaders, self).__init__(headers)
+        super().__init__(headers)
 
     @classmethod
     def parse_header_name(cls, header):

@@ -12,7 +12,7 @@ from openapi_core.validation.response.validators import ResponseValidator
 
 
 @pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
-class BaseTestDjango(object):
+class BaseTestDjango:
 
     @pytest.fixture(autouse=True, scope='module')
     def django_settings(self):

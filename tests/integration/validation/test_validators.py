@@ -23,7 +23,7 @@ from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestRequestValidator(object):
+class TestRequestValidator:
 
     host_url = 'http://petstore.swagger.io'
 
@@ -374,7 +374,7 @@ class TestRequestValidator(object):
         }
 
 
-class TestPathItemParamsValidator(object):
+class TestPathItemParamsValidator:
 
     @pytest.fixture(scope='session')
     def spec_dict(self):
@@ -494,7 +494,7 @@ class TestPathItemParamsValidator(object):
         assert result.parameters == RequestParameters()
 
 
-class TestResponseValidator(object):
+class TestResponseValidator:
 
     host_url = 'http://petstore.swagger.io'
 

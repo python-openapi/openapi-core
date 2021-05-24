@@ -18,16 +18,14 @@ class FalconOpenAPIMiddleware(OpenAPIProcessor):
             response_factory,
             openapi_errors_handler,
     ):
-        super(FalconOpenAPIMiddleware, self).__init__(
-            request_validator, response_validator)
+        super().__init__(request_validator, response_validator)
         self.request_factory = request_factory
         self.response_factory = response_factory
         self.openapi_errors_handler = openapi_errors_handler
 
     def process_request(self, req, resp):
         openapi_req = self._get_openapi_request(req)
-        req_result = super(FalconOpenAPIMiddleware, self).process_request(
-            openapi_req)
+        req_result = super().process_request(openapi_req)
         if req_result.errors:
             return self._handle_request_errors(req, resp, req_result)
         req.openapi = req_result
@@ -35,8 +33,7 @@ class FalconOpenAPIMiddleware(OpenAPIProcessor):
     def process_response(self, req, resp, resource, req_succeeded):
         openapi_req = self._get_openapi_request(req)
         openapi_resp = self._get_openapi_response(resp)
-        resp_result = super(FalconOpenAPIMiddleware, self).process_response(
-            openapi_req, openapi_resp)
+        resp_result = super().process_response(openapi_req, openapi_resp)
         if resp_result.errors:
             return self._handle_response_errors(req, resp, resp_result)
 

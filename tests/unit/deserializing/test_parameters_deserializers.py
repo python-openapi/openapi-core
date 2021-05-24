@@ -9,7 +9,7 @@ from openapi_core.deserializing.parameters.exceptions import (
 from openapi_core.spec.paths import SpecPath
 
 
-class TestParameterDeserializer(object):
+class TestParameterDeserializer:
 
     @pytest.fixture
     def deserializer_factory(self):
