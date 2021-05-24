@@ -3,7 +3,7 @@ from openapi_core.security.providers import (
 )
 
 
-class SecurityProviderFactory(object):
+class SecurityProviderFactory:
 
     PROVIDERS = {
         'apiKey': ApiKeyProvider,

@@ -13,7 +13,7 @@ from openapi_core.templating.paths.exceptions import (
 )
 
 
-class FalconOpenAPIErrorsHandler(object):
+class FalconOpenAPIErrorsHandler:
 
     OPENAPI_ERROR_STATUS = {
         ServerNotFound: 400,

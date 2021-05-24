@@ -6,7 +6,7 @@ from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.datatypes import RequestParameters
 
 
-class TestFlaskOpenAPIDecorator(object):
+class TestFlaskOpenAPIDecorator:
 
     view_response_callable = None
 

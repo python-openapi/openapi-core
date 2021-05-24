@@ -6,7 +6,7 @@ from openapi_core.validation.datatypes import BaseValidationResult
 
 
 @attr.s
-class OpenAPIResponse(object):
+class OpenAPIResponse:
     """OpenAPI request dataclass.
 
     Attributes:

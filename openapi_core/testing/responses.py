@@ -2,7 +2,7 @@
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
-class MockResponseFactory(object):
+class MockResponseFactory:
 
     @classmethod
     def create(

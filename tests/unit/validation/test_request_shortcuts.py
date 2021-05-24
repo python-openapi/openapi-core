@@ -9,7 +9,7 @@ from openapi_core.validation.request.shortcuts import (
 )
 
 
-class TestSpecValidateParameters(object):
+class TestSpecValidateParameters:
 
     @mock.patch(
         'openapi_core.validation.request.shortcuts.RequestParametersValidator.'
@@ -76,7 +76,7 @@ class TestSpecValidateParameters(object):
         )
 
 
-class TestSpecValidateBody(object):
+class TestSpecValidateBody:
 
     @mock.patch(
         'openapi_core.validation.request.shortcuts.RequestBodyValidator.'

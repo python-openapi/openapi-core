@@ -7,7 +7,7 @@ from openapi_core.deserializing.parameters.exceptions import (
 from openapi_core.schema.parameters import get_aslist, get_explode, get_style
 
 
-class PrimitiveDeserializer(object):
+class PrimitiveDeserializer:
 
     def __init__(self, param_or_header, deserializer_callable):
         self.param_or_header = param_or_header

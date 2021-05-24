@@ -6,7 +6,7 @@ from openapi_core.validation.datatypes import BaseValidationResult
 
 
 @attr.s
-class RequestParameters(object):
+class RequestParameters:
     """OpenAPI request parameters dataclass.
 
     Attributes:
@@ -29,7 +29,7 @@ class RequestParameters(object):
 
 
 @attr.s
-class OpenAPIRequest(object):
+class OpenAPIRequest:
     """OpenAPI request dataclass.
 
     Attributes:

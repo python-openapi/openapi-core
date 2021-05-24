@@ -13,7 +13,7 @@ def get_request_headers(req):
 def get_response_headers(resp):
     # in Django 2 headers is not defined
     return resp.headers if hasattr(resp, 'headers') else \
-        dict(resp._headers.values())
+        dict(list(resp._headers.values()))
 
 
 def get_current_scheme_host(req):

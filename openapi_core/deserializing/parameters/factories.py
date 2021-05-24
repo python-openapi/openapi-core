@@ -4,7 +4,7 @@ from openapi_core.deserializing.parameters.deserializers import (
 from openapi_core.schema.parameters import get_style
 
 
-class ParameterDeserializersFactory(object):
+class ParameterDeserializersFactory:
 
     PARAMETER_STYLE_DESERIALIZERS = {
         'form': lambda x: x.split(','),

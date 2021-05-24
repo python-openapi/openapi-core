@@ -43,6 +43,6 @@ def build_format_checker(**custom_formatters):
         return oas30_format_checker
 
     fc = copy(oas30_format_checker)
-    for name, formatter in custom_formatters.items():
+    for name, formatter in list(custom_formatters.items()):
         fc.checks(name)(formatter.validate)
     return fc

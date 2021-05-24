@@ -9,7 +9,7 @@ from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.datatypes import RequestParameters
 
 
-class TestFalconOpenAPIMiddleware(object):
+class TestFalconOpenAPIMiddleware:
 
     view_response_callable = None
 
@@ -38,7 +38,7 @@ class TestFalconOpenAPIMiddleware(object):
 
     @pytest.fixture(autouse=True)
     def details_view(self, app, view_response):
-        class BrowseDetailResource(object):
+        class BrowseDetailResource:
             def on_get(self, *args, **kwargs):
                 return view_response(*args, **kwargs)
 
@@ -48,7 +48,7 @@ class TestFalconOpenAPIMiddleware(object):
 
     @pytest.fixture(autouse=True)
     def list_view(self, app, view_response):
-        class BrowseListResource(object):
+        class BrowseListResource:
             def on_get(self, *args, **kwargs):
                 return view_response(*args, **kwargs)
 

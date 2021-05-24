@@ -10,7 +10,7 @@ from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestRequestsOpenAPIValidation(object):
+class TestRequestsOpenAPIValidation:
 
     @pytest.fixture
     def spec(self, factory):

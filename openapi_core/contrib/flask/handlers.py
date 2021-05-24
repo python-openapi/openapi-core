@@ -8,7 +8,7 @@ from openapi_core.templating.paths.exceptions import (
 )
 
 
-class FlaskOpenAPIErrorsHandler(object):
+class FlaskOpenAPIErrorsHandler:
 
     OPENAPI_ERROR_STATUS = {
         ServerNotFound: 400,

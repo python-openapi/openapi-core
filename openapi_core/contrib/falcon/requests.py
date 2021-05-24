@@ -31,7 +31,7 @@ class FalconOpenAPIRequestFactory:
         if request.content_type:
             mimetype = request.content_type.partition(";")[0]
 
-        query = ImmutableMultiDict(request.params.items())
+        query = ImmutableMultiDict(list(request.params.items()))
         parameters = RequestParameters(
             query=query,
             header=request.headers,

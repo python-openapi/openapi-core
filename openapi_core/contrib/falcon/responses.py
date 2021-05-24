@@ -3,7 +3,7 @@ from openapi_core.contrib.falcon.compat import get_response_text
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
-class FalconOpenAPIResponseFactory(object):
+class FalconOpenAPIResponseFactory:
     @classmethod
     def create(cls, response):
         status_code = int(response.status[:3])

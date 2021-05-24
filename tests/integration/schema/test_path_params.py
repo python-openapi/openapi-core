@@ -5,7 +5,7 @@ import pytest
 from openapi_core.shortcuts import create_spec
 
 
-class TestMinimal(object):
+class TestMinimal:
 
     spec_paths = [
         "data/v3.0/path_param.yaml"

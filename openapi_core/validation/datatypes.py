@@ -3,7 +3,7 @@ import attr
 
 
 @attr.s
-class BaseValidationResult(object):
+class BaseValidationResult:
     errors = attr.ib(factory=list)
 
     def raise_for_errors(self):

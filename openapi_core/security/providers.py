@@ -3,7 +3,7 @@ import warnings
 from openapi_core.security.exceptions import SecurityError
 
 
-class BaseProvider(object):
+class BaseProvider:
 
     def __init__(self, scheme):
         self.scheme = scheme

@@ -2,7 +2,7 @@
 from openapi_core.extensions.models.models import Model
 
 
-class ModelClassFactory(object):
+class ModelClassFactory:
 
     base_class = Model
 
@@ -10,7 +10,7 @@ class ModelClassFactory(object):
         return type(name, (self.base_class, ), {})
 
 
-class ModelFactory(object):
+class ModelFactory:
 
     def __init__(self, model_class_factory=None):
         self.model_class_factory = model_class_factory or ModelClassFactory()

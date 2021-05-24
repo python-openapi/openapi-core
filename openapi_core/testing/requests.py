@@ -8,7 +8,7 @@ from openapi_core.validation.request.datatypes import (
 )
 
 
-class MockRequestFactory(object):
+class MockRequestFactory:
 
     @classmethod
     def create(

@@ -7,7 +7,7 @@ from openapi_core.testing.factories import FactoryClassMock
 from openapi_core.validation.response.shortcuts import spec_validate_data
 
 
-class TestSpecValidateData(object):
+class TestSpecValidateData:
 
     @mock.patch(
         'openapi_core.validation.response.shortcuts.ResponseDataValidator.'

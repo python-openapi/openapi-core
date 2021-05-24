@@ -4,7 +4,7 @@ from openapi_core.casting.schemas.casters import (
 from openapi_core.casting.schemas.util import forcebool
 
 
-class SchemaCastersFactory(object):
+class SchemaCastersFactory:
 
     DUMMY_CASTERS = [
         'string', 'object', 'any',

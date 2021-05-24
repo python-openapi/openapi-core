@@ -1,7 +1,7 @@
 from openapi_core.deserializing.exceptions import DeserializeError
 
 
-class PrimitiveDeserializer(object):
+class PrimitiveDeserializer:
 
     def __init__(self, mimetype, deserializer_callable):
         self.mimetype = mimetype

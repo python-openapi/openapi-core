@@ -1,5 +1,5 @@
 """OpenAPI core contrib requests requests module"""
-from __future__ import absolute_import
+
 from urllib.parse import urlparse, parse_qs
 
 from werkzeug.datastructures import ImmutableMultiDict
@@ -10,7 +10,7 @@ from openapi_core.validation.request.datatypes import (
 )
 
 
-class RequestsOpenAPIRequestFactory(object):
+class RequestsOpenAPIRequestFactory:
 
     @classmethod
     def create(cls, request):

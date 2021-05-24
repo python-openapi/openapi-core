@@ -2,7 +2,7 @@ import attr
 
 
 @attr.s
-class TemplateResult(object):
+class TemplateResult:
     pattern = attr.ib(default=None)
     variables = attr.ib(default=None)
 

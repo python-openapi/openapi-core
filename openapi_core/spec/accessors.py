@@ -6,7 +6,7 @@ from dictpath.accessors import DictOrListAccessor
 class SpecAccessor(DictOrListAccessor):
 
     def __init__(self, dict_or_list, dereferencer):
-        super(SpecAccessor, self).__init__(dict_or_list)
+        super().__init__(dict_or_list)
         self.dereferencer = dereferencer
 
     @contextmanager

@@ -1,6 +1,3 @@
-from __future__ import division
-
-
 def is_absolute(url):
     return url.startswith('//') or '://' in url
 
@@ -11,7 +8,7 @@ def get_server_default_variables(server):
 
     defaults = {}
     variables = server / 'variables'
-    for name, variable in variables.items():
+    for name, variable in list(variables.items()):
         defaults[name] = variable['default']
     return defaults
 

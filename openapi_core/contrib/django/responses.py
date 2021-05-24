@@ -3,7 +3,7 @@ from openapi_core.contrib.django.compat import get_response_headers
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
-class DjangoOpenAPIResponseFactory(object):
+class DjangoOpenAPIResponseFactory:
 
     @classmethod
     def create(cls, response):
@@ -12,6 +12,6 @@ class DjangoOpenAPIResponseFactory(object):
         return OpenAPIResponse(
             data=response.content,
             status_code=response.status_code,
-            headers=headers.items(),
+            headers=list(headers.items()),
             mimetype=mimetype,
         )

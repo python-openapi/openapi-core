@@ -5,7 +5,7 @@ from openapi_core.spec.paths import SpecPath
 from openapi_core.testing import MockRequest
 
 
-class TestHttpProvider(object):
+class TestHttpProvider:
 
     @pytest.mark.parametrize(
         'header',
