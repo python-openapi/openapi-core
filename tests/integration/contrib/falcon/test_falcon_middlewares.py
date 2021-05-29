@@ -6,7 +6,7 @@ import pytest
 
 from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
 from openapi_core.shortcuts import create_spec
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.validation.request.datatypes import Parameters
 
 
 class TestFalconOpenAPIMiddleware:
@@ -62,7 +62,7 @@ class TestFalconOpenAPIMiddleware:
             from falcon.status_codes import HTTP_200
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == RequestParameters(path={
+            assert request.openapi.parameters == Parameters(path={
                 'id': 12,
             })
             response.content_type = MEDIA_HTML
@@ -186,7 +186,7 @@ class TestFalconOpenAPIMiddleware:
             from falcon.status_codes import HTTP_200
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == RequestParameters(path={
+            assert request.openapi.parameters == Parameters(path={
                 'id': 12,
             })
             response.status = HTTP_200

@@ -61,7 +61,15 @@ class OpenAPIRequest:
 
 
 @dataclass
+class Parameters:
+    query: Dict = field(default_factory=dict)
+    header: Dict = field(default_factory=dict)
+    cookie: Dict = field(default_factory=dict)
+    path: Dict = field(default_factory=dict)
+
+
+@dataclass
 class RequestValidationResult(BaseValidationResult):
     body: Optional[str] = None
-    parameters: RequestParameters = field(default_factory=RequestParameters)
+    parameters: Parameters = field(default_factory=Parameters)
     security: Optional[Dict[str, str]] = None
