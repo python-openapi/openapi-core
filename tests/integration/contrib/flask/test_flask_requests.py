@@ -1,6 +1,6 @@
 from urllib.parse import urljoin
 
-from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
+from werkzeug.datastructures import Headers, ImmutableMultiDict
 
 from openapi_core.contrib.flask import FlaskOpenAPIRequest
 from openapi_core.validation.request.datatypes import RequestParameters
@@ -15,7 +15,7 @@ class TestFlaskOpenAPIRequest:
 
         path = {}
         query = ImmutableMultiDict([])
-        headers = EnvironHeaders(request.environ)
+        headers = Headers(request.headers)
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -39,7 +39,7 @@ class TestFlaskOpenAPIRequest:
         query = ImmutableMultiDict([
             ('a', 'b'), ('a', 'c'),
         ])
-        headers = EnvironHeaders(request.environ)
+        headers = Headers(request.headers)
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -60,7 +60,7 @@ class TestFlaskOpenAPIRequest:
 
         path = {'id': 12}
         query = ImmutableMultiDict([])
-        headers = EnvironHeaders(request.environ)
+        headers = Headers(request.headers)
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,

@@ -1,6 +1,7 @@
 import sys
 
 import pytest
+from werkzeug.datastructures import Headers
 
 from openapi_core.contrib.django import (
     DjangoOpenAPIRequest, DjangoOpenAPIResponse,
@@ -71,9 +72,9 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
 
         path = {}
         query = {}
-        headers = {
+        headers = Headers({
             'Cookie': '',
-        }
+        })
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -96,9 +97,9 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
 
         path = {}
         query = {}
-        headers = {
+        headers = Headers({
             'Cookie': '',
-        }
+        })
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -123,9 +124,9 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
             'object_id': '1',
         }
         query = {}
-        headers = {
+        headers = Headers({
             'Cookie': '',
-        }
+        })
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -148,9 +149,9 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
 
         path = {}
         query = {}
-        headers = {
+        headers = Headers({
             'Cookie': '',
-        }
+        })
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,

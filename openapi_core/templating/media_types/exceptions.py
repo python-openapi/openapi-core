@@ -1,4 +1,6 @@
-import attr
+from typing import List
+
+from dataclasses import dataclass
 
 from openapi_core.exceptions import OpenAPIError
 
@@ -7,10 +9,10 @@ class MediaTypeFinderError(OpenAPIError):
     """Media type finder error"""
 
 
-@attr.s(hash=True)
+@dataclass
 class MediaTypeNotFound(MediaTypeFinderError):
-    mimetype = attr.ib()
-    availableMimetypes = attr.ib()
+    mimetype: str
+    availableMimetypes: List[str]
 
     def __str__(self):
         return (

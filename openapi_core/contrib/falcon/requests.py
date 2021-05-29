@@ -1,7 +1,7 @@
 """OpenAPI core contrib falcon responses module"""
 from json import dumps
 
-from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.datastructures import ImmutableMultiDict, Headers
 
 from openapi_core.contrib.falcon.compat import get_request_media
 from openapi_core.validation.request.datatypes import (
@@ -29,11 +29,12 @@ class FalconOpenAPIRequestFactory:
             mimetype = request.content_type.partition(";")[0]
 
         query = ImmutableMultiDict(list(request.params.items()))
+        header = Headers(request.headers)
 
         # Path gets deduced by path finder against spec
         parameters = RequestParameters(
             query=query,
-            header=request.headers,
+            header=header,
             cookie=request.cookies,
         )
         url_pattern = request.prefix + request.path

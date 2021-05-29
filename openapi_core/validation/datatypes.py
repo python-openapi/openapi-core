@@ -1,10 +1,12 @@
 """OpenAPI core validation datatypes module"""
-import attr
+from typing import List
+
+from dataclasses import dataclass
 
 
-@attr.s
+@dataclass
 class BaseValidationResult:
-    errors = attr.ib(factory=list)
+    errors: List[Exception]
 
     def raise_for_errors(self):
         for error in self.errors:

@@ -1,13 +1,13 @@
-import attr
+from dataclasses import dataclass
 
 from openapi_core.exceptions import OpenAPIError
 
 
-@attr.s(hash=True)
+@dataclass
 class DeserializeError(OpenAPIError):
     """Deserialize operation error"""
-    value = attr.ib()
-    style = attr.ib()
+    value: str
+    style: str
 
     def __str__(self):
         return "Failed to deserialize value {value} with style {style}".format(
