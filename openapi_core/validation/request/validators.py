@@ -21,7 +21,7 @@ from openapi_core.unmarshalling.schemas.factories import (
 )
 from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request.datatypes import (
-    RequestParameters, RequestValidationResult,
+    Parameters, RequestValidationResult,
 )
 from openapi_core.validation.validators import BaseValidator
 
@@ -47,7 +47,7 @@ class BaseRequestValidator(BaseValidator):
 
         errors = []
         seen = set()
-        locations = {}
+        parameters = Parameters()
         params_iter = iter_params(operation_params, path_params)
         for param in params_iter:
             param_name = param['name']
@@ -68,10 +68,10 @@ class BaseRequestValidator(BaseValidator):
                 errors.append(exc)
                 continue
             else:
-                locations.setdefault(param_location, {})
-                locations[param_location][param_name] = value
+                location = getattr(parameters, param_location)
+                location[param_name] = value
 
-        return RequestParameters(**locations), errors
+        return parameters, errors
 
     def _get_parameter(self, param, request):
         name = param['name']

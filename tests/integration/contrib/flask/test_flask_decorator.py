@@ -3,7 +3,7 @@ import pytest
 
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 from openapi_core.shortcuts import create_spec
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.validation.request.datatypes import Parameters
 
 
 class TestFlaskOpenAPIDecorator:
@@ -59,7 +59,7 @@ class TestFlaskOpenAPIDecorator:
             from flask.globals import request
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == RequestParameters(path={
+            assert request.openapi.parameters == Parameters(path={
                 'id': 12,
             })
             resp = make_response('success', 200)
@@ -171,7 +171,7 @@ class TestFlaskOpenAPIDecorator:
             from flask.globals import request
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == RequestParameters(path={
+            assert request.openapi.parameters == Parameters(path={
                 'id': 12,
             })
             resp = jsonify(data='data')
