@@ -26,7 +26,7 @@ class FlaskOpenAPIErrorsHandler:
         data = {
             'errors': data_errors,
         }
-        data_error_max = max(data_errors, key=lambda x: x['status'])
+        data_error_max = max(data_errors, key=cls.get_error_status)
         status = data_error_max['status']
         return current_app.response_class(
             dumps(data),
@@ -41,3 +41,7 @@ class FlaskOpenAPIErrorsHandler:
             'status': cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
             'class': str(type(error)),
         }
+
+    @classmethod
+    def get_error_status(cls, error):
+        return error['status']

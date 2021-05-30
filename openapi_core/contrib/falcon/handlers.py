@@ -39,7 +39,7 @@ class FalconOpenAPIErrorsHandler:
             'errors': data_errors,
         }
         data_str = dumps(data)
-        data_error_max = max(data_errors, key=lambda x: x['status'])
+        data_error_max = max(data_errors, key=cls.get_error_status)
         resp.content_type = MEDIA_JSON
         resp.status = cls.FALCON_STATUS_CODES.get(
             data_error_max['status'], HTTP_400)
@@ -53,3 +53,7 @@ class FalconOpenAPIErrorsHandler:
             'status': cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
             'class': str(type(error)),
         }
+
+    @classmethod
+    def get_error_status(cls, error):
+        return error['status']
