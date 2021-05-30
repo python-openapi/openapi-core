@@ -9,6 +9,7 @@ from openapi_core.templating.util import parse, search
 from openapi_core.templating.paths.exceptions import (
     PathNotFound, OperationNotFound, ServerNotFound,
 )
+from openapi_core.templating.paths.util import template_path_len
 
 
 class PathFinder:
@@ -56,7 +57,7 @@ class PathFinder:
                     template_paths.append((path, path_result))
 
         # Fewer variables -> more concrete path
-        for path in sorted(template_paths, key=lambda p: len(p[1].variables)):
+        for path in sorted(template_paths, key=template_path_len):
             yield path
 
     def _get_operations_iter(self, request_method, paths_iter):
