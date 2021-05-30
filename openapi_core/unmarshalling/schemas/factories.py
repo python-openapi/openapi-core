@@ -15,17 +15,17 @@ from openapi_core.unmarshalling.schemas.unmarshallers import (
 
 class SchemaUnmarshallersFactory:
 
-    PRIMITIVE_UNMARSHALLERS = {
+    UNMARSHALLERS = {
         'string': StringUnmarshaller,
         'integer': IntegerUnmarshaller,
         'number': NumberUnmarshaller,
         'boolean': BooleanUnmarshaller,
-    }
-    COMPLEX_UNMARSHALLERS = {
         'array': ArrayUnmarshaller,
         'object': ObjectUnmarshaller,
         'any': AnyUnmarshaller,
     }
+
+    COMPLEX_UNMARSHALLERS = ['array', 'object', 'any']
 
     CONTEXT_VALIDATION = {
         UnmarshalContext.REQUEST: 'write',
@@ -51,14 +51,13 @@ class SchemaUnmarshallersFactory:
             warnings.warn("The schema is deprecated", DeprecationWarning)
 
         schema_type = type_override or schema.getkey('type', 'any')
-        if schema_type in self.PRIMITIVE_UNMARSHALLERS:
-            klass = self.PRIMITIVE_UNMARSHALLERS[schema_type]
-            kwargs = dict(schema=schema)
 
-        elif schema_type in self.COMPLEX_UNMARSHALLERS:
-            klass = self.COMPLEX_UNMARSHALLERS[schema_type]
-            kwargs = dict(
-                schema=schema, unmarshallers_factory=self,
+        klass = self.UNMARSHALLERS[schema_type]
+        kwargs = dict(schema=schema)
+
+        if schema_type in self.COMPLEX_UNMARSHALLERS:
+            kwargs.update(
+                unmarshallers_factory=self,
                 context=self.context,
             )
 
