@@ -27,13 +27,13 @@ from openapi_core.unmarshalling.schemas.util import (
 log = logging.getLogger(__name__)
 
 
-class PrimitiveTypeUnmarshaller:
+class BaseSchemaUnmarshaller:
 
-    FORMATTERS = {}
+    FORMATTERS = {
+        None: Formatter(),
+    }
 
-    def __init__(self, formatter, validator, schema):
-        self.formatter = formatter
-        self.validator = validator
+    def __init__(self, schema):
         self.schema = schema
 
     def __call__(self, value):
@@ -43,6 +43,20 @@ class PrimitiveTypeUnmarshaller:
         self.validate(value)
 
         return self.unmarshal(value)
+
+    def validate(self, value):
+        raise NotImplementedError
+
+    def unmarshal(self, value):
+        raise NotImplementedError
+
+
+class PrimitiveTypeUnmarshaller(BaseSchemaUnmarshaller):
+
+    def __init__(self, schema, formatter, validator):
+        super().__init__(schema)
+        self.formatter = formatter
+        self.validator = validator
 
     def _formatter_validate(self, value):
         result = self.formatter.validate(value)
@@ -123,9 +137,9 @@ class BooleanUnmarshaller(PrimitiveTypeUnmarshaller):
 class ComplexUnmarshaller(PrimitiveTypeUnmarshaller):
 
     def __init__(
-            self, formatter, validator, schema, unmarshallers_factory,
+            self, schema, formatter, validator, unmarshallers_factory,
             context=None):
-        super().__init__(formatter, validator, schema)
+        super().__init__(schema, formatter, validator)
         self.unmarshallers_factory = unmarshallers_factory
         self.context = context
 
@@ -241,10 +255,6 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
 
 class AnyUnmarshaller(ComplexUnmarshaller):
-
-    FORMATTERS = {
-        None: Formatter(),
-    }
 
     SCHEMA_TYPES_ORDER = [
         'object', 'array', 'boolean',

@@ -51,27 +51,25 @@ class SchemaUnmarshallersFactory:
             warnings.warn("The schema is deprecated", DeprecationWarning)
 
         schema_type = type_override or schema.getkey('type', 'any')
+        schema_format = schema.getkey('format')
 
         klass = self.UNMARSHALLERS[schema_type]
-        kwargs = dict(schema=schema)
 
-        if schema_type in self.COMPLEX_UNMARSHALLERS:
-            kwargs.update(
-                unmarshallers_factory=self,
-                context=self.context,
-            )
-
-        schema_format = schema.getkey('format')
-        formatter = self.get_formatter(klass.FORMATTERS, schema_format)
-
+        formatter = self.get_formatter(schema_format, klass.FORMATTERS)
         if formatter is None:
             raise FormatterNotFoundError(schema_format)
 
         validator = self.get_validator(schema)
 
-        return klass(formatter, validator, **kwargs)
+        kwargs = dict()
+        if schema_type in self.COMPLEX_UNMARSHALLERS:
+            kwargs.update(
+                unmarshallers_factory=self,
+                context=self.context,
+            )
+        return klass(schema, formatter, validator, **kwargs)
 
-    def get_formatter(self, default_formatters, type_format=None):
+    def get_formatter(self, type_format, default_formatters):
         try:
             return self.custom_formatters[type_format]
         except KeyError:
