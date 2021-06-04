@@ -5,7 +5,7 @@ from openapi_core.deserializing.media_types.util import (
 )
 
 from openapi_core.deserializing.media_types.deserializers import (
-    PrimitiveDeserializer,
+    CallableMediaTypeDeserializer, UnsupportedMimetypeDeserializer,
 )
 
 
@@ -25,10 +25,14 @@ class MediaTypeDeserializersFactory:
     def create(self, mimetype):
         deserialize_callable = self.get_deserializer_callable(
             mimetype)
-        return PrimitiveDeserializer(
+
+        if deserialize_callable is None:
+            return UnsupportedMimetypeDeserializer(mimetype)
+
+        return CallableMediaTypeDeserializer(
             mimetype, deserialize_callable)
 
     def get_deserializer_callable(self, mimetype):
         if mimetype in self.custom_deserializers:
             return self.custom_deserializers[mimetype]
-        return self.MEDIA_TYPE_DESERIALIZERS.get(mimetype, lambda x: x)
+        return self.MEDIA_TYPE_DESERIALIZERS.get(mimetype)

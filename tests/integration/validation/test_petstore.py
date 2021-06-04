@@ -8,7 +8,7 @@ from isodate.tzinfo import UTC
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
-    EmptyParameterValue,
+    EmptyQueryParameterValue,
 )
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.exceptions import (
@@ -375,7 +375,7 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(EmptyParameterValue):
+        with pytest.raises(EmptyQueryParameterValue):
             spec_validate_parameters(spec, request)
         body = spec_validate_body(spec, request)
 

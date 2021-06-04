@@ -15,6 +15,15 @@ class TestMediaTypeDeserializer:
                 custom_deserializers=custom_deserializers).create(media_type)
         return create_deserializer
 
+    def test_unsupported(self, deserializer_factory):
+        mimetype = 'application/unsupported'
+        value = ''
+
+        with pytest.warns(UserWarning):
+            result = deserializer_factory(mimetype)(value)
+
+        assert result == value
+
     def test_json_empty(self, deserializer_factory):
         mimetype = 'application/json'
         value = ''
