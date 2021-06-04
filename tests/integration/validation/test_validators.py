@@ -3,7 +3,9 @@ import json
 import pytest
 
 from openapi_core.casting.schemas.exceptions import CastError
-from openapi_core.deserializing.exceptions import DeserializeError
+from openapi_core.deserializing.media_types.exceptions import (
+    MediaTypeDeserializeError,
+)
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.exceptions import (
     MissingRequiredParameter, MissingRequiredRequestBody,
@@ -572,7 +574,7 @@ class TestResponseValidator:
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == DeserializeError
+        assert type(result.errors[0]) == MediaTypeDeserializeError
         assert result.data is None
         assert result.headers == {}
 

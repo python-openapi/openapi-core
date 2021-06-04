@@ -1,7 +1,27 @@
-from openapi_core.deserializing.exceptions import DeserializeError
+import warnings
+
+from openapi_core.deserializing.media_types.exceptions import (
+    MediaTypeDeserializeError,
+)
 
 
-class PrimitiveDeserializer:
+class BaseMediaTypeDeserializer:
+
+    def __init__(self, mimetype):
+        self.mimetype = mimetype
+
+    def __call__(self, value):
+        raise NotImplementedError
+
+
+class UnsupportedMimetypeDeserializer(BaseMediaTypeDeserializer):
+
+    def __call__(self, value):
+        warnings.warn(f"Unsupported {self.mimetype} mimetype")
+        return value
+
+
+class CallableMediaTypeDeserializer(BaseMediaTypeDeserializer):
 
     def __init__(self, mimetype, deserializer_callable):
         self.mimetype = mimetype
@@ -11,4 +31,4 @@ class PrimitiveDeserializer:
         try:
             return self.deserializer_callable(value)
         except (ValueError, TypeError, AttributeError):
-            raise DeserializeError(value, self.mimetype)
+            raise MediaTypeDeserializeError(self.mimetype, value)
