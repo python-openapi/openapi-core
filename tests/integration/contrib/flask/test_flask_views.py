@@ -151,7 +151,8 @@ class TestFlaskOpenAPIView:
                     ),
                     'status': 400,
                     'title': (
-                        "Failed to cast value invalidparameter to type integer"
+                        "Failed to cast value to integer type: "
+                        "invalidparameter"
                     )
                 }
             ]
