@@ -1,5 +1,5 @@
 from openapi_core.casting.schemas.casters import (
-    PrimitiveCaster, DummyCaster, ArrayCaster
+    ArrayCaster, CallableSchemaCaster, DummyCaster,
 )
 from openapi_core.casting.schemas.util import forcebool
 
@@ -20,11 +20,12 @@ class SchemaCastersFactory:
 
     def create(self, schema):
         schema_type = schema.getkey('type', 'any')
+
         if schema_type in self.DUMMY_CASTERS:
-            return DummyCaster()
-        elif schema_type in self.PRIMITIVE_CASTERS:
+            return DummyCaster(schema)
+
+        if schema_type in self.PRIMITIVE_CASTERS:
             caster_callable = self.PRIMITIVE_CASTERS[schema_type]
-            return PrimitiveCaster(schema, caster_callable)
-        elif schema_type in self.COMPLEX_CASTERS:
-            caster_class = self.COMPLEX_CASTERS[schema_type]
-            return caster_class(schema, self)
+            return CallableSchemaCaster(schema, caster_callable)
+
+        return ArrayCaster(schema, self)
