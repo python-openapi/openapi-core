@@ -16,6 +16,6 @@ class MediaTypeNotFound(MediaTypeFinderError):
 
     def __str__(self):
         return (
-            "Content for the following mimetype not found: {0}. "
-            "Valid mimetypes: {1}"
+            "Content for the following mimetype not found: {}. "
+            "Valid mimetypes: {}"
         ).format(self.mimetype, self.availableMimetypes)

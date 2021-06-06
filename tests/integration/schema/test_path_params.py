@@ -1,5 +1,3 @@
-from __future__ import division
-
 import pytest
 
 from openapi_core.shortcuts import create_spec

@@ -10,5 +10,4 @@ class CastError(OpenAPIError):
     type: str
 
     def __str__(self):
-        return "Failed to cast value to {type} type: {value}".format(
-            type=self.type, value=self.value)
+        return f"Failed to cast value to {self.type} type: {self.value}"

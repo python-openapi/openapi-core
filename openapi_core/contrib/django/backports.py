@@ -24,4 +24,4 @@ class HttpHeaders(dict):
 
 
 def request_current_scheme_host(req):
-    return '{}://{}'.format(req.scheme, req.get_host())
+    return f'{req.scheme}://{req.get_host()}'

@@ -78,7 +78,7 @@ class BaseRequestValidator(BaseValidator):
         deprecated = param.getkey('deprecated', False)
         if deprecated:
             warnings.warn(
-                "{0} parameter is deprecated".format(name),
+                f"{name} parameter is deprecated",
                 DeprecationWarning,
             )
 

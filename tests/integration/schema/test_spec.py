@@ -1,4 +1,3 @@
-from __future__ import division
 import pytest
 from base64 import b64encode
 
