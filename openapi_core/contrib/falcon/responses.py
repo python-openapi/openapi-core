@@ -1,7 +1,6 @@
 """OpenAPI core contrib falcon responses module"""
 from werkzeug.datastructures import Headers
 
-from openapi_core.contrib.falcon.compat import get_response_text
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
@@ -16,7 +15,7 @@ class FalconOpenAPIResponseFactory:
         else:
             mimetype = response.options.default_media_type
 
-        data = get_response_text(response)
+        data = response.text
         headers = Headers(response.headers)
 
         return OpenAPIResponse(

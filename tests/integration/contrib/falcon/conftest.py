@@ -1,7 +1,10 @@
+import os
+import sys
+
 from falcon import Request, Response, RequestOptions, ResponseOptions
 from falcon.routing import DefaultRouter
 from falcon.status_codes import HTTP_200
-from falcon.testing import create_environ
+from falcon.testing import create_environ, TestClient
 import pytest
 
 
@@ -50,3 +53,23 @@ def response_factory(environ_factory):
         resp.set_headers(headers or {})
         return resp
     return create_response
+
+
+@pytest.fixture(autouse=True, scope='module')
+def falcon_setup():
+    directory = os.path.abspath(os.path.dirname(__file__))
+    falcon_project_dir = os.path.join(directory, 'data/v3.0')
+    sys.path.insert(0, falcon_project_dir)
+    yield
+    sys.path.remove(falcon_project_dir)
+
+
+@pytest.fixture
+def app():
+    from falconproject.__main__ import app
+    return app
+
+
+@pytest.fixture
+def client(app):
+    return TestClient(app)
