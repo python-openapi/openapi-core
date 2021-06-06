@@ -30,7 +30,7 @@ class PyTest(TestCommand):
 
     def finalize_options(self):
         TestCommand.finalize_options(self)
-        self.pytest_args = []
+        self.pytest_args = ['--color=yes']
 
     def run_tests(self):
         # Importing here, `cause outside the eggs aren't loaded.
