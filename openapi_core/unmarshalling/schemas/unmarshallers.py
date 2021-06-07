@@ -200,7 +200,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             if properties is None:
                 log.warning("valid oneOf schema not found")
 
-        if 'anyOf' in self.schema:
+        elif 'anyOf' in self.schema:
             properties = None
             for any_of_schema in self.schema / 'anyOf':
                 try:
