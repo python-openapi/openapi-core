@@ -5,7 +5,7 @@ from openapi_core.contrib.flask.views import FlaskOpenAPIView
 from openapi_core.shortcuts import create_spec
 
 
-class TestFlaskOpenAPIView(object):
+class TestFlaskOpenAPIView:
 
     view_response = None
 
@@ -21,7 +21,7 @@ class TestFlaskOpenAPIView(object):
         app.config['TESTING'] = True
         return app
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def client(self, app):
         with app.test_client() as client:
             with app.app_context():
@@ -55,6 +55,7 @@ class TestFlaskOpenAPIView(object):
 
     def test_invalid_content_type(self, client):
         self.view_response = make_response('success', 200)
+        self.view_response.headers['X-Rate-Limit'] = '12'
 
         result = client.get('/browse/12/')
 
@@ -63,12 +64,13 @@ class TestFlaskOpenAPIView(object):
             'errors': [
                 {
                     'class': (
-                        "<class 'openapi_core.schema.media_types.exceptions."
-                        "InvalidContentType'>"
+                        "<class 'openapi_core.templating.media_types."
+                        "exceptions.MediaTypeNotFound'>"
                     ),
                     'status': 415,
                     'title': (
-                        'Content for following mimetype not found: text/html'
+                        "Content for the following mimetype not found: "
+                        "text/html. Valid mimetypes: ['application/json']"
                     )
                 }
             ]
@@ -149,7 +151,30 @@ class TestFlaskOpenAPIView(object):
                     ),
                     'status': 400,
                     'title': (
-                        "Failed to cast value invalidparameter to type integer"
+                        "Failed to cast value to integer type: "
+                        "invalidparameter"
+                    )
+                }
+            ]
+        }
+        assert result.status_code == 400
+        assert result.json == expected_data
+
+    def test_missing_required_header(self, client):
+        self.view_response = jsonify(data='data')
+
+        result = client.get('/browse/12/')
+
+        expected_data = {
+            'errors': [
+                {
+                    'class': (
+                        "<class 'openapi_core.exceptions."
+                        "MissingRequiredHeader'>"
+                    ),
+                    'status': 400,
+                    'title': (
+                        "Missing required header: X-Rate-Limit"
                     )
                 }
             ]
@@ -159,6 +184,7 @@ class TestFlaskOpenAPIView(object):
 
     def test_valid(self, client):
         self.view_response = jsonify(data='data')
+        self.view_response.headers['X-Rate-Limit'] = '12'
 
         result = client.get('/browse/12/')
 

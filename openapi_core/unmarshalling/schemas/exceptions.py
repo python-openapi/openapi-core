@@ -1,4 +1,6 @@
-import attr
+from typing import List
+
+from dataclasses import dataclass, field
 
 from openapi_core.exceptions import OpenAPIError
 
@@ -18,11 +20,11 @@ class UnmarshallerError(UnmarshalError):
     pass
 
 
-@attr.s(hash=True)
+@dataclass
 class InvalidSchemaValue(ValidateError):
-    value = attr.ib()
-    type = attr.ib()
-    schema_errors = attr.ib(factory=tuple)
+    value: str
+    type: str
+    schema_errors: List[Exception] = field(default_factory=list)
 
     def __str__(self):
         return (
@@ -30,12 +32,12 @@ class InvalidSchemaValue(ValidateError):
         ).format(value=self.value, type=self.type, errors=self.schema_errors)
 
 
-@attr.s(hash=True)
+@dataclass
 class InvalidSchemaFormatValue(UnmarshallerError):
     """Value failed to format with formatter"""
-    value = attr.ib()
-    type = attr.ib()
-    original_exception = attr.ib()
+    value: str
+    type: str
+    original_exception: Exception
 
     def __str__(self):
         return (
@@ -46,10 +48,10 @@ class InvalidSchemaFormatValue(UnmarshallerError):
         )
 
 
-@attr.s(hash=True)
+@dataclass
 class FormatterNotFoundError(UnmarshallerError):
     """Formatter not found to unmarshal"""
-    type_format = attr.ib()
+    type_format: str
 
     def __str__(self):
         return "Formatter not found for {format} format".format(

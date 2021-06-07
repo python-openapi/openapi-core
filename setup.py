@@ -50,6 +50,7 @@ if __name__ == '__main__':
         author=metadata['author'],
         author_email=metadata['email'],
         url=metadata['url'],
+        license=metadata['license'],
         cmdclass={'test': PyTest},
         setup_cfg=True,
     )

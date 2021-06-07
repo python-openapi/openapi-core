@@ -1,8 +1,12 @@
 """OpenAPI core contrib django requests module"""
 import re
+from urllib.parse import urljoin
 
-from six.moves.urllib.parse import urljoin
+from werkzeug.datastructures import ImmutableMultiDict, Headers
 
+from openapi_core.contrib.django.compat import (
+    get_request_headers, get_current_scheme_host,
+)
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,
 )
@@ -20,7 +24,7 @@ from openapi_core.validation.request.datatypes import (
 PATH_PARAMETER_PATTERN = r'(?:[^\/]*?)<(?:(?:.*?:))*?(\w+)>(?:[^\/]*)'
 
 
-class DjangoOpenAPIRequestFactory(object):
+class DjangoOpenAPIRequestFactory:
 
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
@@ -33,17 +37,26 @@ class DjangoOpenAPIRequestFactory(object):
         else:
             route = cls.path_regex.sub(
                 r'{\1}', request.resolver_match.route)
+            # Delete start and end marker to allow concatenation.
+            if route[:1] == "^":
+                route = route[1:]
+            if route[-1:] == "$":
+                route = route[:-1]
             path_pattern = '/' + route
 
+        request_headers = get_request_headers(request)
         path = request.resolver_match and request.resolver_match.kwargs or {}
+        query = ImmutableMultiDict(request.GET)
+        header = Headers(request_headers.items())
+        cookie = ImmutableMultiDict(dict(request.COOKIES))
         parameters = RequestParameters(
             path=path,
-            query=request.GET,
-            header=request.headers.items(),
-            cookie=request.COOKIES,
+            query=query,
+            header=header,
+            cookie=cookie,
         )
-        full_url_pattern = urljoin(
-            request._current_scheme_host, path_pattern)
+        current_scheme_host = get_current_scheme_host(request)
+        full_url_pattern = urljoin(current_scheme_host, path_pattern)
         return OpenAPIRequest(
             full_url_pattern=full_url_pattern,
             method=method,

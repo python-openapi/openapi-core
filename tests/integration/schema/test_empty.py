@@ -4,7 +4,7 @@ from jsonschema.exceptions import ValidationError
 from openapi_core.shortcuts import create_spec
 
 
-class TestEmpty(object):
+class TestEmpty:
 
     @pytest.fixture
     def spec_dict(self, factory):

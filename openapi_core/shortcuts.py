@@ -1,17 +1,18 @@
 """OpenAPI core shortcuts module"""
 # backward compatibility
-from openapi_core.schema.shortcuts import create_spec
+from openapi_core.spec.shortcuts import create_spec
 from openapi_core.validation.request.shortcuts import (
-    spec_validate_body as validate_body,
-    spec_validate_parameters as validate_parameters,
+    validate_request,
+    spec_validate_body, spec_validate_parameters, spec_validate_security,
 )
-from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.shortcuts import (
-    spec_validate_data as validate_data
+    validate_response,
+    spec_validate_data, spec_validate_headers,
 )
-from openapi_core.validation.response.validators import ResponseValidator
 
 __all__ = [
-    'create_spec', 'validate_body', 'validate_parameters', 'validate_data',
-    'RequestValidator', 'ResponseValidator',
+    'create_spec',
+    'validate_request', 'validate_response',
+    'spec_validate_body', 'spec_validate_parameters', 'spec_validate_security',
+    'spec_validate_data', 'spec_validate_headers',
 ]

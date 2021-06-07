@@ -19,7 +19,7 @@ class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
             request_provider=FlaskRequestProvider,
             openapi_errors_handler=FlaskOpenAPIErrorsHandler,
     ):
-        super(FlaskOpenAPIViewDecorator, self).__init__(
+        super().__init__(
             request_validator, response_validator,
             request_factory, response_factory,
             request_provider, openapi_errors_handler,
@@ -28,7 +28,7 @@ class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
     def _handle_request_view(self, request_result, view, *args, **kwargs):
         request = self._get_request(*args, **kwargs)
         request.openapi = request_result
-        return super(FlaskOpenAPIViewDecorator, self)._handle_request_view(
+        return super()._handle_request_view(
             request_result, view, *args, **kwargs)
 
     @classmethod

@@ -1,4 +1,4 @@
-class FactoryClassMock(object):
+class FactoryClassMock:
 
     _instances = {}
 

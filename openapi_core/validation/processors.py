@@ -1,7 +1,7 @@
 """OpenAPI core validation processors module"""
 
 
-class OpenAPIProcessor(object):
+class OpenAPIProcessor:
 
     def __init__(self, request_validator, response_validator):
         self.request_validator = request_validator

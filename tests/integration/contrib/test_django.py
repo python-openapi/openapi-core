@@ -1,7 +1,7 @@
 import sys
 
 import pytest
-from six import b
+from werkzeug.datastructures import Headers
 
 from openapi_core.contrib.django import (
     DjangoOpenAPIRequest, DjangoOpenAPIResponse,
@@ -13,14 +13,14 @@ from openapi_core.validation.response.validators import ResponseValidator
 
 
 @pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
-class BaseTestDjango(object):
+class BaseTestDjango:
 
     @pytest.fixture(autouse=True, scope='module')
     def django_settings(self):
         import django
         from django.conf import settings
         from django.contrib import admin
-        from django.urls import path
+        from django.urls import path, re_path
 
         if settings.configured:
             return
@@ -45,6 +45,7 @@ class BaseTestDjango(object):
         django.setup()
         settings.ROOT_URLCONF = (
             path('admin/', admin.site.urls),
+            re_path('^test/test-regexp/$', lambda d: None)
         )
 
     @pytest.fixture
@@ -56,7 +57,7 @@ class BaseTestDjango(object):
     def response_factory(self):
         from django.http import HttpResponse
 
-        def create(content=b(''), status_code=None):
+        def create(content=b'', status_code=None):
             return HttpResponse(content, status=status_code)
 
         return create
@@ -71,9 +72,9 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
 
         path = {}
         query = {}
-        headers = {
+        headers = Headers({
             'Cookie': '',
-        }
+        })
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -96,9 +97,9 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
 
         path = {}
         query = {}
-        headers = {
+        headers = Headers({
             'Cookie': '',
-        }
+        })
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -123,9 +124,9 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
             'object_id': '1',
         }
         query = {}
-        headers = {
+        headers = Headers({
             'Cookie': '',
-        }
+        })
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -139,6 +140,31 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.body == request.body
         assert openapi_request.mimetype == request.content_type
 
+    def test_url_regexp_pattern(self, request_factory):
+        from django.urls import resolve
+        request = request_factory.get('/test/test-regexp/')
+        request.resolver_match = resolve('/test/test-regexp/')
+
+        openapi_request = DjangoOpenAPIRequest(request)
+
+        path = {}
+        query = {}
+        headers = Headers({
+            'Cookie': '',
+        })
+        cookies = {}
+        assert openapi_request.parameters == RequestParameters(
+            path=path,
+            query=query,
+            header=headers,
+            cookie=cookies,
+        )
+        assert openapi_request.method == request.method.lower()
+        assert openapi_request.full_url_pattern == \
+               request._current_scheme_host + "/test/test-regexp/"
+        assert openapi_request.body == request.body
+        assert openapi_request.mimetype == request.content_type
+
 
 class TestDjangoOpenAPIResponse(BaseTestDjango):
 
@@ -148,7 +174,7 @@ class TestDjangoOpenAPIResponse(BaseTestDjango):
 
         openapi_response = DjangoOpenAPIResponse(response)
 
-        assert openapi_response.data == b('foo\nbar\nbaz\n')
+        assert openapi_response.data == b'foo\nbar\nbaz\n'
         assert openapi_response.status_code == response.status_code
         assert openapi_response.mimetype == response["Content-Type"]
 
@@ -176,7 +202,7 @@ class TestDjangoOpenAPIValidation(BaseTestDjango):
         request = request_factory.get('/admin/auth/group/1/')
         request.resolver_match = resolve('/admin/auth/group/1/')
         openapi_request = DjangoOpenAPIRequest(request)
-        response = response_factory(b('Some item'))
+        response = response_factory(b'Some item')
         openapi_response = DjangoOpenAPIResponse(response)
         result = validator.validate(openapi_request, openapi_response)
         assert not result.errors

@@ -8,7 +8,7 @@ from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestFlaskOpenAPIValidation(object):
+class TestFlaskOpenAPIValidation:
 
     @pytest.fixture
     def flask_spec(self, factory):
@@ -22,7 +22,10 @@ class TestFlaskOpenAPIValidation(object):
         validator = ResponseValidator(flask_spec)
         request = request_factory('GET', '/browse/12/', subdomain='kb')
         openapi_request = FlaskOpenAPIRequest(request)
-        response = response_factory('{"data": "data"}', status_code=200)
+        response = response_factory(
+            '{"data": "data"}',
+            status_code=200, headers={'X-Rate-Limit': '12'},
+        )
         openapi_response = FlaskOpenAPIResponse(response)
         result = validator.validate(openapi_request, openapi_response)
         assert not result.errors

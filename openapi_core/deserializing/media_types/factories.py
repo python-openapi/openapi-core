@@ -1,14 +1,20 @@
-from openapi_core.deserializing.media_types.util import json_loads
+from json import loads
+
+from openapi_core.deserializing.media_types.util import (
+    urlencoded_form_loads, data_form_loads,
+)
 
 from openapi_core.deserializing.media_types.deserializers import (
-    PrimitiveDeserializer,
+    CallableMediaTypeDeserializer, UnsupportedMimetypeDeserializer,
 )
 
 
-class MediaTypeDeserializersFactory(object):
+class MediaTypeDeserializersFactory:
 
     MEDIA_TYPE_DESERIALIZERS = {
-        'application/json': json_loads,
+        'application/json': loads,
+        'application/x-www-form-urlencoded': urlencoded_form_loads,
+        'multipart/form-data': data_form_loads,
     }
 
     def __init__(self, custom_deserializers=None):
@@ -16,13 +22,17 @@ class MediaTypeDeserializersFactory(object):
             custom_deserializers = {}
         self.custom_deserializers = custom_deserializers
 
-    def create(self, media_type):
+    def create(self, mimetype):
         deserialize_callable = self.get_deserializer_callable(
-            media_type.mimetype)
-        return PrimitiveDeserializer(
-            media_type.mimetype, deserialize_callable)
+            mimetype)
+
+        if deserialize_callable is None:
+            return UnsupportedMimetypeDeserializer(mimetype)
+
+        return CallableMediaTypeDeserializer(
+            mimetype, deserialize_callable)
 
     def get_deserializer_callable(self, mimetype):
         if mimetype in self.custom_deserializers:
             return self.custom_deserializers[mimetype]
-        return self.MEDIA_TYPE_DESERIALIZERS.get(mimetype, lambda x: x)
+        return self.MEDIA_TYPE_DESERIALIZERS.get(mimetype)

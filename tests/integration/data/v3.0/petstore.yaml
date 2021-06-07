@@ -38,8 +38,10 @@ paths:
             default: 1
         - name: limit
           in: query
+          style: form
           description: How many items to return at one time (max 100)
           required: true
+          deprecated: true
           schema:
             type: integer
             format: int32
@@ -59,6 +61,13 @@ paths:
             items:
               type: integer
               format: int32
+        - name: order
+          in: query
+          schema:
+            oneOf:
+              - type: string
+              - type: integer
+                format: int32
         - name: tags
           in: query
           description: Filter pets with tags
@@ -67,9 +76,25 @@ paths:
             items:
               $ref: "#/components/schemas/Tag"
           explode: false
+        - name: coordinates
+          in: query
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - lat
+                  - lon
+                properties:
+                  lat:
+                    type: number
+                  lon:
+                    type: number
       responses:
         '200':
           $ref: "#/components/responses/PetsResponse"
+        '404':
+          $ref: "#/components/responses/HtmlResponse"
     post:
       summary: Create a pet
       description: Creates new pet entry
@@ -97,6 +122,13 @@ paths:
             type: integer
             format: int32
           required: true
+        - name: userdata
+          in: cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Userdata'
+          required: false
       requestBody:
         required: true
         content:
@@ -106,6 +138,7 @@ paths:
             example:
               name: "Pet"
               wings: []
+          text/plain: {}
       responses:
         '201':
           description: Null response
@@ -180,8 +213,38 @@ paths:
           description: Null response
         default:
           $ref: "#/components/responses/ErrorResponse"
+    delete:
+      summary: Delete tags
+      operationId: deleteTag
+      tags:
+        - tags
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagDelete'
+      responses:
+        '200':
+          description: Null response
+          headers:
+            x-delete-confirm:
+              description: Confirmation automation
+              deprecated: true
+              schema:
+                type: boolean
+              required: true
+        default:
+          $ref: "#/components/responses/ErrorResponse"
 components:
   schemas:
+    Userdata:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
     Utctime:
       oneOf:
         - type: string
@@ -313,6 +376,18 @@ components:
         name:
           type: string
       additionalProperties: false
+    TagDelete:
+      type: object
+      x-model: TagDelete
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+      additionalProperties: false
     TagList:
       type: array
       items:
@@ -320,12 +395,12 @@ components:
     Error:
       type: object
       required:
-        - code
         - message
       properties:
         code:
           type: integer
           format: int32
+          default: 400
         message:
           type: string
     ExtendedError:
@@ -356,9 +431,17 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ExtendedError"
+    HtmlResponse:
+      description: HTML page
+      content:
+        text/html: {}
     PetsResponse:
       description: An paged array of pets
       headers:
+        content-type:
+          description: Content type
+          schema:
+            type: string
         x-next:
           description: A link to the next page of responses
           schema:

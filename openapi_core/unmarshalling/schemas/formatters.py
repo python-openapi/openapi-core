@@ -1,4 +1,4 @@
-class Formatter(object):
+class Formatter:
 
     def validate(self, value):
         return True

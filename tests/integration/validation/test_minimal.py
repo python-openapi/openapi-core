@@ -5,11 +5,11 @@ from openapi_core.templating.paths.exceptions import (
     PathNotFound, OperationNotFound,
 )
 from openapi_core.testing import MockRequest
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.validators import RequestValidator
 
 
-class TestMinimal(object):
+class TestMinimal:
 
     servers = [
         "http://minimal.test/",
@@ -49,7 +49,7 @@ class TestMinimal(object):
         assert len(result.errors) == 1
         assert isinstance(result.errors[0], OperationNotFound)
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
 
     @pytest.mark.parametrize("server", servers)
     @pytest.mark.parametrize("spec_path", spec_paths)
@@ -64,4 +64,4 @@ class TestMinimal(object):
         assert len(result.errors) == 1
         assert isinstance(result.errors[0], PathNotFound)
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()

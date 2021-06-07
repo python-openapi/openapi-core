@@ -1,7 +1,8 @@
 """OpenAPI core contrib flask requests module"""
 import re
+from urllib.parse import urljoin
 
-from six.moves.urllib.parse import urljoin
+from werkzeug.datastructures import Headers
 
 from openapi_core.validation.request.datatypes import (
     RequestParameters, OpenAPIRequest,
@@ -11,7 +12,7 @@ from openapi_core.validation.request.datatypes import (
 PATH_PARAMETER_PATTERN = r'<(?:(?:string|int|float|path|uuid):)?(\w+)>'
 
 
-class FlaskOpenAPIRequestFactory(object):
+class FlaskOpenAPIRequestFactory:
 
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
@@ -24,10 +25,11 @@ class FlaskOpenAPIRequestFactory(object):
         else:
             path_pattern = cls.path_regex.sub(r'{\1}', request.url_rule.rule)
 
+        header = Headers(request.headers)
         parameters = RequestParameters(
             path=request.view_args,
             query=request.args,
-            header=request.headers,
+            header=header,
             cookie=request.cookies,
         )
         full_url_pattern = urljoin(request.host_url, path_pattern)

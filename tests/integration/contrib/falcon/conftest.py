@@ -33,7 +33,6 @@ def request_factory(environ_factory, router):
         options = RequestOptions()
         # return create_req(options=options, **environ)
         req = Request(environ, options)
-        resource, method_map, params, req.uri_template = router.find(path, req)
         return req
     return create_request
 
@@ -41,11 +40,13 @@ def request_factory(environ_factory, router):
 @pytest.fixture
 def response_factory(environ_factory):
     def create_response(
-            data, status_code=200, content_type='application/json'):
+            data, status_code=200, headers=None,
+            content_type='application/json'):
         options = ResponseOptions()
         resp = Response(options)
         resp.body = data
         resp.content_type = content_type
         resp.status = HTTP_200
+        resp.set_headers(headers or {})
         return resp
     return create_response

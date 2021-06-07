@@ -3,10 +3,10 @@ import pytest
 
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 from openapi_core.shortcuts import create_spec
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.validation.request.datatypes import Parameters
 
 
-class TestFlaskOpenAPIDecorator(object):
+class TestFlaskOpenAPIDecorator:
 
     view_response_callable = None
 
@@ -26,7 +26,7 @@ class TestFlaskOpenAPIDecorator(object):
         app.config['TESTING'] = True
         return app
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def client(self, app):
         with app.test_client() as client:
             with app.app_context():
@@ -59,10 +59,12 @@ class TestFlaskOpenAPIDecorator(object):
             from flask.globals import request
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == RequestParameters(path={
+            assert request.openapi.parameters == Parameters(path={
                 'id': 12,
             })
-            return make_response('success', 200)
+            resp = make_response('success', 200)
+            resp.headers['X-Rate-Limit'] = '12'
+            return resp
         self.view_response_callable = view_response_callable
         result = client.get('/browse/12/')
 
@@ -70,12 +72,13 @@ class TestFlaskOpenAPIDecorator(object):
             'errors': [
                 {
                     'class': (
-                        "<class 'openapi_core.schema.media_types.exceptions."
-                        "InvalidContentType'>"
+                        "<class 'openapi_core.templating.media_types."
+                        "exceptions.MediaTypeNotFound'>"
                     ),
                     'status': 415,
                     'title': (
-                        'Content for following mimetype not found: text/html'
+                        "Content for the following mimetype not found: "
+                        "text/html. Valid mimetypes: ['application/json']"
                     )
                 }
             ]
@@ -156,7 +159,8 @@ class TestFlaskOpenAPIDecorator(object):
                     ),
                     'status': 400,
                     'title': (
-                        "Failed to cast value invalidparameter to type integer"
+                        "Failed to cast value to integer type: "
+                        "invalidparameter"
                     )
                 }
             ]
@@ -168,10 +172,12 @@ class TestFlaskOpenAPIDecorator(object):
             from flask.globals import request
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == RequestParameters(path={
+            assert request.openapi.parameters == Parameters(path={
                 'id': 12,
             })
-            return jsonify(data='data')
+            resp = jsonify(data='data')
+            resp.headers['X-Rate-Limit'] = '12'
+            return resp
         self.view_response_callable = view_response_callable
 
         result = client.get('/browse/12/')

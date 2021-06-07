@@ -1,32 +1,31 @@
 from base64 import b64encode
 import json
 import pytest
-from six import text_type
 
 from openapi_core.casting.schemas.exceptions import CastError
-from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.schema.media_types.exceptions import (
-    InvalidContentType,
+from openapi_core.deserializing.media_types.exceptions import (
+    MediaTypeDeserializeError,
 )
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.schema.parameters.exceptions import MissingRequiredParameter
-from openapi_core.schema.request_bodies.exceptions import MissingRequestBody
-from openapi_core.schema.responses.exceptions import (
-    MissingResponseContent, InvalidResponse,
+from openapi_core.exceptions import (
+    MissingRequiredParameter, MissingRequiredRequestBody,
+    MissingResponseContent,
 )
 from openapi_core.shortcuts import create_spec
+from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     PathNotFound, OperationNotFound,
 )
+from openapi_core.templating.responses.exceptions import ResponseNotFound
 from openapi_core.testing import MockRequest, MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.exceptions import InvalidSecurity
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestRequestValidator(object):
+class TestRequestValidator:
 
     host_url = 'http://petstore.swagger.io'
 
@@ -36,7 +35,7 @@ class TestRequestValidator(object):
     def api_key_encoded(self):
         api_key_bytes = self.api_key.encode('utf8')
         api_key_bytes_enc = b64encode(api_key_bytes)
-        return text_type(api_key_bytes_enc, 'utf8')
+        return str(api_key_bytes_enc, 'utf8')
 
     @pytest.fixture(scope='session')
     def spec_dict(self, factory):
@@ -58,7 +57,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
 
     def test_invalid_path(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1')
@@ -68,7 +67,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
 
     def test_invalid_operation(self, validator):
         request = MockRequest(self.host_url, 'patch', '/v1/pets')
@@ -78,7 +77,7 @@ class TestRequestValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
 
     def test_missing_parameter(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
@@ -87,7 +86,7 @@ class TestRequestValidator(object):
 
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
-        assert result.parameters == RequestParameters(
+        assert result.parameters == Parameters(
             query={
                 'page': 1,
                 'search': '',
@@ -105,7 +104,7 @@ class TestRequestValidator(object):
 
         assert result.errors == []
         assert result.body is None
-        assert result.parameters == RequestParameters(
+        assert result.parameters == Parameters(
             query={
                 'limit': 10,
                 'page': 1,
@@ -132,7 +131,7 @@ class TestRequestValidator(object):
 
         assert result.errors == []
         assert result.body is None
-        assert result.parameters == RequestParameters(
+        assert result.parameters == Parameters(
             query={
                 'limit': 5,
                 'page': 1,
@@ -157,9 +156,9 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == MissingRequestBody
+        assert type(result.errors[0]) == MissingRequiredRequestBody
         assert result.body is None
-        assert result.parameters == RequestParameters(
+        assert result.parameters == Parameters(
             header={
                 'api_key': self.api_key,
             },
@@ -169,6 +168,7 @@ class TestRequestValidator(object):
         )
 
     def test_invalid_content_type(self, validator):
+        data = "csv,data"
         headers = {
             'api_key': self.api_key_encoded,
         }
@@ -177,16 +177,16 @@ class TestRequestValidator(object):
         }
         request = MockRequest(
             'https://development.gigantic-server.com', 'post', '/v1/pets',
-            path_pattern='/v1/pets', mimetype='text/csv',
+            path_pattern='/v1/pets', mimetype='text/csv', data=data,
             headers=headers, cookies=cookies,
         )
 
         result = validator.validate(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidContentType
+        assert type(result.errors[0]) == MediaTypeNotFound
         assert result.body is None
-        assert result.parameters == RequestParameters(
+        assert result.parameters == Parameters(
             header={
                 'api_key': self.api_key,
             },
@@ -194,6 +194,66 @@ class TestRequestValidator(object):
                 'user': 123,
             },
         )
+
+    def test_invalid_complex_parameter(self, validator, spec_dict):
+        pet_name = 'Cat'
+        pet_tag = 'cats'
+        pet_street = 'Piekna'
+        pet_city = 'Warsaw'
+        data_json = {
+            'name': pet_name,
+            'tag': pet_tag,
+            'position': 2,
+            'address': {
+                'street': pet_street,
+                'city': pet_city,
+            },
+            'ears': {
+                'healthy': True,
+            }
+        }
+        data = json.dumps(data_json)
+        headers = {
+            'api_key': self.api_key_encoded,
+        }
+        userdata = {
+            'name': 1,
+        }
+        userdata_json = json.dumps(userdata)
+        cookies = {
+            'user': '123',
+            'userdata': userdata_json,
+        }
+        request = MockRequest(
+            'https://development.gigantic-server.com', 'post', '/v1/pets',
+            path_pattern='/v1/pets', data=data,
+            headers=headers, cookies=cookies,
+        )
+
+        result = validator.validate(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidSchemaValue
+        assert result.parameters == Parameters(
+            header={
+                'api_key': self.api_key,
+            },
+            cookie={
+                'user': 123,
+            },
+        )
+        assert result.security == {}
+
+        schemas = spec_dict['components']['schemas']
+        pet_model = schemas['PetCreate']['x-model']
+        address_model = schemas['Address']['x-model']
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert result.body.tag == pet_tag
+        assert result.body.position == 2
+        assert result.body.address.__class__.__name__ == address_model
+        assert result.body.address.street == pet_street
+        assert result.body.address.city == pet_city
 
     def test_post_pets(self, validator, spec_dict):
         pet_name = 'Cat'
@@ -228,7 +288,7 @@ class TestRequestValidator(object):
         result = validator.validate(request)
 
         assert result.errors == []
-        assert result.parameters == RequestParameters(
+        assert result.parameters == Parameters(
             header={
                 'api_key': self.api_key,
             },
@@ -249,6 +309,35 @@ class TestRequestValidator(object):
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
+    def test_post_pets_plain_no_schema(self, validator, spec_dict):
+        data = 'plain text'
+        headers = {
+            'api_key': self.api_key_encoded,
+        }
+        cookies = {
+            'user': '123',
+        }
+        request = MockRequest(
+            'https://development.gigantic-server.com', 'post', '/v1/pets',
+            path_pattern='/v1/pets', data=data,
+            headers=headers, cookies=cookies,
+            mimetype='text/plain',
+        )
+
+        result = validator.validate(request)
+
+        assert result.errors == []
+        assert result.parameters == Parameters(
+            header={
+                'api_key': self.api_key,
+            },
+            cookie={
+                'user': 123,
+            },
+        )
+        assert result.security == {}
+        assert result.body == data
+
     def test_get_pet_unauthorized(self, validator):
         request = MockRequest(
             self.host_url, 'get', '/v1/pets/1',
@@ -259,7 +348,7 @@ class TestRequestValidator(object):
 
         assert result.errors == [InvalidSecurity(), ]
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
         assert result.security is None
 
     def test_get_pet(self, validator):
@@ -277,7 +366,7 @@ class TestRequestValidator(object):
 
         assert result.errors == []
         assert result.body is None
-        assert result.parameters == RequestParameters(
+        assert result.parameters == Parameters(
             path={
                 'petId': 1,
             },
@@ -287,7 +376,7 @@ class TestRequestValidator(object):
         }
 
 
-class TestPathItemParamsValidator(object):
+class TestPathItemParamsValidator:
 
     @pytest.fixture(scope='session')
     def spec_dict(self):
@@ -335,7 +424,7 @@ class TestPathItemParamsValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
 
     def test_request_invalid_param(self, validator):
         request = MockRequest(
@@ -347,7 +436,7 @@ class TestPathItemParamsValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == CastError
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
 
     def test_request_valid_param(self, validator):
         request = MockRequest(
@@ -358,7 +447,7 @@ class TestPathItemParamsValidator(object):
 
         assert len(result.errors) == 0
         assert result.body is None
-        assert result.parameters == RequestParameters(query={'resId': 10})
+        assert result.parameters == Parameters(query={'resId': 10})
 
     def test_request_override_param(self, spec_dict):
         # override path parameter on operation
@@ -380,7 +469,7 @@ class TestPathItemParamsValidator(object):
 
         assert len(result.errors) == 0
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
 
     def test_request_override_param_uniqueness(self, spec_dict):
         # add parameter on operation with same name as on path but
@@ -404,10 +493,10 @@ class TestPathItemParamsValidator(object):
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
-        assert result.parameters == RequestParameters()
+        assert result.parameters == Parameters()
 
 
-class TestResponseValidator(object):
+class TestResponseValidator:
 
     host_url = 'http://petstore.swagger.io'
 
@@ -452,7 +541,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidResponse
+        assert type(result.errors[0]) == ResponseNotFound
         assert result.data is None
         assert result.headers == {}
 
@@ -463,7 +552,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidContentType
+        assert type(result.errors[0]) == MediaTypeNotFound
         assert result.data is None
         assert result.headers == {}
 
@@ -485,7 +574,7 @@ class TestResponseValidator(object):
         result = validator.validate(request, response)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == DeserializeError
+        assert type(result.errors[0]) == MediaTypeDeserializeError
         assert result.data is None
         assert result.headers == {}
 

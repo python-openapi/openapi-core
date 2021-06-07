@@ -1,7 +1,11 @@
 """OpenAPI core validation response shortcuts module"""
-import warnings
+from functools import partial
 
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.response.validators import (
+    ResponseValidator,
+    ResponseDataValidator,
+    ResponseHeadersValidator,
+)
 
 
 def validate_response(validator, request, response):
@@ -10,27 +14,31 @@ def validate_response(validator, request, response):
     return result
 
 
-def validate_data(validator, request, response):
-    warnings.warn(
-        "validate_data shortcut is deprecated, "
-        "use validator.validate instead",
-        DeprecationWarning,
-    )
-    result = validator._validate_data(request, response)
-    result.raise_for_errors()
-    return result
-
-
-def spec_validate_data(
-        spec, request, response,
-        request_factory=None,
-        response_factory=None):
+def spec_validate_response(
+    spec, request, response, request_factory=None, response_factory=None,
+    validator_class=ResponseValidator,
+    result_attribute=None,
+):
     if request_factory is not None:
         request = request_factory(request)
     if response_factory is not None:
         response = response_factory(response)
 
-    validator = ResponseValidator(spec)
-    result = validate_data(validator, request, response)
+    validator = validator_class(spec)
 
-    return result.data
+    result = validator.validate(request, response)
+    result.raise_for_errors()
+
+    if result_attribute is None:
+        return result
+    return getattr(result, result_attribute)
+
+
+spec_validate_data = partial(
+    spec_validate_response,
+    validator_class=ResponseDataValidator, result_attribute='data')
+
+
+spec_validate_headers = partial(
+    spec_validate_response,
+    validator_class=ResponseHeadersValidator, result_attribute='headers')

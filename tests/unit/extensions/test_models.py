@@ -3,7 +3,7 @@ import pytest
 from openapi_core.extensions.models.models import BaseModel, Model
 
 
-class TestBaseModelDict(object):
+class TestBaseModelDict:
 
     def test_not_implemented(self):
         model = BaseModel()
@@ -12,7 +12,7 @@ class TestBaseModelDict(object):
             model.__dict__
 
 
-class TestModelDict(object):
+class TestModelDict:
 
     def test_dict_empty(self):
         model = Model()

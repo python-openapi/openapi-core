@@ -1,10 +1,7 @@
-from copy import deepcopy
 import warnings
 
-from openapi_schema_validator import OAS30Validator, oas30_format_checker
+from openapi_schema_validator import OAS30Validator
 
-from openapi_core.schema.schemas.enums import SchemaType, SchemaFormat
-from openapi_core.schema.schemas.models import Schema
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
@@ -16,27 +13,30 @@ from openapi_core.unmarshalling.schemas.unmarshallers import (
 )
 
 
-class SchemaUnmarshallersFactory(object):
+class SchemaUnmarshallersFactory:
 
-    PRIMITIVE_UNMARSHALLERS = {
-        SchemaType.STRING: StringUnmarshaller,
-        SchemaType.INTEGER: IntegerUnmarshaller,
-        SchemaType.NUMBER: NumberUnmarshaller,
-        SchemaType.BOOLEAN: BooleanUnmarshaller,
+    UNMARSHALLERS = {
+        'string': StringUnmarshaller,
+        'integer': IntegerUnmarshaller,
+        'number': NumberUnmarshaller,
+        'boolean': BooleanUnmarshaller,
+        'array': ArrayUnmarshaller,
+        'object': ObjectUnmarshaller,
+        'any': AnyUnmarshaller,
     }
-    COMPLEX_UNMARSHALLERS = {
-        SchemaType.ARRAY: ArrayUnmarshaller,
-        SchemaType.OBJECT: ObjectUnmarshaller,
-        SchemaType.ANY: AnyUnmarshaller,
-    }
+
+    COMPLEX_UNMARSHALLERS = ['array', 'object', 'any']
 
     CONTEXT_VALIDATION = {
         UnmarshalContext.REQUEST: 'write',
         UnmarshalContext.RESPONSE: 'read',
     }
 
-    def __init__(self, resolver=None, custom_formatters=None, context=None):
+    def __init__(
+            self, resolver=None, format_checker=None,
+            custom_formatters=None, context=None):
         self.resolver = resolver
+        self.format_checker = format_checker
         if custom_formatters is None:
             custom_formatters = {}
         self.custom_formatters = custom_formatters
@@ -44,52 +44,43 @@ class SchemaUnmarshallersFactory(object):
 
     def create(self, schema, type_override=None):
         """Create unmarshaller from the schema."""
-        if not isinstance(schema, Schema):
-            raise TypeError("schema not type of Schema")
-        if schema.deprecated:
+        if schema is None:
+            raise TypeError("Invalid schema")
+
+        if schema.getkey('deprecated', False):
             warnings.warn("The schema is deprecated", DeprecationWarning)
 
-        schema_type = type_override or schema.type
-        if schema_type in self.PRIMITIVE_UNMARSHALLERS:
-            klass = self.PRIMITIVE_UNMARSHALLERS[schema_type]
-            kwargs = dict(schema=schema)
+        schema_type = type_override or schema.getkey('type', 'any')
+        schema_format = schema.getkey('format')
 
-        elif schema_type in self.COMPLEX_UNMARSHALLERS:
-            klass = self.COMPLEX_UNMARSHALLERS[schema_type]
-            kwargs = dict(
-                schema=schema, unmarshallers_factory=self,
-                context=self.context,
-            )
+        klass = self.UNMARSHALLERS[schema_type]
 
-        formatter = self.get_formatter(klass.FORMATTERS, schema.format)
-
+        formatter = self.get_formatter(schema_format, klass.FORMATTERS)
         if formatter is None:
-            raise FormatterNotFoundError(schema.format)
+            raise FormatterNotFoundError(schema_format)
 
         validator = self.get_validator(schema)
 
-        return klass(formatter, validator, **kwargs)
+        kwargs = dict()
+        if schema_type in self.COMPLEX_UNMARSHALLERS:
+            kwargs.update(
+                unmarshallers_factory=self,
+                context=self.context,
+            )
+        return klass(schema, formatter, validator, **kwargs)
 
-    def get_formatter(self, default_formatters, type_format=SchemaFormat.NONE):
+    def get_formatter(self, type_format, default_formatters):
         try:
-            schema_format = SchemaFormat(type_format)
-        except ValueError:
-            return self.custom_formatters.get(type_format)
-        else:
-            return default_formatters.get(schema_format)
+            return self.custom_formatters[type_format]
+        except KeyError:
+            return default_formatters.get(type_format)
 
     def get_validator(self, schema):
-        format_checker = self._get_format_checker()
         kwargs = {
             'resolver': self.resolver,
-            'format_checker': format_checker,
+            'format_checker': self.format_checker,
         }
         if self.context is not None:
             kwargs[self.CONTEXT_VALIDATION[self.context]] = True
-        return OAS30Validator(schema.__dict__, **kwargs)
-
-    def _get_format_checker(self):
-        fc = deepcopy(oas30_format_checker)
-        for name, formatter in self.custom_formatters.items():
-            fc.checks(name)(formatter.validate)
-        return fc
+        with schema.open() as schema_dict:
+            return OAS30Validator(schema_dict, **kwargs)

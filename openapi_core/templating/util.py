@@ -6,16 +6,19 @@ class ExtendedParser(Parser):
         # handle as path parameter field
         field = field[1:-1]
         path_parameter_field = "{%s:PathParameter}" % field
-        return super(ExtendedParser, self)._handle_field(
-            path_parameter_field)
+        return super()._handle_field(path_parameter_field)
 
 
-def parse_path_parameter(text):
-    return text
+class PathParameter:
+
+    name = "PathParameter"
+    pattern = r"[^\/]+"
+
+    def __call__(self, text):
+        return text
 
 
-parse_path_parameter.pattern = r"[^\/]+"
-parse_path_parameter.name = "PathParameter"
+parse_path_parameter = PathParameter()
 
 
 def search(path_pattern, full_url_pattern):

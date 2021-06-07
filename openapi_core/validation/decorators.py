@@ -15,8 +15,7 @@ class OpenAPIDecorator(OpenAPIProcessor):
             request_provider,
             openapi_errors_handler,
     ):
-        super(OpenAPIDecorator, self).__init__(
-            request_validator, response_validator)
+        super().__init__(request_validator, response_validator)
         self.request_factory = request_factory
         self.response_factory = response_factory
         self.request_provider = request_provider

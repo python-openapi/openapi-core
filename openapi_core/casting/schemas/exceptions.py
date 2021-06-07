@@ -1,14 +1,14 @@
-import attr
+from dataclasses import dataclass
 
 from openapi_core.exceptions import OpenAPIError
 
 
-@attr.s(hash=True)
+@dataclass
 class CastError(OpenAPIError):
     """Schema cast operation error"""
-    value = attr.ib()
-    type = attr.ib()
+    value: str
+    type: str
 
     def __str__(self):
-        return "Failed to cast value {value} to type {type}".format(
-            value=self.value, type=self.type)
+        return "Failed to cast value to {type} type: {value}".format(
+            type=self.type, value=self.value)

@@ -1,10 +1,12 @@
-import attr
+from typing import Dict, Optional
+
+from dataclasses import dataclass
 
 
-@attr.s
-class TemplateResult(object):
-    pattern = attr.ib(default=None)
-    variables = attr.ib(default=None)
+@dataclass
+class TemplateResult:
+    pattern: Optional[str] = None
+    variables: Optional[Dict] = None
 
     @property
     def resolved(self):

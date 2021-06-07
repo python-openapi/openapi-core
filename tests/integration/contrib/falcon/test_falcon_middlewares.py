@@ -1,15 +1,15 @@
 from json import dumps
 
-from falcon import API
+from falcon import API as App
 from falcon.testing import TestClient
 import pytest
 
 from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
 from openapi_core.shortcuts import create_spec
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.validation.request.datatypes import Parameters
 
 
-class TestFalconOpenAPIMiddleware(object):
+class TestFalconOpenAPIMiddleware:
 
     view_response_callable = None
 
@@ -24,9 +24,9 @@ class TestFalconOpenAPIMiddleware(object):
 
     @pytest.fixture
     def app(self, middleware):
-        return API(middleware=[middleware])
+        return App(middleware=[middleware])
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def client(self, app):
         return TestClient(app)
 
@@ -38,7 +38,7 @@ class TestFalconOpenAPIMiddleware(object):
 
     @pytest.fixture(autouse=True)
     def details_view(self, app, view_response):
-        class BrowseDetailResource(object):
+        class BrowseDetailResource:
             def on_get(self, *args, **kwargs):
                 return view_response(*args, **kwargs)
 
@@ -48,7 +48,7 @@ class TestFalconOpenAPIMiddleware(object):
 
     @pytest.fixture(autouse=True)
     def list_view(self, app, view_response):
-        class BrowseListResource(object):
+        class BrowseListResource:
             def on_get(self, *args, **kwargs):
                 return view_response(*args, **kwargs)
 
@@ -62,12 +62,13 @@ class TestFalconOpenAPIMiddleware(object):
             from falcon.status_codes import HTTP_200
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == RequestParameters(path={
+            assert request.openapi.parameters == Parameters(path={
                 'id': 12,
             })
             response.content_type = MEDIA_HTML
             response.status = HTTP_200
             response.body = 'success'
+            response.set_header('X-Rate-Limit', '12')
         self.view_response_callable = view_response_callable
         headers = {'Content-Type': 'application/json'}
         result = client.simulate_get(
@@ -77,12 +78,13 @@ class TestFalconOpenAPIMiddleware(object):
             'errors': [
                 {
                     'class': (
-                        "<class 'openapi_core.schema.media_types.exceptions."
-                        "InvalidContentType'>"
+                        "<class 'openapi_core.templating.media_types."
+                        "exceptions.MediaTypeNotFound'>"
                     ),
                     'status': 415,
                     'title': (
-                        'Content for following mimetype not found: text/html'
+                        "Content for the following mimetype not found: "
+                        "text/html. Valid mimetypes: ['application/json']"
                     )
                 }
             ]
@@ -171,7 +173,8 @@ class TestFalconOpenAPIMiddleware(object):
                     ),
                     'status': 400,
                     'title': (
-                        "Failed to cast value invalidparameter to type integer"
+                        "Failed to cast value to integer type: "
+                        "invalidparameter"
                     )
                 }
             ]
@@ -184,7 +187,7 @@ class TestFalconOpenAPIMiddleware(object):
             from falcon.status_codes import HTTP_200
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == RequestParameters(path={
+            assert request.openapi.parameters == Parameters(path={
                 'id': 12,
             })
             response.status = HTTP_200
@@ -192,6 +195,7 @@ class TestFalconOpenAPIMiddleware(object):
             response.body = dumps({
                 'data': 'data',
             })
+            response.set_header('X-Rate-Limit', '12')
         self.view_response_callable = view_response_callable
 
         headers = {'Content-Type': 'application/json'}

@@ -13,7 +13,25 @@ paths:
         description: the ID of the resource to retrieve
         schema:
           type: integer
-    get:
+      - name: q
+        in: query
+        required: true
+        description: query key
+        schema:
+          type: string
+    post:
+      requestBody:
+        description: request data
+        required: True
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - param1
+              properties:
+                param1:
+                  type: integer
       responses:
         200:
           description: Return the resource.
@@ -26,6 +44,12 @@ paths:
                 properties:
                   data:
                     type: string
+          headers:
+            X-Rate-Limit:
+              description: Rate limit
+              schema:
+                type: integer
+              required: true
         default:
           description: Return errors.
           content:

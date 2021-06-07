@@ -1,26 +1,27 @@
-import warnings
+from functools import partial
 
 from openapi_core.deserializing.parameters.deserializers import (
-    PrimitiveDeserializer,
+    CallableParameterDeserializer, UnsupportedStyleDeserializer,
 )
-from openapi_core.schema.parameters.enums import ParameterStyle
+from openapi_core.deserializing.parameters.util import split
+from openapi_core.schema.parameters import get_style
 
 
-class ParameterDeserializersFactory(object):
+class ParameterDeserializersFactory:
 
     PARAMETER_STYLE_DESERIALIZERS = {
-        ParameterStyle.FORM: lambda x: x.split(','),
-        ParameterStyle.SIMPLE: lambda x: x.split(','),
-        ParameterStyle.SPACE_DELIMITED: lambda x: x.split(' '),
-        ParameterStyle.PIPE_DELIMITED: lambda x: x.split('|'),
+        'form': partial(split, separator=','),
+        'simple': partial(split, separator=','),
+        'spaceDelimited': partial(split, separator=' '),
+        'pipeDelimited': partial(split, separator='|'),
     }
 
-    def create(self, param):
-        if param.deprecated:
-            warnings.warn(
-                "{0} parameter is deprecated".format(param.name),
-                DeprecationWarning,
-            )
+    def create(self, param_or_header):
+        style = get_style(param_or_header)
 
-        deserialize_callable = self.PARAMETER_STYLE_DESERIALIZERS[param.style]
-        return PrimitiveDeserializer(param, deserialize_callable)
+        if style not in self.PARAMETER_STYLE_DESERIALIZERS:
+            return UnsupportedStyleDeserializer(param_or_header, style)
+
+        deserialize_callable = self.PARAMETER_STYLE_DESERIALIZERS[style]
+        return CallableParameterDeserializer(
+            param_or_header, style, deserialize_callable)

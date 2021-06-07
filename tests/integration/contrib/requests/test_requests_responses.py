@@ -1,7 +1,7 @@
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
 
 
-class TestRequestsOpenAPIResponse(object):
+class TestRequestsOpenAPIResponse:
 
     def test_invalid_server(self, response_factory):
         response = response_factory('Not Found', status_code=404)

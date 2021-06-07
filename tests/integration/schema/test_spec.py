@@ -1,24 +1,15 @@
+from __future__ import division
 import pytest
 from base64 import b64encode
-from six import iteritems, text_type
 
-from openapi_core.schema.media_types.models import MediaType
-from openapi_core.schema.operations.models import Operation
-from openapi_core.schema.parameters.models import Parameter
-from openapi_core.schema.paths.models import Path
-from openapi_core.schema.request_bodies.models import RequestBody
-from openapi_core.schema.responses.models import Response
-from openapi_core.schema.schemas.models import Schema
-from openapi_core.schema.security_requirements.models import (
-    SecurityRequirement,
-)
-from openapi_core.schema.servers.models import Server, ServerVariable
 from openapi_core.shortcuts import create_spec
+from openapi_core.schema.servers import get_server_url
+from openapi_core.schema.specs import get_spec_url
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
 
-class TestPetstore(object):
+class TestPetstore:
 
     api_key = '12345'
 
@@ -26,7 +17,7 @@ class TestPetstore(object):
     def api_key_encoded(self):
         api_key_bytes = self.api_key.encode('utf8')
         api_key_bytes_enc = b64encode(api_key_bytes)
-        return text_type(api_key_bytes_enc, 'utf8')
+        return str(api_key_bytes_enc, 'utf8')
 
     @pytest.fixture
     def spec_uri(self):
@@ -51,123 +42,116 @@ class TestPetstore(object):
     def test_spec(self, spec, spec_dict):
         url = 'http://petstore.swagger.io/v1'
 
+        info = spec / 'info'
         info_spec = spec_dict['info']
-        assert spec.info.title == info_spec['title']
-        assert spec.info.description == info_spec['description']
-        assert spec.info.terms_of_service == info_spec['termsOfService']
-        assert spec.info.version == info_spec['version']
+        assert info['title'] == info_spec['title']
+        assert info['description'] == info_spec['description']
+        assert info['termsOfService'] == info_spec['termsOfService']
+        assert info['version'] == info_spec['version']
 
+        contact = info / 'contact'
         contact_spec = info_spec['contact']
-        assert spec.info.contact.name == contact_spec['name']
-        assert spec.info.contact.url == contact_spec['url']
-        assert spec.info.contact.email == contact_spec['email']
+        assert contact['name'] == contact_spec['name']
+        assert contact['url'] == contact_spec['url']
+        assert contact['email'] == contact_spec['email']
 
+        license = info / 'license'
         license_spec = info_spec['license']
-        assert spec.info.license.name == license_spec['name']
-        assert spec.info.license.url == license_spec['url']
+        assert license['name'] == license_spec['name']
+        assert license['url'] == license_spec['url']
 
+        security = spec / 'security'
         security_spec = spec_dict.get('security', [])
-        for idx, security_req in enumerate(spec.security):
-            assert type(security_req) == SecurityRequirement
+        for idx, security_reqs in enumerate(security):
+            security_reqs_spec = security_spec[idx]
+            for scheme_name, security_req in security_reqs.items():
+                security_req == security_reqs_spec[scheme_name]
 
-            security_req_spec = security_spec[idx]
-            for scheme_name in security_req:
-                security_req[scheme_name] == security_req_spec[scheme_name]
+        assert get_spec_url(spec) == url
 
-        assert spec.get_server_url() == url
-
-        for idx, server in enumerate(spec.servers):
-            assert type(server) == Server
-
+        servers = spec / 'servers'
+        for idx, server in enumerate(servers):
             server_spec = spec_dict['servers'][idx]
-            assert server.url == server_spec['url']
-            assert server.default_url == url
+            assert server['url'] == server_spec['url']
+            assert get_server_url(server) == url
 
-            for variable_name, variable in iteritems(server.variables):
-                assert type(variable) == ServerVariable
-                assert variable.name == variable_name
-
+            variables = server / 'variables'
+            for variable_name, variable in variables.items():
                 variable_spec = server_spec['variables'][variable_name]
-                assert variable.default == variable_spec['default']
-                assert variable.enum == variable_spec.get('enum')
+                assert variable['default'] == variable_spec['default']
+                assert variable['enum'] == variable_spec.get('enum')
 
-        for path_name, path in iteritems(spec.paths):
-            assert type(path) == Path
-
+        paths = spec / 'paths'
+        for path_name, path in paths.items():
             path_spec = spec_dict['paths'][path_name]
-            assert path.name == path_name
-            assert path.summary == path_spec.get('summary')
-            assert path.description == path_spec.get('description')
+            assert path.getkey('summary') == path_spec.get('summary')
+            assert path.getkey('description') == path_spec.get('description')
 
+            servers = path.get('servers', [])
             servers_spec = path_spec.get('servers', [])
-            for idx, server in enumerate(path.servers):
-                assert type(server) == Server
-
+            for idx, server in enumerate(servers):
                 server_spec = servers_spec[idx]
                 assert server.url == server_spec['url']
                 assert server.default_url == server_spec['url']
                 assert server.description == server_spec.get('description')
 
-                for variable_name, variable in iteritems(server.variables):
-                    assert type(variable) == ServerVariable
-                    assert variable.name == variable_name
-
+                variables = server.get('variables', {})
+                for variable_name, variable in variables.items():
                     variable_spec = server_spec['variables'][variable_name]
-                    assert variable.default == variable_spec['default']
-                    assert variable.enum == variable_spec.get('enum')
+                    assert variable['default'] == variable_spec['default']
+                    assert variable.getkey('enum') == variable_spec.get('enum')
 
-            for http_method, operation in iteritems(path.operations):
+            operations = [
+                'get', 'put', 'post', 'delete', 'options',
+                'head', 'patch', 'trace',
+            ]
+            for http_method in operations:
+                if http_method not in path:
+                    continue
+                operation = path / http_method
                 operation_spec = path_spec[http_method]
 
-                assert type(operation) == Operation
-                assert operation.path_name == path_name
-                assert operation.http_method == http_method
-                assert operation.operation_id is not None
-                assert operation.tags == operation_spec['tags']
-                assert operation.summary == operation_spec.get('summary')
-                assert operation.description == operation_spec.get(
+                assert operation['operationId'] is not None
+                assert operation['tags'] == operation_spec['tags']
+                assert operation['summary'] == operation_spec.get('summary')
+                assert operation.getkey('description') == operation_spec.get(
                     'description')
 
+                ext_docs = operation.get('externalDocs')
                 ext_docs_spec = operation_spec.get('externalDocs')
+                assert bool(ext_docs_spec) == bool(ext_docs)
                 if ext_docs_spec:
-                    ext_docs = operation.external_docs
-                    assert ext_docs.url == ext_docs_spec['url']
-                    assert ext_docs.description == ext_docs_spec.get(
+                    assert ext_docs['url'] == ext_docs_spec['url']
+                    assert ext_docs.getkey('description') == ext_docs_spec.get(
                         'description')
 
+                servers = operation.get('servers', [])
                 servers_spec = operation_spec.get('servers', [])
-                for idx, server in enumerate(operation.servers):
-                    assert type(server) == Server
-
+                for idx, server in enumerate(servers):
                     server_spec = servers_spec[idx]
-                    assert server.url == server_spec['url']
-                    assert server.default_url == server_spec['url']
-                    assert server.description == server_spec.get('description')
+                    assert server['url'] == server_spec['url']
+                    assert get_server_url(server) == server_spec['url']
+                    assert server['description'] == server_spec.get(
+                        'description')
 
-                    for variable_name, variable in iteritems(server.variables):
-                        assert type(variable) == ServerVariable
-                        assert variable.name == variable_name
-
+                    variables = server.get('variables', {})
+                    for variable_name, variable in variables.items():
                         variable_spec = server_spec['variables'][variable_name]
-                        assert variable.default == variable_spec['default']
-                        assert variable.enum == variable_spec.get('enum')
+                        assert variable['default'] == variable_spec['default']
+                        assert variable.getkey('enum') == variable_spec.get(
+                            'enum')
 
+                security = operation.get('security', [])
                 security_spec = operation_spec.get('security')
                 if security_spec is not None:
-                    for idx, security_req in enumerate(operation.security):
-                        assert type(security_req) == SecurityRequirement
+                    for idx, security_reqs in enumerate(security):
+                        security_reqs_spec = security_spec[idx]
+                        for scheme_name, security_req in security_reqs.items():
+                            security_req == security_reqs_spec[scheme_name]
 
-                        security_req_spec = security_spec[idx]
-                        for scheme_name in security_req:
-                            security_req[scheme_name] == security_req_spec[
-                                scheme_name]
-
+                responses = operation / 'responses'
                 responses_spec = operation_spec.get('responses')
-
-                for http_status, response in iteritems(operation.responses):
-                    assert type(response) == Response
-                    assert response.http_status == http_status
-
+                for http_status, response in responses.items():
                     response_spec = responses_spec[http_status]
 
                     if not response_spec:
@@ -179,19 +163,73 @@ class TestPetstore(object):
 
                     description_spec = response_spec['description']
 
-                    assert response.description == description_spec
+                    assert response.getkey('description') == description_spec
 
-                    for mimetype, media_type in iteritems(response.content):
-                        assert type(media_type) == MediaType
-                        assert media_type.mimetype == mimetype
+                    headers = response.get('headers', {})
+                    for parameter_name, parameter in headers.items():
+                        headers_spec = response_spec['headers']
+                        parameter_spec = headers_spec[parameter_name]
 
+                        schema = parameter.get('schema')
+                        schema_spec = parameter_spec.get('schema')
+                        assert bool(schema_spec) == bool(schema)
+
+                        if not schema_spec:
+                            continue
+
+                        # @todo: test with defererence
+                        if '$ref' in schema_spec:
+                            continue
+
+                        assert schema['type'] ==\
+                            schema_spec['type']
+                        assert schema.getkey('format') ==\
+                            schema_spec.get('format')
+                        assert schema.getkey('required') == schema_spec.get(
+                            'required')
+
+                        content = parameter.get('content', {})
+                        content_spec = parameter_spec.get('content')
+                        assert bool(content_spec) == bool(content)
+
+                        if not content_spec:
+                            continue
+
+                        for mimetype, media_type in content.items():
+                            media_spec = parameter_spec['content'][mimetype]
+                            schema = media_type.get('schema')
+                            schema_spec = media_spec.get('schema')
+                            assert bool(schema_spec) == bool(schema)
+
+                            if not schema_spec:
+                                continue
+
+                            # @todo: test with defererence
+                            if '$ref' in schema_spec:
+                                continue
+
+                            assert schema['type'] ==\
+                                schema_spec['type']
+                            assert schema.getkey('format') ==\
+                                schema_spec.get('format')
+                            assert schema.getkey('required') == \
+                                schema_spec.get('required')
+
+                    content_spec = response_spec.get('content')
+
+                    if not content_spec:
+                        continue
+
+                    content = response.get('content', {})
+                    for mimetype, media_type in content.items():
                         content_spec = response_spec['content'][mimetype]
 
                         example_spec = content_spec.get('example')
-                        assert media_type.example == example_spec
+                        assert media_type.getkey('example') == example_spec
 
+                        schema = media_type.get('schema')
                         schema_spec = content_spec.get('schema')
-                        assert bool(schema_spec) == bool(media_type.schema)
+                        assert bool(schema_spec) == bool(schema)
 
                         if not schema_spec:
                             continue
@@ -200,56 +238,24 @@ class TestPetstore(object):
                         if '$ref' in schema_spec:
                             continue
 
-                        assert type(media_type.schema) == Schema
-                        assert media_type.schema.type.value ==\
-                            schema_spec['type']
-                        assert media_type.schema.required == schema_spec.get(
-                            'required', [])
+                        assert schema['type'] == schema_spec['type']
+                        assert schema.getkey('required') == schema_spec.get(
+                            'required')
 
-                    for parameter_name, parameter in iteritems(
-                            response.headers):
-                        assert type(parameter) == Parameter
-                        assert parameter.name == parameter_name
-
-                        headers_spec = response_spec['headers']
-                        parameter_spec = headers_spec[parameter_name]
-                        schema_spec = parameter_spec.get('schema')
-                        assert bool(schema_spec) == bool(parameter.schema)
-
-                        if not schema_spec:
-                            continue
-
-                        # @todo: test with defererence
-                        if '$ref' in schema_spec:
-                            continue
-
-                        assert type(parameter.schema) == Schema
-                        assert parameter.schema.type.value ==\
-                            schema_spec['type']
-                        assert parameter.schema.format ==\
-                            schema_spec.get('format')
-                        assert parameter.schema.required == schema_spec.get(
-                            'required', [])
-
+                request_body = operation.get('requestBody')
                 request_body_spec = operation_spec.get('requestBody')
-
-                assert bool(request_body_spec) == bool(operation.request_body)
+                assert bool(request_body_spec) == bool(request_body)
 
                 if not request_body_spec:
                     continue
 
-                assert type(operation.request_body) == RequestBody
-                assert bool(operation.request_body.required) ==\
-                    request_body_spec.get('required', False)
+                assert bool(request_body.getkey('required')) ==\
+                    request_body_spec.get('required')
 
-                for mimetype, media_type in iteritems(
-                        operation.request_body.content):
-                    assert type(media_type) == MediaType
-                    assert media_type.mimetype == mimetype
-
+                content = request_body / 'content'
+                for mimetype, media_type in content.items():
                     content_spec = request_body_spec['content'][mimetype]
                     schema_spec = content_spec.get('schema')
-                    assert bool(schema_spec) == bool(media_type.schema)
 
                     if not schema_spec:
                         continue
@@ -258,20 +264,22 @@ class TestPetstore(object):
                     if '$ref' in schema_spec:
                         continue
 
-                    assert type(media_type.schema) == Schema
-                    assert media_type.schema.type.value ==\
+                    schema = content.get('schema')
+                    assert bool(schema_spec) == bool(schema)
+
+                    assert schema.type.value ==\
                         schema_spec['type']
-                    assert media_type.schema.format ==\
+                    assert schema.format ==\
                         schema_spec.get('format')
-                    assert media_type.schema.required == schema_spec.get(
+                    assert schema.required == schema_spec.get(
                         'required', False)
 
-        if not spec.components:
+        components = spec.get('components')
+        if not components:
             return
 
-        for schema_name, schema in iteritems(spec.components.schemas):
-            assert type(schema) == Schema
-
+        schemas = components.get('schemas', {})
+        for schema_name, schema in schemas.items():
             schema_spec = spec_dict['components']['schemas'][schema_name]
-            assert schema.read_only == schema_spec.get('readOnly', False)
-            assert schema.write_only == schema_spec.get('writeOnly', False)
+            assert schema.getkey('readOnly') == schema_spec.get('readOnly')
+            assert schema.getkey('writeOnly') == schema_spec.get('writeOnly')

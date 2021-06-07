@@ -13,7 +13,7 @@ class FlaskOpenAPIView(MethodView):
     openapi_errors_handler = FlaskOpenAPIErrorsHandler
 
     def __init__(self, spec):
-        super(FlaskOpenAPIView, self).__init__()
+        super().__init__()
         self.request_validator = RequestValidator(spec)
         self.response_validator = ResponseValidator(spec)
 
@@ -23,5 +23,4 @@ class FlaskOpenAPIView(MethodView):
             response_validator=self.response_validator,
             openapi_errors_handler=self.openapi_errors_handler,
         )
-        return decorator(super(FlaskOpenAPIView, self).dispatch_request)(
-            *args, **kwargs)
+        return decorator(super().dispatch_request)(*args, **kwargs)

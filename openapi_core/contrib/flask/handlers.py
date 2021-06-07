@@ -2,19 +2,19 @@
 from flask.globals import current_app
 from flask.json import dumps
 
-from openapi_core.schema.media_types.exceptions import InvalidContentType
+from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     ServerNotFound, OperationNotFound, PathNotFound,
 )
 
 
-class FlaskOpenAPIErrorsHandler(object):
+class FlaskOpenAPIErrorsHandler:
 
     OPENAPI_ERROR_STATUS = {
         ServerNotFound: 400,
         OperationNotFound: 405,
         PathNotFound: 404,
-        InvalidContentType: 415,
+        MediaTypeNotFound: 415,
     }
 
     @classmethod
@@ -26,7 +26,7 @@ class FlaskOpenAPIErrorsHandler(object):
         data = {
             'errors': data_errors,
         }
-        data_error_max = max(data_errors, key=lambda x: x['status'])
+        data_error_max = max(data_errors, key=cls.get_error_status)
         status = data_error_max['status']
         return current_app.response_class(
             dumps(data),
@@ -41,3 +41,7 @@ class FlaskOpenAPIErrorsHandler(object):
             'status': cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
             'class': str(type(error)),
         }
+
+    @classmethod
+    def get_error_status(cls, error):
+        return error['status']

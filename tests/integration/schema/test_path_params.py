@@ -1,10 +1,11 @@
+from __future__ import division
+
 import pytest
 
-from openapi_core.schema.parameters.enums import ParameterLocation
 from openapi_core.shortcuts import create_spec
 
 
-class TestMinimal(object):
+class TestMinimal:
 
     spec_paths = [
         "data/v3.0/path_param.yaml"
@@ -15,9 +16,12 @@ class TestMinimal(object):
         spec_dict = factory.spec_from_file(spec_path)
         spec = create_spec(spec_dict)
 
-        path = spec['/resource/{resId}']
+        path = spec / 'paths#/resource/{resId}'
 
-        assert len(path.parameters) == 1
-        param = path.parameters['resId']
-        assert param.required
-        assert param.location == ParameterLocation.PATH
+        parameters = path / 'parameters'
+        assert len(parameters) == 1
+
+        param = parameters[0]
+        assert param['name'] == 'resId'
+        assert param['required']
+        assert param['in'] == 'path'

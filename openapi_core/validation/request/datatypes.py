@@ -1,12 +1,14 @@
 """OpenAPI core validation request datatypes module"""
-import attr
+from typing import Dict, Optional
+
+from dataclasses import dataclass, field
 from werkzeug.datastructures import ImmutableMultiDict, Headers
 
 from openapi_core.validation.datatypes import BaseValidationResult
 
 
-@attr.s
-class RequestParameters(object):
+@dataclass
+class RequestParameters:
     """OpenAPI request parameters dataclass.
 
     Attributes:
@@ -15,21 +17,21 @@ class RequestParameters(object):
         header
             Request headers as Headers.
         cookie
-            Request cookies as dict.
+            Request cookies as MultiDict.
         path
             Path parameters as dict. Gets resolved against spec if empty.
     """
-    query = attr.ib(factory=ImmutableMultiDict)
-    header = attr.ib(factory=Headers, converter=Headers)
-    cookie = attr.ib(factory=dict)
-    path = attr.ib(factory=dict)
+    query: ImmutableMultiDict = field(default_factory=ImmutableMultiDict)
+    header: Headers = field(default_factory=Headers)
+    cookie: ImmutableMultiDict = field(default_factory=ImmutableMultiDict)
+    path: Dict = field(default_factory=dict)
 
     def __getitem__(self, location):
         return getattr(self, location)
 
 
-@attr.s
-class OpenAPIRequest(object):
+@dataclass
+class OpenAPIRequest:
     """OpenAPI request dataclass.
 
     Attributes:
@@ -51,18 +53,23 @@ class OpenAPIRequest(object):
             the mimetype would be "text/html".
     """
 
-    full_url_pattern = attr.ib()
-    method = attr.ib()
-    body = attr.ib()
-    mimetype = attr.ib()
-    parameters = attr.ib(factory=RequestParameters)
+    full_url_pattern: str
+    method: str
+    body: str
+    mimetype: str
+    parameters: RequestParameters = field(default_factory=RequestParameters)
 
 
-@attr.s
+@dataclass
+class Parameters:
+    query: Dict = field(default_factory=dict)
+    header: Dict = field(default_factory=dict)
+    cookie: Dict = field(default_factory=dict)
+    path: Dict = field(default_factory=dict)
+
+
+@dataclass
 class RequestValidationResult(BaseValidationResult):
-    body = attr.ib(default=None)
-    parameters = attr.ib(factory=RequestParameters)
-    security = attr.ib(default=None)
-    server = attr.ib(default=None)
-    path = attr.ib(default=None)
-    operation = attr.ib(default=None)
+    body: Optional[str] = None
+    parameters: Parameters = field(default_factory=Parameters)
+    security: Optional[Dict[str, str]] = None

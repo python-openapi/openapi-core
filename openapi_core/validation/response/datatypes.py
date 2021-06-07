@@ -1,11 +1,13 @@
 """OpenAPI core validation response datatypes module"""
-import attr
+from typing import Dict, Optional
+from dataclasses import dataclass, field
+from werkzeug.datastructures import Headers
 
 from openapi_core.validation.datatypes import BaseValidationResult
 
 
-@attr.s
-class OpenAPIResponse(object):
+@dataclass
+class OpenAPIResponse:
     """OpenAPI request dataclass.
 
     Attributes:
@@ -13,17 +15,18 @@ class OpenAPIResponse(object):
             The response body, as string.
         status_code
             The status code as integer.
+        headers
+            Response headers as Headers.
         mimetype
             Lowercase content type without charset.
     """
+    data: str
+    status_code: int
+    mimetype: str
+    headers: Headers = field(default_factory=Headers)
 
-    data = attr.ib()
-    status_code = attr.ib()
 
-    mimetype = attr.ib()
-
-
-@attr.s
+@dataclass
 class ResponseValidationResult(BaseValidationResult):
-    data = attr.ib(default=None)
-    headers = attr.ib(factory=dict)
+    data: Optional[str] = None
+    headers: Dict = field(default_factory=dict)

@@ -25,7 +25,7 @@ def spec(factory):
     return create_spec(spec_dict)
 
 
-class TestReadOnly(object):
+class TestReadOnly:
 
     def test_write_a_read_only_property(self, request_validator):
         data = json.dumps({
@@ -61,7 +61,7 @@ class TestReadOnly(object):
         }
 
 
-class TestWriteOnly(object):
+class TestWriteOnly:
 
     def test_write_only_property(self, request_validator):
         data = json.dumps({

@@ -44,6 +44,9 @@ def request_factory(map, environ_factory):
 @pytest.fixture
 def response_factory():
     def create_response(
-            data, status_code=200, content_type='application/json'):
-        return Response(data, status=status_code, content_type=content_type)
+            data, status_code=200, headers=None,
+            content_type='application/json'):
+        return Response(
+            data, status=status_code, headers=headers,
+            content_type=content_type)
     return create_response

@@ -5,19 +5,21 @@ from falcon.constants import MEDIA_JSON
 from falcon.status_codes import (
     HTTP_400, HTTP_404, HTTP_405, HTTP_415,
 )
-from openapi_core.schema.media_types.exceptions import InvalidContentType
+
+from openapi_core.contrib.falcon.compat import set_response_text
+from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     ServerNotFound, OperationNotFound, PathNotFound,
 )
 
 
-class FalconOpenAPIErrorsHandler(object):
+class FalconOpenAPIErrorsHandler:
 
     OPENAPI_ERROR_STATUS = {
         ServerNotFound: 400,
         OperationNotFound: 405,
         PathNotFound: 404,
-        InvalidContentType: 415,
+        MediaTypeNotFound: 415,
     }
 
     FALCON_STATUS_CODES = {
@@ -36,11 +38,12 @@ class FalconOpenAPIErrorsHandler(object):
         data = {
             'errors': data_errors,
         }
-        data_error_max = max(data_errors, key=lambda x: x['status'])
+        data_str = dumps(data)
+        data_error_max = max(data_errors, key=cls.get_error_status)
         resp.content_type = MEDIA_JSON
         resp.status = cls.FALCON_STATUS_CODES.get(
             data_error_max['status'], HTTP_400)
-        resp.body = dumps(data)
+        set_response_text(resp, data_str)
         resp.complete = True
 
     @classmethod
@@ -50,3 +53,7 @@ class FalconOpenAPIErrorsHandler(object):
             'status': cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
             'class': str(type(error)),
         }
+
+    @classmethod
+    def get_error_status(cls, error):
+        return error['status']
