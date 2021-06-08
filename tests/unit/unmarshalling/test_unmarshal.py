@@ -559,6 +559,61 @@ class TestSchemaUnmarshallerCall:
         schema = SpecPath.from_spec(spec)
         assert unmarshaller_factory(schema)(['hello']) == ['hello']
 
+    def test_schema_object_any_of(self, unmarshaller_factory):
+        spec = {
+            'type': 'object',
+            'anyOf': [
+                {
+                    'type': 'object',
+                    'required': ['someint'],
+                    'properties': {
+                        'someint': {
+                            'type': 'integer'
+                        }
+                    }
+                },
+                {
+                    'type': 'object',
+                    'required': ['somestr'],
+                    'properties': {
+                        'somestr': {
+                            'type': 'string'
+                        }
+                    }
+                }
+            ],
+        }
+        schema = SpecPath.from_spec(spec)
+        assert unmarshaller_factory(schema)({'someint': 1}) == {'someint': 1}
+
+    def test_schema_object_any_of_invalid(self, unmarshaller_factory):
+        spec = {
+            'type': 'object',
+            'anyOf': [
+                {
+                    'type': 'object',
+                    'required': ['someint'],
+                    'properties': {
+                        'someint': {
+                            'type': 'integer'
+                        }
+                    }
+                },
+                {
+                    'type': 'object',
+                    'required': ['somestr'],
+                    'properties': {
+                        'somestr': {
+                            'type': 'string'
+                        }
+                    }
+                }
+            ],
+        }
+        schema = SpecPath.from_spec(spec)
+        with pytest.raises(UnmarshalError):
+            unmarshaller_factory(schema)({'someint': '1'})
+
     def test_schema_any_all_of(self, unmarshaller_factory):
         spec = {
             'allOf': [
