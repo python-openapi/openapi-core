@@ -21,7 +21,7 @@ paths:
           type: integer
     get:
       responses:
-        200:
+        '200':
           description: Return the resource.
           content:
             application/json:

@@ -1,6 +1,6 @@
 from json import dumps
 
-from falcon import API as App
+from falcon import App
 from falcon.testing import TestClient
 import pytest
 
@@ -15,7 +15,7 @@ class TestFalconOpenAPIMiddleware:
 
     @pytest.fixture
     def spec(self, factory):
-        specfile = 'contrib/falcon/data/v3.0/falcon_factory.yaml'
+        specfile = 'contrib/falcon/data/v3.0/openapi.yaml'
         return create_spec(factory.spec_from_file(specfile))
 
     @pytest.fixture

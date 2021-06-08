@@ -39,6 +39,7 @@ Falcon
 ------
 
 This section describes integration with `Falcon <https://falconframework.org>`__ web framework.
+The integration supports Falcon from version 3.0 and above.
 
 Middleware
 ~~~~~~~~~~
@@ -50,7 +51,7 @@ Falcon API can be integrated by `FalconOpenAPIMiddleware` middleware.
    from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
 
    openapi_middleware = FalconOpenAPIMiddleware.from_spec(spec)
-   api = falcon.API(middleware=[openapi_middleware])
+   app = falcon.App(middleware=[openapi_middleware])
 
 Low level
 ~~~~~~~~~
@@ -62,7 +63,7 @@ For Falcon you can use FalconOpenAPIRequest a Falcon request factory:
    from openapi_core.validation.request.validators import RequestValidator
    from openapi_core.contrib.falcon import FalconOpenAPIRequestFactory
 
-   openapi_request = FalconOpenAPIRequestFactory.create(falcon_request)
+   openapi_request = FalconOpenAPIRequestFactory().create(falcon_request)
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
@@ -73,7 +74,7 @@ You can use FalconOpenAPIResponse as a Falcon response factory:
    from openapi_core.validation.response.validators import ResponseValidator
    from openapi_core.contrib.falcon import FalconOpenAPIResponseFactory
 
-   openapi_response = FalconOpenAPIResponseFactory.create(falcon_response)
+   openapi_response = FalconOpenAPIResponseFactory().create(falcon_response)
    validator = ResponseValidator(spec)
    result = validator.validate(openapi_request, openapi_response)
 
