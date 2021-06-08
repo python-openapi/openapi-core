@@ -1,18 +1,12 @@
-import sys
-
 import pytest
 from werkzeug.datastructures import Headers
 
 from openapi_core.contrib.django import (
     DjangoOpenAPIRequest, DjangoOpenAPIResponse,
 )
-from openapi_core.shortcuts import create_spec
 from openapi_core.validation.request.datatypes import RequestParameters
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseValidator
 
 
-@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
 class BaseTestDjango:
 
     @pytest.fixture(autouse=True, scope='module')
@@ -23,9 +17,11 @@ class BaseTestDjango:
         from django.urls import path, re_path
 
         if settings.configured:
-            return
+            from django.utils.functional import empty
+            settings._wrapped = empty
 
         settings.configure(
+            SECRET_KEY='secretkey',
             ALLOWED_HOSTS=[
                 'testserver',
             ],
@@ -186,33 +182,3 @@ class TestDjangoOpenAPIResponse(BaseTestDjango):
         assert openapi_response.data == response.content
         assert openapi_response.status_code == response.status_code
         assert openapi_response.mimetype == response["Content-Type"]
-
-
-class TestDjangoOpenAPIValidation(BaseTestDjango):
-
-    @pytest.fixture
-    def django_spec(self, factory):
-        specfile = 'data/v3.0/django_factory.yaml'
-        return create_spec(factory.spec_from_file(specfile))
-
-    def test_response_validator_path_pattern(
-            self, django_spec, request_factory, response_factory):
-        from django.urls import resolve
-        validator = ResponseValidator(django_spec)
-        request = request_factory.get('/admin/auth/group/1/')
-        request.resolver_match = resolve('/admin/auth/group/1/')
-        openapi_request = DjangoOpenAPIRequest(request)
-        response = response_factory(b'Some item')
-        openapi_response = DjangoOpenAPIResponse(response)
-        result = validator.validate(openapi_request, openapi_response)
-        assert not result.errors
-
-    def test_request_validator_path_pattern(
-            self, django_spec, request_factory):
-        from django.urls import resolve
-        validator = RequestValidator(django_spec)
-        request = request_factory.get('/admin/auth/group/1/')
-        request.resolver_match = resolve('/admin/auth/group/1/')
-        openapi_request = DjangoOpenAPIRequest(request)
-        result = validator.validate(openapi_request)
-        assert not result.errors

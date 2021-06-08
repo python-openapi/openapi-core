@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from djangotest.testapp import views
+from djangoproject.pets import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,8 +24,13 @@ urlpatterns = [
         include('rest_framework.urls', namespace='rest_framework'),
     ),
     path(
-        'test/<int:pk>',
-        views.TestView.as_view(),
-        name='test',
+        'v1/pets',
+        views.PetListView.as_view(),
+        name='pet_list_view',
+    ),
+    path(
+        'v1/pets/<int:petId>',
+        views.PetDetailView.as_view(),
+        name='pet_detail_view',
     ),
 ]
