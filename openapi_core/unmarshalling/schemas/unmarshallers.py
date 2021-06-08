@@ -10,9 +10,7 @@ from openapi_schema_validator._types import (
 from openapi_schema_validator._format import oas30_format_checker
 
 from openapi_core.extensions.models.factories import ModelFactory
-from openapi_core.schema.schemas import (
-    get_all_properties, get_all_properties_names
-)
+from openapi_core.schema.schemas import get_all_properties
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     UnmarshalError, ValidateError, InvalidSchemaValue,
@@ -187,8 +185,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             properties = None
             for one_of_schema in self.schema / 'oneOf':
                 try:
-                    unmarshalled = self._unmarshal_properties(
-                        value, one_of_schema=one_of_schema)
+                    unmarshalled = self._unmarshal_properties(value)
                 except (UnmarshalError, ValueError):
                     pass
                 else:
@@ -204,15 +201,12 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             properties = None
             for any_of_schema in self.schema / 'anyOf':
                 try:
-                    unmarshalled = self._unmarshal_properties(
-                        value, any_of_schema=any_of_schema)
+                    unmarshalled = self._unmarshal_properties(value)
                 except (UnmarshalError, ValueError):
                     pass
                 else:
-                    if properties is not None:
-                        log.warning("multiple valid anyOf schemas found")
-                        continue
                     properties = unmarshalled
+                    break
 
             if properties is None:
                 log.warning("valid anyOf schema not found")
@@ -226,37 +220,10 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
         return properties
 
-    def _unmarshal_properties(
-            self, value, one_of_schema=None, any_of_schema=None):
-        all_props = get_all_properties(self.schema)
-        all_props_names = get_all_properties_names(self.schema)
-
-        if one_of_schema is not None:
-            all_props.update(get_all_properties(one_of_schema))
-            all_props_names |= get_all_properties_names(one_of_schema)
-
-        if any_of_schema is not None:
-            all_props.update(get_all_properties(any_of_schema))
-            all_props_names |= get_all_properties_names(any_of_schema)
-
-        value_props_names = list(value.keys())
-        extra_props = set(value_props_names) - set(all_props_names)
-
+    def _unmarshal_properties(self, value):
         properties = {}
-        additional_properties = self.schema.getkey(
-            'additionalProperties', True)
-        if isinstance(additional_properties, dict):
-            additional_prop_schema = self.schema / 'additionalProperties'
-            for prop_name in extra_props:
-                prop_value = value[prop_name]
-                properties[prop_name] = self.unmarshallers_factory.create(
-                    additional_prop_schema)(prop_value)
-        elif additional_properties is True:
-            for prop_name in extra_props:
-                prop_value = value[prop_name]
-                properties[prop_name] = prop_value
 
-        for prop_name, prop in list(all_props.items()):
+        for prop_name, prop in get_all_properties(self.schema).items():
             read_only = prop.getkey('readOnly', False)
             if self.context == UnmarshalContext.REQUEST and read_only:
                 continue
@@ -272,6 +239,22 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
             properties[prop_name] = self.unmarshallers_factory.create(
                 prop)(prop_value)
+
+        additional_properties = self.schema.getkey(
+            'additionalProperties', True)
+        if isinstance(additional_properties, dict):
+            additional_prop_schema = self.schema / 'additionalProperties'
+            additional_prop_unmarshaler = self.unmarshallers_factory.create(
+                additional_prop_schema)
+            for prop_name, prop_value in value.items():
+                if prop_name in properties:
+                    continue
+                properties[prop_name] = additional_prop_unmarshaler(prop_value)
+        elif additional_properties is True:
+            for prop_name, prop_value in value.items():
+                if prop_name in properties:
+                    continue
+                properties[prop_name] = prop_value
 
         return properties
 

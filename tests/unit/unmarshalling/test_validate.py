@@ -761,17 +761,25 @@ class TestSchemaValidate:
 
         assert result is None
 
-    @pytest.mark.parametrize('value', [Model(), ])
+    @pytest.mark.parametrize('value', [{}, ])
     def test_object_multiple_any_of(self, value, validator_factory):
-        any_of = [{'type': 'object'}, {'type': 'object'}]
+        any_of = [
+            {
+                'type': 'object',
+            },
+            {
+                'type': 'object',
+            },
+        ]
         spec = {
             'type': 'object',
             'anyOf': any_of,
         }
         schema = SpecPath.from_spec(spec)
 
-        with pytest.raises(InvalidSchemaValue):
-            validator_factory(schema).validate(value)
+        result = validator_factory(schema).validate(value)
+
+        assert result is None
 
     @pytest.mark.parametrize('value', [{}, ])
     def test_object_different_type_any_of(self, value, validator_factory):

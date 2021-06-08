@@ -542,6 +542,23 @@ class TestSchemaUnmarshallerCall:
         schema = SpecPath.from_spec(spec)
         assert unmarshaller_factory(schema)(['hello']) == ['hello']
 
+    def test_schema_any_any_of(self, unmarshaller_factory):
+        spec = {
+            'anyOf': [
+                {
+                    'type': 'string',
+                },
+                {
+                    'type': 'array',
+                    'items': {
+                        'type': 'string',
+                    }
+                }
+            ],
+        }
+        schema = SpecPath.from_spec(spec)
+        assert unmarshaller_factory(schema)(['hello']) == ['hello']
+
     def test_schema_any_all_of(self, unmarshaller_factory):
         spec = {
             'allOf': [
