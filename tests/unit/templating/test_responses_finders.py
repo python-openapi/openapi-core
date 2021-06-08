@@ -1,4 +1,3 @@
-from __future__ import division
 from unittest import mock
 
 import pytest

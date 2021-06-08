@@ -1,4 +1,3 @@
-from __future__ import division
 import pytest
 
 from openapi_core.spec.paths import SpecPath
@@ -226,7 +225,7 @@ class BaseTestVariableValid:
 
     @pytest.mark.parametrize('version', ['v1', 'v2'])
     def test_variable(self, finder, spec, version):
-        request_uri = '/{0}/resource'.format(version)
+        request_uri = f'/{version}/resource'
         method = 'get'
         request = MockRequest(
             'http://petstore.swagger.io', method, request_uri)
@@ -247,7 +246,7 @@ class BaseTestPathVariableValid:
 
     @pytest.mark.parametrize('res_id', ['111', '222'])
     def test_path_variable(self, finder, spec, res_id):
-        request_uri = '/resource/{0}'.format(res_id)
+        request_uri = f'/resource/{res_id}'
         method = 'get'
         request = MockRequest(
             'http://petstore.swagger.io', method, request_uri)
@@ -476,7 +475,7 @@ class TestSimilarPaths(
 
     def test_valid(self, finder, spec):
         token_id = '123'
-        request_uri = '/keys/{0}/tokens'.format(token_id)
+        request_uri = f'/keys/{token_id}/tokens'
         method = 'get'
         request = MockRequest(
             'http://petstore.swagger.io', method, request_uri)
@@ -578,7 +577,7 @@ class TestTemplateConcretePaths(
 
     def test_valid(self, finder, spec):
         token_id = '123'
-        request_uri = '/keys/{0}/tokens/master'.format(token_id)
+        request_uri = f'/keys/{token_id}/tokens/master'
         method = 'get'
         request = MockRequest(
             'http://petstore.swagger.io', method, request_uri)

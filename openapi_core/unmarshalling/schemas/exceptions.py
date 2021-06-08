@@ -54,5 +54,4 @@ class FormatterNotFoundError(UnmarshallerError):
     type_format: str
 
     def __str__(self):
-        return "Formatter not found for {format} format".format(
-            format=self.type_format)
+        return f"Formatter not found for {self.type_format} format"

@@ -924,7 +924,7 @@ class TestPetstore:
         }
         auth = 'authuser'
         headers = {
-            'Authorization': 'Basic {auth}'.format(auth=auth),
+            'Authorization': f'Basic {auth}',
         }
         request = MockRequest(
             host_url, 'GET', '/pets/1',

@@ -16,5 +16,5 @@ class ResponseNotFound(ResponseFinderError):
     availableresponses: List[str]
 
     def __str__(self):
-        return "Unknown response http status: {0}".format(
+        return "Unknown response http status: {}".format(
             str(self.http_status))

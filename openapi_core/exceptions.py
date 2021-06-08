@@ -23,8 +23,7 @@ class MissingHeader(MissingHeaderError):
     name: str
 
     def __str__(self):
-        return "Missing header (without default value): {0}".format(
-            self.name)
+        return f"Missing header (without default value): {self.name}"
 
 
 @dataclass
@@ -32,7 +31,7 @@ class MissingRequiredHeader(MissingHeaderError):
     name: str
 
     def __str__(self):
-        return "Missing required header: {0}".format(self.name)
+        return f"Missing required header: {self.name}"
 
 
 class OpenAPIParameterError(OpenAPIError):
@@ -49,8 +48,7 @@ class MissingParameter(MissingParameterError):
     name: str
 
     def __str__(self):
-        return "Missing parameter (without default value): {0}".format(
-            self.name)
+        return f"Missing parameter (without default value): {self.name}"
 
 
 @dataclass
@@ -58,7 +56,7 @@ class MissingRequiredParameter(MissingParameterError):
     name: str
 
     def __str__(self):
-        return "Missing required parameter: {0}".format(self.name)
+        return f"Missing required parameter: {self.name}"
 
 
 class OpenAPIRequestBodyError(OpenAPIError):
