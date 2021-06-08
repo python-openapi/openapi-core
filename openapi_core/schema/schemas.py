@@ -10,8 +10,3 @@ def get_all_properties(schema):
         properties_dict.update(subschema_props)
 
     return properties_dict
-
-
-def get_all_properties_names(schema):
-    all_properties = get_all_properties(schema)
-    return set(all_properties.keys())
