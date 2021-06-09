@@ -57,7 +57,7 @@ class TestPetDetailResource:
     def test_valid(self, client):
         auth = 'authuser'
         headers = {
-            'Authorization': 'Basic {auth}'.format(auth=auth),
+            'Authorization': f'Basic {auth}',
             'Content-Type': 'application/json',
         }
 
