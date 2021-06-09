@@ -3,7 +3,7 @@ pytest-flake8
 pytest-cov==2.5.1
 falcon==3.0.1
 flask
-django==2.2.21
+django==2.2.22
 djangorestframework==3.11.2
 requests==2.22.0
 responses==0.10.12
