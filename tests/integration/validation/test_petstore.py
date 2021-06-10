@@ -518,7 +518,7 @@ class TestPetstore:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         userdata = {
             'name': 'user1',
@@ -539,7 +539,7 @@ class TestPetstore:
 
         assert parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -590,7 +590,7 @@ class TestPetstore:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -606,7 +606,7 @@ class TestPetstore:
 
         assert parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -650,7 +650,7 @@ class TestPetstore:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -666,7 +666,7 @@ class TestPetstore:
 
         assert parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -698,7 +698,7 @@ class TestPetstore:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -714,7 +714,7 @@ class TestPetstore:
 
         assert parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -737,7 +737,7 @@ class TestPetstore:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -753,7 +753,7 @@ class TestPetstore:
 
         assert parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -778,7 +778,7 @@ class TestPetstore:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -794,7 +794,7 @@ class TestPetstore:
 
         assert parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -817,7 +817,7 @@ class TestPetstore:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
 
         request = MockRequest(
@@ -881,7 +881,7 @@ class TestPetstore:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': '12345',
+            'api-key': '12345',
         }
         cookies = {
             'user': '123',

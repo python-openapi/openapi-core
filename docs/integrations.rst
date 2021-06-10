@@ -11,8 +11,29 @@ Django
 ------
 
 This section describes integration with `Django <https://www.djangoproject.com>`__ web framework.
+The integration supports Django from version 3.0 and above.
 
-For Django 2.2 you can use DjangoOpenAPIRequest a Django request factory:
+Middleware
+~~~~~~~~~~
+
+Django can be integrated by middleware. Add `DjangoOpenAPIMiddleware` to your `MIDDLEWARE` list and define `OPENAPI_SPEC`
+
+.. code-block:: python
+
+   # settings.py
+   from openapi_core import create_spec
+
+   MIDDLEWARE = [
+       # ...
+       'openapi_core.contrib.django.middlewares.DjangoOpenAPIMiddleware',
+   ]
+
+   OPENAPI_SPEC = create_spec(spec_dict)
+
+Low level
+~~~~~~~~~
+
+For Django you can use DjangoOpenAPIRequest a Django request factory:
 
 .. code-block:: python
 
