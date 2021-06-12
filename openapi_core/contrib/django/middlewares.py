@@ -31,11 +31,10 @@ class DjangoOpenAPIMiddleware:
         openapi_request = self._get_openapi_request(request)
         req_result = self.validation_processor.process_request(openapi_request)
         if req_result.errors:
-            return self._handle_request_errors(req_result, request)
-
-        request.openapi = req_result
-
-        response = self.get_response(request)
+            response = self._handle_request_errors(req_result, request)
+        else:
+            request.openapi = req_result
+            response = self.get_response(request)
 
         openapi_response = self._get_openapi_response(response)
         resp_result = self.validation_processor.process_response(
