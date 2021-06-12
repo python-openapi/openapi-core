@@ -30,6 +30,24 @@ Django can be integrated by middleware. Add `DjangoOpenAPIMiddleware` to your `M
 
    OPENAPI_SPEC = create_spec(spec_dict)
 
+After that you have access to validation result object with all validated request data from Django view through request object
+
+.. code-block:: python
+   from django.views import View
+
+   class MyView(View):
+       def get(self, req):
+           # get parameters object with path, query, cookies and headers parameters
+           validated_params = req.openapi.parameters
+           # or specific location parameters
+           validated_path_params = req.openapi.parameters.path
+
+           # get body
+           validated_body = req.openapi.body
+
+           # get security data
+           validated_security = req.openapi.security
+
 Low level
 ~~~~~~~~~
 
@@ -80,16 +98,16 @@ After that you will have access to validation result object with all validated r
 
    class ThingsResource:
        def on_get(self, req, resp):
-         # get parameters object with path, query, cookies and headers parameters
-         validated_params = req.context.openapi.parameters
-         # or specific location parameters
-         validated_path_params = req.context.openapi.parameters.path
+           # get parameters object with path, query, cookies and headers parameters
+           validated_params = req.context.openapi.parameters
+           # or specific location parameters
+           validated_path_params = req.context.openapi.parameters.path
 
-         # get body
-         validated_body = req.context.openapi.body
+           # get body
+           validated_body = req.context.openapi.body
 
-         # get security data
-         validated_security = req.context.openapi.security
+           # get security data
+           validated_security = req.context.openapi.security
 
 Low level
 ~~~~~~~~~
