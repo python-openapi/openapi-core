@@ -1,7 +1,7 @@
 from json import dumps
 
 from falcon.constants import MEDIA_JSON
-from falcon.status_codes import HTTP_200
+from falcon.status_codes import HTTP_200, HTTP_201
 
 
 class PetListResource:
@@ -25,6 +25,23 @@ class PetListResource:
         response.status = HTTP_200
         response.content_type = MEDIA_JSON
         response.text = dumps({"data": data})
+        response.set_header('X-Rate-Limit', '12')
+
+    def on_post(self, request, response):
+        assert request.openapi
+        assert not request.openapi.errors
+        assert request.openapi.parameters.cookie == {
+            'user': 1,
+        }
+        assert request.openapi.parameters.header == {
+            'api-key': '12345',
+        }
+        assert request.openapi.body.__class__.__name__ == 'PetCreate'
+        assert request.openapi.body.name == 'Cat'
+        assert request.openapi.body.ears.__class__.__name__ == 'Ears'
+        assert request.openapi.body.ears.healthy is True
+
+        response.status = HTTP_201
         response.set_header('X-Rate-Limit', '12')
 
 

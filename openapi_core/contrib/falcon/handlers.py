@@ -1,31 +1,26 @@
 """OpenAPI core contrib falcon handlers module"""
 from json import dumps
 
+from falcon import status_codes
 from falcon.constants import MEDIA_JSON
-from falcon.status_codes import (
-    HTTP_400, HTTP_404, HTTP_405, HTTP_415,
-)
 
+from openapi_core.exceptions import MissingRequiredParameter
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import (
     ServerNotFound, OperationNotFound, PathNotFound,
 )
+from openapi_core.validation.exceptions import InvalidSecurity
 
 
 class FalconOpenAPIErrorsHandler:
 
     OPENAPI_ERROR_STATUS = {
+        MissingRequiredParameter: 400,
         ServerNotFound: 400,
+        InvalidSecurity: 403,
         OperationNotFound: 405,
         PathNotFound: 404,
         MediaTypeNotFound: 415,
-    }
-
-    FALCON_STATUS_CODES = {
-        400: HTTP_400,
-        404: HTTP_404,
-        405: HTTP_405,
-        415: HTTP_415,
     }
 
     @classmethod
@@ -40,8 +35,10 @@ class FalconOpenAPIErrorsHandler:
         data_str = dumps(data)
         data_error_max = max(data_errors, key=cls.get_error_status)
         resp.content_type = MEDIA_JSON
-        resp.status = cls.FALCON_STATUS_CODES.get(
-            data_error_max['status'], HTTP_400)
+        resp.status = getattr(
+            status_codes, f"HTTP_{data_error_max['status']}",
+            status_codes.HTTP_400,
+        )
         resp.text = data_str
         resp.complete = True
 
