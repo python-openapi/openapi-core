@@ -33,6 +33,7 @@ Django can be integrated by middleware. Add `DjangoOpenAPIMiddleware` to your `M
 After that you have access to validation result object with all validated request data from Django view through request object
 
 .. code-block:: python
+
    from django.views import View
 
    class MyView(View):
