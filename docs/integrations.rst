@@ -74,6 +74,23 @@ Falcon API can be integrated by `FalconOpenAPIMiddleware` middleware.
    openapi_middleware = FalconOpenAPIMiddleware.from_spec(spec)
    app = falcon.App(middleware=[openapi_middleware])
 
+After that you will have access to validation result object with all validated request data from Falcon view through request context
+
+.. code-block:: python
+
+   class ThingsResource:
+       def on_get(self, req, resp):
+         # get parameters object with path, query, cookies and headers parameters
+         validated_params = req.context.openapi.parameters
+         # or specific location parameters
+         validated_path_params = req.context.openapi.parameters.path
+
+         # get body
+         validated_body = req.context.openapi.body
+
+         # get security data
+         validated_security = req.context.openapi.security
+
 Low level
 ~~~~~~~~~
 
