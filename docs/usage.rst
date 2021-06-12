@@ -38,7 +38,7 @@ and unmarshal request data from validation result
 
    # get parameters object with path, query, cookies and headers parameters
    validated_params = result.parameters
-   # or specific parameters
+   # or specific location parameters
    validated_path_params = result.parameters.path
 
    # get body

@@ -6,9 +6,9 @@ from falcon.status_codes import HTTP_200, HTTP_201
 
 class PetListResource:
     def on_get(self, request, response):
-        assert request.openapi
-        assert not request.openapi.errors
-        assert request.openapi.parameters.query == {
+        assert request.context.openapi
+        assert not request.context.openapi.errors
+        assert request.context.openapi.parameters.query == {
             'page': 1,
             'limit': 12,
             'search': '',
@@ -28,18 +28,18 @@ class PetListResource:
         response.set_header('X-Rate-Limit', '12')
 
     def on_post(self, request, response):
-        assert request.openapi
-        assert not request.openapi.errors
-        assert request.openapi.parameters.cookie == {
+        assert request.context.openapi
+        assert not request.context.openapi.errors
+        assert request.context.openapi.parameters.cookie == {
             'user': 1,
         }
-        assert request.openapi.parameters.header == {
+        assert request.context.openapi.parameters.header == {
             'api-key': '12345',
         }
-        assert request.openapi.body.__class__.__name__ == 'PetCreate'
-        assert request.openapi.body.name == 'Cat'
-        assert request.openapi.body.ears.__class__.__name__ == 'Ears'
-        assert request.openapi.body.ears.healthy is True
+        assert request.context.openapi.body.__class__.__name__ == 'PetCreate'
+        assert request.context.openapi.body.name == 'Cat'
+        assert request.context.openapi.body.ears.__class__.__name__ == 'Ears'
+        assert request.context.openapi.body.ears.healthy is True
 
         response.status = HTTP_201
         response.set_header('X-Rate-Limit', '12')
@@ -48,9 +48,9 @@ class PetListResource:
 class PetDetailResource:
     def on_get(self, request, response, petId=None):
         assert petId == '12'
-        assert request.openapi
-        assert not request.openapi.errors
-        assert request.openapi.parameters.path == {
+        assert request.context.openapi
+        assert not request.context.openapi.errors
+        assert request.context.openapi.parameters.path == {
             'petId': 12,
         }
         data = {

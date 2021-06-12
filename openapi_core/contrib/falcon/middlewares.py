@@ -47,18 +47,18 @@ class FalconOpenAPIMiddleware:
 
     def process_request(self, req, resp):
         openapi_req = self._get_openapi_request(req)
-        req_result = self.validation_processor.process_request(openapi_req)
-        if req_result.errors:
-            return self._handle_request_errors(req, resp, req_result)
-        req.openapi = req_result
+        req.context.openapi = self._process_openapi_request(openapi_req)
+        if req.context.openapi.errors:
+            return self._handle_request_errors(req, resp, req.context.openapi)
 
     def process_response(self, req, resp, resource, req_succeeded):
         openapi_req = self._get_openapi_request(req)
         openapi_resp = self._get_openapi_response(resp)
-        resp_result = self.validation_processor.process_response(
+        resp.context.openapi = self._process_openapi_response(
             openapi_req, openapi_resp)
-        if resp_result.errors:
-            return self._handle_response_errors(req, resp, resp_result)
+        if resp.context.openapi.errors:
+            return self._handle_response_errors(
+                req, resp, resp.context.openapi)
 
     def _handle_request_errors(self, req, resp, request_result):
         return self.errors_handler.handle(
@@ -73,3 +73,10 @@ class FalconOpenAPIMiddleware:
 
     def _get_openapi_response(self, response):
         return self.response_factory.create(response)
+
+    def _process_openapi_request(self, openapi_request):
+        return self.validation_processor.process_request(openapi_request)
+
+    def _process_openapi_response(self, opneapi_request, openapi_response):
+        return self.validation_processor.process_response(
+            opneapi_request, openapi_response)
