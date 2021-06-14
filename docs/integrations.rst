@@ -4,7 +4,7 @@ Integrations
 Bottle
 ------
 
-See `bottle-openapi-3  <https://github.com/cope-systems/bottle-openapi-3>`_ project.
+See `bottle-openapi-3 <https://github.com/cope-systems/bottle-openapi-3>`_ project.
 
 
 Django
@@ -16,7 +16,7 @@ The integration supports Django from version 3.0 and above.
 Middleware
 ~~~~~~~~~~
 
-Django can be integrated by middleware. Add `DjangoOpenAPIMiddleware` to your `MIDDLEWARE` list and define `OPENAPI_SPEC`
+Django can be integrated by middleware. Add `DjangoOpenAPIMiddleware` to your `MIDDLEWARE` list and define `OPENAPI_SPEC`.
 
 .. code-block:: python
 
@@ -30,7 +30,7 @@ Django can be integrated by middleware. Add `DjangoOpenAPIMiddleware` to your `M
 
    OPENAPI_SPEC = create_spec(spec_dict)
 
-After that you have access to validation result object with all validated request data from Django view through request object
+After that you have access to validation result object with all validated request data from Django view through request object.
 
 .. code-block:: python
 
@@ -52,7 +52,7 @@ After that you have access to validation result object with all validated reques
 Low level
 ~~~~~~~~~
 
-For Django you can use DjangoOpenAPIRequest a Django request factory:
+You can use `DjangoOpenAPIRequest` as a Django request factory:
 
 .. code-block:: python
 
@@ -63,7 +63,7 @@ For Django you can use DjangoOpenAPIRequest a Django request factory:
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-You can use DjangoOpenAPIResponse as a Django response factory:
+You can use `DjangoOpenAPIResponse` as a Django response factory:
 
 .. code-block:: python
 
@@ -84,7 +84,7 @@ The integration supports Falcon from version 3.0 and above.
 Middleware
 ~~~~~~~~~~
 
-Falcon API can be integrated by `FalconOpenAPIMiddleware` middleware.
+The Falcon API can be integrated by `FalconOpenAPIMiddleware` middleware.
 
 .. code-block:: python
 
@@ -93,7 +93,7 @@ Falcon API can be integrated by `FalconOpenAPIMiddleware` middleware.
    openapi_middleware = FalconOpenAPIMiddleware.from_spec(spec)
    app = falcon.App(middleware=[openapi_middleware])
 
-After that you will have access to validation result object with all validated request data from Falcon view through request context
+After that you will have access to validation result object with all validated request data from Falcon view through request context.
 
 .. code-block:: python
 
@@ -113,7 +113,7 @@ After that you will have access to validation result object with all validated r
 Low level
 ~~~~~~~~~
 
-For Falcon you can use FalconOpenAPIRequest a Falcon request factory:
+You can use `FalconOpenAPIRequest` as a Falcon request factory:
 
 .. code-block:: python
 
@@ -124,7 +124,7 @@ For Falcon you can use FalconOpenAPIRequest a Falcon request factory:
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-You can use FalconOpenAPIResponse as a Falcon response factory:
+You can use `FalconOpenAPIResponse` as a Falcon response factory:
 
 .. code-block:: python
 
@@ -167,7 +167,7 @@ If you want to decorate class based view you can use the decorators attribute:
 View
 ~~~~
 
-As an alternative to the decorator-based integration, Flask method based views can be integrated by inheritance from `FlaskOpenAPIView` class.
+As an alternative to the decorator-based integration, a Flask method based views can be integrated by inheritance from `FlaskOpenAPIView` class.
 
 .. code-block:: python
 
@@ -181,7 +181,7 @@ As an alternative to the decorator-based integration, Flask method based views c
 Request parameters
 ~~~~~~~~~~~~~~~~~~
 
-In Flask, all unmarshalled request data are provided as Flask request object's openapi.parameters attribute
+In Flask, all unmarshalled request data are provided as Flask request object's `openapi.parameters` attribute
 
 .. code-block:: python
 
@@ -196,7 +196,7 @@ In Flask, all unmarshalled request data are provided as Flask request object's o
 Low level
 ~~~~~~~~~
 
-You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
+You can use `FlaskOpenAPIRequest` as a Flask/Werkzeug request factory:
 
 .. code-block:: python
 
@@ -207,7 +207,7 @@ You can use FlaskOpenAPIRequest a Flask/Werkzeug request factory:
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-You can use FlaskOpenAPIResponse as a Flask/Werkzeug response factory:
+You can use `FlaskOpenAPIResponse` as a Flask/Werkzeug response factory:
 
 .. code-block:: python
 
@@ -222,7 +222,7 @@ You can use FlaskOpenAPIResponse as a Flask/Werkzeug response factory:
 Pyramid
 -------
 
-See `pyramid_openapi3  <https://github.com/niteoweb/pyramid_openapi3>`_ project.
+See `pyramid_openapi3 <https://github.com/niteoweb/pyramid_openapi3>`_ project.
 
 
 Requests
@@ -233,7 +233,7 @@ This section describes integration with `Requests <https://requests.readthedocs.
 Low level
 ~~~~~~~~~
 
-For Requests you can use RequestsOpenAPIRequest a Requests request factory:
+You can use `RequestsOpenAPIRequest` as a Requests request factory:
 
 .. code-block:: python
 
@@ -244,7 +244,7 @@ For Requests you can use RequestsOpenAPIRequest a Requests request factory:
    validator = RequestValidator(spec)
    result = validator.validate(openapi_request)
 
-You can use RequestsOpenAPIResponse as a Requests response factory:
+You can use `RequestsOpenAPIResponse` as a Requests response factory:
 
 .. code-block:: python
 
@@ -258,4 +258,4 @@ You can use RequestsOpenAPIResponse as a Requests response factory:
 Tornado
 -------
 
-See `tornado-openapi3  <https://github.com/correl/tornado-openapi3>`_ project.
+See `tornado-openapi3 <https://github.com/correl/tornado-openapi3>`_ project.
