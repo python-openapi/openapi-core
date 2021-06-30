@@ -172,6 +172,16 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         return ModelFactory()
 
     def unmarshal(self, value):
+        properties = self.unmarshal_raw(value)
+
+        if 'x-model' in self.schema:
+            name = self.schema['x-model']
+            model = self.model_factory.create(properties, name=name)
+            return model
+
+        return properties
+
+    def unmarshal_raw(self, value):
         try:
             value = self.formatter.unmarshal(value)
         except ValueError as exc:
@@ -180,48 +190,49 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         else:
             return self._unmarshal_object(value)
 
+    def _clone(self, schema):
+        return ObjectUnmarshaller(
+            schema, self.formatter, self.validator, self.unmarshallers_factory,
+            self.context)
+
     def _unmarshal_object(self, value):
+        properties = {}
+
         if 'oneOf' in self.schema:
-            properties = None
+            one_of_properties = None
             for one_of_schema in self.schema / 'oneOf':
                 try:
-                    unmarshalled = self._unmarshal_properties(value)
+                    unmarshalled = self._clone(one_of_schema).unmarshal_raw(
+                        value)
                 except (UnmarshalError, ValueError):
                     pass
                 else:
-                    if properties is not None:
+                    if one_of_properties is not None:
                         log.warning("multiple valid oneOf schemas found")
                         continue
-                    properties = unmarshalled
+                    one_of_properties = unmarshalled
 
-            if properties is None:
+            if one_of_properties is None:
                 log.warning("valid oneOf schema not found")
+            else:
+                properties.update(one_of_properties)
 
         elif 'anyOf' in self.schema:
-            properties = None
+            any_of_properties = None
             for any_of_schema in self.schema / 'anyOf':
                 try:
-                    unmarshalled = self._unmarshal_properties(value)
+                    unmarshalled = self._clone(any_of_schema).unmarshal_raw(
+                        value)
                 except (UnmarshalError, ValueError):
                     pass
                 else:
-                    properties = unmarshalled
+                    any_of_properties = unmarshalled
                     break
 
-            if properties is None:
+            if any_of_properties is None:
                 log.warning("valid anyOf schema not found")
-
-        else:
-            properties = self._unmarshal_properties(value)
-
-        if 'x-model' in self.schema:
-            name = self.schema['x-model']
-            return self.model_factory.create(properties, name=name)
-
-        return properties
-
-    def _unmarshal_properties(self, value):
-        properties = {}
+            else:
+                properties.update(any_of_properties)
 
         for prop_name, prop in get_all_properties(self.schema).items():
             read_only = prop.getkey('readOnly', False)
