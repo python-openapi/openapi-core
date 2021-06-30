@@ -1,20 +1,27 @@
 """OpenAPI core contrib django responses module"""
 from werkzeug.datastructures import Headers
 
-from openapi_core.contrib.django.compat import get_response_headers
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
 class DjangoOpenAPIResponseFactory:
 
-    @classmethod
-    def create(cls, response):
-        mimetype = response["Content-Type"]
-        headers = get_response_headers(response)
-        header = Headers(headers.items())
+    def create(self, response):
         return OpenAPIResponse(
-            data=response.content,
-            status_code=response.status_code,
-            headers=header,
-            mimetype=mimetype,
+            data=self._get_data(response),
+            status_code=self._get_status_code(response),
+            headers=self._get_header(response),
+            mimetype=self._get_mimetype(response),
         )
+
+    def _get_data(self, response):
+        return response.content
+
+    def _get_status_code(self, response):
+        return response.status_code
+
+    def _get_header(self, response):
+        return Headers(response.headers.items())
+
+    def _get_mimetype(self, response):
+        return response["Content-Type"]

@@ -114,7 +114,7 @@ class BaseResponseValidator(BaseValidator):
         deprecated = header.getkey('deprecated', False)
         if deprecated:
             warnings.warn(
-                "{0} header is deprecated".format(name),
+                f"{name} header is deprecated",
                 DeprecationWarning,
             )
 

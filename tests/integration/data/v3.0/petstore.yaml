@@ -93,6 +93,8 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/PetsResponse"
+        '400':
+          $ref: "#/components/responses/ErrorResponse"
         '404':
           $ref: "#/components/responses/HtmlResponse"
     post:
@@ -110,7 +112,7 @@ paths:
       tags:
         - pets
       parameters:
-        - name: api_key
+        - name: api-key
           in: header
           schema:
             type: string
@@ -403,6 +405,31 @@ components:
           default: 400
         message:
           type: string
+    StandardError:
+      type: object
+      x-model: StandardError
+      required:
+        - title
+        - status
+        - class
+      properties:
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+          default: 400
+        class:
+          type: string
+    StandardErrors:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/StandardError"
     ExtendedError:
       type: object
       x-model: ExtendedError
@@ -430,7 +457,9 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ExtendedError"
+            oneOf:
+              - $ref: "#/components/schemas/StandardErrors"
+              - $ref: "#/components/schemas/ExtendedError"
     HtmlResponse:
       description: HTML page
       content:

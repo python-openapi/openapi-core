@@ -40,6 +40,6 @@ class HttpProvider(BaseProvider):
         scheme = self.scheme['scheme']
         if auth_type.lower() != scheme:
             raise SecurityError(
-                'Unknown authorization method %s' % auth_type)
+                f'Unknown authorization method {auth_type}')
 
         return encoded_credentials

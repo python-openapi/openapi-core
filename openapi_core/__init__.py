@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """OpenAPI core module"""
 from openapi_core.shortcuts import (
     create_spec, validate_request, validate_response,

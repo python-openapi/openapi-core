@@ -1,8 +1,5 @@
-"""OpenAPI core contrib falcon handlers module"""
-from json import dumps
-
-from falcon import status_codes
-from falcon.constants import MEDIA_JSON
+"""OpenAPI core contrib django handlers module"""
+from django.http import JsonResponse
 
 from openapi_core.exceptions import MissingRequiredParameter
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
@@ -12,7 +9,7 @@ from openapi_core.templating.paths.exceptions import (
 from openapi_core.validation.exceptions import InvalidSecurity
 
 
-class FalconOpenAPIErrorsHandler:
+class DjangoOpenAPIErrorsHandler:
 
     OPENAPI_ERROR_STATUS = {
         MissingRequiredParameter: 400,
@@ -24,7 +21,7 @@ class FalconOpenAPIErrorsHandler:
     }
 
     @classmethod
-    def handle(cls, req, resp, errors):
+    def handle(cls, errors, req, resp=None):
         data_errors = [
             cls.format_openapi_error(err)
             for err in errors
@@ -32,15 +29,8 @@ class FalconOpenAPIErrorsHandler:
         data = {
             'errors': data_errors,
         }
-        data_str = dumps(data)
         data_error_max = max(data_errors, key=cls.get_error_status)
-        resp.content_type = MEDIA_JSON
-        resp.status = getattr(
-            status_codes, f"HTTP_{data_error_max['status']}",
-            status_codes.HTTP_400,
-        )
-        resp.text = data_str
-        resp.complete = True
+        return JsonResponse(data, status=data_error_max['status'])
 
     @classmethod
     def format_openapi_error(cls, error):

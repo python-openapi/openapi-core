@@ -11,7 +11,7 @@ class ResponseFinder:
             return self.responses / http_status
 
         # try range
-        http_status_range = '{0}XX'.format(http_status[0])
+        http_status_range = f'{http_status[0]}XX'
         if http_status_range in self.responses:
             return self.responses / http_status_range
 

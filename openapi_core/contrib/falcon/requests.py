@@ -3,7 +3,6 @@ from json import dumps
 
 from werkzeug.datastructures import ImmutableMultiDict, Headers
 
-from openapi_core.contrib.falcon.compat import get_request_media
 from openapi_core.validation.request.datatypes import (
     OpenAPIRequest, RequestParameters,
 )
@@ -11,15 +10,18 @@ from openapi_core.validation.request.datatypes import (
 
 class FalconOpenAPIRequestFactory:
 
-    @classmethod
-    def create(cls, request, default_when_empty={}):
+    def __init__(self, default_when_empty=None):
+        if default_when_empty is None:
+            default_when_empty = {}
+        self.default_when_empty = default_when_empty
+
+    def create(self, request):
         """
         Create OpenAPIRequest from falcon Request and route params.
         """
-        default = default_when_empty
         method = request.method.lower()
 
-        media = get_request_media(request, default=default)
+        media = request.get_media(default_when_empty=self.default_when_empty)
         # Support falcon-jsonify.
         body = (
             dumps(getattr(request, "json", media))

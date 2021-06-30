@@ -142,7 +142,7 @@ class TestRequestValidator:
 
     def test_missing_body(self, validator):
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -160,7 +160,7 @@ class TestRequestValidator:
         assert result.body is None
         assert result.parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -170,7 +170,7 @@ class TestRequestValidator:
     def test_invalid_content_type(self, validator):
         data = "csv,data"
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -188,7 +188,7 @@ class TestRequestValidator:
         assert result.body is None
         assert result.parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -214,7 +214,7 @@ class TestRequestValidator:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         userdata = {
             'name': 1,
@@ -236,7 +236,7 @@ class TestRequestValidator:
         assert type(result.errors[0]) == InvalidSchemaValue
         assert result.parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -274,7 +274,7 @@ class TestRequestValidator:
         }
         data = json.dumps(data_json)
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -290,7 +290,7 @@ class TestRequestValidator:
         assert result.errors == []
         assert result.parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
@@ -312,7 +312,7 @@ class TestRequestValidator:
     def test_post_pets_plain_no_schema(self, validator, spec_dict):
         data = 'plain text'
         headers = {
-            'api_key': self.api_key_encoded,
+            'api-key': self.api_key_encoded,
         }
         cookies = {
             'user': '123',
@@ -329,7 +329,7 @@ class TestRequestValidator:
         assert result.errors == []
         assert result.parameters == Parameters(
             header={
-                'api_key': self.api_key,
+                'api-key': self.api_key,
             },
             cookie={
                 'user': 123,
