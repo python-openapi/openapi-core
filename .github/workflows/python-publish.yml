@@ -7,30 +7,28 @@ on:
   workflow_dispatch:
   release:
     types:
-    - created
+      - created
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install setuptools wheel twine
-    - name: Build
-      run: python setup.py sdist bdist_wheel
-    - name: Publish wheel
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: twine upload dist/*.whl
-    - name: Publish source
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: twine upload dist/*.tar.gz || true
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Bootstrap poetry
+        run: |
+          curl -sL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python - -y
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Build and publish
+        env:
+          POETRY_HTTP_BASIC_PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          POETRY_HTTP_BASIC_PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          poetry build
+          poetry publish
