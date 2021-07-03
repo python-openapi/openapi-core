@@ -1,8 +1,11 @@
 """OpenAPI core validation request datatypes module"""
-from typing import Dict, Optional
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Dict
+from typing import Optional
 
-from dataclasses import dataclass, field
-from werkzeug.datastructures import ImmutableMultiDict, Headers
+from werkzeug.datastructures import Headers
+from werkzeug.datastructures import ImmutableMultiDict
 
 from openapi_core.validation.datatypes import BaseValidationResult
 
@@ -21,6 +24,7 @@ class RequestParameters:
         path
             Path parameters as dict. Gets resolved against spec if empty.
     """
+
     query: ImmutableMultiDict = field(default_factory=ImmutableMultiDict)
     header: Headers = field(default_factory=Headers)
     cookie: ImmutableMultiDict = field(default_factory=ImmutableMultiDict)

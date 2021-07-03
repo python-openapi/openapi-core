@@ -68,5 +68,31 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: "Run static checks"
-        uses: pre-commit/action@v2.0.3
+      - name: Get full Python version
+        id: full-python-version
+        run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+
+      - name: Bootstrap poetry
+        run: |
+          curl -sL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python - -y
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Set up cache
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: .venv
+          key: venv-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Ensure cache is healthy
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: timeout 10s poetry run pip --version || rm -rf .venv
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run static checks
+        run: poetry run pre-commit run -a

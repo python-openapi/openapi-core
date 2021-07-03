@@ -19,13 +19,14 @@ class DjangoOpenAPIMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
-        if not hasattr(settings, 'OPENAPI_SPEC'):
+        if not hasattr(settings, "OPENAPI_SPEC"):
             raise ImproperlyConfigured("OPENAPI_SPEC not defined in settings")
 
         request_validator = RequestValidator(settings.OPENAPI_SPEC)
         response_validator = ResponseValidator(settings.OPENAPI_SPEC)
         self.validation_processor = OpenAPIProcessor(
-            request_validator, response_validator)
+            request_validator, response_validator
+        )
 
     def __call__(self, request):
         openapi_request = self._get_openapi_request(request)
@@ -38,19 +39,18 @@ class DjangoOpenAPIMiddleware:
 
         openapi_response = self._get_openapi_response(response)
         resp_result = self.validation_processor.process_response(
-            openapi_request, openapi_response)
+            openapi_request, openapi_response
+        )
         if resp_result.errors:
             return self._handle_response_errors(resp_result, request, response)
 
         return response
 
     def _handle_request_errors(self, request_result, req):
-        return self.errors_handler.handle(
-            request_result.errors, req, None)
+        return self.errors_handler.handle(request_result.errors, req, None)
 
     def _handle_response_errors(self, response_result, req, resp):
-        return self.errors_handler.handle(
-            response_result.errors, req, resp)
+        return self.errors_handler.handle(response_result.errors, req, resp)
 
     def _get_openapi_request(self, request):
         return self.request_factory.create(request)

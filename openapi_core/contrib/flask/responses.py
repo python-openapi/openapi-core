@@ -5,7 +5,6 @@ from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
 class FlaskOpenAPIResponseFactory:
-
     @classmethod
     def create(cls, response):
         header = Headers(response.headers)

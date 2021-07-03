@@ -7,16 +7,15 @@ class ModelClassFactory:
     base_class = Model
 
     def create(self, name):
-        return type(name, (self.base_class, ), {})
+        return type(name, (self.base_class,), {})
 
 
 class ModelFactory:
-
     def __init__(self, model_class_factory=None):
         self.model_class_factory = model_class_factory or ModelClassFactory()
 
     def create(self, properties, name=None):
-        name = name or 'Model'
+        name = name or "Model"
 
         model_class = self._create_class(name)
         return model_class(properties)

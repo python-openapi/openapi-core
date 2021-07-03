@@ -24,12 +24,12 @@ parse_path_parameter = PathParameter()
 def search(path_pattern, full_url_pattern):
     extra_types = {parse_path_parameter.name: parse_path_parameter}
     p = ExtendedParser(path_pattern, extra_types)
-    p._expression = p._expression + '$'
+    p._expression = p._expression + "$"
     return p.search(full_url_pattern)
 
 
 def parse(server_url, server_url_pattern):
     extra_types = {parse_path_parameter.name: parse_path_parameter}
     p = ExtendedParser(server_url, extra_types)
-    p._expression = '^' + p._expression
+    p._expression = "^" + p._expression
     return p.parse(server_url_pattern)

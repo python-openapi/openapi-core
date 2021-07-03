@@ -1,9 +1,8 @@
 import pytest
 
 from openapi_core.shortcuts import create_spec
-from openapi_core.templating.paths.exceptions import (
-    PathNotFound, OperationNotFound,
-)
+from openapi_core.templating.paths.exceptions import OperationNotFound
+from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.validators import RequestValidator
@@ -16,12 +15,12 @@ class TestMinimal:
         "https://bad.remote.domain.net/",
         "http://localhost",
         "http://localhost:8080",
-        "https://u:p@a.b:1337"
+        "https://u:p@a.b:1337",
     ]
 
     spec_paths = [
         "data/v3.0/minimal_with_servers.yaml",
-        "data/v3.0/minimal.yaml"
+        "data/v3.0/minimal.yaml",
     ]
 
     @pytest.mark.parametrize("server", servers)

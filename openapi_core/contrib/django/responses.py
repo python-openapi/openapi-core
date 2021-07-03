@@ -5,7 +5,6 @@ from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
 class DjangoOpenAPIResponseFactory:
-
     def create(self, response):
         return OpenAPIResponse(
             data=self._get_data(response),

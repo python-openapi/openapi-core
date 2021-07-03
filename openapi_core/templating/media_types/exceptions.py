@@ -1,6 +1,5 @@
-from typing import List
-
 from dataclasses import dataclass
+from typing import List
 
 from openapi_core.exceptions import OpenAPIError
 

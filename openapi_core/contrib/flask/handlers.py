@@ -3,9 +3,9 @@ from flask.globals import current_app
 from flask.json import dumps
 
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
-from openapi_core.templating.paths.exceptions import (
-    ServerNotFound, OperationNotFound, PathNotFound,
-)
+from openapi_core.templating.paths.exceptions import OperationNotFound
+from openapi_core.templating.paths.exceptions import PathNotFound
+from openapi_core.templating.paths.exceptions import ServerNotFound
 
 
 class FlaskOpenAPIErrorsHandler:
@@ -19,29 +19,24 @@ class FlaskOpenAPIErrorsHandler:
 
     @classmethod
     def handle(cls, errors):
-        data_errors = [
-            cls.format_openapi_error(err)
-            for err in errors
-        ]
+        data_errors = [cls.format_openapi_error(err) for err in errors]
         data = {
-            'errors': data_errors,
+            "errors": data_errors,
         }
         data_error_max = max(data_errors, key=cls.get_error_status)
-        status = data_error_max['status']
+        status = data_error_max["status"]
         return current_app.response_class(
-            dumps(data),
-            status=status,
-            mimetype='application/json'
+            dumps(data), status=status, mimetype="application/json"
         )
 
     @classmethod
     def format_openapi_error(cls, error):
         return {
-            'title': str(error),
-            'status': cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
-            'class': str(type(error)),
+            "title": str(error),
+            "status": cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
+            "class": str(type(error)),
         }
 
     @classmethod
     def get_error_status(cls, error):
-        return error['status']
+        return error["status"]

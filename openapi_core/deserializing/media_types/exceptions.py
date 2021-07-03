@@ -6,6 +6,7 @@ from openapi_core.deserializing.exceptions import DeserializeError
 @dataclass
 class MediaTypeDeserializeError(DeserializeError):
     """Media type deserialize operation error"""
+
     mimetype: str
     value: str
 

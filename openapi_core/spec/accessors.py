@@ -4,7 +4,6 @@ from dictpath.accessors import DictOrListAccessor
 
 
 class SpecAccessor(DictOrListAccessor):
-
     def __init__(self, dict_or_list, dereferencer):
         super().__init__(dict_or_list)
         self.dereferencer = dereferencer
@@ -14,9 +13,8 @@ class SpecAccessor(DictOrListAccessor):
         content = self.dict_or_list
         for part in parts:
             content = content[part]
-            if '$ref' in content:
-                content = self.dereferencer.dereference(
-                    content)
+            if "$ref" in content:
+                content = self.dereferencer.dereference(content)
         try:
             yield content
         finally:

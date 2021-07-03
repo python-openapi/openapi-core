@@ -9,36 +9,39 @@ from openapi_core.validation.response.validators import ResponseValidator
 
 
 class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
-
     def __init__(
-            self,
-            request_validator,
-            response_validator,
-            request_factory=FlaskOpenAPIRequestFactory,
-            response_factory=FlaskOpenAPIResponseFactory,
-            request_provider=FlaskRequestProvider,
-            openapi_errors_handler=FlaskOpenAPIErrorsHandler,
+        self,
+        request_validator,
+        response_validator,
+        request_factory=FlaskOpenAPIRequestFactory,
+        response_factory=FlaskOpenAPIResponseFactory,
+        request_provider=FlaskRequestProvider,
+        openapi_errors_handler=FlaskOpenAPIErrorsHandler,
     ):
         super().__init__(
-            request_validator, response_validator,
-            request_factory, response_factory,
-            request_provider, openapi_errors_handler,
+            request_validator,
+            response_validator,
+            request_factory,
+            response_factory,
+            request_provider,
+            openapi_errors_handler,
         )
 
     def _handle_request_view(self, request_result, view, *args, **kwargs):
         request = self._get_request(*args, **kwargs)
         request.openapi = request_result
         return super()._handle_request_view(
-            request_result, view, *args, **kwargs)
+            request_result, view, *args, **kwargs
+        )
 
     @classmethod
     def from_spec(
-            cls,
-            spec,
-            request_factory=FlaskOpenAPIRequestFactory,
-            response_factory=FlaskOpenAPIResponseFactory,
-            request_provider=FlaskRequestProvider,
-            openapi_errors_handler=FlaskOpenAPIErrorsHandler,
+        cls,
+        spec,
+        request_factory=FlaskOpenAPIRequestFactory,
+        response_factory=FlaskOpenAPIResponseFactory,
+        request_provider=FlaskRequestProvider,
+        openapi_errors_handler=FlaskOpenAPIErrorsHandler,
     ):
         request_validator = RequestValidator(spec)
         response_validator = ResponseValidator(spec)

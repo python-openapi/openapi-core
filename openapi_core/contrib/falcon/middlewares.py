@@ -37,7 +37,8 @@ class FalconOpenAPIMiddleware:
         request_validator = RequestValidator(spec)
         response_validator = ResponseValidator(spec)
         validation_processor = OpenAPIProcessor(
-            request_validator, response_validator)
+            request_validator, response_validator
+        )
         return cls(
             validation_processor,
             request_factory=request_factory,
@@ -55,18 +56,18 @@ class FalconOpenAPIMiddleware:
         openapi_req = self._get_openapi_request(req)
         openapi_resp = self._get_openapi_response(resp)
         resp.context.openapi = self._process_openapi_response(
-            openapi_req, openapi_resp)
+            openapi_req, openapi_resp
+        )
         if resp.context.openapi.errors:
             return self._handle_response_errors(
-                req, resp, resp.context.openapi)
+                req, resp, resp.context.openapi
+            )
 
     def _handle_request_errors(self, req, resp, request_result):
-        return self.errors_handler.handle(
-            req, resp, request_result.errors)
+        return self.errors_handler.handle(req, resp, request_result.errors)
 
     def _handle_response_errors(self, req, resp, response_result):
-        return self.errors_handler.handle(
-            req, resp, response_result.errors)
+        return self.errors_handler.handle(req, resp, response_result.errors)
 
     def _get_openapi_request(self, request):
         return self.request_factory.create(request)
@@ -79,4 +80,5 @@ class FalconOpenAPIMiddleware:
 
     def _process_openapi_response(self, opneapi_request, openapi_response):
         return self.validation_processor.process_response(
-            opneapi_request, openapi_response)
+            opneapi_request, openapi_response
+        )

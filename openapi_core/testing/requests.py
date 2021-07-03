@@ -1,20 +1,28 @@
 """OpenAPI core testing requests module"""
 from urllib.parse import urljoin
 
-from werkzeug.datastructures import Headers, ImmutableMultiDict
+from werkzeug.datastructures import Headers
+from werkzeug.datastructures import ImmutableMultiDict
 
-from openapi_core.validation.request.datatypes import (
-    RequestParameters, OpenAPIRequest,
-)
+from openapi_core.validation.request.datatypes import OpenAPIRequest
+from openapi_core.validation.request.datatypes import RequestParameters
 
 
 class MockRequestFactory:
-
     @classmethod
     def create(
-            cls, host_url, method, path, path_pattern=None, args=None,
-            view_args=None, headers=None, cookies=None, data=None,
-            mimetype='application/json'):
+        cls,
+        host_url,
+        method,
+        path,
+        path_pattern=None,
+        args=None,
+        view_args=None,
+        headers=None,
+        cookies=None,
+        data=None,
+        mimetype="application/json",
+    ):
         path_pattern = path_pattern or path
 
         path = view_args or {}
@@ -28,7 +36,7 @@ class MockRequestFactory:
             cookie=cookie,
         )
         method = method.lower()
-        body = data or ''
+        body = data or ""
         full_url_pattern = urljoin(host_url, path_pattern)
         return OpenAPIRequest(
             full_url_pattern=full_url_pattern,

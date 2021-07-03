@@ -1,6 +1,9 @@
 """OpenAPI core validation response datatypes module"""
-from typing import Dict, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Dict
+from typing import Optional
+
 from werkzeug.datastructures import Headers
 
 from openapi_core.validation.datatypes import BaseValidationResult
@@ -20,6 +23,7 @@ class OpenAPIResponse:
         mimetype
             Lowercase content type without charset.
     """
+
     data: str
     status_code: int
     mimetype: str

@@ -1,15 +1,14 @@
 """OpenAPI core contrib falcon responses module"""
 from json import dumps
 
-from werkzeug.datastructures import ImmutableMultiDict, Headers
+from werkzeug.datastructures import Headers
+from werkzeug.datastructures import ImmutableMultiDict
 
-from openapi_core.validation.request.datatypes import (
-    OpenAPIRequest, RequestParameters,
-)
+from openapi_core.validation.request.datatypes import OpenAPIRequest
+from openapi_core.validation.request.datatypes import RequestParameters
 
 
 class FalconOpenAPIRequestFactory:
-
     def __init__(self, default_when_empty=None):
         if default_when_empty is None:
             default_when_empty = {}
@@ -23,9 +22,7 @@ class FalconOpenAPIRequestFactory:
 
         media = request.get_media(default_when_empty=self.default_when_empty)
         # Support falcon-jsonify.
-        body = (
-            dumps(getattr(request, "json", media))
-        )
+        body = dumps(getattr(request, "json", media))
         mimetype = request.options.default_media_type
         if request.content_type:
             mimetype = request.content_type.partition(";")[0]

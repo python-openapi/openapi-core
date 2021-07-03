@@ -10,6 +10,5 @@ class ValidationError(OpenAPIError):
 
 @dataclass
 class InvalidSecurity(ValidationError):
-
     def __str__(self):
         return "Security not valid for any requirement"

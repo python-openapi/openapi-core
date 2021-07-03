@@ -8,11 +8,12 @@ def urlencoded_form_loads(value):
 
 def data_form_loads(value):
     if issubclass(type(value), bytes):
-        value = value.decode('ASCII', errors='surrogateescape')
+        value = value.decode("ASCII", errors="surrogateescape")
     parser = Parser()
     parts = parser.parsestr(value, headersonly=False)
     return {
-        part.get_param('name', header='content-disposition'):
-        part.get_payload(decode=True)
+        part.get_param("name", header="content-disposition"): part.get_payload(
+            decode=True
+        )
         for part in parts.get_payload()
     }

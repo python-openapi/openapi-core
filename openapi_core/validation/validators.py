@@ -12,11 +12,12 @@ from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 
 class BaseValidator:
-
     def __init__(
-            self, spec,
-            base_url=None,
-            custom_formatters=None, custom_media_type_deserializers=None,
+        self,
+        spec,
+        base_url=None,
+        custom_formatters=None,
+        custom_media_type_deserializers=None,
     ):
         self.spec = spec
         self.base_url = base_url
@@ -36,7 +37,8 @@ class BaseValidator:
     @property
     def media_type_deserializers_factory(self):
         return MediaTypeDeserializersFactory(
-            self.custom_media_type_deserializers)
+            self.custom_media_type_deserializers
+        )
 
     @property
     def parameter_deserializers_factory(self):
@@ -51,6 +53,7 @@ class BaseValidator:
 
     def _get_media_type(self, content, request_or_response):
         from openapi_core.templating.media_types.finders import MediaTypeFinder
+
         finder = MediaTypeFinder(content)
         return finder.find(request_or_response)
 
@@ -74,24 +77,25 @@ class BaseValidator:
         try:
             raw_value = get_value(param_or_header, location, name=name)
         except KeyError:
-            if 'schema' not in param_or_header:
+            if "schema" not in param_or_header:
                 raise
-            schema = param_or_header / 'schema'
-            if 'default' not in schema:
+            schema = param_or_header / "schema"
+            if "default" not in schema:
                 raise
-            casted = schema['default']
+            casted = schema["default"]
         else:
             # Simple scenario
-            if 'content' not in param_or_header:
+            if "content" not in param_or_header:
                 deserialised = self._deserialise_parameter(
-                    param_or_header, raw_value)
-                schema = param_or_header / 'schema'
+                    param_or_header, raw_value
+                )
+                schema = param_or_header / "schema"
             # Complex scenario
             else:
-                content = param_or_header / 'content'
+                content = param_or_header / "content"
                 mimetype, media_type = next(content.items())
                 deserialised = self._deserialise_data(mimetype, raw_value)
-                schema = media_type / 'schema'
+                schema = media_type / "schema"
             casted = self._cast(schema, deserialised)
         unmarshalled = self._unmarshal(schema, casted)
         return unmarshalled

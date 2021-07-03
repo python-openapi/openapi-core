@@ -8,11 +8,13 @@ repos:
   - repo: meta
     hooks:
       - id: check-hooks-apply
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.19.0
     hooks:
       - id: pyupgrade
         args: ["--py36-plus"]
+
   - repo: local
     hooks:
       - id: flynt
@@ -20,3 +22,18 @@ repos:
         entry: flynt
         language: python
         additional_dependencies: ['flynt==0.64']
+      
+      - id: black
+        name: black
+        entry: black
+        language: system
+        require_serial: true
+        types: [python]
+
+      - id: isort
+        name: isort
+        entry: isort
+        args: ['--filter-files']
+        language: system
+        require_serial: true
+        types: [python]
