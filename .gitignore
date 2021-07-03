@@ -103,3 +103,5 @@ ENV/
 
 # Jetbrains project files
 .idea/
+
+/reports/

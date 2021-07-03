@@ -12,16 +12,16 @@ params:
 	@echo "Version: ${VERSION}"
 
 dist-build:
-	@python setup.py bdist_wheel
+	@poetry build
 
 dist-cleanup:
 	@rm -rf build dist ${PACKAGE_NAME}.egg-info
 
 dist-upload:
-	@twine upload dist/*.whl
+	@poetry publish
 
 test-python:
-	@python setup.py test
+	@pytest
 
 test-cache-cleanup:
 	@rm -rf .pytest_cache

@@ -1,0 +1,62 @@
+[tool.poetry]
+name = "openapi-core"
+version = "0.14.2"
+description = "client-side and server-side support for the OpenAPI Specification v3"
+authors = ["Artur Maciag <maciag.artur@gmail.com>"]
+license = "BSD-3-Clause"
+readme = "README.rst"
+repository = "https://github.com/p1c2u/openapi-core"
+documentation = "https://openapi-core.readthedocs.io"
+keywords = ["openapi", "swagger", "schema"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Libraries"
+]
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+dataclasses = {version = "*", python = "~3.6"}
+dictpath = "*"
+django = {version = ">=3.0", optional = true}
+falcon = {version = ">=3.0", optional = true}
+flask = {version = "*", optional = true}
+isodate = "*"
+more-itertools = "*"
+parse = "*"
+openapi-schema-validator = "*"
+openapi-spec-validator = "*"
+requests = {version = "*", optional = true}
+werkzeug = "*"
+
+[tool.poetry.extras]
+django = ["django"]
+falcon = ["falcon"]
+flask = ["flask"]
+requests = ["requests"]
+
+[tool.poetry.dev-dependencies]
+django = ">=3.0"
+djangorestframework = "^3.11.2"
+falcon = ">=3.0"
+flask = "*"
+pre-commit = "*"
+pytest = "^5.0.0"
+pytest-flake8 = "*"
+pytest-cov = "*"
+responses = "*"
+sphinx = "^4.0.2"
+sphinx-rtd-theme = "^0.5.2"
+strict-rfc3339 = "^0.7"
+webob = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
