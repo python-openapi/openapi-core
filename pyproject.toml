@@ -1,3 +1,14 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+branch = true
+source =["openapi_core"]
+
+[tool.coverage.xml]
+output = "reports/coverage.xml"
+
 [tool.poetry]
 name = "openapi-core"
 version = "0.14.2"
@@ -57,6 +68,14 @@ sphinx-rtd-theme = "^0.5.2"
 strict-rfc3339 = "^0.7"
 webob = "*"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.pytest.ini_options]
+addopts = """
+--capture=no
+--verbose
+--pythonwarnings=error
+--showlocals
+--junitxml=reports/junit.xml
+--cov=openapi_core
+--cov-report=term-missing
+--cov-report=xml
+"""

@@ -82,7 +82,8 @@ class TestRequestValidator:
     def test_missing_parameter(self, validator):
         request = MockRequest(self.host_url, 'get', '/v1/pets')
 
-        result = validator.validate(request)
+        with pytest.warns(DeprecationWarning):
+            result = validator.validate(request)
 
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
@@ -100,7 +101,8 @@ class TestRequestValidator:
             path_pattern='/v1/pets', args=args,
         )
 
-        result = validator.validate(request)
+        with pytest.warns(DeprecationWarning):
+            result = validator.validate(request)
 
         assert result.errors == []
         assert result.body is None
@@ -127,7 +129,8 @@ class TestRequestValidator:
             {}
         )
 
-        result = validator.validate(request)
+        with pytest.warns(DeprecationWarning):
+            result = validator.validate(request)
 
         assert result.errors == []
         assert result.body is None
@@ -324,7 +327,8 @@ class TestRequestValidator:
             mimetype='text/plain',
         )
 
-        result = validator.validate(request)
+        with pytest.warns(UserWarning):
+            result = validator.validate(request)
 
         assert result.errors == []
         assert result.parameters == Parameters(

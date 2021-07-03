@@ -115,7 +115,8 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = spec_validate_parameters(spec, request)
         body = spec_validate_body(spec, request)
 
         assert parameters == Parameters(
@@ -161,7 +162,8 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = spec_validate_parameters(spec, request)
         body = spec_validate_body(spec, request)
 
         assert parameters == Parameters(
@@ -176,7 +178,8 @@ class TestPetstore:
         data = '<html></html>'
         response = MockResponse(data, status_code=404, mimetype='text/html')
 
-        response_result = response_validator.validate(request, response)
+        with pytest.warns(UserWarning):
+            response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
         assert response_result.data == data
@@ -193,7 +196,8 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = spec_validate_parameters(spec, request)
         body = spec_validate_body(spec, request)
 
         assert parameters == Parameters(
@@ -246,7 +250,8 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = spec_validate_parameters(spec, request)
         body = spec_validate_body(spec, request)
 
         assert parameters == Parameters(
@@ -284,7 +289,8 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = spec_validate_parameters(spec, request)
         body = spec_validate_body(spec, request)
 
         assert parameters == Parameters(
@@ -322,8 +328,9 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(DeserializeError):
-            spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(DeserializeError):
+                spec_validate_parameters(spec, request)
 
         body = spec_validate_body(spec, request)
 
@@ -341,8 +348,9 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(CastError):
-            spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(CastError):
+                spec_validate_parameters(spec, request)
 
         body = spec_validate_body(spec, request)
 
@@ -356,8 +364,9 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        with pytest.raises(MissingRequiredParameter):
-            spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(MissingRequiredParameter):
+                spec_validate_parameters(spec, request)
 
         body = spec_validate_body(spec, request)
 
@@ -375,8 +384,9 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        with pytest.raises(EmptyQueryParameterValue):
-            spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(EmptyQueryParameterValue):
+                spec_validate_parameters(spec, request)
         body = spec_validate_body(spec, request)
 
         assert body is None
@@ -421,7 +431,8 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = spec_validate_parameters(spec, request)
 
         assert parameters == Parameters(
             query={
@@ -448,7 +459,8 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = spec_validate_parameters(spec, request)
 
         assert parameters == Parameters(
             query={
@@ -480,7 +492,8 @@ class TestPetstore:
             path_pattern=path_pattern, args=query_params,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        with pytest.warns(DeprecationWarning):
+            parameters = spec_validate_parameters(spec, request)
 
         assert parameters == Parameters(
             query={
@@ -1040,7 +1053,8 @@ class TestPetstore:
         data = b'imagedata'
         response = MockResponse(data, mimetype='image/png')
 
-        response_result = response_validator.validate(request, response)
+        with pytest.warns(UserWarning):
+            response_result = response_validator.validate(request, response)
 
         assert response_result.errors == []
         assert response_result.data == data
@@ -1353,7 +1367,8 @@ class TestPetstore:
         assert response_result.errors == []
         assert response_result.data is None
 
-        response_headers = spec_validate_headers(spec, request, response)
+        with pytest.warns(DeprecationWarning):
+            response_headers = spec_validate_headers(spec, request, response)
 
         assert response_headers == {
             'x-delete-confirm': True,
@@ -1392,7 +1407,9 @@ class TestPetstore:
         data = None
         response = MockResponse(data, status_code=200)
 
-        response_result = response_validator.validate(request, response)
+        with pytest.warns(DeprecationWarning):
+            response_result = response_validator.validate(request, response)
+
         assert response_result.errors == [
             MissingRequiredHeader(name='x-delete-confirm'),
         ]

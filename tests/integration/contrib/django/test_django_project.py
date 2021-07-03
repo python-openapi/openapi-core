@@ -46,7 +46,9 @@ class TestPetListView(BaseTestDjangoProject):
             'HTTP_AUTHORIZATION': 'Basic testuser',
             'HTTP_HOST': 'petstore.swagger.io',
         }
-        response = client.get('/v1/pets', **headers)
+
+        with pytest.warns(DeprecationWarning):
+            response = client.get('/v1/pets', **headers)
 
         expected_data = {
             'errors': [
@@ -71,7 +73,9 @@ class TestPetListView(BaseTestDjangoProject):
             'HTTP_AUTHORIZATION': 'Basic testuser',
             'HTTP_HOST': 'petstore.swagger.io',
         }
-        response = client.get('/v1/pets', data_json, **headers)
+
+        with pytest.warns(DeprecationWarning):
+            response = client.get('/v1/pets', data_json, **headers)
 
         expected_data = {
             'data': [

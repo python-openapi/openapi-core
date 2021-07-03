@@ -2,6 +2,7 @@ from base64 import b64encode
 from json import dumps
 
 from falcon.constants import MEDIA_URLENCODED
+import pytest
 
 
 class BaseTestFalconProject:
@@ -22,8 +23,9 @@ class TestPetListResource(BaseTestFalconProject):
             'Content-Type': 'application/json',
         }
 
-        response = client.simulate_get(
-            '/v1/pets', host='petstore.swagger.io', headers=headers)
+        with pytest.warns(DeprecationWarning):
+            response = client.simulate_get(
+                '/v1/pets', host='petstore.swagger.io', headers=headers)
 
         assert response.status_code == 400
 
@@ -33,11 +35,12 @@ class TestPetListResource(BaseTestFalconProject):
         }
         query_string = "limit=12"
 
-        response = client.simulate_get(
-            '/v1/pets',
-            host='petstore.swagger.io', headers=headers,
-            query_string=query_string,
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.simulate_get(
+                '/v1/pets',
+                host='petstore.swagger.io', headers=headers,
+                query_string=query_string,
+            )
 
         assert response.status_code == 200
         assert response.json == {
