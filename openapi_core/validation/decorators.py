@@ -5,15 +5,14 @@ from openapi_core.validation.processors import OpenAPIProcessor
 
 
 class OpenAPIDecorator(OpenAPIProcessor):
-
     def __init__(
-            self,
-            request_validator,
-            response_validator,
-            request_factory,
-            response_factory,
-            request_provider,
-            openapi_errors_handler,
+        self,
+        request_validator,
+        response_validator,
+        request_factory,
+        response_factory,
+        request_provider,
+        openapi_errors_handler,
     ):
         super().__init__(request_validator, response_validator)
         self.request_factory = request_factory
@@ -30,13 +29,16 @@ class OpenAPIDecorator(OpenAPIProcessor):
             if request_result.errors:
                 return self._handle_request_errors(request_result)
             response = self._handle_request_view(
-                request_result, view, *args, **kwargs)
+                request_result, view, *args, **kwargs
+            )
             openapi_response = self._get_openapi_response(response)
             response_result = self.process_response(
-                openapi_request, openapi_response)
+                openapi_request, openapi_response
+            )
             if response_result.errors:
                 return self._handle_response_errors(response_result)
             return response
+
         return decorated
 
     def _get_request(self, *args, **kwargs):

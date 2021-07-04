@@ -1,11 +1,11 @@
 def get_all_properties(schema):
-    properties = schema.get('properties', {})
+    properties = schema.get("properties", {})
     properties_dict = dict(list(properties.items()))
 
-    if 'allOf'not in schema:
+    if "allOf" not in schema:
         return properties_dict
 
-    for subschema in schema / 'allOf':
+    for subschema in schema / "allOf":
         subschema_props = get_all_properties(subschema)
         properties_dict.update(subschema_props)
 

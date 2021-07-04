@@ -9,7 +9,7 @@ class FalconOpenAPIResponseFactory:
     def create(cls, response):
         status_code = int(response.status[:3])
 
-        mimetype = ''
+        mimetype = ""
         if response.content_type:
             mimetype = response.content_type.partition(";")[0]
         else:

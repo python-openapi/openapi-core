@@ -6,7 +6,6 @@ from openapi_core.deserializing.media_types.exceptions import (
 
 
 class BaseMediaTypeDeserializer:
-
     def __init__(self, mimetype):
         self.mimetype = mimetype
 
@@ -15,14 +14,12 @@ class BaseMediaTypeDeserializer:
 
 
 class UnsupportedMimetypeDeserializer(BaseMediaTypeDeserializer):
-
     def __call__(self, value):
         warnings.warn(f"Unsupported {self.mimetype} mimetype")
         return value
 
 
 class CallableMediaTypeDeserializer(BaseMediaTypeDeserializer):
-
     def __init__(self, mimetype, deserializer_callable):
         self.mimetype = mimetype
         self.deserializer_callable = deserializer_callable

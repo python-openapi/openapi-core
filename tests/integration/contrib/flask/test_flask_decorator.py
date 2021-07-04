@@ -1,5 +1,7 @@
-from flask import Flask, make_response, jsonify
 import pytest
+from flask import Flask
+from flask import jsonify
+from flask import make_response
 
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 from openapi_core.shortcuts import create_spec
@@ -12,7 +14,7 @@ class TestFlaskOpenAPIDecorator:
 
     @pytest.fixture
     def spec(self, factory):
-        specfile = 'contrib/flask/data/v3.0/flask_factory.yaml'
+        specfile = "contrib/flask/data/v3.0/flask_factory.yaml"
         return create_spec(factory.spec_from_file(specfile))
 
     @pytest.fixture
@@ -22,8 +24,8 @@ class TestFlaskOpenAPIDecorator:
     @pytest.fixture
     def app(self):
         app = Flask("__main__")
-        app.config['DEBUG'] = True
-        app.config['TESTING'] = True
+        app.config["DEBUG"] = True
+        app.config["TESTING"] = True
         return app
 
     @pytest.fixture
@@ -36,14 +38,16 @@ class TestFlaskOpenAPIDecorator:
     def view_response(self):
         def view_response(*args, **kwargs):
             return self.view_response_callable(*args, **kwargs)
+
         return view_response
 
     @pytest.fixture(autouse=True)
     def details_view(self, app, decorator, view_response):
-        @app.route("/browse/<id>/", methods=['GET', 'POST'])
+        @app.route("/browse/<id>/", methods=["GET", "POST"])
         @decorator
         def browse_details(*args, **kwargs):
             return view_response(*args, **kwargs)
+
         return browse_details
 
     @pytest.fixture(autouse=True)
@@ -52,52 +56,57 @@ class TestFlaskOpenAPIDecorator:
         @decorator
         def browse_list(*args, **kwargs):
             return view_response(*args, **kwargs)
+
         return browse_list
 
     def test_invalid_content_type(self, client):
         def view_response_callable(*args, **kwargs):
             from flask.globals import request
+
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == Parameters(path={
-                'id': 12,
-            })
-            resp = make_response('success', 200)
-            resp.headers['X-Rate-Limit'] = '12'
+            assert request.openapi.parameters == Parameters(
+                path={
+                    "id": 12,
+                }
+            )
+            resp = make_response("success", 200)
+            resp.headers["X-Rate-Limit"] = "12"
             return resp
+
         self.view_response_callable = view_response_callable
-        result = client.get('/browse/12/')
+        result = client.get("/browse/12/")
 
         assert result.json == {
-            'errors': [
+            "errors": [
                 {
-                    'class': (
+                    "class": (
                         "<class 'openapi_core.templating.media_types."
                         "exceptions.MediaTypeNotFound'>"
                     ),
-                    'status': 415,
-                    'title': (
+                    "status": 415,
+                    "title": (
                         "Content for the following mimetype not found: "
                         "text/html. Valid mimetypes: ['application/json']"
-                    )
+                    ),
                 }
             ]
         }
 
     def test_server_error(self, client):
-        result = client.get('/browse/12/', base_url='https://localhost')
+        result = client.get("/browse/12/", base_url="https://localhost")
 
         expected_data = {
-            'errors': [
+            "errors": [
                 {
-                    'class': (
+                    "class": (
                         "<class 'openapi_core.templating.paths.exceptions."
                         "ServerNotFound'>"
                     ),
-                    'status': 400,
-                    'title': (
-                        'Server not found for '
-                        'https://localhost/browse/{id}/'
+                    "status": 400,
+                    "title": (
+                        "Server not found for "
+                        "https://localhost/browse/{id}/"
                     ),
                 }
             ]
@@ -106,19 +115,19 @@ class TestFlaskOpenAPIDecorator:
         assert result.json == expected_data
 
     def test_operation_error(self, client):
-        result = client.post('/browse/12/')
+        result = client.post("/browse/12/")
 
         expected_data = {
-            'errors': [
+            "errors": [
                 {
-                    'class': (
+                    "class": (
                         "<class 'openapi_core.templating.paths.exceptions."
                         "OperationNotFound'>"
                     ),
-                    'status': 405,
-                    'title': (
-                        'Operation post not found for '
-                        'http://localhost/browse/{id}/'
+                    "status": 405,
+                    "title": (
+                        "Operation post not found for "
+                        "http://localhost/browse/{id}/"
                     ),
                 }
             ]
@@ -127,19 +136,18 @@ class TestFlaskOpenAPIDecorator:
         assert result.json == expected_data
 
     def test_path_error(self, client):
-        result = client.get('/browse/')
+        result = client.get("/browse/")
 
         expected_data = {
-            'errors': [
+            "errors": [
                 {
-                    'class': (
+                    "class": (
                         "<class 'openapi_core.templating.paths.exceptions."
                         "PathNotFound'>"
                     ),
-                    'status': 404,
-                    'title': (
-                        'Path not found for '
-                        'http://localhost/browse/'
+                    "status": 404,
+                    "title": (
+                        "Path not found for " "http://localhost/browse/"
                     ),
                 }
             ]
@@ -148,20 +156,20 @@ class TestFlaskOpenAPIDecorator:
         assert result.json == expected_data
 
     def test_endpoint_error(self, client):
-        result = client.get('/browse/invalidparameter/')
+        result = client.get("/browse/invalidparameter/")
 
         expected_data = {
-            'errors': [
+            "errors": [
                 {
-                    'class': (
+                    "class": (
                         "<class 'openapi_core.casting.schemas.exceptions."
                         "CastError'>"
                     ),
-                    'status': 400,
-                    'title': (
+                    "status": 400,
+                    "title": (
                         "Failed to cast value to integer type: "
                         "invalidparameter"
-                    )
+                    ),
                 }
             ]
         }
@@ -170,19 +178,23 @@ class TestFlaskOpenAPIDecorator:
     def test_valid(self, client):
         def view_response_callable(*args, **kwargs):
             from flask.globals import request
+
             assert request.openapi
             assert not request.openapi.errors
-            assert request.openapi.parameters == Parameters(path={
-                'id': 12,
-            })
-            resp = jsonify(data='data')
-            resp.headers['X-Rate-Limit'] = '12'
+            assert request.openapi.parameters == Parameters(
+                path={
+                    "id": 12,
+                }
+            )
+            resp = jsonify(data="data")
+            resp.headers["X-Rate-Limit"] = "12"
             return resp
+
         self.view_response_callable = view_response_callable
 
-        result = client.get('/browse/12/')
+        result = client.get("/browse/12/")
 
         assert result.status_code == 200
         assert result.json == {
-            'data': 'data',
+            "data": "data",
         }

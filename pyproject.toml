@@ -33,7 +33,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.2"
 dataclasses = {version = "*", python = "~3.6"}
 dictpath = "*"
 django = {version = ">=3.0", optional = true}
@@ -54,10 +54,12 @@ flask = ["flask"]
 requests = ["requests"]
 
 [tool.poetry.dev-dependencies]
+black = {version = "^21.6b0", allow-prereleases = true}
 django = ">=3.0"
 djangorestframework = "^3.11.2"
 falcon = ">=3.0"
 flask = "*"
+isort = "^5.9.1"
 pre-commit = "*"
 pytest = "^6"
 pytest-flake8 = "*"
@@ -79,3 +81,11 @@ addopts = """
 --cov-report=term-missing
 --cov-report=xml
 """
+
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+force_single_line = true

@@ -6,6 +6,8 @@ FlaskOpenAPIRequest = FlaskOpenAPIRequestFactory.create
 FlaskOpenAPIResponse = FlaskOpenAPIResponseFactory.create
 
 __all__ = [
-    'FlaskOpenAPIRequestFactory', 'FlaskOpenAPIResponseFactory',
-    'FlaskOpenAPIRequest', 'FlaskOpenAPIResponse',
+    "FlaskOpenAPIRequestFactory",
+    "FlaskOpenAPIResponseFactory",
+    "FlaskOpenAPIRequest",
+    "FlaskOpenAPIResponse",
 ]

@@ -1,10 +1,10 @@
 import pytest
 
-from openapi_core.extensions.models.models import BaseModel, Model
+from openapi_core.extensions.models.models import BaseModel
+from openapi_core.extensions.models.models import Model
 
 
 class TestBaseModelDict:
-
     def test_not_implemented(self):
         model = BaseModel()
 
@@ -13,7 +13,6 @@ class TestBaseModelDict:
 
 
 class TestModelDict:
-
     def test_dict_empty(self):
         model = Model()
 
@@ -23,8 +22,8 @@ class TestModelDict:
 
     def test_dict(self):
         properties = {
-            'prop1': 'value1',
-            'prop2': 'value2',
+            "prop1": "value1",
+            "prop2": "value2",
         }
         model = Model(properties)
 
@@ -33,9 +32,9 @@ class TestModelDict:
         assert result == properties
 
     def test_attribute(self):
-        prop_value = 'value1'
+        prop_value = "value1"
         properties = {
-            'prop1': prop_value,
+            "prop1": prop_value,
         }
         model = Model(properties)
 

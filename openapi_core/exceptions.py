@@ -15,7 +15,6 @@ class OpenAPIHeaderError(OpenAPIError):
 
 class MissingHeaderError(OpenAPIHeaderError):
     """Missing header error"""
-    pass
 
 
 @dataclass
@@ -40,7 +39,6 @@ class OpenAPIParameterError(OpenAPIError):
 
 class MissingParameterError(OpenAPIParameterError):
     """Missing parameter error"""
-    pass
 
 
 @dataclass
@@ -65,7 +63,6 @@ class OpenAPIRequestBodyError(OpenAPIError):
 
 class MissingRequestBodyError(OpenAPIRequestBodyError):
     """Missing request body error"""
-    pass
 
 
 @dataclass

@@ -8,10 +8,9 @@ from openapi_core.validation.response.shortcuts import spec_validate_data
 
 
 class TestSpecValidateData:
-
     @mock.patch(
-        'openapi_core.validation.response.shortcuts.ResponseDataValidator.'
-        'validate'
+        "openapi_core.validation.response.shortcuts.ResponseDataValidator."
+        "validate"
     )
     def test_no_factories(self, mock_validate):
         spec = mock.sentinel.spec
@@ -26,8 +25,8 @@ class TestSpecValidateData:
         mock_validate.aasert_called_once_with(request, response)
 
     @mock.patch(
-        'openapi_core.validation.response.shortcuts.ResponseDataValidator.'
-        'validate'
+        "openapi_core.validation.response.shortcuts.ResponseDataValidator."
+        "validate"
     )
     def test_no_factories_error(self, mock_validate):
         spec = mock.sentinel.spec
@@ -41,8 +40,8 @@ class TestSpecValidateData:
         mock_validate.aasert_called_once_with(request, response)
 
     @mock.patch(
-        'openapi_core.validation.response.shortcuts.ResponseDataValidator.'
-        'validate'
+        "openapi_core.validation.response.shortcuts.ResponseDataValidator."
+        "validate"
     )
     def test_factories(self, mock_validate):
         spec = mock.sentinel.spec
@@ -54,8 +53,11 @@ class TestSpecValidateData:
         response_factory = FactoryClassMock
 
         result = spec_validate_data(
-            spec, request, response,
-            request_factory, response_factory,
+            spec,
+            request,
+            response,
+            request_factory,
+            response_factory,
         )
 
         assert result == data
@@ -65,8 +67,8 @@ class TestSpecValidateData:
         )
 
     @mock.patch(
-        'openapi_core.validation.response.shortcuts.ResponseDataValidator.'
-        'validate'
+        "openapi_core.validation.response.shortcuts.ResponseDataValidator."
+        "validate"
     )
     def test_factories_error(self, mock_validate):
         spec = mock.sentinel.spec
@@ -78,8 +80,11 @@ class TestSpecValidateData:
 
         with pytest.raises(ValueError):
             spec_validate_data(
-                spec, request, response,
-                request_factory, response_factory,
+                spec,
+                request,
+                response,
+                request_factory,
+                response_factory,
             )
 
         mock_validate.assert_called_once_with(

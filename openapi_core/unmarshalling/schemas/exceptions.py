@@ -1,23 +1,20 @@
+from dataclasses import dataclass
+from dataclasses import field
 from typing import List
-
-from dataclasses import dataclass, field
 
 from openapi_core.exceptions import OpenAPIError
 
 
 class UnmarshalError(OpenAPIError):
     """Schema unmarshal operation error"""
-    pass
 
 
 class ValidateError(UnmarshalError):
     """Schema validate operation error"""
-    pass
 
 
 class UnmarshallerError(UnmarshalError):
     """Unmarshaller error"""
-    pass
 
 
 @dataclass
@@ -35,6 +32,7 @@ class InvalidSchemaValue(ValidateError):
 @dataclass
 class InvalidSchemaFormatValue(UnmarshallerError):
     """Value failed to format with formatter"""
+
     value: str
     type: str
     original_exception: Exception
@@ -43,7 +41,8 @@ class InvalidSchemaFormatValue(UnmarshallerError):
         return (
             "Failed to format value {value} to format {type}: {exception}"
         ).format(
-            value=self.value, type=self.type,
+            value=self.value,
+            type=self.type,
             exception=self.original_exception,
         )
 
@@ -51,6 +50,7 @@ class InvalidSchemaFormatValue(UnmarshallerError):
 @dataclass
 class FormatterNotFoundError(UnmarshallerError):
     """Formatter not found to unmarshal"""
+
     type_format: str
 
     def __str__(self):

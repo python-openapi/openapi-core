@@ -10,6 +10,7 @@ class PathError(OpenAPIError):
 @dataclass
 class PathNotFound(PathError):
     """Find path error"""
+
     url: str
 
     def __str__(self):
@@ -19,6 +20,7 @@ class PathNotFound(PathError):
 @dataclass
 class OperationNotFound(PathError):
     """Find path operation error"""
+
     url: str
     method: str
 
@@ -29,6 +31,7 @@ class OperationNotFound(PathError):
 @dataclass
 class ServerNotFound(PathError):
     """Find server error"""
+
     url: str
 
     def __str__(self):

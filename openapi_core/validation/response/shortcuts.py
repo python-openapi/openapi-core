@@ -1,11 +1,11 @@
 """OpenAPI core validation response shortcuts module"""
 from functools import partial
 
+from openapi_core.validation.response.validators import ResponseDataValidator
 from openapi_core.validation.response.validators import (
-    ResponseValidator,
-    ResponseDataValidator,
     ResponseHeadersValidator,
 )
+from openapi_core.validation.response.validators import ResponseValidator
 
 
 def validate_response(validator, request, response):
@@ -15,7 +15,11 @@ def validate_response(validator, request, response):
 
 
 def spec_validate_response(
-    spec, request, response, request_factory=None, response_factory=None,
+    spec,
+    request,
+    response,
+    request_factory=None,
+    response_factory=None,
     validator_class=ResponseValidator,
     result_attribute=None,
 ):
@@ -36,9 +40,13 @@ def spec_validate_response(
 
 spec_validate_data = partial(
     spec_validate_response,
-    validator_class=ResponseDataValidator, result_attribute='data')
+    validator_class=ResponseDataValidator,
+    result_attribute="data",
+)
 
 
 spec_validate_headers = partial(
     spec_validate_response,
-    validator_class=ResponseHeadersValidator, result_attribute='headers')
+    validator_class=ResponseHeadersValidator,
+    result_attribute="headers",
+)

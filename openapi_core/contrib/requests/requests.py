@@ -1,17 +1,17 @@
 """OpenAPI core contrib requests requests module"""
 
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
 
-from werkzeug.datastructures import ImmutableMultiDict, Headers
 from requests import Request
+from werkzeug.datastructures import Headers
+from werkzeug.datastructures import ImmutableMultiDict
 
-from openapi_core.validation.request.datatypes import (
-    RequestParameters, OpenAPIRequest,
-)
+from openapi_core.validation.request.datatypes import OpenAPIRequest
+from openapi_core.validation.request.datatypes import RequestParameters
 
 
 class RequestsOpenAPIRequestFactory:
-
     @classmethod
     def create(cls, request):
         """
@@ -40,8 +40,9 @@ class RequestsOpenAPIRequestFactory:
 
         # Order matters because all python requests issued from a session
         # include Accept */* which does not necessarily match the content type
-        mimetype = request.headers.get('Content-Type') or \
-            request.headers.get('Accept')
+        mimetype = request.headers.get("Content-Type") or request.headers.get(
+            "Accept"
+        )
 
         # Headers - request.headers is not an instance of Headers
         # which is expected

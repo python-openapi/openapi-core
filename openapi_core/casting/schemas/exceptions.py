@@ -6,6 +6,7 @@ from openapi_core.exceptions import OpenAPIError
 @dataclass
 class CastError(OpenAPIError):
     """Schema cast operation error"""
+
     value: str
     type: str
 

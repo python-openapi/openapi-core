@@ -1,8 +1,8 @@
 from os import path
 from urllib import request
 
-from openapi_spec_validator.schemas import read_yaml_file
 import pytest
+from openapi_spec_validator.schemas import read_yaml_file
 from yaml import safe_load
 
 
@@ -22,7 +22,7 @@ class Factory(dict):
     __setattr__ = dict.__setitem__
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def factory():
     return Factory(
         spec_from_file=spec_from_file,

@@ -5,7 +5,6 @@ from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 
 
 class MediaTypeFinder:
-
     def __init__(self, content):
         self.content = content
 

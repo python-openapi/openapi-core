@@ -10,6 +10,8 @@ RequestsOpenAPIRequest = RequestsOpenAPIRequestFactory.create
 RequestsOpenAPIResponse = RequestsOpenAPIResponseFactory.create
 
 __all__ = [
-    'RequestsOpenAPIRequestFactory', 'RequestsOpenAPIResponseFactory',
-    'RequestsOpenAPIRequest', 'RequestsOpenAPIResponse',
+    "RequestsOpenAPIRequestFactory",
+    "RequestsOpenAPIResponseFactory",
+    "RequestsOpenAPIRequest",
+    "RequestsOpenAPIResponse",
 ]

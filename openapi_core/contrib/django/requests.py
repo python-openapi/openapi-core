@@ -2,11 +2,11 @@
 import re
 from urllib.parse import urljoin
 
-from werkzeug.datastructures import ImmutableMultiDict, Headers
+from werkzeug.datastructures import Headers
+from werkzeug.datastructures import ImmutableMultiDict
 
-from openapi_core.validation.request.datatypes import (
-    RequestParameters, OpenAPIRequest,
-)
+from openapi_core.validation.request.datatypes import OpenAPIRequest
+from openapi_core.validation.request.datatypes import RequestParameters
 
 # https://docs.djangoproject.com/en/2.2/topics/http/urls/
 #
@@ -18,7 +18,7 @@ from openapi_core.validation.request.datatypes import (
 #
 # The regex matches everything, except a "/" until "<". Than only the name
 # is exported, after which it matches ">" and everything until a "/".
-PATH_PARAMETER_PATTERN = r'(?:[^\/]*?)<(?:(?:.*?:))*?(\w+)>(?:[^\/]*)'
+PATH_PARAMETER_PATTERN = r"(?:[^\/]*?)<(?:(?:.*?:))*?(\w+)>(?:[^\/]*)"
 
 
 class DjangoOpenAPIRequestFactory:
@@ -58,14 +58,13 @@ class DjangoOpenAPIRequestFactory:
         if request.resolver_match is None:
             path_pattern = request.path
         else:
-            route = self.path_regex.sub(
-                r'{\1}', request.resolver_match.route)
+            route = self.path_regex.sub(r"{\1}", request.resolver_match.route)
             # Delete start and end marker to allow concatenation.
             if route[:1] == "^":
                 route = route[1:]
             if route[-1:] == "$":
                 route = route[:-1]
-            path_pattern = '/' + route
+            path_pattern = "/" + route
 
         current_scheme_host = request._current_scheme_host
         return urljoin(current_scheme_host, path_pattern)

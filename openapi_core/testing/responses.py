@@ -5,11 +5,10 @@ from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
 class MockResponseFactory:
-
     @classmethod
     def create(
-            cls, data, status_code=200, headers=None,
-            mimetype='application/json'):
+        cls, data, status_code=200, headers=None, mimetype="application/json"
+    ):
         headers = Headers(headers or {})
         return OpenAPIResponse(
             data=data,

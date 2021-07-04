@@ -1,7 +1,7 @@
 from falcon import App
-
 from falconproject.openapi import openapi_middleware
-from falconproject.pets.resources import PetListResource, PetDetailResource
+from falconproject.pets.resources import PetDetailResource
+from falconproject.pets.resources import PetListResource
 
 app = App(middleware=[openapi_middleware])
 

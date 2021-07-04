@@ -1,7 +1,7 @@
 class ResultMock:
-
     def __init__(
-            self, body=None, parameters=None, data=None, error_to_raise=None):
+        self, body=None, parameters=None, data=None, error_to_raise=None
+    ):
         self.body = body
         self.parameters = parameters
         self.data = data

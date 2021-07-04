@@ -3,5 +3,5 @@ from enum import Enum
 
 
 class UnmarshalContext(Enum):
-    REQUEST = 'request'
-    RESPONSE = 'response'
+    REQUEST = "request"
+    RESPONSE = "response"

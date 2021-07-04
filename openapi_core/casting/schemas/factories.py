@@ -1,25 +1,27 @@
-from openapi_core.casting.schemas.casters import (
-    ArrayCaster, CallableSchemaCaster, DummyCaster,
-)
+from openapi_core.casting.schemas.casters import ArrayCaster
+from openapi_core.casting.schemas.casters import CallableSchemaCaster
+from openapi_core.casting.schemas.casters import DummyCaster
 from openapi_core.casting.schemas.util import forcebool
 
 
 class SchemaCastersFactory:
 
     DUMMY_CASTERS = [
-        'string', 'object', 'any',
+        "string",
+        "object",
+        "any",
     ]
     PRIMITIVE_CASTERS = {
-        'integer': int,
-        'number': float,
-        'boolean': forcebool,
+        "integer": int,
+        "number": float,
+        "boolean": forcebool,
     }
     COMPLEX_CASTERS = {
-        'array': ArrayCaster,
+        "array": ArrayCaster,
     }
 
     def create(self, schema):
-        schema_type = schema.getkey('type', 'any')
+        schema_type = schema.getkey("type", "any")
 
         if schema_type in self.DUMMY_CASTERS:
             return DummyCaster(schema)

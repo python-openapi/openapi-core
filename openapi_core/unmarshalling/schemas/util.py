@@ -1,7 +1,7 @@
 """OpenAPI core schemas util module"""
+import datetime
 from base64 import b64decode
 from copy import copy
-import datetime
 from distutils.util import strtobool
 from functools import lru_cache
 from uuid import UUID
@@ -17,7 +17,7 @@ def forcebool(val):
 
 
 def format_date(value):
-    return datetime.datetime.strptime(value, '%Y-%m-%d').date()
+    return datetime.datetime.strptime(value, "%Y-%m-%d").date()
 
 
 def format_uuid(value):
@@ -26,7 +26,7 @@ def format_uuid(value):
     return UUID(value)
 
 
-def format_byte(value, encoding='utf8'):
+def format_byte(value, encoding="utf8"):
     return str(b64decode(value), encoding)
 
 

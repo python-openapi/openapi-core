@@ -5,10 +5,9 @@ from openapi_core.validation.response.datatypes import OpenAPIResponse
 
 
 class RequestsOpenAPIResponseFactory:
-
     @classmethod
     def create(cls, response):
-        mimetype = response.headers.get('Content-Type')
+        mimetype = response.headers.get("Content-Type")
         headers = Headers(dict(response.headers))
         return OpenAPIResponse(
             data=response.content,

@@ -1,5 +1,4 @@
 class Formatter:
-
     def validate(self, value):
         return True
 
@@ -10,9 +9,9 @@ class Formatter:
     def from_callables(cls, validate=None, unmarshal=None):
         attrs = {}
         if validate is not None:
-            attrs['validate'] = staticmethod(validate)
+            attrs["validate"] = staticmethod(validate)
         if unmarshal is not None:
-            attrs['unmarshal'] = staticmethod(unmarshal)
+            attrs["unmarshal"] = staticmethod(unmarshal)
 
-        klass = type('Formatter', (cls, ), attrs)
+        klass = type("Formatter", (cls,), attrs)
         return klass()

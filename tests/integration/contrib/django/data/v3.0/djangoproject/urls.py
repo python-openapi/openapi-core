@@ -14,23 +14,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include
+from django.urls import path
 from djangoproject.pets import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     path(
-        'api-auth/',
-        include('rest_framework.urls', namespace='rest_framework'),
+        "api-auth/",
+        include("rest_framework.urls", namespace="rest_framework"),
     ),
     path(
-        'v1/pets',
+        "v1/pets",
         views.PetListView.as_view(),
-        name='pet_list_view',
+        name="pet_list_view",
     ),
     path(
-        'v1/pets/<int:petId>',
+        "v1/pets/<int:petId>",
         views.PetDetailView.as_view(),
-        name='pet_detail_view',
+        name="pet_detail_view",
     ),
 ]
