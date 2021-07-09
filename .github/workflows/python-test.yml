@@ -51,6 +51,8 @@ jobs:
         run: poetry install
 
       - name: Test
+        env:
+          PYTEST_ADDOPTS: "--color=yes"
         run: poetry run pytest
 
       - name: Upload coverage
