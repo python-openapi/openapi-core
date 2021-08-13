@@ -5,6 +5,7 @@ from uuid import UUID
 
 import pytest
 from isodate.tzinfo import UTC
+from openapi_spec_validator import openapi_v30_spec_validator
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -50,7 +51,9 @@ class TestPetstore:
 
     @pytest.fixture(scope="module")
     def spec(self, spec_dict, spec_uri):
-        return create_spec(spec_dict, spec_uri)
+        return create_spec(
+            spec_dict, spec_uri, spec_validator=openapi_v30_spec_validator
+        )
 
     @pytest.fixture(scope="module")
     def request_validator(self, spec):

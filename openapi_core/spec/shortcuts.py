@@ -11,10 +11,11 @@ def create_spec(
     spec_dict,
     spec_url="",
     handlers=default_handlers,
+    spec_validator=openapi_v3_spec_validator,
     validate_spec=True,
 ):
     if validate_spec:
-        openapi_v3_spec_validator.validate(spec_dict, spec_url=spec_url)
+        spec_validator.validate(spec_dict, spec_url=spec_url)
 
     spec_resolver = RefResolver(spec_url, spec_dict, handlers=handlers)
     dereferencer = Dereferencer(spec_resolver)

@@ -2,6 +2,7 @@ import json
 from base64 import b64encode
 
 import pytest
+from openapi_spec_validator import openapi_v30_spec_validator
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.media_types.exceptions import (
@@ -43,7 +44,9 @@ class TestRequestValidator:
 
     @pytest.fixture(scope="session")
     def spec(self, spec_dict):
-        return create_spec(spec_dict)
+        return create_spec(
+            spec_dict, spec_validator=openapi_v30_spec_validator
+        )
 
     @pytest.fixture(scope="session")
     def validator(self, spec):
@@ -445,7 +448,9 @@ class TestPathItemParamsValidator:
 
     @pytest.fixture(scope="session")
     def spec(self, spec_dict):
-        return create_spec(spec_dict)
+        return create_spec(
+            spec_dict, spec_validator=openapi_v30_spec_validator
+        )
 
     @pytest.fixture(scope="session")
     def validator(self, spec):
@@ -501,7 +506,8 @@ class TestPathItemParamsValidator:
             }
         ]
         validator = RequestValidator(
-            create_spec(spec_dict), base_url="http://example.com"
+            create_spec(spec_dict, spec_validator=openapi_v30_spec_validator),
+            base_url="http://example.com",
         )
         request = MockRequest("http://example.com", "get", "/resource")
         result = validator.validate(request)
@@ -525,7 +531,8 @@ class TestPathItemParamsValidator:
             }
         ]
         validator = RequestValidator(
-            create_spec(spec_dict), base_url="http://example.com"
+            create_spec(spec_dict, spec_validator=openapi_v30_spec_validator),
+            base_url="http://example.com",
         )
         request = MockRequest("http://example.com", "get", "/resource")
         result = validator.validate(request)
@@ -546,7 +553,9 @@ class TestResponseValidator:
 
     @pytest.fixture
     def spec(self, spec_dict):
-        return create_spec(spec_dict)
+        return create_spec(
+            spec_dict, spec_validator=openapi_v30_spec_validator
+        )
 
     @pytest.fixture
     def validator(self, spec):

@@ -1,0 +1,10 @@
+openapi: "3.1.0"
+info:
+  title: Minimal valid OpenAPI specification
+  version: "0.1"
+paths:
+  /status:
+    get:
+      responses:
+        default:
+          description: Return the API status.

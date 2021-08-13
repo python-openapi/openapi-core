@@ -2,6 +2,7 @@ import pytest
 from flask import Flask
 from flask import jsonify
 from flask import make_response
+from openapi_spec_validator import openapi_v30_spec_validator
 
 from openapi_core.contrib.flask.views import FlaskOpenAPIView
 from openapi_core.shortcuts import create_spec
@@ -14,7 +15,10 @@ class TestFlaskOpenAPIView:
     @pytest.fixture
     def spec(self, factory):
         specfile = "contrib/flask/data/v3.0/flask_factory.yaml"
-        return create_spec(factory.spec_from_file(specfile))
+        return create_spec(
+            factory.spec_from_file(specfile),
+            spec_validator=openapi_v30_spec_validator,
+        )
 
     @pytest.fixture
     def app(self):

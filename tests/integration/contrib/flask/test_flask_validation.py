@@ -1,4 +1,5 @@
 import pytest
+from openapi_spec_validator import openapi_v30_spec_validator
 
 from openapi_core.contrib.flask import FlaskOpenAPIRequest
 from openapi_core.contrib.flask import FlaskOpenAPIResponse
@@ -11,7 +12,10 @@ class TestFlaskOpenAPIValidation:
     @pytest.fixture
     def flask_spec(self, factory):
         specfile = "contrib/flask/data/v3.0/flask_factory.yaml"
-        return create_spec(factory.spec_from_file(specfile))
+        return create_spec(
+            factory.spec_from_file(specfile),
+            spec_validator=openapi_v30_spec_validator,
+        )
 
     def test_response_validator_path_pattern(
         self, flask_spec, request_factory, response_factory

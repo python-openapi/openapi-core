@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from openapi_spec_validator import openapi_v30_spec_validator
 
 from openapi_core.shortcuts import create_spec
 from openapi_core.testing import MockRequest
@@ -23,7 +24,7 @@ def request_validator(spec):
 @pytest.fixture(scope="class")
 def spec(factory):
     spec_dict = factory.spec_from_file("data/v3.0/read_only_write_only.yaml")
-    return create_spec(spec_dict)
+    return create_spec(spec_dict, spec_validator=openapi_v30_spec_validator)
 
 
 class TestReadOnly:

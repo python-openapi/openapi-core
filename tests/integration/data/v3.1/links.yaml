@@ -1,0 +1,48 @@
+openapi: "3.1.0"
+info:
+  title: Minimal valid OpenAPI specification
+  version: "0.1"
+paths:
+  /linked/noParam:
+    get:
+      operationId: noParOp
+      responses:
+        default:
+          description: the linked result
+  /linked/withParam:
+    get:
+      operationId: paramOp
+      parameters:
+        - name: opParam
+          in: query
+          description: test
+          schema:
+            type: string
+      responses:
+        default:
+          description: the linked result
+  /status:
+    get:
+      responses:
+        default:
+          description: Return something
+          links:
+            noParamLink:
+              operationId: noParOp
+  /status/{resourceId}:
+    get:
+      parameters:
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: Return something else
+          links:
+            paramLink:
+              operationId: paramOp
+              parameters:
+                opParam: $request.path.resourceId
+              requestBody: test

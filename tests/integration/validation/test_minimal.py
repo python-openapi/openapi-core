@@ -1,4 +1,6 @@
 import pytest
+from openapi_spec_validator import openapi_v30_spec_validator
+from openapi_spec_validator import openapi_v31_spec_validator
 
 from openapi_core.shortcuts import create_spec
 from openapi_core.templating.paths.exceptions import OperationNotFound
@@ -8,7 +10,7 @@ from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.validators import RequestValidator
 
 
-class TestMinimal:
+class BaseTestMinimal:
 
     servers = [
         "http://minimal.test/",
@@ -18,16 +20,10 @@ class TestMinimal:
         "https://u:p@a.b:1337",
     ]
 
-    spec_paths = [
-        "data/v3.0/minimal_with_servers.yaml",
-        "data/v3.0/minimal.yaml",
-    ]
-
     @pytest.mark.parametrize("server", servers)
-    @pytest.mark.parametrize("spec_path", spec_paths)
-    def test_hosts(self, factory, server, spec_path):
+    def test_hosts(self, factory, server, spec_path, spec_validator):
         spec_dict = factory.spec_from_file(spec_path)
-        spec = create_spec(spec_dict)
+        spec = create_spec(spec_dict, spec_validator=spec_validator)
         validator = RequestValidator(spec)
         request = MockRequest(server, "get", "/status")
 
@@ -36,10 +32,11 @@ class TestMinimal:
         assert not result.errors
 
     @pytest.mark.parametrize("server", servers)
-    @pytest.mark.parametrize("spec_path", spec_paths)
-    def test_invalid_operation(self, factory, server, spec_path):
+    def test_invalid_operation(
+        self, factory, server, spec_path, spec_validator
+    ):
         spec_dict = factory.spec_from_file(spec_path)
-        spec = create_spec(spec_dict)
+        spec = create_spec(spec_dict, spec_validator=spec_validator)
         validator = RequestValidator(spec)
         request = MockRequest(server, "post", "/status")
 
@@ -51,10 +48,9 @@ class TestMinimal:
         assert result.parameters == Parameters()
 
     @pytest.mark.parametrize("server", servers)
-    @pytest.mark.parametrize("spec_path", spec_paths)
-    def test_invalid_path(self, factory, server, spec_path):
+    def test_invalid_path(self, factory, server, spec_path, spec_validator):
         spec_dict = factory.spec_from_file(spec_path)
-        spec = create_spec(spec_dict)
+        spec = create_spec(spec_dict, spec_validator=spec_validator)
         validator = RequestValidator(spec)
         request = MockRequest(server, "get", "/nonexistent")
 
@@ -64,3 +60,43 @@ class TestMinimal:
         assert isinstance(result.errors[0], PathNotFound)
         assert result.body is None
         assert result.parameters == Parameters()
+
+
+class Test30Minimal(BaseTestMinimal):
+    @pytest.fixture
+    def spec_validator(self, factory):
+        return openapi_v30_spec_validator
+
+    @pytest.fixture
+    def spec_path(self, factory):
+        return "data/v3.0/minimal.yaml"
+
+
+class Test30MinimalWithServers(BaseTestMinimal):
+    @pytest.fixture
+    def spec_validator(self, factory):
+        return openapi_v30_spec_validator
+
+    @pytest.fixture
+    def spec_path(self, factory):
+        return "data/v3.0/minimal_with_servers.yaml"
+
+
+class Test31Minimal(BaseTestMinimal):
+    @pytest.fixture
+    def spec_validator(self, factory):
+        return openapi_v31_spec_validator
+
+    @pytest.fixture
+    def spec_path(self, factory):
+        return "data/v3.1/minimal.yaml"
+
+
+class Test31MinimalWithServers(BaseTestMinimal):
+    @pytest.fixture
+    def spec_validator(self, factory):
+        return openapi_v31_spec_validator
+
+    @pytest.fixture
+    def spec_path(self, factory):
+        return "data/v3.1/minimal_with_servers.yaml"
