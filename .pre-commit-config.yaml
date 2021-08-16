@@ -19,7 +19,7 @@ repos:
     rev: v0.910
     hooks:
       - id: mypy
-        args: []
+        args: ["--ignore-missing-imports", "openapi_core"]
         additional_dependencies: [types-requests==2.25.6]
 
   - repo: local

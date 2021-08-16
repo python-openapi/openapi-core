@@ -11,6 +11,7 @@ output = "reports/coverage.xml"
 
 [tool.mypy]
 files = "openapi_core"
+warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 module = [
