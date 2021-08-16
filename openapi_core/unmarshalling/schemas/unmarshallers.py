@@ -1,5 +1,7 @@
 import logging
 from functools import partial
+from typing import Dict
+from typing import Optional
 
 from isodate.isodatetime import parse_datetime
 from openapi_schema_validator._format import oas30_format_checker
@@ -32,7 +34,7 @@ log = logging.getLogger(__name__)
 
 class BaseSchemaUnmarshaller:
 
-    FORMATTERS = {
+    FORMATTERS: Dict[Optional[str], Formatter] = {
         None: Formatter(),
     }
 

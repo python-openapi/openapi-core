@@ -50,7 +50,7 @@ class PathFinder:
             # simple path.
             # Return right away since it is always the most concrete
             if full_url_pattern.endswith(path_pattern):
-                path_result = TemplateResult(path_pattern, {})
+                path_result = TemplateResult(path_pattern)
                 yield (path, path_result)
             # template path
             else:
@@ -93,7 +93,7 @@ class PathFinder:
                     server_url = server_url[:-1]
                 # simple path
                 if server_url_pattern == server_url:
-                    server_result = TemplateResult(server["url"], {})
+                    server_result = TemplateResult(server["url"])
                     yield (
                         path,
                         operation,

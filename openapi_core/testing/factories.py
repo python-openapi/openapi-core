@@ -1,6 +1,9 @@
+from typing import Dict
+
+
 class FactoryClassMock:
 
-    _instances = {}
+    _instances: Dict[object, object] = {}
 
     def __new__(cls, obj):
         if obj not in cls._instances:

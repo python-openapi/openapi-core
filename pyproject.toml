@@ -9,6 +9,21 @@ source =["openapi_core"]
 [tool.coverage.xml]
 output = "reports/coverage.xml"
 
+[tool.mypy]
+files = "openapi_core"
+
+[[tool.mypy.overrides]]
+module = [
+    "django.*",
+    "falcon.*",
+    "isodate.*",
+    "more_itertools.*",
+    "openapi_spec_validator.*",
+    "openapi_schema_validator.*",
+    "werkzeug.*",
+]
+ignore_missing_imports = true
+
 [tool.poetry]
 name = "openapi-core"
 version = "0.14.2"
@@ -69,6 +84,8 @@ sphinx = "^4.0.2"
 sphinx-rtd-theme = "^0.5.2"
 strict-rfc3339 = "^0.7"
 webob = "*"
+mypy = "^0.910"
+types-requests = "^2.25.6"
 
 [tool.pytest.ini_options]
 addopts = """
