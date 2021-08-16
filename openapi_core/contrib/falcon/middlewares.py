@@ -8,9 +8,13 @@ from openapi_core.contrib.falcon.requests import FalconOpenAPIRequestFactory
 from openapi_core.contrib.falcon.responses import FalconOpenAPIResponseFactory
 from openapi_core.spec.paths import SpecPath
 from openapi_core.validation.processors import OpenAPIProcessor
-from openapi_core.validation.request.datatypes import OpenAPIRequest
+from openapi_core.validation.request.datatypes import (
+    OpenAPIRequest, RequestValidationResult,
+)
 from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.datatypes import OpenAPIResponse
+from openapi_core.validation.response.datatypes import (
+    OpenAPIResponse, ResponseValidationResult,
+)
 from openapi_core.validation.response.validators import ResponseValidator
 
 
@@ -76,7 +80,7 @@ class FalconOpenAPIMiddleware:
         self,
         req: Request,
         resp: Response,
-        request_result,
+        request_result: RequestValidationResult,
     ):
         return self.errors_handler.handle(req, resp, request_result.errors)
 
@@ -84,7 +88,7 @@ class FalconOpenAPIMiddleware:
         self,
         req: Request,
         resp: Response,
-        response_result,
+        response_result: ResponseValidationResult,
     ):
         return self.errors_handler.handle(req, resp, response_result.errors)
 
@@ -100,7 +104,7 @@ class FalconOpenAPIMiddleware:
     def _process_openapi_response(
         self,
         opneapi_request: OpenAPIRequest,
-        openapi_response: OpenAPIProcessor,
+        openapi_response: OpenAPIResponse,
     ):
         return self.validation_processor.process_response(
             opneapi_request, openapi_response)

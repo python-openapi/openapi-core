@@ -1,12 +1,15 @@
 """OpenAPI core validation decorators module"""
 from functools import wraps
-from typing import Type
 
+from openapi_core.validation.handlers import BaseOpenAPIErrorsHandler
 from openapi_core.validation.processors import OpenAPIProcessor
 from openapi_core.validation.request.datatypes import (
     OpenAPIRequest, RequestValidationResult,
 )
 from openapi_core.validation.request.factories import BaseOpenAPIRequestFactory
+from openapi_core.validation.request.providers import (
+    BaseOpenAPIRequestProvider,
+)
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.datatypes import (
     OpenAPIResponse, ResponseValidationResult,
@@ -23,10 +26,10 @@ class OpenAPIDecorator(OpenAPIProcessor):
             self,
             request_validator: RequestValidator,
             response_validator: ResponseValidator,
-            request_factory: Type[BaseOpenAPIRequestFactory],
-            response_factory: Type[BaseOpenAPIResponseFactory],
-            request_provider,
-            openapi_errors_handler,
+            request_factory: BaseOpenAPIRequestFactory,
+            response_factory: BaseOpenAPIResponseFactory,
+            request_provider: BaseOpenAPIRequestProvider,
+            openapi_errors_handler: BaseOpenAPIErrorsHandler,
     ):
         super().__init__(request_validator, response_validator)
         self.request_factory = request_factory

@@ -32,13 +32,13 @@ class OpenAPIProcessor:
             response_validator=response_validator,
         )
 
-    def process_openapi_request(
+    def process_request(
         self,
         request: OpenAPIRequest,
     ) -> RequestValidationResult:
         return self.request_validator.validate(request)
 
-    def process_openapi_response(
+    def process_response(
         self,
         request: OpenAPIRequest,
         response: OpenAPIResponse,

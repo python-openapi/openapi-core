@@ -13,7 +13,7 @@ from openapi_core.templating.paths.exceptions import (
 from openapi_core.validation.types import ValidationErrors
 
 
-class FlaskOpenAPIErrorsHandler:
+class FlaskOpenAPIErrorsHandler(BaseOpenAPIErrorsHandler):
 
     OPENAPI_ERROR_STATUS = {
         ServerNotFound: 400,

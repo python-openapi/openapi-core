@@ -1,6 +1,6 @@
 """OpenAPI core contrib falcon handlers module"""
 from json import dumps
-from typing import List
+from typing import List, Sequence
 
 from falcon import Request, Response, status_codes
 from falcon.constants import MEDIA_JSON
@@ -11,6 +11,7 @@ from openapi_core.templating.paths.exceptions import (
     ServerNotFound, OperationNotFound, PathNotFound,
 )
 from openapi_core.validation.exceptions import InvalidSecurity
+from openapi_core.validation.types import ValidationErrors
 
 
 class FalconOpenAPIErrorsHandler:
@@ -25,7 +26,12 @@ class FalconOpenAPIErrorsHandler:
     }
 
     @classmethod
-    def handle(cls, req: Request, resp: Response, errors: List[OpenAPIError]):
+    def handle(
+        cls,
+        req: Request,
+        resp: Response,
+        errors: Sequence[ValidationErrors],
+    ):
         data_errors = [
             cls.format_openapi_error(err)
             for err in errors
@@ -44,7 +50,7 @@ class FalconOpenAPIErrorsHandler:
         resp.complete = True
 
     @classmethod
-    def format_openapi_error(cls, error: OpenAPIError) -> dict:
+    def format_openapi_error(cls, error: ValidationErrors) -> dict:
         return {
             'title': str(error),
             'status': cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
@@ -52,5 +58,5 @@ class FalconOpenAPIErrorsHandler:
         }
 
     @classmethod
-    def get_error_status(cls, error: dict) -> str:
+    def get_error_status(cls, error: dict) -> int:
         return error['status']
