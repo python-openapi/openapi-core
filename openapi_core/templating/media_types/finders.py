@@ -12,8 +12,9 @@ class MediaTypeFinder:
         if request.mimetype in self.content:
             return self.content / request.mimetype, request.mimetype
 
-        for key, value in self.content.items():
-            if fnmatch.fnmatch(request.mimetype, key):
-                return value, key
+        if request.mimetype:
+            for key, value in self.content.items():
+                if fnmatch.fnmatch(request.mimetype, key):
+                    return value, key
 
         raise MediaTypeNotFound(request.mimetype, list(self.content.keys()))
