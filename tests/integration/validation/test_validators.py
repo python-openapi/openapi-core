@@ -28,7 +28,6 @@ from openapi_core.validation.response.exceptions import MissingResponseContent
 
 
 class TestRequestValidator:
-
     host_url = "http://petstore.swagger.io"
 
     api_key = "12345"
@@ -528,9 +527,45 @@ class TestPathItemParamsValidator:
         assert result.body is None
         assert result.parameters == Parameters()
 
+    def test_request_object_deep_object_params(self, spec, spec_dict):
+        # override path parameter on operation
+        spec_dict["paths"]["/resource"]["parameters"] = [
+            {
+                # full valid parameter object required
+                "name": "paramObj",
+                "in": "query",
+                "required": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "count": {"type": "integer"},
+                        "name": {"type": "string"},
+                    },
+                },
+                "explode": True,
+                "style": "deepObject",
+            }
+        ]
+
+        request = MockRequest(
+            "http://example.com",
+            "get",
+            "/resource",
+            args={"paramObj[count]": 2, "paramObj[name]": "John"},
+        )
+        result = openapi_request_validator.validate(
+            spec, request, base_url="http://example.com"
+        )
+
+        assert len(result.errors) == 0
+        assert result.body is None
+        assert len(result.parameters.query) == 1
+        assert is_dataclass(result.parameters.query["paramObj"])
+        assert result.parameters.query["paramObj"].count == 2
+        assert result.parameters.query["paramObj"].name == "John"
+
 
 class TestResponseValidator:
-
     host_url = "http://petstore.swagger.io"
 
     @pytest.fixture
