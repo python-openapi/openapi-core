@@ -41,8 +41,8 @@ flask = {version = "*", optional = true}
 isodate = "*"
 more-itertools = "*"
 parse = "*"
-openapi-schema-validator = "*"
-openapi-spec-validator = "*"
+openapi-schema-validator = "^0.2.0"
+openapi-spec-validator = "^0.4.0"
 requests = {version = "*", optional = true}
 werkzeug = "*"
 
@@ -73,13 +73,17 @@ webob = "*"
 addopts = """
 --capture=no
 --verbose
---pythonwarnings=error
 --showlocals
 --junitxml=reports/junit.xml
 --cov=openapi_core
 --cov-report=term-missing
 --cov-report=xml
 """
+filterwarnings = [
+    "ignore::DeprecationWarning:jsonschema.validators",
+    "ignore::DeprecationWarning:openapi_spec_validator.validators",
+    "ignore::DeprecationWarning:openapi_core.unmarshalling.schemas.unmarshallers",
+]
 
 [tool.black]
 line-length = 79
