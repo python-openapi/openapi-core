@@ -19,29 +19,27 @@ class PathFinder:
         self.spec = spec
         self.base_url = base_url
 
-    def find(self, request):
-        paths_iter = self._get_paths_iter(request.full_url_pattern)
+    def find(self, method, full_url_pattern):
+        paths_iter = self._get_paths_iter(full_url_pattern)
         paths_iter_peek = peekable(paths_iter)
 
         if not paths_iter_peek:
-            raise PathNotFound(request.full_url_pattern)
+            raise PathNotFound(full_url_pattern)
 
-        operations_iter = self._get_operations_iter(
-            request.method, paths_iter_peek
-        )
+        operations_iter = self._get_operations_iter(method, paths_iter_peek)
         operations_iter_peek = peekable(operations_iter)
 
         if not operations_iter_peek:
-            raise OperationNotFound(request.full_url_pattern, request.method)
+            raise OperationNotFound(full_url_pattern, method)
 
         servers_iter = self._get_servers_iter(
-            request.full_url_pattern, operations_iter_peek
+            full_url_pattern, operations_iter_peek
         )
 
         try:
             return next(servers_iter)
         except StopIteration:
-            raise ServerNotFound(request.full_url_pattern)
+            raise ServerNotFound(full_url_pattern)
 
     def _get_paths_iter(self, full_url_pattern):
         template_paths = []

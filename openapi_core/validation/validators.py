@@ -48,8 +48,8 @@ class BaseValidator:
     def schema_unmarshallers_factory(self):
         raise NotImplementedError
 
-    def _find_path(self, request):
-        return self.path_finder.find(request)
+    def _find_path(self, method, full_url_pattern):
+        return self.path_finder.find(method, full_url_pattern)
 
     def _get_media_type(self, content, mimetype):
         from openapi_core.templating.media_types.finders import MediaTypeFinder
