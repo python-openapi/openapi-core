@@ -48,7 +48,7 @@ class BaseResponseValidator(BaseValidator):
 
         try:
             media_type, mimetype = self._get_media_type(
-                operation_response / "content", response
+                operation_response / "content", response.mimetype
             )
         except MediaTypeFinderError as exc:
             return None, [exc]

@@ -51,11 +51,11 @@ class BaseValidator:
     def _find_path(self, request):
         return self.path_finder.find(request)
 
-    def _get_media_type(self, content, request_or_response):
+    def _get_media_type(self, content, mimetype):
         from openapi_core.templating.media_types.finders import MediaTypeFinder
 
         finder = MediaTypeFinder(content)
-        return finder.find(request_or_response)
+        return finder.find(mimetype)
 
     def _deserialise_data(self, mimetype, value):
         deserializer = self.media_type_deserializers_factory.create(mimetype)

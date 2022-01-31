@@ -23,25 +23,25 @@ class TestMediaTypes:
         return MediaTypeFinder(content)
 
     def test_exact(self, finder, content):
-        response = MockResponse("", mimetype="application/json")
+        mimetype = "application/json"
 
-        _, mimetype = finder.find(response)
+        _, mimetype = finder.find(mimetype)
         assert mimetype == "application/json"
 
     def test_match(self, finder, content):
-        response = MockResponse("", mimetype="text/html")
+        mimetype = "text/html"
 
-        _, mimetype = finder.find(response)
+        _, mimetype = finder.find(mimetype)
         assert mimetype == "text/*"
 
     def test_not_found(self, finder, content):
-        response = MockResponse("", mimetype="unknown")
+        mimetype = "unknown"
 
         with pytest.raises(MediaTypeNotFound):
-            finder.find(response)
+            finder.find(mimetype)
 
     def test_missing(self, finder, content):
-        response = MockResponse("", mimetype=None)
+        mimetype = None
 
         with pytest.raises(MediaTypeNotFound):
-            finder.find(response)
+            finder.find(mimetype)

@@ -8,13 +8,13 @@ class MediaTypeFinder:
     def __init__(self, content):
         self.content = content
 
-    def find(self, request):
-        if request.mimetype in self.content:
-            return self.content / request.mimetype, request.mimetype
+    def find(self, mimetype):
+        if mimetype in self.content:
+            return self.content / mimetype, mimetype
 
-        if request.mimetype:
+        if mimetype:
             for key, value in self.content.items():
-                if fnmatch.fnmatch(request.mimetype, key):
+                if fnmatch.fnmatch(mimetype, key):
                     return value, key
 
-        raise MediaTypeNotFound(request.mimetype, list(self.content.keys()))
+        raise MediaTypeNotFound(mimetype, list(self.content.keys()))

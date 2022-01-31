@@ -139,7 +139,7 @@ class BaseRequestValidator(BaseValidator):
 
         try:
             media_type, mimetype = self._get_media_type(
-                request_body / "content", request
+                request_body / "content", request.mimetype
             )
         except MediaTypeFinderError as exc:
             return None, [exc]
