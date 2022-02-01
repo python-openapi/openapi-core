@@ -1,4 +1,4 @@
-from dictpath.paths import AccessorPath
+from pathable.paths import AccessorPath
 
 from openapi_core.spec.accessors import SpecAccessor
 
