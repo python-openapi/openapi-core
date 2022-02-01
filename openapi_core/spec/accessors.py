@@ -1,16 +1,16 @@
 from contextlib import contextmanager
 
-from dictpath.accessors import DictOrListAccessor
+from pathable.accessors import LookupAccessor
 
 
-class SpecAccessor(DictOrListAccessor):
-    def __init__(self, dict_or_list, dereferencer):
-        super().__init__(dict_or_list)
+class SpecAccessor(LookupAccessor):
+    def __init__(self, lookup, dereferencer):
+        super().__init__(lookup)
         self.dereferencer = dereferencer
 
     @contextmanager
     def open(self, parts):
-        content = self.dict_or_list
+        content = self.lookup
         for part in parts:
             content = content[part]
             if "$ref" in content:

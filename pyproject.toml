@@ -34,7 +34,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7.0"
-dictpath = "*"
+pathable = "^0.4.0"
 django = {version = ">=3.0", optional = true}
 falcon = {version = ">=3.0", optional = true}
 flask = {version = "*", optional = true}

@@ -142,14 +142,6 @@ tomli = {version = "*", optional = true, markers = "extra == \"toml\""}
 toml = ["tomli"]
 
 [[package]]
-name = "dictpath"
-version = "0.1.3"
-description = "Object-oriented dictionary paths"
-category = "main"
-optional = false
-python-versions = ">= 2.7, != 3.0.*, != 3.1.*, != 3.2.*, != 3.3.*, != 3.4.*"
-
-[[package]]
 name = "distlib"
 version = "0.3.4"
 description = "Distribution utilities"
@@ -469,6 +461,14 @@ description = "parse() is the opposite of format()"
 category = "main"
 optional = false
 python-versions = "*"
+
+[[package]]
+name = "pathable"
+version = "0.4.0"
+description = "Object-oriented paths"
+category = "main"
+optional = false
+python-versions = ">=3.7.0,<4.0.0"
 
 [[package]]
 name = "pathspec"
@@ -930,7 +930,7 @@ requests = ["requests"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.0"
-content-hash = "4631cab8bc13d5fca2ac4de30d3975dfb636bde67c76f3353abee3fad42ba5eb"
+content-hash = "c98fe6b41cca1fdf973e28609b42d139df5c129d488645ecbb76ecf9137cce44"
 
 [metadata.files]
 alabaster = [
@@ -1022,11 +1022,6 @@ coverage = [
     {file = "coverage-6.3-cp39-cp39-win_amd64.whl", hash = "sha256:e67ccd53da5958ea1ec833a160b96357f90859c220a00150de011b787c27b98d"},
     {file = "coverage-6.3-pp36.pp37.pp38-none-any.whl", hash = "sha256:27ac7cb84538e278e07569ceaaa6f807a029dc194b1c819a9820b9bb5dbf63ab"},
     {file = "coverage-6.3.tar.gz", hash = "sha256:987a84ff98a309994ca77ed3cc4b92424f824278e48e4bf7d1bb79a63cfe2099"},
-]
-dictpath = [
-    {file = "dictpath-0.1.3-py2-none-any.whl", hash = "sha256:225248e3c1e7c375495d5da5c390cbf3490f56ee42c151df733e5b2df6b521b5"},
-    {file = "dictpath-0.1.3-py3-none-any.whl", hash = "sha256:d5212361d1fb93909cff715f6e0404e17752cf7a48df3e140639e529a027c437"},
-    {file = "dictpath-0.1.3.tar.gz", hash = "sha256:751cde3b76b176d25f961b90c423a11a4d5ede9bd09ab0d64a85abb738c190d8"},
 ]
 distlib = [
     {file = "distlib-0.3.4-py2.py3-none-any.whl", hash = "sha256:6564fe0a8f51e734df6333d08b8b94d4ea8ee6b99b5ed50613f731fd4089f34b"},
@@ -1195,6 +1190,10 @@ packaging = [
 ]
 parse = [
     {file = "parse-1.19.0.tar.gz", hash = "sha256:9ff82852bcb65d139813e2a5197627a94966245c897796760a3a2a8eb66f020b"},
+]
+pathable = [
+    {file = "pathable-0.4.0-py3-none-any.whl", hash = "sha256:6b4d20220a19dc1612a0e05f1d3734acf398131d005bd2a406dbd1394d4f6f06"},
+    {file = "pathable-0.4.0.tar.gz", hash = "sha256:da4eb6a827355c2a5792b26d59ab801fcd25ef10f6ed60098ec248eb780052e3"},
 ]
 pathspec = [
     {file = "pathspec-0.9.0-py2.py3-none-any.whl", hash = "sha256:7d15c4ddb0b5c802d161efc417ec1a2558ea2653c2e8ad9c19098201dc1c993a"},
