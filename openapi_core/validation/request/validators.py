@@ -21,6 +21,7 @@ from openapi_core.unmarshalling.schemas.factories import (
 from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.datatypes import RequestValidationResult
+from openapi_core.validation.request.exceptions import ParametersError
 from openapi_core.validation.validators import BaseValidator
 
 
@@ -74,7 +75,10 @@ class BaseRequestValidator(BaseValidator):
                 location = getattr(parameters, param_location)
                 location[param_name] = value
 
-        return parameters, errors
+        if errors:
+            raise ParametersError(context=errors, parameters=parameters)
+
+        return parameters
 
     def _get_parameter(self, param, request):
         name = param["name"]
@@ -114,7 +118,7 @@ class BaseRequestValidator(BaseValidator):
             except SecurityError:
                 continue
 
-        raise InvalidSecurity()
+        raise InvalidSecurity
 
     def _get_security_value(self, scheme_name, request):
         security_schemes = self.spec / "components#securitySchemes"
@@ -126,44 +130,24 @@ class BaseRequestValidator(BaseValidator):
 
     def _get_body(self, request, operation):
         if "requestBody" not in operation:
-            return None, []
+            return None
 
         request_body = operation / "requestBody"
 
-        try:
-            raw_body = self._get_body_value(request_body, request)
-        except MissingRequiredRequestBody as exc:
-            return None, [exc]
-        except MissingRequestBody:
-            return None, []
-
-        try:
-            media_type, mimetype = self._get_media_type(
-                request_body / "content", request.mimetype
-            )
-        except MediaTypeFinderError as exc:
-            return None, [exc]
-
-        try:
-            deserialised = self._deserialise_data(mimetype, raw_body)
-        except DeserializeError as exc:
-            return None, [exc]
-
-        try:
-            casted = self._cast(media_type, deserialised)
-        except CastError as exc:
-            return None, [exc]
+        raw_body = self._get_body_value(request_body, request)
+        media_type, mimetype = self._get_media_type(
+            request_body / "content", request.mimetype
+        )
+        deserialised = self._deserialise_data(mimetype, raw_body)
+        casted = self._cast(media_type, deserialised)
 
         if "schema" not in media_type:
-            return casted, []
+            return casted
 
         schema = media_type / "schema"
-        try:
-            body = self._unmarshal(schema, casted)
-        except (ValidateError, UnmarshalError) as exc:
-            return None, [exc]
+        body = self._unmarshal(schema, casted)
 
-        return body, []
+        return body
 
     def _get_body_value(self, request_body, request):
         if not request.body:
@@ -186,7 +170,13 @@ class RequestParametersValidator(BaseRequestValidator):
             request.parameters.path or path_result.variables
         )
 
-        params, params_errors = self._get_parameters(request, path, operation)
+        try:
+            params = self._get_parameters(request, path, operation)
+        except ParametersError as exc:
+            params = exc.parameters
+            params_errors = exc.context
+        else:
+            params_errors = []
 
         return RequestValidationResult(
             errors=params_errors,
@@ -203,10 +193,26 @@ class RequestBodyValidator(BaseRequestValidator):
         except PathError as exc:
             return RequestValidationResult(errors=[exc])
 
-        body, body_errors = self._get_body(request, operation)
+        try:
+            body = self._get_body(request, operation)
+        except (
+            MissingRequiredRequestBody,
+            MediaTypeFinderError,
+            DeserializeError,
+            CastError,
+            ValidateError,
+            UnmarshalError,
+        ) as exc:
+            body = None
+            errors = [exc]
+        except MissingRequestBody:
+            body = None
+            errors = []
+        else:
+            errors = []
 
         return RequestValidationResult(
-            errors=body_errors,
+            errors=errors,
             body=body,
         )
 
@@ -250,9 +256,31 @@ class RequestValidator(BaseRequestValidator):
             request.parameters.path or path_result.variables
         )
 
-        params, params_errors = self._get_parameters(request, path, operation)
+        try:
+            params = self._get_parameters(request, path, operation)
+        except ParametersError as exc:
+            params = exc.parameters
+            params_errors = exc.context
+        else:
+            params_errors = []
 
-        body, body_errors = self._get_body(request, operation)
+        try:
+            body = self._get_body(request, operation)
+        except (
+            MissingRequiredRequestBody,
+            MediaTypeFinderError,
+            DeserializeError,
+            CastError,
+            ValidateError,
+            UnmarshalError,
+        ) as exc:
+            body = None
+            body_errors = [exc]
+        except MissingRequestBody:
+            body = None
+            body_errors = []
+        else:
+            body_errors = []
 
         errors = params_errors + body_errors
         return RequestValidationResult(
