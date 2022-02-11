@@ -16,6 +16,7 @@ from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
 from openapi_core.validation.response.datatypes import ResponseValidationResult
+from openapi_core.validation.response.exceptions import HeadersError
 from openapi_core.validation.validators import BaseValidator
 
 
@@ -46,40 +47,22 @@ class BaseResponseValidator(BaseValidator):
 
     def _get_data(self, response, operation_response):
         if "content" not in operation_response:
-            return None, []
+            return None
 
-        try:
-            media_type, mimetype = self._get_media_type(
-                operation_response / "content", response.mimetype
-            )
-        except MediaTypeFinderError as exc:
-            return None, [exc]
-
-        try:
-            raw_data = self._get_data_value(response)
-        except MissingResponseContent as exc:
-            return None, [exc]
-
-        try:
-            deserialised = self._deserialise_data(mimetype, raw_data)
-        except DeserializeError as exc:
-            return None, [exc]
-
-        try:
-            casted = self._cast(media_type, deserialised)
-        except CastError as exc:
-            return None, [exc]
+        media_type, mimetype = self._get_media_type(
+            operation_response / "content", response.mimetype
+        )
+        raw_data = self._get_data_value(response)
+        deserialised = self._deserialise_data(mimetype, raw_data)
+        casted = self._cast(media_type, deserialised)
 
         if "schema" not in media_type:
-            return casted, []
+            return casted
 
         schema = media_type / "schema"
-        try:
-            data = self._unmarshal(schema, casted)
-        except (ValidateError, UnmarshalError) as exc:
-            return None, [exc]
+        data = self._unmarshal(schema, casted)
 
-        return data, []
+        return data
 
     def _get_data_value(self, response):
         if not response.data:
@@ -89,7 +72,7 @@ class BaseResponseValidator(BaseValidator):
 
     def _get_headers(self, response, operation_response):
         if "headers" not in operation_response:
-            return {}, []
+            return {}
 
         headers = operation_response / "headers"
 
@@ -115,7 +98,10 @@ class BaseResponseValidator(BaseValidator):
             else:
                 validated[name] = value
 
-        return validated, errors
+        if errors:
+            raise HeadersError(context=errors, headers=validated)
+
+        return validated
 
     def _get_header(self, name, header, response):
         deprecated = header.getkey("deprecated", False)
@@ -146,7 +132,20 @@ class ResponseDataValidator(BaseResponseValidator):
         except (PathError, ResponseFinderError) as exc:
             return ResponseValidationResult(errors=[exc])
 
-        data, data_errors = self._get_data(response, operation_response)
+        try:
+            data = self._get_data(response, operation_response)
+        except (
+            MediaTypeFinderError,
+            MissingResponseContent,
+            DeserializeError,
+            CastError,
+            ValidateError,
+            UnmarshalError,
+        ) as exc:
+            data = None
+            data_errors = [exc]
+        else:
+            data_errors = []
 
         return ResponseValidationResult(
             errors=data_errors,
@@ -164,9 +163,13 @@ class ResponseHeadersValidator(BaseResponseValidator):
         except (PathError, ResponseFinderError) as exc:
             return ResponseValidationResult(errors=[exc])
 
-        headers, headers_errors = self._get_headers(
-            response, operation_response
-        )
+        try:
+            headers = self._get_headers(response, operation_response)
+        except HeadersError as exc:
+            headers = exc.headers
+            headers_errors = exc.context
+        else:
+            headers_errors = []
 
         return ResponseValidationResult(
             errors=headers_errors,
@@ -184,11 +187,28 @@ class ResponseValidator(BaseResponseValidator):
         except (PathError, ResponseFinderError) as exc:
             return ResponseValidationResult(errors=[exc])
 
-        data, data_errors = self._get_data(response, operation_response)
+        try:
+            data = self._get_data(response, operation_response)
+        except (
+            MediaTypeFinderError,
+            MissingResponseContent,
+            DeserializeError,
+            CastError,
+            ValidateError,
+            UnmarshalError,
+        ) as exc:
+            data = None
+            data_errors = [exc]
+        else:
+            data_errors = []
 
-        headers, headers_errors = self._get_headers(
-            response, operation_response
-        )
+        try:
+            headers = self._get_headers(response, operation_response)
+        except HeadersError as exc:
+            headers = exc.headers
+            headers_errors = exc.context
+        else:
+            headers_errors = []
 
         errors = data_errors + headers_errors
         return ResponseValidationResult(
