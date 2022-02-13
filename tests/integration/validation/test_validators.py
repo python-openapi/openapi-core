@@ -11,7 +11,7 @@ from openapi_core.exceptions import MissingRequiredParameter
 from openapi_core.exceptions import MissingRequiredRequestBody
 from openapi_core.exceptions import MissingResponseContent
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.shortcuts import create_spec
+from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
@@ -43,7 +43,7 @@ class TestRequestValidator:
 
     @pytest.fixture(scope="session")
     def spec(self, spec_dict):
-        return create_spec(spec_dict)
+        return Spec.create(spec_dict)
 
     @pytest.fixture(scope="session")
     def validator(self, spec):
@@ -445,7 +445,7 @@ class TestPathItemParamsValidator:
 
     @pytest.fixture(scope="session")
     def spec(self, spec_dict):
-        return create_spec(spec_dict)
+        return Spec.create(spec_dict)
 
     @pytest.fixture(scope="session")
     def validator(self, spec):
@@ -501,7 +501,7 @@ class TestPathItemParamsValidator:
             }
         ]
         validator = RequestValidator(
-            create_spec(spec_dict), base_url="http://example.com"
+            Spec.create(spec_dict), base_url="http://example.com"
         )
         request = MockRequest("http://example.com", "get", "/resource")
         result = validator.validate(request)
@@ -525,7 +525,7 @@ class TestPathItemParamsValidator:
             }
         ]
         validator = RequestValidator(
-            create_spec(spec_dict), base_url="http://example.com"
+            Spec.create(spec_dict), base_url="http://example.com"
         )
         request = MockRequest("http://example.com", "get", "/resource")
         result = validator.validate(request)
@@ -546,7 +546,7 @@ class TestResponseValidator:
 
     @pytest.fixture
     def spec(self, spec_dict):
-        return create_spec(spec_dict)
+        return Spec.create(spec_dict)
 
     @pytest.fixture
     def validator(self, spec):

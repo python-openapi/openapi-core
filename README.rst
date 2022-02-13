@@ -62,12 +62,12 @@ Firstly create your specification object:
 .. code-block:: python
 
    from json import load
-   from openapi_core import create_spec
+   from openapi_core import OpenAPISpec as Spec
 
    with open('openapi.json', 'r') as spec_file:
       spec_dict = load(spec_file)
 
-   spec = create_spec(spec_dict)
+   spec = Spec.create(spec_dict)
 
 Request
 *******

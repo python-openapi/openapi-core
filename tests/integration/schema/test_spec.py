@@ -4,7 +4,7 @@ import pytest
 
 from openapi_core.schema.servers import get_server_url
 from openapi_core.schema.specs import get_spec_url
-from openapi_core.shortcuts import create_spec
+from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 
@@ -29,7 +29,7 @@ class TestPetstore:
 
     @pytest.fixture
     def spec(self, spec_dict, spec_uri):
-        return create_spec(spec_dict, spec_uri)
+        return Spec.create(spec_dict, url=spec_uri)
 
     @pytest.fixture
     def request_validator(self, spec):

@@ -8,9 +8,9 @@ By default, spec dict is validated on spec creation time. Disabling the validati
 
 .. code-block:: python
 
-   from openapi_core import create_spec
+   from openapi_core import OpenAPISpec as Spec
 
-   spec = create_spec(spec_dict, validate_spec=False)
+   spec = Spec.create(spec_dict, validate=False)
 
 Deserializers
 -------------

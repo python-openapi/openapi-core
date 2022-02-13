@@ -1,7 +1,7 @@
 import pytest
 from jsonschema.exceptions import ValidationError
 
-from openapi_core.shortcuts import create_spec
+from openapi_core.spec import OpenAPIv30Spec as Spec
 
 
 class TestEmpty:
@@ -11,8 +11,8 @@ class TestEmpty:
 
     @pytest.fixture
     def spec(self, spec_dict):
-        return create_spec(spec_dict)
+        return Spec.create(spec_dict)
 
     def test_raises_on_invalid(self, spec_dict):
         with pytest.raises(ValidationError):
-            create_spec(spec_dict)
+            Spec.create(spec_dict)

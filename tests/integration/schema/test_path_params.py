@@ -1,6 +1,6 @@
 import pytest
 
-from openapi_core.shortcuts import create_spec
+from openapi_core.spec import OpenAPIv30Spec as Spec
 
 
 class TestMinimal:
@@ -10,7 +10,7 @@ class TestMinimal:
     @pytest.mark.parametrize("spec_path", spec_paths)
     def test_param_present(self, factory, spec_path):
         spec_dict = factory.spec_from_file(spec_path)
-        spec = create_spec(spec_dict)
+        spec = Spec.create(spec_dict)
 
         path = spec / "paths#/resource/{resId}"
 

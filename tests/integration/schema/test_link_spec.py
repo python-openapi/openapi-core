@@ -1,10 +1,10 @@
-from openapi_core.shortcuts import create_spec
+from openapi_core.spec import OpenAPIv30Spec as Spec
 
 
 class TestLinkSpec:
     def test_no_param(self, factory):
         spec_dict = factory.spec_from_file("data/v3.0/links.yaml")
-        spec = create_spec(spec_dict)
+        spec = Spec.create(spec_dict)
         resp = spec / "paths#/status#get#responses#default"
 
         links = resp / "links"
@@ -18,7 +18,7 @@ class TestLinkSpec:
 
     def test_param(self, factory):
         spec_dict = factory.spec_from_file("data/v3.0/links.yaml")
-        spec = create_spec(spec_dict)
+        spec = Spec.create(spec_dict)
         resp = spec / "paths#/status/{resourceId}#get#responses#default"
 
         links = resp / "links"

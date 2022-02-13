@@ -4,7 +4,7 @@ from flask import jsonify
 from flask import make_response
 
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
-from openapi_core.shortcuts import create_spec
+from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.validation.request.datatypes import Parameters
 
 
@@ -15,7 +15,7 @@ class TestFlaskOpenAPIDecorator:
     @pytest.fixture
     def spec(self, factory):
         specfile = "contrib/flask/data/v3.0/flask_factory.yaml"
-        return create_spec(factory.spec_from_file(specfile))
+        return Spec.create(factory.spec_from_file(specfile))
 
     @pytest.fixture
     def decorator(self, spec):
