@@ -1,6 +1,6 @@
 import pytest
 
-from openapi_core.shortcuts import create_spec
+from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.testing import MockRequest
@@ -27,7 +27,7 @@ class TestMinimal:
     @pytest.mark.parametrize("spec_path", spec_paths)
     def test_hosts(self, factory, server, spec_path):
         spec_dict = factory.spec_from_file(spec_path)
-        spec = create_spec(spec_dict)
+        spec = Spec.create(spec_dict)
         validator = RequestValidator(spec)
         request = MockRequest(server, "get", "/status")
 
@@ -39,7 +39,7 @@ class TestMinimal:
     @pytest.mark.parametrize("spec_path", spec_paths)
     def test_invalid_operation(self, factory, server, spec_path):
         spec_dict = factory.spec_from_file(spec_path)
-        spec = create_spec(spec_dict)
+        spec = Spec.create(spec_dict)
         validator = RequestValidator(spec)
         request = MockRequest(server, "post", "/status")
 
@@ -54,7 +54,7 @@ class TestMinimal:
     @pytest.mark.parametrize("spec_path", spec_paths)
     def test_invalid_path(self, factory, server, spec_path):
         spec_dict = factory.spec_from_file(spec_path)
-        spec = create_spec(spec_dict)
+        spec = Spec.create(spec_dict)
         validator = RequestValidator(spec)
         request = MockRequest(server, "get", "/nonexistent")
 

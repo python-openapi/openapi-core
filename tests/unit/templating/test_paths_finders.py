@@ -1,6 +1,6 @@
 import pytest
 
-from openapi_core.spec.paths import SpecPath
+from openapi_core.spec.paths import Spec
 from openapi_core.templating.datatypes import TemplateResult
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
@@ -128,7 +128,7 @@ class BaseTestSpecServer:
             "servers": servers,
             "paths": paths,
         }
-        return SpecPath.from_spec(spec)
+        return Spec.from_dict(spec)
 
     @pytest.fixture
     def finder(self, spec):
@@ -151,7 +151,7 @@ class BaseTestPathServer(BaseTestSpecServer):
             "info": info,
             "paths": paths,
         }
-        return SpecPath.from_spec(spec)
+        return Spec.from_dict(spec)
 
 
 class BaseTestOperationServer(BaseTestSpecServer):
@@ -171,7 +171,7 @@ class BaseTestOperationServer(BaseTestSpecServer):
             "info": info,
             "paths": paths,
         }
-        return SpecPath.from_spec(spec)
+        return Spec.from_dict(spec)
 
 
 class BaseTestServerNotFound:

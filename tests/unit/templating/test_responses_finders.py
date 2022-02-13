@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from openapi_core.spec.paths import SpecPath
+from openapi_core.spec.paths import Spec
 from openapi_core.templating.responses.finders import ResponseFinder
 
 
@@ -18,7 +18,7 @@ class TestResponses:
 
     @pytest.fixture(scope="class")
     def responses(self, spec):
-        return SpecPath.from_spec(spec)
+        return Spec.from_dict(spec)
 
     @pytest.fixture(scope="class")
     def finder(self, responses):

@@ -2,7 +2,7 @@ import pytest
 
 from openapi_core.schema.parameters import get_explode
 from openapi_core.schema.parameters import get_style
-from openapi_core.spec.paths import SpecPath
+from openapi_core.spec.paths import Spec
 
 
 class TestGetStyle:
@@ -20,7 +20,7 @@ class TestGetStyle:
             "name": "default",
             "in": location,
         }
-        param = SpecPath.from_spec(spec)
+        param = Spec.from_dict(spec)
         result = get_style(param)
 
         assert result == expected
@@ -45,7 +45,7 @@ class TestGetStyle:
             "in": location,
             "style": style,
         }
-        param = SpecPath.from_spec(spec)
+        param = Spec.from_dict(spec)
         result = get_style(param)
 
         assert result == style
@@ -69,7 +69,7 @@ class TestGetExplode:
             "in": location,
             "style": style,
         }
-        param = SpecPath.from_spec(spec)
+        param = Spec.from_dict(spec)
         result = get_explode(param)
 
         assert result is False
@@ -81,7 +81,7 @@ class TestGetExplode:
             "in": location,
             "style": "form",
         }
-        param = SpecPath.from_spec(spec)
+        param = Spec.from_dict(spec)
         result = get_explode(param)
 
         assert result is True
@@ -117,7 +117,7 @@ class TestGetExplode:
                 "type": schema_type,
             },
         }
-        param = SpecPath.from_spec(spec)
+        param = Spec.from_dict(spec)
         result = get_explode(param)
 
         assert result == explode

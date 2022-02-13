@@ -14,12 +14,12 @@ from openapi_core.deserializing.parameters.exceptions import (
 from openapi_core.exceptions import MissingRequiredHeader
 from openapi_core.exceptions import MissingRequiredParameter
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.shortcuts import create_spec
 from openapi_core.shortcuts import spec_validate_body
 from openapi_core.shortcuts import spec_validate_data
 from openapi_core.shortcuts import spec_validate_headers
 from openapi_core.shortcuts import spec_validate_parameters
 from openapi_core.shortcuts import spec_validate_security
+from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.testing import MockRequest
@@ -50,7 +50,7 @@ class TestPetstore:
 
     @pytest.fixture(scope="module")
     def spec(self, spec_dict, spec_uri):
-        return create_spec(spec_dict, spec_uri)
+        return Spec.create(spec_dict, url=spec_uri)
 
     @pytest.fixture(scope="module")
     def request_validator(self, spec):

@@ -21,14 +21,14 @@ Django can be integrated by middleware. Add `DjangoOpenAPIMiddleware` to your `M
 .. code-block:: python
 
    # settings.py
-   from openapi_core import create_spec
+   from openapi_core import OpenAPISpec as Spec
 
    MIDDLEWARE = [
        # ...
        'openapi_core.contrib.django.middlewares.DjangoOpenAPIMiddleware',
    ]
 
-   OPENAPI_SPEC = create_spec(spec_dict)
+   OPENAPI_SPEC = Spec.create(spec_dict)
 
 After that you have access to validation result object with all validated request data from Django view through request object.
 

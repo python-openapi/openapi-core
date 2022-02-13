@@ -6,7 +6,7 @@ from openapi_core.deserializing.parameters.exceptions import (
 from openapi_core.deserializing.parameters.factories import (
     ParameterDeserializersFactory,
 )
-from openapi_core.spec.paths import SpecPath
+from openapi_core.spec.paths import Spec
 
 
 class TestParameterDeserializer:
@@ -19,7 +19,7 @@ class TestParameterDeserializer:
 
     def test_unsupported(self, deserializer_factory):
         spec = {"name": "param", "in": "header", "style": "unsupported"}
-        param = SpecPath.from_spec(spec)
+        param = Spec.from_dict(spec)
         value = ""
 
         with pytest.warns(UserWarning):
@@ -32,7 +32,7 @@ class TestParameterDeserializer:
             "name": "param",
             "in": "query",
         }
-        param = SpecPath.from_spec(spec)
+        param = Spec.from_dict(spec)
         value = ""
 
         with pytest.raises(EmptyQueryParameterValue):
@@ -43,7 +43,7 @@ class TestParameterDeserializer:
             "name": "param",
             "in": "query",
         }
-        param = SpecPath.from_spec(spec)
+        param = Spec.from_dict(spec)
         value = "test"
 
         result = deserializer_factory(param)(value)

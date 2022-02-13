@@ -2,7 +2,7 @@ import pytest
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
-from openapi_core.spec.paths import SpecPath
+from openapi_core.spec.paths import Spec
 
 
 class TestSchemaCaster:
@@ -20,7 +20,7 @@ class TestSchemaCaster:
                 "type": "number",
             },
         }
-        schema = SpecPath.from_spec(spec)
+        schema = Spec.from_dict(spec)
         value = ["test", "test2"]
 
         with pytest.raises(CastError):
@@ -33,7 +33,7 @@ class TestSchemaCaster:
                 "type": "number",
             },
         }
-        schema = SpecPath.from_spec(spec)
+        schema = Spec.from_dict(spec)
         value = 3.14
 
         with pytest.raises(CastError):
