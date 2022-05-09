@@ -2,18 +2,10 @@
 import datetime
 from base64 import b64decode
 from copy import copy
-from distutils.util import strtobool
 from functools import lru_cache
 from uuid import UUID
 
 from openapi_schema_validator import oas30_format_checker
-
-
-def forcebool(val):
-    if isinstance(val, str):
-        val = strtobool(val)
-
-    return bool(val)
 
 
 def format_date(value):
