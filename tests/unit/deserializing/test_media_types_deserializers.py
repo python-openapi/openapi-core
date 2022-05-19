@@ -32,25 +32,25 @@ class TestMediaTypeDeserializer:
         with pytest.raises(DeserializeError):
             deserializer_factory(mimetype)(value)
 
-    def test_json_empty_object(self, deserializer_factory):
+    @pytest.mark.parametrize("value", [b"{}", "{}"])
+    def test_json_empty_object(self, deserializer_factory, value):
         mimetype = "application/json"
-        value = "{}"
 
         result = deserializer_factory(mimetype)(value)
 
         assert result == {}
 
-    def test_urlencoded_form_empty(self, deserializer_factory):
+    @pytest.mark.parametrize("value", [b"", ""])
+    def test_urlencoded_form_empty(self, deserializer_factory, value):
         mimetype = "application/x-www-form-urlencoded"
-        value = ""
 
         result = deserializer_factory(mimetype)(value)
 
         assert result == {}
 
-    def test_urlencoded_form_simple(self, deserializer_factory):
+    @pytest.mark.parametrize("value", [b"param1=test", "param1=test"])
+    def test_urlencoded_form_simple(self, deserializer_factory, value):
         mimetype = "application/x-www-form-urlencoded"
-        value = "param1=test"
 
         result = deserializer_factory(mimetype)(value)
 
