@@ -3,6 +3,8 @@ from urllib.parse import parse_qsl
 
 
 def urlencoded_form_loads(value):
+    if issubclass(type(value), bytes):
+        value = value.decode("ASCII")
     return dict(parse_qsl(value))
 
 
