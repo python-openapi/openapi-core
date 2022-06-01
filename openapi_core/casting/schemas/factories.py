@@ -1,7 +1,7 @@
 from openapi_core.casting.schemas.casters import ArrayCaster
 from openapi_core.casting.schemas.casters import CallableSchemaCaster
 from openapi_core.casting.schemas.casters import DummyCaster
-from openapi_core.casting.schemas.util import forcebool
+from openapi_core.util import forcebool
 
 
 class SchemaCastersFactory:
