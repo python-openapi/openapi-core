@@ -11,7 +11,7 @@ output = "reports/coverage.xml"
 
 [tool.poetry]
 name = "openapi-core"
-version = "0.14.2"
+version = "0.15.0a1"
 description = "client-side and server-side support for the OpenAPI Specification v3"
 authors = ["Artur Maciag <maciag.artur@gmail.com>"]
 license = "BSD-3-Clause"
