@@ -1,6 +1,6 @@
 from jsonschema.validators import RefResolver
 from openapi_spec_validator import default_handlers
-from openapi_spec_validator import openapi_v3_spec_validator
+from openapi_spec_validator import openapi_v30_spec_validator
 from openapi_spec_validator.validators import Dereferencer
 from pathable.paths import AccessorPath
 
@@ -27,7 +27,7 @@ class Spec(AccessorPath):
 
 class OpenAPIv30Spec(Spec):
 
-    validator = openapi_v3_spec_validator
+    validator = openapi_v30_spec_validator
 
     @classmethod
     def create(
