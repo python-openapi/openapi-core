@@ -79,11 +79,6 @@ addopts = """
 --cov-report=term-missing
 --cov-report=xml
 """
-filterwarnings = [
-    "ignore::DeprecationWarning:jsonschema.validators",
-    "ignore::DeprecationWarning:openapi_spec_validator.validators",
-    "ignore::DeprecationWarning:openapi_core.unmarshalling.schemas.unmarshallers",
-]
 
 [tool.black]
 line-length = 79
