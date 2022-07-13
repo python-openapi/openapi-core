@@ -1,6 +1,7 @@
 import pytest
 import requests
 import responses
+from responses import matchers
 
 from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
@@ -19,10 +20,10 @@ class TestRequestsOpenAPIValidation:
     def test_response_validator_path_pattern(self, spec):
         responses.add(
             responses.POST,
-            "http://localhost/browse/12/?q=string",
+            "http://localhost/browse/12/",
             json={"data": "data"},
             status=200,
-            match_querystring=True,
+            match=[matchers.query_param_matcher({"q": "string"})],
             headers={"X-Rate-Limit": "12"},
         )
         validator = ResponseValidator(spec)
