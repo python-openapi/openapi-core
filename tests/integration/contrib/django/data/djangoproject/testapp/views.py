@@ -17,7 +17,7 @@ class TestView(APIView):
     def get(self, request, pk):
         with open(settings.OPENAPI_SPEC_PATH) as file:
             spec_yaml = file.read()
-        spec_dict = yaml.load(spec_yaml)
+        spec_dict = yaml.load(spec_yaml, yaml.FullLoader)
         spec = create_spec(spec_dict)
 
         openapi_request = DjangoOpenAPIRequest(request)
