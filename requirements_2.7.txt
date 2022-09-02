@@ -1,6 +1,6 @@
 isodate==0.6.0
-openapi-spec-validator
-openapi-schema-validator
+openapi-spec-validator==0.3.3
+openapi-schema-validator==0.1.6
 six
 lazy-object-proxy
 backports.functools-lru-cache
