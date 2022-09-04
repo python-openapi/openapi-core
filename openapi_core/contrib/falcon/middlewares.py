@@ -1,8 +1,8 @@
 """OpenAPI core contrib falcon middlewares module"""
 
 from openapi_core.contrib.falcon.handlers import FalconOpenAPIErrorsHandler
-from openapi_core.contrib.falcon.requests import FalconOpenAPIRequestFactory
-from openapi_core.contrib.falcon.responses import FalconOpenAPIResponseFactory
+from openapi_core.contrib.falcon.requests import FalconOpenAPIRequest
+from openapi_core.contrib.falcon.responses import FalconOpenAPIResponse
 from openapi_core.validation.processors import OpenAPIProcessor
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -10,28 +10,28 @@ from openapi_core.validation.response.validators import ResponseValidator
 
 class FalconOpenAPIMiddleware:
 
-    request_factory = FalconOpenAPIRequestFactory()
-    response_factory = FalconOpenAPIResponseFactory()
+    request_class = FalconOpenAPIRequest
+    response_class = FalconOpenAPIResponse
     errors_handler = FalconOpenAPIErrorsHandler()
 
     def __init__(
         self,
         validation_processor,
-        request_factory=None,
-        response_factory=None,
+        request_class=None,
+        response_class=None,
         errors_handler=None,
     ):
         self.validation_processor = validation_processor
-        self.request_factory = request_factory or self.request_factory
-        self.response_factory = response_factory or self.response_factory
+        self.request_class = request_class or self.request_class
+        self.response_class = response_class or self.response_class
         self.errors_handler = errors_handler or self.errors_handler
 
     @classmethod
     def from_spec(
         cls,
         spec,
-        request_factory=None,
-        response_factory=None,
+        request_class=None,
+        response_class=None,
         errors_handler=None,
     ):
         request_validator = RequestValidator(spec)
@@ -41,8 +41,8 @@ class FalconOpenAPIMiddleware:
         )
         return cls(
             validation_processor,
-            request_factory=request_factory,
-            response_factory=response_factory,
+            request_class=request_class,
+            response_class=response_class,
             errors_handler=errors_handler,
         )
 
@@ -70,10 +70,10 @@ class FalconOpenAPIMiddleware:
         return self.errors_handler.handle(req, resp, response_result.errors)
 
     def _get_openapi_request(self, request):
-        return self.request_factory.create(request)
+        return self.request_class(request)
 
     def _get_openapi_response(self, response):
-        return self.response_factory.create(response)
+        return self.response_class(response)
 
     def _process_openapi_request(self, openapi_request):
         return self.validation_processor.process_request(openapi_request)

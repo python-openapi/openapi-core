@@ -35,36 +35,6 @@ class RequestParameters:
 
 
 @dataclass
-class OpenAPIRequest:
-    """OpenAPI request dataclass.
-
-    Attributes:
-        full_url_pattern
-            The matched url with scheme, host and path pattern.
-            For example:
-            https://localhost:8000/api/v1/pets
-            https://localhost:8000/api/v1/pets/{pet_id}
-        method
-            The request method, as lowercase string.
-        parameters
-            A RequestParameters object.
-        body
-            The request body, as string.
-        mimetype
-            Like content type, but without parameters (eg, without charset,
-            type etc.) and always lowercase.
-            For example if the content type is "text/HTML; charset=utf-8"
-            the mimetype would be "text/html".
-    """
-
-    full_url_pattern: str
-    method: str
-    body: str
-    mimetype: str
-    parameters: RequestParameters = field(default_factory=RequestParameters)
-
-
-@dataclass
 class Parameters:
     query: Dict = field(default_factory=dict)
     header: Dict = field(default_factory=dict)

@@ -1,4 +1,6 @@
 """OpenAPI core validation validators module"""
+from urllib.parse import urljoin
+
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
@@ -9,6 +11,7 @@ from openapi_core.deserializing.parameters.factories import (
 from openapi_core.schema.parameters import get_value
 from openapi_core.templating.paths.finders import PathFinder
 from openapi_core.unmarshalling.schemas.util import build_format_checker
+from openapi_core.validation.request.protocols import SupportsPathPattern
 
 
 class BaseValidator:
@@ -48,8 +51,11 @@ class BaseValidator:
     def schema_unmarshallers_factory(self):
         raise NotImplementedError
 
-    def _find_path(self, method, full_url_pattern):
-        return self.path_finder.find(method, full_url_pattern)
+    def _find_path(self, request):
+        path_pattern = getattr(request, "path_pattern", None)
+        return self.path_finder.find(
+            request.method, request.host_url, request.path, path_pattern
+        )
 
     def _get_media_type(self, content, mimetype):
         from openapi_core.templating.media_types.finders import MediaTypeFinder

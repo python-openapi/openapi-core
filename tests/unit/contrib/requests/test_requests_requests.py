@@ -1,22 +1,21 @@
-from urllib.parse import urljoin
-
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
-from openapi_core.contrib.flask import FlaskOpenAPIRequest
+from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.validation.request.datatypes import RequestParameters
 
 
-class TestFlaskOpenAPIRequest:
+class TestRequestsOpenAPIRequest:
     def test_simple(self, request_factory, request):
         request = request_factory("GET", "/", subdomain="www")
 
-        openapi_request = FlaskOpenAPIRequest(request)
+        openapi_request = RequestsOpenAPIRequest(request)
 
         path = {}
         query = ImmutableMultiDict([])
-        headers = Headers(request.headers)
+        headers = Headers(dict(request.headers))
         cookies = {}
+        prepared = request.prepare()
         assert openapi_request.parameters == RequestParameters(
             path=path,
             query=query,
@@ -24,18 +23,17 @@ class TestFlaskOpenAPIRequest:
             cookie=cookies,
         )
         assert openapi_request.method == request.method.lower()
-        assert openapi_request.full_url_pattern == urljoin(
-            request.host_url, request.path
-        )
-        assert openapi_request.body == request.data
-        assert openapi_request.mimetype == request.mimetype
+        assert openapi_request.host_url == "http://localhost"
+        assert openapi_request.path == "/"
+        assert openapi_request.body == prepared.body
+        assert openapi_request.mimetype == "application/json"
 
     def test_multiple_values(self, request_factory, request):
         request = request_factory(
             "GET", "/", subdomain="www", query_string="a=b&a=c"
         )
 
-        openapi_request = FlaskOpenAPIRequest(request)
+        openapi_request = RequestsOpenAPIRequest(request)
 
         path = {}
         query = ImmutableMultiDict(
@@ -44,7 +42,7 @@ class TestFlaskOpenAPIRequest:
                 ("a", "c"),
             ]
         )
-        headers = Headers(request.headers)
+        headers = Headers(dict(request.headers))
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -52,21 +50,26 @@ class TestFlaskOpenAPIRequest:
             header=headers,
             cookie=cookies,
         )
+        prepared = request.prepare()
         assert openapi_request.method == request.method.lower()
-        assert openapi_request.full_url_pattern == urljoin(
-            request.host_url, request.path
-        )
-        assert openapi_request.body == request.data
-        assert openapi_request.mimetype == request.mimetype
+        assert openapi_request.host_url == "http://localhost"
+        assert openapi_request.path == "/"
+        assert openapi_request.body == prepared.body
+        assert openapi_request.mimetype == "application/json"
 
     def test_url_rule(self, request_factory, request):
         request = request_factory("GET", "/browse/12/", subdomain="kb")
 
-        openapi_request = FlaskOpenAPIRequest(request)
+        openapi_request = RequestsOpenAPIRequest(request)
 
-        path = {"id": 12}
+        # empty when not bound to spec
+        path = {}
         query = ImmutableMultiDict([])
-        headers = Headers(request.headers)
+        headers = Headers(
+            {
+                "Content-Type": "application/json",
+            }
+        )
         cookies = {}
         assert openapi_request.parameters == RequestParameters(
             path=path,
@@ -74,9 +77,9 @@ class TestFlaskOpenAPIRequest:
             header=headers,
             cookie=cookies,
         )
+        prepared = request.prepare()
         assert openapi_request.method == request.method.lower()
-        assert openapi_request.full_url_pattern == urljoin(
-            request.host_url, "/browse/{id}/"
-        )
-        assert openapi_request.body == request.data
-        assert openapi_request.mimetype == request.mimetype
+        assert openapi_request.host_url == "http://localhost"
+        assert openapi_request.path == "/browse/12/"
+        assert openapi_request.body == prepared.body
+        assert openapi_request.mimetype == "application/json"

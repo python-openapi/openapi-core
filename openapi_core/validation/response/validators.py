@@ -34,9 +34,7 @@ class BaseResponseValidator(BaseValidator):
         )
 
     def _find_operation_response(self, request, response):
-        _, operation, _, _, _ = self._find_path(
-            request.method, request.full_url_pattern
-        )
+        _, operation, _, _, _ = self._find_path(request)
         return self._get_operation_response(operation, response)
 
     def _get_operation_response(self, operation, response):

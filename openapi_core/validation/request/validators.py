@@ -160,9 +160,7 @@ class BaseRequestValidator(BaseValidator):
 class RequestParametersValidator(BaseRequestValidator):
     def validate(self, request):
         try:
-            path, operation, _, path_result, _ = self._find_path(
-                request.method, request.full_url_pattern
-            )
+            path, operation, _, path_result, _ = self._find_path(request)
         except PathError as exc:
             return RequestValidationResult(errors=[exc])
 
@@ -187,9 +185,7 @@ class RequestParametersValidator(BaseRequestValidator):
 class RequestBodyValidator(BaseRequestValidator):
     def validate(self, request):
         try:
-            _, operation, _, _, _ = self._find_path(
-                request.method, request.full_url_pattern
-            )
+            _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
             return RequestValidationResult(errors=[exc])
 
@@ -220,9 +216,7 @@ class RequestBodyValidator(BaseRequestValidator):
 class RequestSecurityValidator(BaseRequestValidator):
     def validate(self, request):
         try:
-            _, operation, _, _, _ = self._find_path(
-                request.method, request.full_url_pattern
-            )
+            _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
             return RequestValidationResult(errors=[exc])
 
@@ -240,9 +234,7 @@ class RequestSecurityValidator(BaseRequestValidator):
 class RequestValidator(BaseRequestValidator):
     def validate(self, request):
         try:
-            path, operation, _, path_result, _ = self._find_path(
-                request.method, request.full_url_pattern
-            )
+            path, operation, _, path_result, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
             return RequestValidationResult(errors=[exc])

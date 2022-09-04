@@ -1,8 +1,8 @@
 """OpenAPI core exceptions module"""
 from dataclasses import dataclass
 
-from openapi_core.validation.request.datatypes import OpenAPIRequest
-from openapi_core.validation.response.datatypes import OpenAPIResponse
+from openapi_core.validation.request.protocols import Request
+from openapi_core.validation.response.protocols import Response
 
 
 class OpenAPIError(Exception):
@@ -67,7 +67,7 @@ class MissingRequestBodyError(OpenAPIRequestBodyError):
 
 @dataclass
 class MissingRequestBody(MissingRequestBodyError):
-    request: OpenAPIRequest
+    request: Request
 
     def __str__(self):
         return "Missing request body"
@@ -75,7 +75,7 @@ class MissingRequestBody(MissingRequestBodyError):
 
 @dataclass
 class MissingRequiredRequestBody(MissingRequestBodyError):
-    request: OpenAPIRequest
+    request: Request
 
     def __str__(self):
         return "Missing required request body"
@@ -87,7 +87,7 @@ class OpenAPIResponseError(OpenAPIError):
 
 @dataclass
 class MissingResponseContent(OpenAPIResponseError):
-    response: OpenAPIResponse
+    response: Response
 
     def __str__(self):
         return "Missing response content"

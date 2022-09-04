@@ -45,6 +45,7 @@ openapi-schema-validator = "^0.2.0"
 openapi-spec-validator = "^0.4.0"
 requests = {version = "*", optional = true}
 werkzeug = "*"
+typing-extensions = "^4.3.0"
 
 [tool.poetry.extras]
 django = ["django"]
@@ -53,7 +54,7 @@ flask = ["flask"]
 requests = ["requests"]
 
 [tool.poetry.dev-dependencies]
-black = {version = "^21.6b0", allow-prereleases = true}
+black = "^22.3.0"
 django = ">=3.0"
 djangorestframework = "^3.11.2"
 falcon = ">=3.0"

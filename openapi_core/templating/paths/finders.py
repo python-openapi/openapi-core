@@ -19,40 +19,46 @@ class PathFinder:
         self.spec = spec
         self.base_url = base_url
 
-    def find(self, method, full_url_pattern):
-        paths_iter = self._get_paths_iter(full_url_pattern)
+    def find(self, method, host_url, path, path_pattern=None):
+        if path_pattern is not None:
+            full_url = urljoin(host_url, path_pattern)
+        else:
+            full_url = urljoin(host_url, path)
+
+        paths_iter = self._get_paths_iter(full_url)
         paths_iter_peek = peekable(paths_iter)
 
         if not paths_iter_peek:
-            raise PathNotFound(full_url_pattern)
+            raise PathNotFound(full_url)
 
-        operations_iter = self._get_operations_iter(method, paths_iter_peek)
+        operations_iter = self._get_operations_iter(paths_iter_peek, method)
         operations_iter_peek = peekable(operations_iter)
 
         if not operations_iter_peek:
-            raise OperationNotFound(full_url_pattern, method)
+            raise OperationNotFound(full_url, method)
 
         servers_iter = self._get_servers_iter(
-            full_url_pattern, operations_iter_peek
+            operations_iter_peek,
+            full_url,
         )
 
         try:
             return next(servers_iter)
         except StopIteration:
-            raise ServerNotFound(full_url_pattern)
+            raise ServerNotFound(full_url)
 
-    def _get_paths_iter(self, full_url_pattern):
+    def _get_paths_iter(self, full_url):
         template_paths = []
         paths = self.spec / "paths"
         for path_pattern, path in list(paths.items()):
             # simple path.
             # Return right away since it is always the most concrete
-            if full_url_pattern.endswith(path_pattern):
+            if full_url.endswith(path_pattern):
                 path_result = TemplateResult(path_pattern, {})
                 yield (path, path_result)
             # template path
             else:
-                result = search(path_pattern, full_url_pattern)
+                result = search(path_pattern, full_url)
                 if result:
                     path_result = TemplateResult(path_pattern, result.named)
                     template_paths.append((path, path_result))
@@ -61,24 +67,24 @@ class PathFinder:
         for path in sorted(template_paths, key=template_path_len):
             yield path
 
-    def _get_operations_iter(self, request_method, paths_iter):
+    def _get_operations_iter(self, paths_iter, request_method):
         for path, path_result in paths_iter:
             if request_method not in path:
                 continue
             operation = path / request_method
             yield (path, operation, path_result)
 
-    def _get_servers_iter(self, full_url_pattern, ooperations_iter):
-        for path, operation, path_result in ooperations_iter:
+    def _get_servers_iter(self, operations_iter, full_url):
+        for path, operation, path_result in operations_iter:
             servers = (
                 path.get("servers", None)
                 or operation.get("servers", None)
                 or self.spec.get("servers", [{"url": "/"}])
             )
             for server in servers:
-                server_url_pattern = full_url_pattern.rsplit(
-                    path_result.resolved, 1
-                )[0]
+                server_url_pattern = full_url.rsplit(path_result.resolved, 1)[
+                    0
+                ]
                 server_url = server["url"]
                 if not is_absolute(server_url):
                     # relative to absolute url
