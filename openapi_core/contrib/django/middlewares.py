@@ -3,8 +3,8 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from openapi_core.contrib.django.handlers import DjangoOpenAPIErrorsHandler
-from openapi_core.contrib.django.requests import DjangoOpenAPIRequestFactory
-from openapi_core.contrib.django.responses import DjangoOpenAPIResponseFactory
+from openapi_core.contrib.django.requests import DjangoOpenAPIRequest
+from openapi_core.contrib.django.responses import DjangoOpenAPIResponse
 from openapi_core.validation.processors import OpenAPIProcessor
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -12,8 +12,8 @@ from openapi_core.validation.response.validators import ResponseValidator
 
 class DjangoOpenAPIMiddleware:
 
-    request_factory = DjangoOpenAPIRequestFactory()
-    response_factory = DjangoOpenAPIResponseFactory()
+    request_class = DjangoOpenAPIRequest
+    response_class = DjangoOpenAPIResponse
     errors_handler = DjangoOpenAPIErrorsHandler()
 
     def __init__(self, get_response):
@@ -53,7 +53,7 @@ class DjangoOpenAPIMiddleware:
         return self.errors_handler.handle(response_result.errors, req, resp)
 
     def _get_openapi_request(self, request):
-        return self.request_factory.create(request)
+        return self.request_class(request)
 
     def _get_openapi_response(self, response):
-        return self.response_factory.create(response)
+        return self.response_class(response)

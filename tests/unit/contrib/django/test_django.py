@@ -81,10 +81,8 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
             cookie=cookies,
         )
         assert openapi_request.method == request.method.lower()
-        assert (
-            openapi_request.full_url_pattern
-            == request._current_scheme_host + request.path
-        )
+        assert openapi_request.host_url == request._current_scheme_host
+        assert openapi_request.path == request.path
         assert openapi_request.body == request.body
         assert openapi_request.mimetype == request.content_type
 
@@ -111,10 +109,8 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
             cookie=cookies,
         )
         assert openapi_request.method == request.method.lower()
-        assert (
-            openapi_request.full_url_pattern
-            == request._current_scheme_host + request.path
-        )
+        assert openapi_request.host_url == request._current_scheme_host
+        assert openapi_request.path == request.path
         assert openapi_request.body == request.body
         assert openapi_request.mimetype == request.content_type
 
@@ -143,10 +139,9 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
             cookie=cookies,
         )
         assert openapi_request.method == request.method.lower()
-        assert (
-            openapi_request.full_url_pattern
-            == request._current_scheme_host + "/admin/auth/group/{object_id}/"
-        )
+        assert openapi_request.host_url == request._current_scheme_host
+        assert openapi_request.path == request.path
+        assert openapi_request.path_pattern == "/admin/auth/group/{object_id}/"
         assert openapi_request.body == request.body
         assert openapi_request.mimetype == request.content_type
 
@@ -173,10 +168,8 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
             cookie=cookies,
         )
         assert openapi_request.method == request.method.lower()
-        assert (
-            openapi_request.full_url_pattern
-            == request._current_scheme_host + "/test/test-regexp/"
-        )
+        assert openapi_request.host_url == request._current_scheme_host
+        assert openapi_request.path == "/test/test-regexp/"
         assert openapi_request.body == request.body
         assert openapi_request.mimetype == request.content_type
 

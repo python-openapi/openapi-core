@@ -1,0 +1,69 @@
+"""OpenAPI core validation request protocols module"""
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Protocol
+    from typing_extensions import runtime_checkable
+else:
+    try:
+        from typing import Protocol
+        from typing import runtime_checkable
+    except ImportError:
+        from typing_extensions import Protocol
+        from typing_extensions import runtime_checkable
+
+from openapi_core.validation.request.datatypes import RequestParameters
+
+
+@runtime_checkable
+class Request(Protocol):
+    """Request attributes protocol.
+
+    Attributes:
+        host_url
+            Url with scheme and host
+            For example:
+            https://localhost:8000
+        path
+            Request path
+        full_url_pattern
+            The matched url with scheme, host and path pattern.
+            For example:
+            https://localhost:8000/api/v1/pets
+            https://localhost:8000/api/v1/pets/{pet_id}
+        method
+            The request method, as lowercase string.
+        parameters
+            A RequestParameters object. Needs to supports path attribute setter
+            to write resolved path parameters.
+        body
+            The request body, as string.
+        mimetype
+            Like content type, but without parameters (eg, without charset,
+            type etc.) and always lowercase.
+            For example if the content type is "text/HTML; charset=utf-8"
+            the mimetype would be "text/html".
+    """
+
+    host_url: str
+    path: str
+    method: str
+    parameters: RequestParameters
+    body: str
+    mimetype: str
+
+
+@runtime_checkable
+class SupportsPathPattern(Protocol):
+    """Supports path_pattern attribute protocol.
+
+    You also need to provide path variables in RequestParameters.
+
+    Attributes:
+        path_pattern
+            The matched path pattern.
+            For example:
+            /api/v1/pets/{pet_id}
+    """
+
+    path_pattern: str

@@ -9,14 +9,14 @@ class OpenAPIDecorator(OpenAPIProcessor):
         self,
         request_validator,
         response_validator,
-        request_factory,
-        response_factory,
+        request_class,
+        response_class,
         request_provider,
         openapi_errors_handler,
     ):
         super().__init__(request_validator, response_validator)
-        self.request_factory = request_factory
-        self.response_factory = response_factory
+        self.request_class = request_class
+        self.response_class = response_class
         self.request_provider = request_provider
         self.openapi_errors_handler = openapi_errors_handler
 
@@ -54,7 +54,7 @@ class OpenAPIDecorator(OpenAPIProcessor):
         return self.openapi_errors_handler.handle(response_result.errors)
 
     def _get_openapi_request(self, request):
-        return self.request_factory.create(request)
+        return self.request_class(request)
 
     def _get_openapi_response(self, response):
-        return self.response_factory.create(response)
+        return self.response_class(response)

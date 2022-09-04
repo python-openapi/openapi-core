@@ -1,18 +1,12 @@
 """OpenAPI core testing responses module"""
 from werkzeug.datastructures import Headers
 
-from openapi_core.validation.response.datatypes import OpenAPIResponse
 
-
-class MockResponseFactory:
-    @classmethod
-    def create(
-        cls, data, status_code=200, headers=None, mimetype="application/json"
+class MockResponse:
+    def __init__(
+        self, data, status_code=200, headers=None, mimetype="application/json"
     ):
-        headers = Headers(headers or {})
-        return OpenAPIResponse(
-            data=data,
-            status_code=status_code,
-            headers=headers,
-            mimetype=mimetype,
-        )
+        self.data = data
+        self.status_code = status_code
+        self.headers = Headers(headers or {})
+        self.mimetype = mimetype

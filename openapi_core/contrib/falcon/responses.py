@@ -1,26 +1,28 @@
 """OpenAPI core contrib falcon responses module"""
 from werkzeug.datastructures import Headers
 
-from openapi_core.validation.response.datatypes import OpenAPIResponse
 
+class FalconOpenAPIResponse:
+    def __init__(self, response):
+        self.response = response
 
-class FalconOpenAPIResponseFactory:
-    @classmethod
-    def create(cls, response):
-        status_code = int(response.status[:3])
+    @property
+    def data(self):
+        return self.response.text
 
+    @property
+    def status_code(self):
+        return int(self.response.status[:3])
+
+    @property
+    def mimetype(self):
         mimetype = ""
-        if response.content_type:
-            mimetype = response.content_type.partition(";")[0]
+        if self.response.content_type:
+            mimetype = self.response.content_type.partition(";")[0]
         else:
-            mimetype = response.options.default_media_type
+            mimetype = self.response.options.default_media_type
+        return mimetype
 
-        data = response.text
-        headers = Headers(response.headers)
-
-        return OpenAPIResponse(
-            data=data,
-            status_code=status_code,
-            headers=headers,
-            mimetype=mimetype,
-        )
+    @property
+    def headers(self):
+        return Headers(self.response.headers)

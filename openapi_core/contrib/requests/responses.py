@@ -1,17 +1,23 @@
 """OpenAPI core contrib requests responses module"""
 from werkzeug.datastructures import Headers
 
-from openapi_core.validation.response.datatypes import OpenAPIResponse
 
+class RequestsOpenAPIResponse:
+    def __init__(self, response):
+        self.response = response
 
-class RequestsOpenAPIResponseFactory:
-    @classmethod
-    def create(cls, response):
-        mimetype = response.headers.get("Content-Type")
-        headers = Headers(dict(response.headers))
-        return OpenAPIResponse(
-            data=response.content,
-            status_code=response.status_code,
-            headers=headers,
-            mimetype=mimetype,
-        )
+    @property
+    def data(self):
+        return self.response.content
+
+    @property
+    def status_code(self):
+        return self.response.status_code
+
+    @property
+    def mimetype(self):
+        return self.response.headers.get("Content-Type")
+
+    @property
+    def headers(self):
+        return Headers(dict(self.response.headers))

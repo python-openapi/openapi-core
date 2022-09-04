@@ -1,8 +1,8 @@
 """OpenAPI core contrib flask decorators module"""
 from openapi_core.contrib.flask.handlers import FlaskOpenAPIErrorsHandler
 from openapi_core.contrib.flask.providers import FlaskRequestProvider
-from openapi_core.contrib.flask.requests import FlaskOpenAPIRequestFactory
-from openapi_core.contrib.flask.responses import FlaskOpenAPIResponseFactory
+from openapi_core.contrib.flask.requests import FlaskOpenAPIRequest
+from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
 from openapi_core.validation.decorators import OpenAPIDecorator
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -13,16 +13,16 @@ class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
         self,
         request_validator,
         response_validator,
-        request_factory=FlaskOpenAPIRequestFactory,
-        response_factory=FlaskOpenAPIResponseFactory,
+        request_class=FlaskOpenAPIRequest,
+        response_class=FlaskOpenAPIResponse,
         request_provider=FlaskRequestProvider,
         openapi_errors_handler=FlaskOpenAPIErrorsHandler,
     ):
         super().__init__(
             request_validator,
             response_validator,
-            request_factory,
-            response_factory,
+            request_class,
+            response_class,
             request_provider,
             openapi_errors_handler,
         )
@@ -38,8 +38,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
     def from_spec(
         cls,
         spec,
-        request_factory=FlaskOpenAPIRequestFactory,
-        response_factory=FlaskOpenAPIResponseFactory,
+        request_class=FlaskOpenAPIRequest,
+        response_class=FlaskOpenAPIResponse,
         request_provider=FlaskRequestProvider,
         openapi_errors_handler=FlaskOpenAPIErrorsHandler,
     ):
@@ -48,8 +48,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
         return cls(
             request_validator=request_validator,
             response_validator=response_validator,
-            request_factory=request_factory,
-            response_factory=response_factory,
+            request_class=request_class,
+            response_class=response_class,
             request_provider=request_provider,
             openapi_errors_handler=openapi_errors_handler,
         )

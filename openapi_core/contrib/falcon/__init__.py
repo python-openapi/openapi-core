@@ -1,4 +1,7 @@
-from openapi_core.contrib.falcon.requests import FalconOpenAPIRequestFactory
-from openapi_core.contrib.falcon.responses import FalconOpenAPIResponseFactory
+from openapi_core.contrib.falcon.requests import FalconOpenAPIRequest
+from openapi_core.contrib.falcon.responses import FalconOpenAPIResponse
 
-__all__ = ["FalconOpenAPIRequestFactory", "FalconOpenAPIResponseFactory"]
+__all__ = [
+    "FalconOpenAPIRequest",
+    "FalconOpenAPIResponse",
+]
