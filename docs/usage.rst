@@ -23,7 +23,7 @@ Now you can use it to validate against requests
 
    from openapi_core.validation.request import openapi_request_validator
 
-   result = validator.validate(spec, request)
+   result = openapi_request_validator.validate(spec, request)
 
    # raise errors if request invalid
    result.raise_for_errors()
@@ -57,7 +57,7 @@ You can also validate against responses
 
    from openapi_core.validation.response import openapi_response_validator
 
-   result = validator.validate(spec, request, response)
+   result = openapi_response_validator.validate(spec, request, response)
 
    # raise errors if response invalid
    result.raise_for_errors()
