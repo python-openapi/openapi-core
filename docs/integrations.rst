@@ -56,23 +56,21 @@ You can use `DjangoOpenAPIRequest` as a Django request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request.validators import RequestValidator
+   from openapi_core.validation.request import openapi_request_validator
    from openapi_core.contrib.django import DjangoOpenAPIRequest
 
    openapi_request = DjangoOpenAPIRequest(django_request)
-   validator = RequestValidator(spec)
-   result = validator.validate(openapi_request)
+   result = openapi_request_validator.validate(spec, openapi_request)
 
 You can use `DjangoOpenAPIResponse` as a Django response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response.validators import ResponseValidator
+   from openapi_core.validation.response import openapi_respose_validator
    from openapi_core.contrib.django import DjangoOpenAPIResponse
 
    openapi_response = DjangoOpenAPIResponse(django_response)
-   validator = ResponseValidator(spec)
-   result = validator.validate(openapi_request, openapi_response)
+   result = openapi_respose_validator.validate(spec, openapi_request, openapi_response)
 
 
 Falcon
@@ -117,23 +115,21 @@ You can use `FalconOpenAPIRequest` as a Falcon request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request.validators import RequestValidator
+   from openapi_core.validation.request import openapi_request_validator
    from openapi_core.contrib.falcon import FalconOpenAPIRequest
 
    openapi_request = FalconOpenAPIRequest(falcon_request)
-   validator = RequestValidator(spec)
-   result = validator.validate(openapi_request)
+   result = openapi_request_validator.validate(spec, openapi_request)
 
 You can use `FalconOpenAPIResponse` as a Falcon response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response.validators import ResponseValidator
+   from openapi_core.validation.response import openapi_respose_validator
    from openapi_core.contrib.falcon import FalconOpenAPIResponse
 
    openapi_response = FalconOpenAPIResponse(falcon_response)
-   validator = ResponseValidator(spec)
-   result = validator.validate(openapi_request, openapi_response)
+   result = openapi_respose_validator.validate(spec, openapi_request, openapi_response)
 
 
 Flask
@@ -200,23 +196,21 @@ You can use `FlaskOpenAPIRequest` as a Flask/Werkzeug request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request.validators import RequestValidator
+   from openapi_core.validation.request import openapi_request_validator
    from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
    openapi_request = FlaskOpenAPIRequest(flask_request)
-   validator = RequestValidator(spec)
-   result = validator.validate(openapi_request)
+   result = openapi_request_validator.validate(spec, openapi_request)
 
 You can use `FlaskOpenAPIResponse` as a Flask/Werkzeug response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response.validators import ResponseValidator
+   from openapi_core.validation.response import openapi_response_validator
    from openapi_core.contrib.flask import FlaskOpenAPIResponse
 
    openapi_response = FlaskOpenAPIResponse(flask_response)
-   validator = ResponseValidator(spec)
-   result = validator.validate(openapi_request, openapi_response)
+   result = openapi_response_validator.validate(spec, openapi_request, openapi_response)
 
 
 Pyramid
@@ -237,23 +231,21 @@ You can use `RequestsOpenAPIRequest` as a Requests request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request.validators import RequestValidator
+   from openapi_core.validation.request import openapi_request_validator
    from openapi_core.contrib.requests import RequestsOpenAPIRequest
 
    openapi_request = RequestsOpenAPIRequest(requests_request)
-   validator = RequestValidator(spec)
-   result = validator.validate(openapi_request)
+   result = openapi_request_validator.validate(spec, openapi_request)
 
 You can use `RequestsOpenAPIResponse` as a Requests response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response.validators import ResponseValidator
+   from openapi_core.validation.response import openapi_respose_validator
    from openapi_core.contrib.requests import RequestsOpenAPIResponse
 
    openapi_response = RequestsOpenAPIResponse(requests_response)
-   validator = ResponseValidator(spec)
-   result = validator.validate(openapi_request, openapi_response)
+   result = openapi_respose_validator.validate(spec, openapi_request, openapi_response)
 
 Tornado
 -------
