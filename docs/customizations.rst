@@ -29,9 +29,9 @@ Pass custom defined media type deserializers dictionary with supported mimetypes
    }
 
    validator = ResponseValidator(
-       spec, custom_media_type_deserializers=custom_media_type_deserializers)
+       custom_media_type_deserializers=custom_media_type_deserializers)
 
-   result = validator.validate(request, response)
+   result = validator.validate(spec, request, response)
 
 Formats
 -------
@@ -59,7 +59,7 @@ Here's how you could add support for a ``usdate`` format that handles dates of t
        'usdate': USDateFormatter(),
    }
 
-   validator = ResponseValidator(spec, custom_formatters=custom_formatters)
+   validator = ResponseValidator(custom_formatters=custom_formatters)
 
-   result = validator.validate(request, response)
+   result = validator.validate(spec, request, response)
 

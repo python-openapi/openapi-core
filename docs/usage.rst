@@ -21,10 +21,9 @@ Now you can use it to validate against requests
 
 .. code-block:: python
 
-   from openapi_core.validation.request.validators import RequestValidator
+   from openapi_core.validation.request import openapi_request_validator
 
-   validator = RequestValidator(spec)
-   result = validator.validate(request)
+   result = validator.validate(spec, request)
 
    # raise errors if request invalid
    result.raise_for_errors()
@@ -56,10 +55,9 @@ You can also validate against responses
 
 .. code-block:: python
 
-   from openapi_core.validation.response.validators import ResponseValidator
+   from openapi_core.validation.response import openapi_response_validator
 
-   validator = ResponseValidator(spec)
-   result = validator.validate(request, response)
+   result = validator.validate(spec, request, response)
 
    # raise errors if response invalid
    result.raise_for_errors()
