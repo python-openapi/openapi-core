@@ -1,7 +1,8 @@
 """OpenAPI core util module"""
+from typing import Any
 
 
-def forcebool(val):
+def forcebool(val: Any) -> bool:
     if isinstance(val, str):
         val = val.lower()
         if val in ("y", "yes", "t", "true", "on", "1"):

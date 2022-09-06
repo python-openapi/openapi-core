@@ -1,6 +1,4 @@
 """OpenAPI core validation request shortcuts module"""
-from functools import partial
-
 from openapi_core.validation.request.validators import RequestBodyValidator
 from openapi_core.validation.request.validators import (
     RequestParametersValidator,
@@ -15,42 +13,36 @@ def validate_request(validator, request):
     return result
 
 
-def spec_validate_request(
-    spec,
-    request,
-    request_factory=None,
-    validator_class=RequestValidator,
-    result_attribute=None,
-):
-    if request_factory is not None:
-        request = request_factory(request)
-
-    validator = validator_class(spec)
-
-    result = validator.validate(request)
-    result.raise_for_errors()
-
-    if result_attribute is None:
-        return result
-    return getattr(result, result_attribute)
+def spec_validate_request(spec, request, base_url=None):
+    validator = RequestValidator(
+        spec,
+        base_url=base_url,
+    )
+    return validate_request(validator, request)
 
 
-spec_validate_parameters = partial(
-    spec_validate_request,
-    validator_class=RequestParametersValidator,
-    result_attribute="parameters",
-)
+def spec_validate_body(spec, request, base_url=None):
+    validator = RequestBodyValidator(
+        spec,
+        base_url=base_url,
+    )
+    result = validate_request(validator, request)
+    return result.body
 
 
-spec_validate_body = partial(
-    spec_validate_request,
-    validator_class=RequestBodyValidator,
-    result_attribute="body",
-)
+def spec_validate_parameters(spec, request, base_url=None):
+    validator = RequestParametersValidator(
+        spec,
+        base_url=base_url,
+    )
+    result = validate_request(validator, request)
+    return result.parameters
 
 
-spec_validate_security = partial(
-    spec_validate_request,
-    validator_class=RequestSecurityValidator,
-    result_attribute="security",
-)
+def spec_validate_security(spec, request, base_url=None):
+    validator = RequestSecurityValidator(
+        spec,
+        base_url=base_url,
+    )
+    result = validate_request(validator, request)
+    return result.security

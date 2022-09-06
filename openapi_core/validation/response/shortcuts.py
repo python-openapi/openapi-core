@@ -1,6 +1,4 @@
 """OpenAPI core validation response shortcuts module"""
-from functools import partial
-
 from openapi_core.validation.response.validators import ResponseDataValidator
 from openapi_core.validation.response.validators import (
     ResponseHeadersValidator,
@@ -14,39 +12,29 @@ def validate_response(validator, request, response):
     return result
 
 
-def spec_validate_response(
-    spec,
-    request,
-    response,
-    request_factory=None,
-    response_factory=None,
-    validator_class=ResponseValidator,
-    result_attribute=None,
-):
-    if request_factory is not None:
-        request = request_factory(request)
-    if response_factory is not None:
-        response = response_factory(response)
-
-    validator = validator_class(spec)
-
-    result = validator.validate(request, response)
-    result.raise_for_errors()
-
-    if result_attribute is None:
-        return result
-    return getattr(result, result_attribute)
+def spec_validate_response(spec, request, response, base_url=None):
+    validator = ResponseValidator(
+        spec,
+        base_url=base_url,
+        custom_formatters=None,
+        custom_media_type_deserializers=None,
+    )
+    return validate_response(validator, request, response)
 
 
-spec_validate_data = partial(
-    spec_validate_response,
-    validator_class=ResponseDataValidator,
-    result_attribute="data",
-)
+def spec_validate_data(spec, request, response, base_url=None):
+    validator = ResponseDataValidator(
+        spec,
+        base_url=base_url,
+    )
+    result = validate_response(validator, request, response)
+    return result.data
 
 
-spec_validate_headers = partial(
-    spec_validate_response,
-    validator_class=ResponseHeadersValidator,
-    result_attribute="headers",
-)
+def spec_validate_headers(spec, request, response, base_url=None):
+    validator = ResponseHeadersValidator(
+        spec,
+        base_url=base_url,
+    )
+    result = validate_response(validator, request, response)
+    return result.headers
