@@ -102,7 +102,7 @@ and unmarshal request data from validation result
    # get security data
    validated_security = result.security
 
-Request object should be instance of OpenAPIRequest class (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
+Request object should implement OpenAPI Request protocol (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
 
 Response
 ********
@@ -132,7 +132,7 @@ and unmarshal response data from validation result
    # get data
    validated_data = result.data
 
-Response object should be instance of OpenAPIResponse class (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
+Response object should implement OpenAPI Response protocol (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
 
 Related projects
 ################
