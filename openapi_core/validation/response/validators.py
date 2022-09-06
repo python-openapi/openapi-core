@@ -3,9 +3,6 @@ import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.exceptions import MissingHeader
-from openapi_core.exceptions import MissingRequiredHeader
-from openapi_core.exceptions import MissingResponseContent
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.responses.exceptions import ResponseFinderError
@@ -15,12 +12,24 @@ from openapi_core.unmarshalling.schemas.exceptions import ValidateError
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
+from openapi_core.validation.exceptions import MissingHeader
+from openapi_core.validation.exceptions import MissingRequiredHeader
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.response.exceptions import HeadersError
+from openapi_core.validation.response.exceptions import MissingResponseContent
 from openapi_core.validation.validators import BaseValidator
 
 
 class BaseResponseValidator(BaseValidator):
+    def validate(
+        self,
+        spec,
+        request,
+        response,
+        base_url=None,
+    ):
+        raise NotImplementedError
+
     @property
     def schema_unmarshallers_factory(self):
         spec_resolver = (
@@ -121,7 +130,15 @@ class BaseResponseValidator(BaseValidator):
 
 
 class ResponseDataValidator(BaseResponseValidator):
-    def validate(self, request, response):
+    def validate(
+        self,
+        spec,
+        request,
+        response,
+        base_url=None,
+    ):
+        self.spec = spec
+        self.base_url = base_url
         try:
             operation_response = self._find_operation_response(
                 request, response
@@ -152,7 +169,15 @@ class ResponseDataValidator(BaseResponseValidator):
 
 
 class ResponseHeadersValidator(BaseResponseValidator):
-    def validate(self, request, response):
+    def validate(
+        self,
+        spec,
+        request,
+        response,
+        base_url=None,
+    ):
+        self.spec = spec
+        self.base_url = base_url
         try:
             operation_response = self._find_operation_response(
                 request, response
@@ -176,7 +201,15 @@ class ResponseHeadersValidator(BaseResponseValidator):
 
 
 class ResponseValidator(BaseResponseValidator):
-    def validate(self, request, response):
+    def validate(
+        self,
+        spec,
+        request,
+        response,
+        base_url=None,
+    ):
+        self.spec = spec
+        self.base_url = base_url
         try:
             operation_response = self._find_operation_response(
                 request, response

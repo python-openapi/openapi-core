@@ -4,8 +4,8 @@ from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.testing import MockRequest
+from openapi_core.validation.request import openapi_request_validator
 from openapi_core.validation.request.datatypes import Parameters
-from openapi_core.validation.request.validators import RequestValidator
 
 
 class TestMinimal:
@@ -28,10 +28,9 @@ class TestMinimal:
     def test_hosts(self, factory, server, spec_path):
         spec_dict = factory.spec_from_file(spec_path)
         spec = Spec.create(spec_dict)
-        validator = RequestValidator(spec)
         request = MockRequest(server, "get", "/status")
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert not result.errors
 
@@ -40,10 +39,9 @@ class TestMinimal:
     def test_invalid_operation(self, factory, server, spec_path):
         spec_dict = factory.spec_from_file(spec_path)
         spec = Spec.create(spec_dict)
-        validator = RequestValidator(spec)
         request = MockRequest(server, "post", "/status")
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert isinstance(result.errors[0], OperationNotFound)
@@ -55,10 +53,9 @@ class TestMinimal:
     def test_invalid_path(self, factory, server, spec_path):
         spec_dict = factory.spec_from_file(spec_path)
         spec = Spec.create(spec_dict)
-        validator = RequestValidator(spec)
         request = MockRequest(server, "get", "/nonexistent")
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert isinstance(result.errors[0], PathNotFound)

@@ -4,13 +4,14 @@ from openapi_core.contrib.flask.providers import FlaskRequestProvider
 from openapi_core.contrib.flask.requests import FlaskOpenAPIRequest
 from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
 from openapi_core.validation.decorators import OpenAPIDecorator
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.request import openapi_request_validator
+from openapi_core.validation.response import openapi_response_validator
 
 
 class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
     def __init__(
         self,
+        spec,
         request_validator,
         response_validator,
         request_class=FlaskOpenAPIRequest,
@@ -19,6 +20,7 @@ class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
         openapi_errors_handler=FlaskOpenAPIErrorsHandler,
     ):
         super().__init__(
+            spec,
             request_validator,
             response_validator,
             request_class,
@@ -43,11 +45,10 @@ class FlaskOpenAPIViewDecorator(OpenAPIDecorator):
         request_provider=FlaskRequestProvider,
         openapi_errors_handler=FlaskOpenAPIErrorsHandler,
     ):
-        request_validator = RequestValidator(spec)
-        response_validator = ResponseValidator(spec)
         return cls(
-            request_validator=request_validator,
-            response_validator=response_validator,
+            spec,
+            request_validator=openapi_request_validator,
+            response_validator=openapi_response_validator,
             request_class=request_class,
             response_class=response_class,
             request_provider=request_provider,

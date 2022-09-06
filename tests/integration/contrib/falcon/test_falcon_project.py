@@ -120,7 +120,7 @@ class TestPetListResource(BaseTestFalconProject):
             "errors": [
                 {
                     "class": (
-                        "<class 'openapi_core.exceptions."
+                        "<class 'openapi_core.validation.exceptions."
                         "MissingRequiredParameter'>"
                     ),
                     "status": 400,
@@ -199,7 +199,7 @@ class TestPetListResource(BaseTestFalconProject):
             "errors": [
                 {
                     "class": (
-                        "<class 'openapi_core.exceptions."
+                        "<class 'openapi_core.validation.exceptions."
                         "MissingRequiredParameter'>"
                     ),
                     "status": 400,

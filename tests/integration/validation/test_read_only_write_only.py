@@ -6,18 +6,8 @@ from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseValidator
-
-
-@pytest.fixture
-def response_validator(spec):
-    return ResponseValidator(spec)
-
-
-@pytest.fixture
-def request_validator(spec):
-    return RequestValidator(spec)
+from openapi_core.validation.request import openapi_request_validator
+from openapi_core.validation.response import openapi_response_validator
 
 
 @pytest.fixture(scope="class")
@@ -27,7 +17,7 @@ def spec(factory):
 
 
 class TestReadOnly:
-    def test_write_a_read_only_property(self, request_validator):
+    def test_write_a_read_only_property(self, spec):
         data = json.dumps(
             {
                 "id": 10,
@@ -39,12 +29,12 @@ class TestReadOnly:
             host_url="", method="POST", path="/users", data=data
         )
 
-        result = request_validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert type(result.errors[0]) == InvalidSchemaValue
         assert result.body is None
 
-    def test_read_only_property_response(self, response_validator):
+    def test_read_only_property_response(self, spec):
         data = json.dumps(
             {
                 "id": 10,
@@ -56,7 +46,7 @@ class TestReadOnly:
 
         response = MockResponse(data)
 
-        result = response_validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert not result.errors
         assert result.data == {
@@ -66,7 +56,7 @@ class TestReadOnly:
 
 
 class TestWriteOnly:
-    def test_write_only_property(self, request_validator):
+    def test_write_only_property(self, spec):
         data = json.dumps(
             {
                 "name": "Pedro",
@@ -78,7 +68,7 @@ class TestWriteOnly:
             host_url="", method="POST", path="/users", data=data
         )
 
-        result = request_validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert not result.errors
         assert result.body == {
@@ -86,7 +76,7 @@ class TestWriteOnly:
             "hidden": False,
         }
 
-    def test_read_a_write_only_property(self, response_validator):
+    def test_read_a_write_only_property(self, spec):
         data = json.dumps(
             {
                 "id": 10,
@@ -98,7 +88,7 @@ class TestWriteOnly:
         request = MockRequest(host_url="", method="POST", path="/users")
         response = MockResponse(data)
 
-        result = response_validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert type(result.errors[0]) == InvalidSchemaValue
         assert result.data is None

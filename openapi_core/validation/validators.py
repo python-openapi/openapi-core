@@ -17,13 +17,9 @@ from openapi_core.validation.request.protocols import SupportsPathPattern
 class BaseValidator:
     def __init__(
         self,
-        spec,
-        base_url=None,
         custom_formatters=None,
         custom_media_type_deserializers=None,
     ):
-        self.spec = spec
-        self.base_url = base_url
         self.custom_formatters = custom_formatters or {}
         self.custom_media_type_deserializers = custom_media_type_deserializers
 

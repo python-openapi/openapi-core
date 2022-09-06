@@ -7,9 +7,6 @@ from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.media_types.exceptions import (
     MediaTypeDeserializeError,
 )
-from openapi_core.exceptions import MissingRequiredParameter
-from openapi_core.exceptions import MissingRequiredRequestBody
-from openapi_core.exceptions import MissingResponseContent
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
@@ -19,10 +16,15 @@ from openapi_core.templating.responses.exceptions import ResponseNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
+from openapi_core.validation import openapi_request_validator
+from openapi_core.validation import openapi_response_validator
 from openapi_core.validation.exceptions import InvalidSecurity
+from openapi_core.validation.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.datatypes import Parameters
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.request.exceptions import (
+    MissingRequiredRequestBody,
+)
+from openapi_core.validation.response.exceptions import MissingResponseContent
 
 
 class TestRequestValidator:
@@ -45,45 +47,41 @@ class TestRequestValidator:
     def spec(self, spec_dict):
         return Spec.create(spec_dict)
 
-    @pytest.fixture(scope="session")
-    def validator(self, spec):
-        return RequestValidator(spec, base_url=self.host_url)
-
-    def test_request_server_error(self, validator):
+    def test_request_server_error(self, spec):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_invalid_path(self, validator):
+    def test_invalid_path(self, spec):
         request = MockRequest(self.host_url, "get", "/v1")
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_invalid_operation(self, validator):
+    def test_invalid_operation(self, spec):
         request = MockRequest(self.host_url, "patch", "/v1/pets")
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_missing_parameter(self, validator):
+    def test_missing_parameter(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/pets")
 
         with pytest.warns(DeprecationWarning):
-            result = validator.validate(request)
+            result = openapi_request_validator.validate(spec, request)
 
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
@@ -94,7 +92,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_get_pets(self, validator):
+    def test_get_pets(self, spec):
         args = {"limit": "10", "ids": ["1", "2"], "api_key": self.api_key}
         request = MockRequest(
             self.host_url,
@@ -105,7 +103,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = validator.validate(request)
+            result = openapi_request_validator.validate(spec, request)
 
         assert result.errors == []
         assert result.body is None
@@ -121,7 +119,7 @@ class TestRequestValidator:
             "api_key": self.api_key,
         }
 
-    def test_get_pets_webob(self, validator):
+    def test_get_pets_webob(self, spec):
         from webob.multidict import GetDict
 
         request = MockRequest(
@@ -135,7 +133,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = validator.validate(request)
+            result = openapi_request_validator.validate(spec, request)
 
         assert result.errors == []
         assert result.body is None
@@ -148,7 +146,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_missing_body(self, validator):
+    def test_missing_body(self, spec):
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -164,7 +162,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredRequestBody
@@ -178,7 +176,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_invalid_content_type(self, validator):
+    def test_invalid_content_type(self, spec):
         data = "csv,data"
         headers = {
             "api-key": self.api_key_encoded,
@@ -197,7 +195,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MediaTypeNotFound
@@ -211,7 +209,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_invalid_complex_parameter(self, validator, spec_dict):
+    def test_invalid_complex_parameter(self, spec, spec_dict):
         pet_name = "Cat"
         pet_tag = "cats"
         pet_street = "Piekna"
@@ -250,7 +248,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidSchemaValue
@@ -275,7 +273,7 @@ class TestRequestValidator:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
-    def test_post_pets(self, validator, spec_dict):
+    def test_post_pets(self, spec, spec_dict):
         pet_name = "Cat"
         pet_tag = "cats"
         pet_street = "Piekna"
@@ -309,7 +307,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert result.errors == []
         assert result.parameters == Parameters(
@@ -333,7 +331,7 @@ class TestRequestValidator:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
-    def test_post_pets_plain_no_schema(self, validator, spec_dict):
+    def test_post_pets_plain_no_schema(self, spec, spec_dict):
         data = "plain text"
         headers = {
             "api-key": self.api_key_encoded,
@@ -353,7 +351,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(UserWarning):
-            result = validator.validate(request)
+            result = openapi_request_validator.validate(spec, request)
 
         assert result.errors == []
         assert result.parameters == Parameters(
@@ -367,7 +365,7 @@ class TestRequestValidator:
         assert result.security == {}
         assert result.body == data
 
-    def test_get_pet_unauthorized(self, validator):
+    def test_get_pet_unauthorized(self, spec):
         request = MockRequest(
             self.host_url,
             "get",
@@ -376,7 +374,7 @@ class TestRequestValidator:
             view_args={"petId": "1"},
         )
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert result.errors == [
             InvalidSecurity(),
@@ -385,7 +383,7 @@ class TestRequestValidator:
         assert result.parameters == Parameters()
         assert result.security is None
 
-    def test_get_pet(self, validator):
+    def test_get_pet(self, spec):
         authorization = "Basic " + self.api_key_encoded
         headers = {
             "Authorization": authorization,
@@ -399,7 +397,7 @@ class TestRequestValidator:
             headers=headers,
         )
 
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert result.errors == []
         assert result.body is None
@@ -447,47 +445,43 @@ class TestPathItemParamsValidator:
     def spec(self, spec_dict):
         return Spec.create(spec_dict)
 
-    @pytest.fixture(scope="session")
-    def validator(self, spec):
-        return RequestValidator(spec, base_url="http://example.com")
-
-    def test_request_missing_param(self, validator):
+    def test_request_missing_param(self, spec):
         request = MockRequest("http://example.com", "get", "/resource")
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_request_invalid_param(self, validator):
+    def test_request_invalid_param(self, spec):
         request = MockRequest(
             "http://example.com",
             "get",
             "/resource",
             args={"resId": "invalid"},
         )
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == CastError
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_request_valid_param(self, validator):
+    def test_request_valid_param(self, spec):
         request = MockRequest(
             "http://example.com",
             "get",
             "/resource",
             args={"resId": "10"},
         )
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 0
         assert result.body is None
         assert result.parameters == Parameters(query={"resId": 10})
 
-    def test_request_override_param(self, spec_dict):
+    def test_request_override_param(self, spec, spec_dict):
         # override path parameter on operation
         spec_dict["paths"]["/resource"]["get"]["parameters"] = [
             {
@@ -500,17 +494,16 @@ class TestPathItemParamsValidator:
                 },
             }
         ]
-        validator = RequestValidator(
-            Spec.create(spec_dict), base_url="http://example.com"
-        )
         request = MockRequest("http://example.com", "get", "/resource")
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(
+            spec, request, base_url="http://example.com"
+        )
 
         assert len(result.errors) == 0
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_request_override_param_uniqueness(self, spec_dict):
+    def test_request_override_param_uniqueness(self, spec, spec_dict):
         # add parameter on operation with same name as on path but
         # different location
         spec_dict["paths"]["/resource"]["get"]["parameters"] = [
@@ -524,11 +517,10 @@ class TestPathItemParamsValidator:
                 },
             }
         ]
-        validator = RequestValidator(
-            Spec.create(spec_dict), base_url="http://example.com"
-        )
         request = MockRequest("http://example.com", "get", "/resource")
-        result = validator.validate(request)
+        result = openapi_request_validator.validate(
+            spec, request, base_url="http://example.com"
+        )
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredParameter
@@ -548,88 +540,84 @@ class TestResponseValidator:
     def spec(self, spec_dict):
         return Spec.create(spec_dict)
 
-    @pytest.fixture
-    def validator(self, spec):
-        return ResponseValidator(spec, base_url=self.host_url)
-
-    def test_invalid_server(self, validator):
+    def test_invalid_server(self, spec):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
         response = MockResponse("Not Found", status_code=404)
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_operation(self, validator):
+    def test_invalid_operation(self, spec):
         request = MockRequest(self.host_url, "patch", "/v1/pets")
         response = MockResponse("Not Found", status_code=404)
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_response(self, validator):
+    def test_invalid_response(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("Not Found", status_code=409)
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == ResponseNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_content_type(self, validator):
+    def test_invalid_content_type(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("Not Found", mimetype="text/csv")
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MediaTypeNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_missing_body(self, validator):
+    def test_missing_body(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse(None)
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingResponseContent
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_media_type(self, validator):
+    def test_invalid_media_type(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("abcde")
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MediaTypeDeserializeError
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_media_type_value(self, validator):
+    def test_invalid_media_type_value(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("{}")
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_value(self, validator):
+    def test_invalid_value(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/tags")
         response_json = {
             "data": [
@@ -639,14 +627,14 @@ class TestResponseValidator:
         response_data = json.dumps(response_json)
         response = MockResponse(response_data)
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 
-    def test_get_pets(self, validator):
+    def test_get_pets(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response_json = {
             "data": [
@@ -662,7 +650,7 @@ class TestResponseValidator:
         response_data = json.dumps(response_json)
         response = MockResponse(response_data)
 
-        result = validator.validate(request, response)
+        result = openapi_response_validator.validate(spec, request, response)
 
         assert result.errors == []
         assert isinstance(result.data, BaseModel)

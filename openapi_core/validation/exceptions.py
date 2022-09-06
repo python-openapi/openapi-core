@@ -12,3 +12,51 @@ class ValidationError(OpenAPIError):
 class InvalidSecurity(ValidationError):
     def __str__(self):
         return "Security not valid for any requirement"
+
+
+class OpenAPIParameterError(OpenAPIError):
+    pass
+
+
+class MissingParameterError(OpenAPIParameterError):
+    """Missing parameter error"""
+
+
+@dataclass
+class MissingParameter(MissingParameterError):
+    name: str
+
+    def __str__(self):
+        return f"Missing parameter (without default value): {self.name}"
+
+
+@dataclass
+class MissingRequiredParameter(MissingParameterError):
+    name: str
+
+    def __str__(self):
+        return f"Missing required parameter: {self.name}"
+
+
+class OpenAPIHeaderError(OpenAPIError):
+    pass
+
+
+class MissingHeaderError(OpenAPIHeaderError):
+    """Missing header error"""
+
+
+@dataclass
+class MissingHeader(MissingHeaderError):
+    name: str
+
+    def __str__(self):
+        return f"Missing header (without default value): {self.name}"
+
+
+@dataclass
+class MissingRequiredHeader(MissingHeaderError):
+    name: str
+
+    def __str__(self):
+        return f"Missing required header: {self.name}"

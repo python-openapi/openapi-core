@@ -5,8 +5,8 @@ import responses
 from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
 from openapi_core.spec import OpenAPIv30Spec as Spec
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.request import openapi_request_validator
+from openapi_core.validation.response import openapi_response_validator
 
 
 class TestRequestsOpenAPIValidation:
@@ -25,7 +25,6 @@ class TestRequestsOpenAPIValidation:
             match_querystring=True,
             headers={"X-Rate-Limit": "12"},
         )
-        validator = ResponseValidator(spec)
         request = requests.Request(
             "POST",
             "http://localhost/browse/12/",
@@ -38,11 +37,12 @@ class TestRequestsOpenAPIValidation:
         response = session.send(request_prepared)
         openapi_request = RequestsOpenAPIRequest(request)
         openapi_response = RequestsOpenAPIResponse(response)
-        result = validator.validate(openapi_request, openapi_response)
+        result = openapi_response_validator.validate(
+            spec, openapi_request, openapi_response
+        )
         assert not result.errors
 
     def test_request_validator_path_pattern(self, spec):
-        validator = RequestValidator(spec)
         request = requests.Request(
             "POST",
             "http://localhost/browse/12/",
@@ -51,11 +51,10 @@ class TestRequestsOpenAPIValidation:
             json={"param1": 1},
         )
         openapi_request = RequestsOpenAPIRequest(request)
-        result = validator.validate(openapi_request)
+        result = openapi_request_validator.validate(spec, openapi_request)
         assert not result.errors
 
     def test_request_validator_prepared_request(self, spec):
-        validator = RequestValidator(spec)
         request = requests.Request(
             "POST",
             "http://localhost/browse/12/",
@@ -65,5 +64,5 @@ class TestRequestsOpenAPIValidation:
         )
         request_prepared = request.prepare()
         openapi_request = RequestsOpenAPIRequest(request_prepared)
-        result = validator.validate(openapi_request)
+        result = openapi_request_validator.validate(spec, openapi_request)
         assert not result.errors

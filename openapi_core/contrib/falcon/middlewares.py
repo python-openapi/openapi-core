@@ -4,8 +4,8 @@ from openapi_core.contrib.falcon.handlers import FalconOpenAPIErrorsHandler
 from openapi_core.contrib.falcon.requests import FalconOpenAPIRequest
 from openapi_core.contrib.falcon.responses import FalconOpenAPIResponse
 from openapi_core.validation.processors import OpenAPIProcessor
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.request import openapi_request_validator
+from openapi_core.validation.response import openapi_response_validator
 
 
 class FalconOpenAPIMiddleware:
@@ -16,11 +16,13 @@ class FalconOpenAPIMiddleware:
 
     def __init__(
         self,
+        spec,
         validation_processor,
         request_class=None,
         response_class=None,
         errors_handler=None,
     ):
+        self.spec = spec
         self.validation_processor = validation_processor
         self.request_class = request_class or self.request_class
         self.response_class = response_class or self.response_class
@@ -34,12 +36,11 @@ class FalconOpenAPIMiddleware:
         response_class=None,
         errors_handler=None,
     ):
-        request_validator = RequestValidator(spec)
-        response_validator = ResponseValidator(spec)
         validation_processor = OpenAPIProcessor(
-            request_validator, response_validator
+            openapi_request_validator, openapi_response_validator
         )
         return cls(
+            spec,
             validation_processor,
             request_class=request_class,
             response_class=response_class,
@@ -76,9 +77,11 @@ class FalconOpenAPIMiddleware:
         return self.response_class(response)
 
     def _process_openapi_request(self, openapi_request):
-        return self.validation_processor.process_request(openapi_request)
+        return self.validation_processor.process_request(
+            self.spec, openapi_request
+        )
 
     def _process_openapi_response(self, opneapi_request, openapi_response):
         return self.validation_processor.process_response(
-            opneapi_request, openapi_response
+            self.spec, opneapi_request, openapi_response
         )
