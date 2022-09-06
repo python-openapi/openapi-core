@@ -3,10 +3,6 @@ import warnings
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.exceptions import MissingParameter
-from openapi_core.exceptions import MissingRequestBody
-from openapi_core.exceptions import MissingRequiredParameter
-from openapi_core.exceptions import MissingRequiredRequestBody
 from openapi_core.schema.parameters import iter_params
 from openapi_core.security.exceptions import SecurityError
 from openapi_core.security.factories import SecurityProviderFactory
@@ -19,13 +15,27 @@ from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
 from openapi_core.validation.exceptions import InvalidSecurity
+from openapi_core.validation.exceptions import MissingParameter
+from openapi_core.validation.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.datatypes import RequestValidationResult
+from openapi_core.validation.request.exceptions import MissingRequestBody
+from openapi_core.validation.request.exceptions import (
+    MissingRequiredRequestBody,
+)
 from openapi_core.validation.request.exceptions import ParametersError
 from openapi_core.validation.validators import BaseValidator
 
 
 class BaseRequestValidator(BaseValidator):
+    def validate(
+        self,
+        spec,
+        request,
+        base_url=None,
+    ):
+        raise NotImplementedError
+
     @property
     def schema_unmarshallers_factory(self):
         spec_resolver = (
@@ -158,7 +168,14 @@ class BaseRequestValidator(BaseValidator):
 
 
 class RequestParametersValidator(BaseRequestValidator):
-    def validate(self, request):
+    def validate(
+        self,
+        spec,
+        request,
+        base_url=None,
+    ):
+        self.spec = spec
+        self.base_url = base_url
         try:
             path, operation, _, path_result, _ = self._find_path(request)
         except PathError as exc:
@@ -183,7 +200,14 @@ class RequestParametersValidator(BaseRequestValidator):
 
 
 class RequestBodyValidator(BaseRequestValidator):
-    def validate(self, request):
+    def validate(
+        self,
+        spec,
+        request,
+        base_url=None,
+    ):
+        self.spec = spec
+        self.base_url = base_url
         try:
             _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
@@ -214,7 +238,14 @@ class RequestBodyValidator(BaseRequestValidator):
 
 
 class RequestSecurityValidator(BaseRequestValidator):
-    def validate(self, request):
+    def validate(
+        self,
+        spec,
+        request,
+        base_url=None,
+    ):
+        self.spec = spec
+        self.base_url = base_url
         try:
             _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
@@ -232,7 +263,14 @@ class RequestSecurityValidator(BaseRequestValidator):
 
 
 class RequestValidator(BaseRequestValidator):
-    def validate(self, request):
+    def validate(
+        self,
+        spec,
+        request,
+        base_url=None,
+    ):
+        self.spec = spec
+        self.base_url = base_url
         try:
             path, operation, _, path_result, _ = self._find_path(request)
         # don't process if operation errors

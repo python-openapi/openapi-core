@@ -4,12 +4,12 @@ from json import dumps
 from falcon import status_codes
 from falcon.constants import MEDIA_JSON
 
-from openapi_core.exceptions import MissingRequiredParameter
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.validation.exceptions import InvalidSecurity
+from openapi_core.validation.exceptions import MissingRequiredParameter
 
 
 class FalconOpenAPIErrorsHandler:

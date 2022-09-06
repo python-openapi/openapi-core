@@ -172,7 +172,7 @@ class TestFlaskOpenAPIView:
             "errors": [
                 {
                     "class": (
-                        "<class 'openapi_core.exceptions."
+                        "<class 'openapi_core.validation.exceptions."
                         "MissingRequiredHeader'>"
                     ),
                     "status": 400,

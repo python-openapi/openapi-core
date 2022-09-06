@@ -11,8 +11,6 @@ from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
     EmptyQueryParameterValue,
 )
-from openapi_core.exceptions import MissingRequiredHeader
-from openapi_core.exceptions import MissingRequiredParameter
 from openapi_core.extensions.models.models import BaseModel
 from openapi_core.spec import OpenAPIv30Spec as Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
@@ -20,14 +18,19 @@ from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
+from openapi_core.validation.exceptions import MissingRequiredHeader
+from openapi_core.validation.exceptions import MissingRequiredParameter
+from openapi_core.validation.request import openapi_request_body_validator
+from openapi_core.validation.request import (
+    openapi_request_parameters_validator,
+)
+from openapi_core.validation.request import openapi_request_security_validator
 from openapi_core.validation.request.datatypes import Parameters
-from openapi_core.validation.request.shortcuts import spec_validate_body
-from openapi_core.validation.request.shortcuts import spec_validate_parameters
-from openapi_core.validation.request.shortcuts import spec_validate_security
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.shortcuts import spec_validate_data
-from openapi_core.validation.response.shortcuts import spec_validate_headers
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.response import openapi_response_data_validator
+from openapi_core.validation.response import openapi_response_headers_validator
+from openapi_core.validation.response import openapi_response_validator
+from openapi_core.validation.shortcuts import validate_request
+from openapi_core.validation.shortcuts import validate_response
 
 
 class TestPetstore:
@@ -52,15 +55,7 @@ class TestPetstore:
     def spec(self, spec_dict, spec_uri):
         return Spec.create(spec_dict, url=spec_uri)
 
-    @pytest.fixture(scope="module")
-    def request_validator(self, spec):
-        return RequestValidator(spec)
-
-    @pytest.fixture(scope="module")
-    def response_validator(self, spec):
-        return ResponseValidator(spec)
-
-    def test_get_pets(self, spec, response_validator):
+    def test_get_pets(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
@@ -76,17 +71,23 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": 20,
                 "page": 1,
                 "search": "",
             }
         )
-        assert body is None
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
 
         data_json = {
             "data": [],
@@ -98,7 +99,7 @@ class TestPetstore:
         }
         response = MockResponse(data, headers=headers)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -107,7 +108,7 @@ class TestPetstore:
             "x-next": "next-url",
         }
 
-    def test_get_pets_response(self, spec, response_validator):
+    def test_get_pets_response(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
@@ -123,17 +124,23 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": 20,
                 "page": 1,
                 "search": "",
             }
         )
-        assert body is None
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
 
         data_json = {
             "data": [
@@ -149,7 +156,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -157,7 +164,7 @@ class TestPetstore:
         assert response_result.data.data[0].id == 1
         assert response_result.data.data[0].name == "Cat"
 
-    def test_get_pets_response_no_schema(self, spec, response_validator):
+    def test_get_pets_response_no_schema(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
@@ -173,28 +180,34 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": 20,
                 "page": 1,
                 "search": "",
             }
         )
-        assert body is None
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
 
         data = "<html></html>"
         response = MockResponse(data, status_code=404, mimetype="text/html")
 
         with pytest.warns(UserWarning):
-            response_result = response_validator.validate(request, response)
+            response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert response_result.data == data
 
-    def test_get_pets_invalid_response(self, spec, response_validator):
+    def test_get_pets_invalid_response(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
@@ -210,17 +223,23 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": 20,
                 "page": 1,
                 "search": "",
             }
         )
-        assert body is None
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
 
         response_data_json = {
             "data": [
@@ -236,9 +255,16 @@ class TestPetstore:
         response = MockResponse(response_data)
 
         with pytest.raises(InvalidSchemaValue):
-            spec_validate_data(spec, request, response)
+            validate_response(
+                spec,
+                request,
+                response,
+                validator=openapi_response_data_validator,
+            )
 
-        response_result = response_validator.validate(request, response)
+        response_result = openapi_response_validator.validate(
+            spec, request, response
+        )
 
         schema_errors = response_result.errors[0].schema_errors
         assert response_result.errors == [
@@ -250,7 +276,7 @@ class TestPetstore:
         ]
         assert response_result.data is None
 
-    def test_get_pets_ids_param(self, spec, response_validator):
+    def test_get_pets_ids_param(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
@@ -267,10 +293,11 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": 20,
                 "page": 1,
@@ -278,7 +305,12 @@ class TestPetstore:
                 "ids": [12, 13],
             }
         )
-        assert body is None
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
 
         data_json = {
             "data": [],
@@ -286,13 +318,13 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
         assert response_result.data.data == []
 
-    def test_get_pets_tags_param(self, spec, response_validator):
+    def test_get_pets_tags_param(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = [
@@ -309,10 +341,11 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": 20,
                 "page": 1,
@@ -320,7 +353,12 @@ class TestPetstore:
                 "tags": ["cats", "dogs"],
             }
         )
-        assert body is None
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
 
         data_json = {
             "data": [],
@@ -328,7 +366,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -352,11 +390,17 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             with pytest.raises(DeserializeError):
-                spec_validate_parameters(spec, request)
+                validate_request(
+                    spec,
+                    request,
+                    validator=openapi_request_parameters_validator,
+                )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
     def test_get_pets_wrong_parameter_type(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -375,11 +419,17 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             with pytest.raises(CastError):
-                spec_validate_parameters(spec, request)
+                validate_request(
+                    spec,
+                    request,
+                    validator=openapi_request_parameters_validator,
+                )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
     def test_get_pets_raises_missing_required_param(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -393,11 +443,17 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             with pytest.raises(MissingRequiredParameter):
-                spec_validate_parameters(spec, request)
+                validate_request(
+                    spec,
+                    request,
+                    validator=openapi_request_parameters_validator,
+                )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
     def test_get_pets_empty_value(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -416,10 +472,16 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             with pytest.raises(EmptyQueryParameterValue):
-                spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+                validate_request(
+                    spec,
+                    request,
+                    validator=openapi_request_parameters_validator,
+                )
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
     def test_get_pets_allow_empty_value(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -438,9 +500,11 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "page": 1,
                 "limit": 20,
@@ -448,9 +512,11 @@ class TestPetstore:
             }
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
     def test_get_pets_none_value(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -468,9 +534,11 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": None,
                 "page": 1,
@@ -478,9 +546,11 @@ class TestPetstore:
             }
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
     def test_get_pets_param_order(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -499,9 +569,11 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": None,
                 "order": "desc",
@@ -510,9 +582,11 @@ class TestPetstore:
             }
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
     def test_get_pets_param_coordinates(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -535,9 +609,11 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            parameters = spec_validate_parameters(spec, request)
+            result = validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             query={
                 "limit": None,
                 "page": 1,
@@ -546,9 +622,11 @@ class TestPetstore:
             }
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
     def test_post_birds(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -594,9 +672,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             header={
                 "api-key": self.api_key,
             },
@@ -608,23 +688,27 @@ class TestPetstore:
             },
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
         address_model = schemas["Address"]["x-model"]
-        assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert body.tag == pet_tag
-        assert body.position == 2
-        assert body.address.__class__.__name__ == address_model
-        assert body.address.street == pet_street
-        assert body.address.city == pet_city
-        assert body.healthy == pet_healthy
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert result.body.tag == pet_tag
+        assert result.body.position == 2
+        assert result.body.address.__class__.__name__ == address_model
+        assert result.body.address.street == pet_street
+        assert result.body.address.city == pet_city
+        assert result.body.healthy == pet_healthy
 
-        security = spec_validate_security(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_security_validator
+        )
 
-        assert security == {}
+        assert result.security == {}
 
     def test_post_cats(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -665,9 +749,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             header={
                 "api-key": self.api_key,
             },
@@ -676,19 +762,21 @@ class TestPetstore:
             },
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
         address_model = schemas["Address"]["x-model"]
-        assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert body.tag == pet_tag
-        assert body.position == 2
-        assert body.address.__class__.__name__ == address_model
-        assert body.address.street == pet_street
-        assert body.address.city == pet_city
-        assert body.healthy == pet_healthy
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert result.body.tag == pet_tag
+        assert result.body.position == 2
+        assert result.body.address.__class__.__name__ == address_model
+        assert result.body.address.street == pet_street
+        assert result.body.address.city == pet_city
+        assert result.body.healthy == pet_healthy
 
     def test_post_cats_boolean_string(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -729,9 +817,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             header={
                 "api-key": self.api_key,
             },
@@ -740,19 +830,21 @@ class TestPetstore:
             },
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
         address_model = schemas["Address"]["x-model"]
-        assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert body.tag == pet_tag
-        assert body.position == 2
-        assert body.address.__class__.__name__ == address_model
-        assert body.address.street == pet_street
-        assert body.address.city == pet_city
-        assert body.healthy is False
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert result.body.tag == pet_tag
+        assert result.body.position == 2
+        assert result.body.address.__class__.__name__ == address_model
+        assert result.body.address.street == pet_street
+        assert result.body.address.city == pet_city
+        assert result.body.healthy is False
 
     def test_post_no_one_of_schema(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -781,9 +873,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             header={
                 "api-key": self.api_key,
             },
@@ -793,7 +887,9 @@ class TestPetstore:
         )
 
         with pytest.raises(InvalidSchemaValue):
-            spec_validate_body(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_body_validator
+            )
 
     def test_post_cats_only_required_body(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -824,9 +920,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             header={
                 "api-key": self.api_key,
             },
@@ -835,14 +933,16 @@ class TestPetstore:
             },
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
-        assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert not hasattr(body, "tag")
-        assert not hasattr(body, "address")
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert not hasattr(result.body, "tag")
+        assert not hasattr(result.body, "address")
 
     def test_post_pets_raises_invalid_mimetype(self, spec):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -870,9 +970,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             header={
                 "api-key": self.api_key,
             },
@@ -882,7 +984,9 @@ class TestPetstore:
         )
 
         with pytest.raises(MediaTypeNotFound):
-            spec_validate_body(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_body_validator
+            )
 
     def test_post_pets_missing_cookie(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -910,16 +1014,20 @@ class TestPetstore:
         )
 
         with pytest.raises(MissingRequiredParameter):
-            spec_validate_parameters(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
-        assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert not hasattr(body, "tag")
-        assert not hasattr(body, "address")
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert not hasattr(result.body, "tag")
+        assert not hasattr(result.body, "address")
 
     def test_post_pets_missing_header(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -947,16 +1055,20 @@ class TestPetstore:
         )
 
         with pytest.raises(MissingRequiredParameter):
-            spec_validate_parameters(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
-        assert body.__class__.__name__ == pet_model
-        assert body.name == pet_name
-        assert not hasattr(body, "tag")
-        assert not hasattr(body, "address")
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert not hasattr(result.body, "tag")
+        assert not hasattr(result.body, "address")
 
     def test_post_pets_raises_invalid_server_error(self, spec):
         host_url = "http://flowerstore.swagger.io/v1"
@@ -985,10 +1097,14 @@ class TestPetstore:
         )
 
         with pytest.raises(ServerNotFound):
-            spec_validate_parameters(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_parameters_validator
+            )
 
         with pytest.raises(ServerNotFound):
-            spec_validate_body(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_body_validator
+            )
 
         data_id = 1
         data_name = "test"
@@ -1005,9 +1121,14 @@ class TestPetstore:
         response = MockResponse(data)
 
         with pytest.raises(ServerNotFound):
-            spec_validate_data(spec, request, response)
+            validate_response(
+                spec,
+                request,
+                response,
+                validator=openapi_response_data_validator,
+            )
 
-    def test_get_pet(self, spec, response_validator):
+    def test_get_pet(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets/{petId}"
         view_args = {
@@ -1026,21 +1147,27 @@ class TestPetstore:
             headers=headers,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             path={
                 "petId": 1,
             }
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
-        security = spec_validate_security(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_security_validator
+        )
 
-        assert security == {
+        assert result.security == {
             "petstore_auth": auth,
         }
 
@@ -1058,7 +1185,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -1066,7 +1193,7 @@ class TestPetstore:
         assert response_result.data.data.id == data_id
         assert response_result.data.data.name == data_name
 
-    def test_get_pet_not_found(self, spec, response_validator):
+    def test_get_pet_not_found(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets/{petId}"
         view_args = {
@@ -1080,17 +1207,21 @@ class TestPetstore:
             view_args=view_args,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             path={
                 "petId": 1,
             }
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
         code = 404
         message = "Not found"
@@ -1103,7 +1234,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -1111,7 +1242,7 @@ class TestPetstore:
         assert response_result.data.message == message
         assert response_result.data.rootCause == rootCause
 
-    def test_get_pet_wildcard(self, spec, response_validator):
+    def test_get_pet_wildcard(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets/{petId}"
         view_args = {
@@ -1125,28 +1256,32 @@ class TestPetstore:
             view_args=view_args,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters(
+        assert result.parameters == Parameters(
             path={
                 "petId": 1,
             }
         )
 
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
 
-        assert body is None
+        assert result.body is None
 
         data = b"imagedata"
         response = MockResponse(data, mimetype="image/png")
 
         with pytest.warns(UserWarning):
-            response_result = response_validator.validate(request, response)
+            response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert response_result.data == data
 
-    def test_get_tags(self, spec, response_validator):
+    def test_get_tags(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
 
@@ -1157,17 +1292,23 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
-        assert body is None
+        assert result.parameters == Parameters()
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
 
         data_json = ["cats", "birds"]
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert response_result.data == data_json
@@ -1191,12 +1332,16 @@ class TestPetstore:
             data=data,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
+        assert result.parameters == Parameters()
 
         with pytest.raises(InvalidSchemaValue):
-            spec_validate_body(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_body_validator
+            )
 
     def test_post_tags_empty_body(self, spec, spec_dict):
         host_url = "http://petstore.swagger.io/v1"
@@ -1212,12 +1357,16 @@ class TestPetstore:
             data=data,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
+        assert result.parameters == Parameters()
 
         with pytest.raises(InvalidSchemaValue):
-            spec_validate_body(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_body_validator
+            )
 
     def test_post_tags_wrong_property_type(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -1233,14 +1382,18 @@ class TestPetstore:
             data=data,
         )
 
-        parameters = spec_validate_parameters(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
+        assert result.parameters == Parameters()
 
         with pytest.raises(InvalidSchemaValue):
-            spec_validate_body(spec, request)
+            validate_request(
+                spec, request, validator=openapi_request_body_validator
+            )
 
-    def test_post_tags_additional_properties(self, spec, response_validator):
+    def test_post_tags_additional_properties(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         pet_name = "Dog"
@@ -1257,12 +1410,18 @@ class TestPetstore:
             data=data,
         )
 
-        parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
-        assert isinstance(body, BaseModel)
-        assert body.name == pet_name
+        assert result.parameters == Parameters()
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert isinstance(result.body, BaseModel)
+        assert result.body.name == pet_name
 
         code = 400
         message = "Bad request"
@@ -1277,7 +1436,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -1286,7 +1445,7 @@ class TestPetstore:
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo
 
-    def test_post_tags_created_now(self, spec, response_validator):
+    def test_post_tags_created_now(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         created = "now"
@@ -1305,13 +1464,19 @@ class TestPetstore:
             data=data,
         )
 
-        parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
-        assert isinstance(body, BaseModel)
-        assert body.created == created
-        assert body.name == pet_name
+        assert result.parameters == Parameters()
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert isinstance(result.body, BaseModel)
+        assert result.body.created == created
+        assert result.body.name == pet_name
 
         code = 400
         message = "Bad request"
@@ -1326,7 +1491,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -1335,7 +1500,7 @@ class TestPetstore:
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo
 
-    def test_post_tags_created_datetime(self, spec, response_validator):
+    def test_post_tags_created_datetime(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         created = "2016-04-16T16:06:05Z"
@@ -1354,13 +1519,21 @@ class TestPetstore:
             data=data,
         )
 
-        parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
-        assert isinstance(body, BaseModel)
-        assert body.created == datetime(2016, 4, 16, 16, 6, 5, tzinfo=UTC)
-        assert body.name == pet_name
+        assert result.parameters == Parameters()
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert isinstance(result.body, BaseModel)
+        assert result.body.created == datetime(
+            2016, 4, 16, 16, 6, 5, tzinfo=UTC
+        )
+        assert result.body.name == pet_name
 
         code = 400
         message = "Bad request"
@@ -1375,15 +1548,17 @@ class TestPetstore:
         response_data = json.dumps(response_data_json)
         response = MockResponse(response_data, status_code=404)
 
-        data = spec_validate_data(spec, request, response)
+        result = validate_response(
+            spec, request, response, validator=openapi_response_data_validator
+        )
 
-        assert isinstance(data, BaseModel)
-        assert data.code == code
-        assert data.message == message
-        assert data.rootCause == rootCause
-        assert data.additionalinfo == additionalinfo
+        assert isinstance(result.data, BaseModel)
+        assert result.data.code == code
+        assert result.data.message == message
+        assert result.data.rootCause == rootCause
+        assert result.data.additionalinfo == additionalinfo
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -1392,7 +1567,7 @@ class TestPetstore:
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo
 
-    def test_post_tags_created_invalid_type(self, spec, response_validator):
+    def test_post_tags_created_invalid_type(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         created = "long time ago"
@@ -1411,11 +1586,16 @@ class TestPetstore:
             data=data,
         )
 
-        parameters = spec_validate_parameters(spec, request)
-        with pytest.raises(InvalidSchemaValue):
-            spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
+        assert result.parameters == Parameters()
+
+        with pytest.raises(InvalidSchemaValue):
+            validate_request(
+                spec, request, validator=openapi_request_body_validator
+            )
 
         code = 400
         message = "Bad request"
@@ -1431,7 +1611,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = response_validator.validate(request, response)
+        response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
         assert isinstance(response_result.data, BaseModel)
@@ -1441,7 +1621,7 @@ class TestPetstore:
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo
 
-    def test_delete_tags_with_requestbody(self, spec, response_validator):
+    def test_delete_tags_with_requestbody(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         ids = [1, 2, 3]
@@ -1457,12 +1637,18 @@ class TestPetstore:
             data=data,
         )
 
-        parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
-        assert isinstance(body, BaseModel)
-        assert body.ids == ids
+        assert result.parameters == Parameters()
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert isinstance(result.body, BaseModel)
+        assert result.body.ids == ids
 
         data = None
         headers = {
@@ -1471,18 +1657,23 @@ class TestPetstore:
         response = MockResponse(data, status_code=200, headers=headers)
 
         with pytest.warns(DeprecationWarning):
-            response_result = response_validator.validate(request, response)
+            response_result = validate_response(spec, request, response)
         assert response_result.errors == []
         assert response_result.data is None
 
         with pytest.warns(DeprecationWarning):
-            response_headers = spec_validate_headers(spec, request, response)
+            result = validate_response(
+                spec,
+                request,
+                response,
+                validator=openapi_response_headers_validator,
+            )
 
-        assert response_headers == {
+        assert result.headers == {
             "x-delete-confirm": True,
         }
 
-    def test_delete_tags_no_requestbody(self, spec, response_validator):
+    def test_delete_tags_no_requestbody(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         request = MockRequest(
@@ -1492,15 +1683,19 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
-        assert body is None
+        assert result.parameters == Parameters()
 
-    def test_delete_tags_raises_missing_required_response_header(
-        self, spec, response_validator
-    ):
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
+
+    def test_delete_tags_raises_missing_required_response_header(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         request = MockRequest(
@@ -1510,17 +1705,25 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        parameters = spec_validate_parameters(spec, request)
-        body = spec_validate_body(spec, request)
+        result = validate_request(
+            spec, request, validator=openapi_request_parameters_validator
+        )
 
-        assert parameters == Parameters()
-        assert body is None
+        assert result.parameters == Parameters()
+
+        result = validate_request(
+            spec, request, validator=openapi_request_body_validator
+        )
+
+        assert result.body is None
 
         data = None
         response = MockResponse(data, status_code=200)
 
         with pytest.warns(DeprecationWarning):
-            response_result = response_validator.validate(request, response)
+            response_result = openapi_response_validator.validate(
+                spec, request, response
+            )
 
         assert response_result.errors == [
             MissingRequiredHeader(name="x-delete-confirm"),
