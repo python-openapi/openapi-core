@@ -4,7 +4,7 @@ from flask import jsonify
 from flask import make_response
 
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 from openapi_core.validation.request.datatypes import Parameters
 
 

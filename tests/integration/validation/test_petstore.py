@@ -12,7 +12,7 @@ from openapi_core.deserializing.parameters.exceptions import (
     EmptyQueryParameterValue,
 )
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.testing import MockRequest

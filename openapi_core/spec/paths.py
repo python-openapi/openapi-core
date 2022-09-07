@@ -24,11 +24,6 @@ class Spec(AccessorPath):
         accessor = SpecAccessor(data, dereferencer)
         return cls(accessor, *args, separator=separator)
 
-
-class OpenAPIv30Spec(Spec):
-
-    validator = openapi_v3_spec_validator
-
     @classmethod
     def create(
         cls,
@@ -37,10 +32,10 @@ class OpenAPIv30Spec(Spec):
         url="",
         ref_resolver_handlers=default_handlers,
         separator=SPEC_SEPARATOR,
-        validate=True,
+        validator=openapi_v3_spec_validator,
     ):
-        if validate:
-            cls.validator.validate(data, spec_url=url)
+        if validator is not None:
+            validator.validate(data, spec_url=url)
 
         return cls.from_dict(
             data,

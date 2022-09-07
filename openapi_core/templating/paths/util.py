@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from openapi_core.spec.paths import OpenAPIv30Spec as Spec
+from openapi_core.spec.paths import Spec
 from openapi_core.templating.datatypes import TemplateResult
 
 

@@ -21,7 +21,7 @@ Django can be integrated by middleware. Add `DjangoOpenAPIMiddleware` to your `M
 .. code-block:: python
 
    # settings.py
-   from openapi_core import OpenAPISpec as Spec
+   from openapi_core import Spec
 
    MIDDLEWARE = [
        # ...

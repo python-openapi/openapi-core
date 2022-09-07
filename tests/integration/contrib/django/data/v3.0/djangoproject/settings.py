@@ -15,7 +15,7 @@ from pathlib import Path
 
 import yaml
 
-from openapi_core import OpenAPISpec as Spec
+from openapi_core import Spec
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

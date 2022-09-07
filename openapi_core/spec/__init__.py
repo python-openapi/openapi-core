@@ -1,5 +1,3 @@
-from openapi_core.spec.paths import OpenAPIv30Spec
+from openapi_core.spec.paths import Spec
 
-__all__ = [
-    "OpenAPIv30Spec",
-]
+__all__ = ["Spec"]

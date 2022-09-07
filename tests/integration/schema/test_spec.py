@@ -4,7 +4,7 @@ import pytest
 
 from openapi_core.schema.servers import get_server_url
 from openapi_core.schema.specs import get_spec_url
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
 

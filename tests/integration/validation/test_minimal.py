@@ -1,6 +1,6 @@
 import pytest
 
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.testing import MockRequest

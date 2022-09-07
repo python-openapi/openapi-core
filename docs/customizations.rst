@@ -4,13 +4,13 @@ Customizations
 Spec validation
 ---------------
 
-By default, spec dict is validated on spec creation time. Disabling the validation can improve the performance.
+By default, spec dict is validated on spec creation time. Disabling the validator can improve the performance.
 
 .. code-block:: python
 
-   from openapi_core import OpenAPISpec as Spec
+   from openapi_core import Spec
 
-   spec = Spec.create(spec_dict, validate=False)
+   spec = Spec.create(spec_dict, validator=False)
 
 Deserializers
 -------------
