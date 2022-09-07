@@ -1,12 +1,12 @@
 """OpenAPI core validation validators module"""
 from urllib.parse import urljoin
 
-from openapi_core.casting.schemas.factories import SchemaCastersFactory
-from openapi_core.deserializing.media_types.factories import (
-    MediaTypeDeserializersFactory,
+from openapi_core.casting.schemas import schema_casters_factory
+from openapi_core.deserializing.media_types import (
+    media_type_deserializers_factory,
 )
-from openapi_core.deserializing.parameters.factories import (
-    ParameterDeserializersFactory,
+from openapi_core.deserializing.parameters import (
+    parameter_deserializers_factory,
 )
 from openapi_core.schema.parameters import get_value
 from openapi_core.templating.paths.finders import PathFinder
@@ -17,39 +17,22 @@ from openapi_core.validation.request.protocols import SupportsPathPattern
 class BaseValidator:
     def __init__(
         self,
-        custom_formatters=None,
-        custom_media_type_deserializers=None,
+        schema_unmarshallers_factory,
+        schema_casters_factory=schema_casters_factory,
+        parameter_deserializers_factory=parameter_deserializers_factory,
+        media_type_deserializers_factory=media_type_deserializers_factory,
     ):
-        self.custom_formatters = custom_formatters or {}
-        self.custom_media_type_deserializers = custom_media_type_deserializers
-
-        self.format_checker = build_format_checker(**self.custom_formatters)
-
-    @property
-    def path_finder(self):
-        return PathFinder(self.spec, base_url=self.base_url)
-
-    @property
-    def schema_casters_factory(self):
-        return SchemaCastersFactory()
-
-    @property
-    def media_type_deserializers_factory(self):
-        return MediaTypeDeserializersFactory(
-            self.custom_media_type_deserializers
+        self.schema_unmarshallers_factory = schema_unmarshallers_factory
+        self.schema_casters_factory = schema_casters_factory
+        self.parameter_deserializers_factory = parameter_deserializers_factory
+        self.media_type_deserializers_factory = (
+            media_type_deserializers_factory
         )
 
-    @property
-    def parameter_deserializers_factory(self):
-        return ParameterDeserializersFactory()
-
-    @property
-    def schema_unmarshallers_factory(self):
-        raise NotImplementedError
-
-    def _find_path(self, request):
+    def _find_path(self, spec, request, base_url=None):
+        path_finder = PathFinder(spec, base_url=base_url)
         path_pattern = getattr(request, "path_pattern", None)
-        return self.path_finder.find(
+        return path_finder.find(
             request.method, request.host_url, request.path, path_pattern
         )
 

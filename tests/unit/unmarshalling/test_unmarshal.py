@@ -4,6 +4,7 @@ import uuid
 import pytest
 from isodate.tzinfo import UTC
 from isodate.tzinfo import FixedOffset
+from openapi_schema_validator import OAS30Validator
 
 from openapi_core.spec.paths import Spec
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
@@ -19,16 +20,16 @@ from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
 from openapi_core.unmarshalling.schemas.formatters import Formatter
-from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 
 @pytest.fixture
 def unmarshaller_factory():
-    def create_unmarshaller(schema, custom_formatters=None, context=None):
+    def create_unmarshaller(
+        schema, custom_formatters=None, context=UnmarshalContext.REQUEST
+    ):
         custom_formatters = custom_formatters or {}
-        format_checker = build_format_checker(**custom_formatters)
         return SchemaUnmarshallersFactory(
-            format_checker=format_checker,
+            OAS30Validator,
             custom_formatters=custom_formatters,
             context=context,
         ).create(schema)

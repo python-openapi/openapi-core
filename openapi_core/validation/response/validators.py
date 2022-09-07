@@ -30,20 +30,10 @@ class BaseResponseValidator(BaseValidator):
     ):
         raise NotImplementedError
 
-    @property
-    def schema_unmarshallers_factory(self):
-        spec_resolver = (
-            self.spec.accessor.dereferencer.resolver_manager.resolver
+    def _find_operation_response(self, spec, request, response, base_url=None):
+        _, operation, _, _, _ = self._find_path(
+            spec, request, base_url=base_url
         )
-        return SchemaUnmarshallersFactory(
-            spec_resolver,
-            self.format_checker,
-            self.custom_formatters,
-            context=UnmarshalContext.RESPONSE,
-        )
-
-    def _find_operation_response(self, request, response):
-        _, operation, _, _, _ = self._find_path(request)
         return self._get_operation_response(operation, response)
 
     def _get_operation_response(self, operation, response):
@@ -137,11 +127,12 @@ class ResponseDataValidator(BaseResponseValidator):
         response,
         base_url=None,
     ):
-        self.spec = spec
-        self.base_url = base_url
         try:
             operation_response = self._find_operation_response(
-                request, response
+                spec,
+                request,
+                response,
+                base_url=base_url,
             )
         # don't process if operation errors
         except (PathError, ResponseFinderError) as exc:
@@ -176,11 +167,12 @@ class ResponseHeadersValidator(BaseResponseValidator):
         response,
         base_url=None,
     ):
-        self.spec = spec
-        self.base_url = base_url
         try:
             operation_response = self._find_operation_response(
-                request, response
+                spec,
+                request,
+                response,
+                base_url=base_url,
             )
         # don't process if operation errors
         except (PathError, ResponseFinderError) as exc:
@@ -208,11 +200,12 @@ class ResponseValidator(BaseResponseValidator):
         response,
         base_url=None,
     ):
-        self.spec = spec
-        self.base_url = base_url
         try:
             operation_response = self._find_operation_response(
-                request, response
+                spec,
+                request,
+                response,
+                base_url=base_url,
             )
         # don't process if operation errors
         except (PathError, ResponseFinderError) as exc:

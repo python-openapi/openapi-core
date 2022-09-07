@@ -17,6 +17,7 @@ from openapi_core.unmarshalling.schemas.unmarshallers import (
 from openapi_core.unmarshalling.schemas.unmarshallers import NumberUnmarshaller
 from openapi_core.unmarshalling.schemas.unmarshallers import ObjectUnmarshaller
 from openapi_core.unmarshalling.schemas.unmarshallers import StringUnmarshaller
+from openapi_core.unmarshalling.schemas.util import build_format_checker
 
 
 class SchemaUnmarshallersFactory:
@@ -40,13 +41,11 @@ class SchemaUnmarshallersFactory:
 
     def __init__(
         self,
-        resolver=None,
-        format_checker=None,
+        schema_validator_class,
         custom_formatters=None,
         context=None,
     ):
-        self.resolver = resolver
-        self.format_checker = format_checker
+        self.schema_validator_class = schema_validator_class
         if custom_formatters is None:
             custom_formatters = {}
         self.custom_formatters = custom_formatters
@@ -86,11 +85,13 @@ class SchemaUnmarshallersFactory:
             return default_formatters.get(type_format)
 
     def get_validator(self, schema):
+        resolver = schema.accessor.dereferencer.resolver_manager.resolver
+        format_checker = build_format_checker(**self.custom_formatters)
         kwargs = {
-            "resolver": self.resolver,
-            "format_checker": self.format_checker,
+            "resolver": resolver,
+            "format_checker": format_checker,
         }
         if self.context is not None:
             kwargs[self.CONTEXT_VALIDATION[self.context]] = True
         with schema.open() as schema_dict:
-            return OAS30Validator(schema_dict, **kwargs)
+            return self.schema_validator_class(schema_dict, **kwargs)
