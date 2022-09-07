@@ -4,7 +4,7 @@ import responses
 
 from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 from openapi_core.validation.request import openapi_request_validator
 from openapi_core.validation.response import openapi_response_validator
 

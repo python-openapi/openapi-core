@@ -8,7 +8,7 @@ from openapi_core.deserializing.media_types.exceptions import (
     MediaTypeDeserializeError,
 )
 from openapi_core.extensions.models.models import BaseModel
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound

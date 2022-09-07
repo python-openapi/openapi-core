@@ -6,7 +6,7 @@ Firstly create your specification: object
 .. code-block:: python
 
    from json import load
-   from openapi_core import OpenAPISpec as Spec
+   from openapi_core import Spec
 
    with open('openapi.json', 'r') as spec_file:
       spec_dict = load(spec_file)

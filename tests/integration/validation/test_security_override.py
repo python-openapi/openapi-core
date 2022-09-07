@@ -2,7 +2,7 @@ from base64 import b64encode
 
 import pytest
 
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 from openapi_core.testing import MockRequest
 from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request import openapi_request_validator

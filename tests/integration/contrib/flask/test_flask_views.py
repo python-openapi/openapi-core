@@ -4,7 +4,7 @@ from flask import jsonify
 from flask import make_response
 
 from openapi_core.contrib.flask.views import FlaskOpenAPIView
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 
 
 class TestFlaskOpenAPIView:

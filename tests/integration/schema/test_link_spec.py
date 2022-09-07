@@ -1,4 +1,4 @@
-from openapi_core.spec import OpenAPIv30Spec as Spec
+from openapi_core.spec import Spec
 
 
 class TestLinkSpec:

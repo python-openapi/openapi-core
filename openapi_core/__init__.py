@@ -1,5 +1,5 @@
 """OpenAPI core module"""
-from openapi_core.spec import OpenAPIv30Spec
+from openapi_core.spec import Spec
 from openapi_core.validation.request.validators import RequestBodyValidator
 from openapi_core.validation.request.validators import (
     RequestParametersValidator,
@@ -21,9 +21,7 @@ __url__ = "https://github.com/p1c2u/openapi-core"
 __license__ = "BSD 3-Clause License"
 
 __all__ = [
-    "OpenAPIv30Spec",
-    "OpenAPIv3Spec",
-    "OpenAPISpec",
+    "Spec",
     "validate_request",
     "validate_response",
     "RequestValidator",
@@ -34,9 +32,3 @@ __all__ = [
     "ResponseDataValidator",
     "ResponseHeadersValidator",
 ]
-
-# aliases to the latest v3 version
-OpenAPIv3Spec = OpenAPIv30Spec
-
-# aliases to the latest version
-OpenAPISpec = OpenAPIv3Spec
