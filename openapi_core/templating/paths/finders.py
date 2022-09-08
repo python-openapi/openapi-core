@@ -1,11 +1,18 @@
 """OpenAPI core templating paths finders module"""
+from typing import Iterator
+from typing import List
+from typing import Optional
 from urllib.parse import urljoin
 from urllib.parse import urlparse
 
 from more_itertools import peekable
 
 from openapi_core.schema.servers import is_absolute
+from openapi_core.spec import Spec
 from openapi_core.templating.datatypes import TemplateResult
+from openapi_core.templating.paths.datatypes import OperationPath
+from openapi_core.templating.paths.datatypes import Path
+from openapi_core.templating.paths.datatypes import ServerOperationPath
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
@@ -15,11 +22,17 @@ from openapi_core.templating.util import search
 
 
 class PathFinder:
-    def __init__(self, spec, base_url=None):
+    def __init__(self, spec: Spec, base_url: Optional[str] = None):
         self.spec = spec
         self.base_url = base_url
 
-    def find(self, method, host_url, path, path_pattern=None):
+    def find(
+        self,
+        method: str,
+        host_url: str,
+        path: str,
+        path_pattern: Optional[str] = None,
+    ) -> ServerOperationPath:
         if path_pattern is not None:
             full_url = urljoin(host_url, path_pattern)
         else:
@@ -47,34 +60,37 @@ class PathFinder:
         except StopIteration:
             raise ServerNotFound(full_url)
 
-    def _get_paths_iter(self, full_url):
-        template_paths = []
+    def _get_paths_iter(self, full_url: str) -> Iterator[Path]:
+        template_paths: List[Path] = []
         paths = self.spec / "paths"
         for path_pattern, path in list(paths.items()):
             # simple path.
             # Return right away since it is always the most concrete
             if full_url.endswith(path_pattern):
                 path_result = TemplateResult(path_pattern, {})
-                yield (path, path_result)
+                yield Path(path, path_result)
             # template path
             else:
                 result = search(path_pattern, full_url)
                 if result:
                     path_result = TemplateResult(path_pattern, result.named)
-                    template_paths.append((path, path_result))
+                    template_paths.append(Path(path, path_result))
 
         # Fewer variables -> more concrete path
-        for path in sorted(template_paths, key=template_path_len):
-            yield path
+        yield from sorted(template_paths, key=template_path_len)
 
-    def _get_operations_iter(self, paths_iter, request_method):
+    def _get_operations_iter(
+        self, paths_iter: Iterator[Path], request_method: str
+    ) -> Iterator[OperationPath]:
         for path, path_result in paths_iter:
             if request_method not in path:
                 continue
             operation = path / request_method
-            yield (path, operation, path_result)
+            yield OperationPath(path, operation, path_result)
 
-    def _get_servers_iter(self, operations_iter, full_url):
+    def _get_servers_iter(
+        self, operations_iter: Iterator[OperationPath], full_url: str
+    ) -> Iterator[ServerOperationPath]:
         for path, operation, path_result in operations_iter:
             servers = (
                 path.get("servers", None)
@@ -98,7 +114,7 @@ class PathFinder:
                 # simple path
                 if server_url_pattern == server_url:
                     server_result = TemplateResult(server["url"], {})
-                    yield (
+                    yield ServerOperationPath(
                         path,
                         operation,
                         server,
@@ -112,7 +128,7 @@ class PathFinder:
                         server_result = TemplateResult(
                             server["url"], result.named
                         )
-                        yield (
+                        yield ServerOperationPath(
                             path,
                             operation,
                             server,

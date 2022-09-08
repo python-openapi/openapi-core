@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Iterable
 
 from openapi_core.exceptions import OpenAPIError
 from openapi_core.validation.request.datatypes import Parameters
@@ -9,7 +9,7 @@ from openapi_core.validation.request.protocols import Request
 @dataclass
 class ParametersError(Exception):
     parameters: Parameters
-    context: List[Exception]
+    context: Iterable[Exception]
 
 
 class OpenAPIRequestBodyError(OpenAPIError):
@@ -24,7 +24,7 @@ class MissingRequestBodyError(OpenAPIRequestBodyError):
 class MissingRequestBody(MissingRequestBodyError):
     request: Request
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Missing request body"
 
 
@@ -32,5 +32,5 @@ class MissingRequestBody(MissingRequestBodyError):
 class MissingRequiredRequestBody(MissingRequestBodyError):
     request: Request
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Missing required request body"

@@ -12,8 +12,8 @@ class ResponseFinderError(OpenAPIError):
 class ResponseNotFound(ResponseFinderError):
     """Find response error"""
 
-    http_status: int
+    http_status: str
     availableresponses: List[str]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Unknown response http status: {str(self.http_status)}"

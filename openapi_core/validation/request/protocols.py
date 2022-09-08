@@ -1,5 +1,6 @@
 """OpenAPI core validation request protocols module"""
 from typing import TYPE_CHECKING
+from typing import Optional
 
 if TYPE_CHECKING:
     from typing_extensions import Protocol
@@ -45,12 +46,27 @@ class Request(Protocol):
             the mimetype would be "text/html".
     """
 
-    host_url: str
-    path: str
-    method: str
     parameters: RequestParameters
-    body: str
-    mimetype: str
+
+    @property
+    def host_url(self) -> str:
+        ...
+
+    @property
+    def path(self) -> str:
+        ...
+
+    @property
+    def method(self) -> str:
+        ...
+
+    @property
+    def body(self) -> Optional[str]:
+        ...
+
+    @property
+    def mimetype(self) -> str:
+        ...
 
 
 @runtime_checkable
@@ -66,4 +82,6 @@ class SupportsPathPattern(Protocol):
             /api/v1/pets/{pet_id}
     """
 
-    path_pattern: str
+    @property
+    def path_pattern(self) -> str:
+        ...

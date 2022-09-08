@@ -17,7 +17,7 @@ class ParameterDeserializeError(BaseParameterDeserializeError):
     style: str
     value: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             "Failed to deserialize value of "
             f"{self.location} parameter with style {self.style}: {self.value}"
@@ -28,11 +28,11 @@ class ParameterDeserializeError(BaseParameterDeserializeError):
 class EmptyQueryParameterValue(BaseParameterDeserializeError):
     name: str
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(location="query")
         self.name = name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"Value of {self.name} {self.location} parameter cannot be empty"
         )

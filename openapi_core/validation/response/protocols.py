@@ -30,7 +30,18 @@ class Response(Protocol):
             Lowercase content type without charset.
     """
 
-    data: str
-    status_code: int
-    mimetype: str
-    headers: Headers
+    @property
+    def data(self) -> str:
+        ...
+
+    @property
+    def status_code(self) -> int:
+        ...
+
+    @property
+    def mimetype(self) -> str:
+        ...
+
+    @property
+    def headers(self) -> Headers:
+        ...

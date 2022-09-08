@@ -1,3 +1,9 @@
+from typing import Any
+from typing import Dict
+from typing import Hashable
+from typing import Mapping
+
+from jsonschema.protocols import Validator
 from jsonschema.validators import RefResolver
 from openapi_spec_validator import default_handlers
 from openapi_spec_validator import openapi_v3_spec_validator
@@ -13,12 +19,12 @@ class Spec(AccessorPath):
     @classmethod
     def from_dict(
         cls,
-        data,
-        *args,
-        url="",
-        ref_resolver_handlers=default_handlers,
-        separator=SPEC_SEPARATOR,
-    ):
+        data: Mapping[Hashable, Any],
+        *args: Any,
+        url: str = "",
+        ref_resolver_handlers: Dict[str, Any] = default_handlers,
+        separator: str = SPEC_SEPARATOR,
+    ) -> "Spec":
         ref_resolver = RefResolver(url, data, handlers=ref_resolver_handlers)
         dereferencer = Dereferencer(ref_resolver)
         accessor = SpecAccessor(data, dereferencer)
@@ -27,13 +33,13 @@ class Spec(AccessorPath):
     @classmethod
     def create(
         cls,
-        data,
-        *args,
-        url="",
-        ref_resolver_handlers=default_handlers,
-        separator=SPEC_SEPARATOR,
-        validator=openapi_v3_spec_validator,
-    ):
+        data: Mapping[Hashable, Any],
+        *args: Any,
+        url: str = "",
+        ref_resolver_handlers: Dict[str, Any] = default_handlers,
+        separator: str = SPEC_SEPARATOR,
+        validator: Validator = openapi_v3_spec_validator,
+    ) -> "Spec":
         if validator is not None:
             validator.validate(data, spec_url=url)
 

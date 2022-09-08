@@ -1,6 +1,9 @@
 """OpenAPI core validation request datatypes module"""
+from __future__ import annotations
+
 from dataclasses import dataclass
 from dataclasses import field
+from typing import Any
 from typing import Dict
 from typing import Optional
 
@@ -25,25 +28,29 @@ class RequestParameters:
             Path parameters as dict. Gets resolved against spec if empty.
     """
 
-    query: ImmutableMultiDict = field(default_factory=ImmutableMultiDict)
+    query: ImmutableMultiDict[str, Any] = field(
+        default_factory=ImmutableMultiDict
+    )
     header: Headers = field(default_factory=Headers)
-    cookie: ImmutableMultiDict = field(default_factory=ImmutableMultiDict)
-    path: Dict = field(default_factory=dict)
+    cookie: ImmutableMultiDict[str, Any] = field(
+        default_factory=ImmutableMultiDict
+    )
+    path: dict[str, Any] = field(default_factory=dict)
 
-    def __getitem__(self, location):
+    def __getitem__(self, location: str) -> Any:
         return getattr(self, location)
 
 
 @dataclass
 class Parameters:
-    query: Dict = field(default_factory=dict)
-    header: Dict = field(default_factory=dict)
-    cookie: Dict = field(default_factory=dict)
-    path: Dict = field(default_factory=dict)
+    query: dict[str, Any] = field(default_factory=dict)
+    header: dict[str, Any] = field(default_factory=dict)
+    cookie: dict[str, Any] = field(default_factory=dict)
+    path: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class RequestValidationResult(BaseValidationResult):
-    body: Optional[str] = None
+    body: str | None = None
     parameters: Parameters = field(default_factory=Parameters)
-    security: Optional[Dict[str, str]] = None
+    security: dict[str, str] | None = None

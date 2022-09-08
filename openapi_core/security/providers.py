@@ -1,20 +1,26 @@
 import warnings
+from typing import Any
 
 from openapi_core.security.exceptions import SecurityError
+from openapi_core.spec import Spec
+from openapi_core.validation.request.protocols import Request
 
 
 class BaseProvider:
-    def __init__(self, scheme):
+    def __init__(self, scheme: Spec):
         self.scheme = scheme
+
+    def __call__(self, request: Request) -> Any:
+        raise NotImplementedError
 
 
 class UnsupportedProvider(BaseProvider):
-    def __call__(self, request):
+    def __call__(self, request: Request) -> Any:
         warnings.warn("Unsupported scheme type")
 
 
 class ApiKeyProvider(BaseProvider):
-    def __call__(self, request):
+    def __call__(self, request: Request) -> Any:
         name = self.scheme["name"]
         location = self.scheme["in"]
         source = getattr(request.parameters, location)
@@ -24,7 +30,7 @@ class ApiKeyProvider(BaseProvider):
 
 
 class HttpProvider(BaseProvider):
-    def __call__(self, request):
+    def __call__(self, request: Request) -> Any:
         if "Authorization" not in request.parameters.header:
             raise SecurityError("Missing authorization header.")
         auth_header = request.parameters.header["Authorization"]

@@ -13,7 +13,7 @@ class MediaTypeNotFound(MediaTypeFinderError):
     mimetype: str
     availableMimetypes: List[str]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"Content for the following mimetype not found: {self.mimetype}. "
             f"Valid mimetypes: {self.availableMimetypes}"
