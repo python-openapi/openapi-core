@@ -1,5 +1,6 @@
 import pytest
 from werkzeug.datastructures import Headers
+from werkzeug.datastructures import ImmutableMultiDict
 
 from openapi_core.contrib.django import DjangoOpenAPIRequest
 from openapi_core.contrib.django import DjangoOpenAPIResponse
@@ -62,12 +63,17 @@ class BaseTestDjango:
 
 class TestDjangoOpenAPIRequest(BaseTestDjango):
     def test_no_resolver(self, request_factory):
-        request = request_factory.get("/admin/")
+        data = {"test1": "test2"}
+        request = request_factory.get("/admin/", data)
 
         openapi_request = DjangoOpenAPIRequest(request)
 
         path = {}
-        query = {}
+        query = ImmutableMultiDict(
+            [
+                ("test1", "test2"),
+            ]
+        )
         headers = Headers(
             {
                 "Cookie": "",
@@ -83,7 +89,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.method == request.method.lower()
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
-        assert openapi_request.body == request.body
+        assert openapi_request.body == ""
         assert openapi_request.mimetype == request.content_type
 
     def test_simple(self, request_factory):
@@ -111,7 +117,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.method == request.method.lower()
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
-        assert openapi_request.body == request.body
+        assert openapi_request.body == ""
         assert openapi_request.mimetype == request.content_type
 
     def test_url_rule(self, request_factory):
@@ -142,7 +148,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == "/admin/auth/group/{object_id}/"
-        assert openapi_request.body == request.body
+        assert openapi_request.body == ""
         assert openapi_request.mimetype == request.content_type
 
     def test_url_regexp_pattern(self, request_factory):
@@ -170,7 +176,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.method == request.method.lower()
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == "/test/test-regexp/"
-        assert openapi_request.body == request.body
+        assert openapi_request.body == ""
         assert openapi_request.mimetype == request.content_type
 
 
@@ -181,15 +187,16 @@ class TestDjangoOpenAPIResponse(BaseTestDjango):
 
         openapi_response = DjangoOpenAPIResponse(response)
 
-        assert openapi_response.data == b"foo\nbar\nbaz\n"
+        assert openapi_response.data == "foo\nbar\nbaz\n"
         assert openapi_response.status_code == response.status_code
         assert openapi_response.mimetype == response["Content-Type"]
 
     def test_redirect_response(self, response_factory):
-        response = response_factory("/redirected/", status_code=302)
+        data = "/redirected/"
+        response = response_factory(data, status_code=302)
 
         openapi_response = DjangoOpenAPIResponse(response)
 
-        assert openapi_response.data == response.content
+        assert openapi_response.data == data
         assert openapi_response.status_code == response.status_code
         assert openapi_response.mimetype == response["Content-Type"]

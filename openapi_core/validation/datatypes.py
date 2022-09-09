@@ -1,12 +1,12 @@
 """OpenAPI core validation datatypes module"""
 from dataclasses import dataclass
-from typing import List
+from typing import Iterable
 
 
 @dataclass
 class BaseValidationResult:
-    errors: List[Exception]
+    errors: Iterable[Exception]
 
-    def raise_for_errors(self):
+    def raise_for_errors(self) -> None:
         for error in self.errors:
             raise error

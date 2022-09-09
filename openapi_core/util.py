@@ -1,5 +1,7 @@
 """OpenAPI core util module"""
+from itertools import chain
 from typing import Any
+from typing import Iterable
 
 
 def forcebool(val: Any) -> bool:
@@ -13,3 +15,8 @@ def forcebool(val: Any) -> bool:
             raise ValueError(f"invalid truth value {val!r}")
 
     return bool(val)
+
+
+def chainiters(*lists: Iterable[Any]) -> Iterable[Any]:
+    iters = map(lambda l: l and iter(l) or [], lists)
+    return chain(*iters)

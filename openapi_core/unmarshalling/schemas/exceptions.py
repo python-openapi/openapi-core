@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dataclasses import field
-from typing import List
+from typing import Iterable
 
 from openapi_core.exceptions import OpenAPIError
 
@@ -21,9 +21,9 @@ class UnmarshallerError(UnmarshalError):
 class InvalidSchemaValue(ValidateError):
     value: str
     type: str
-    schema_errors: List[Exception] = field(default_factory=list)
+    schema_errors: Iterable[Exception] = field(default_factory=list)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             "Value {value} not valid for schema of type {type}: {errors}"
         ).format(value=self.value, type=self.type, errors=self.schema_errors)
@@ -37,7 +37,7 @@ class InvalidSchemaFormatValue(UnmarshallerError):
     type: str
     original_exception: Exception
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             "Failed to format value {value} to format {type}: {exception}"
         ).format(
@@ -53,5 +53,5 @@ class FormatterNotFoundError(UnmarshallerError):
 
     type_format: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Formatter not found for {self.type_format} format"

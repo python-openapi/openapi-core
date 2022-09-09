@@ -1,11 +1,12 @@
+from openapi_core.spec import Spec
 from openapi_core.templating.responses.exceptions import ResponseNotFound
 
 
 class ResponseFinder:
-    def __init__(self, responses):
+    def __init__(self, responses: Spec):
         self.responses = responses
 
-    def find(self, http_status="default"):
+    def find(self, http_status: str = "default") -> Spec:
         if http_status in self.responses:
             return self.responses / http_status
 

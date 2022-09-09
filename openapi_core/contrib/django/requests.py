@@ -1,7 +1,8 @@
 """OpenAPI core contrib django requests module"""
 import re
-from urllib.parse import urljoin
+from typing import Optional
 
+from django.http.request import HttpRequest
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -24,28 +25,33 @@ class DjangoOpenAPIRequest:
 
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
-    def __init__(self, request):
+    def __init__(self, request: HttpRequest):
         self.request = request
 
-        self.parameters = RequestParameters(
-            path=self.request.resolver_match
+        path = (
+            self.request.resolver_match
             and self.request.resolver_match.kwargs
-            or {},
+            or {}
+        )
+        self.parameters = RequestParameters(
+            path=path,
             query=ImmutableMultiDict(self.request.GET),
             header=Headers(self.request.headers.items()),
             cookie=ImmutableMultiDict(dict(self.request.COOKIES)),
         )
 
     @property
-    def host_url(self):
+    def host_url(self) -> str:
+        assert isinstance(self.request._current_scheme_host, str)
         return self.request._current_scheme_host
 
     @property
-    def path(self):
+    def path(self) -> str:
+        assert isinstance(self.request.path, str)
         return self.request.path
 
     @property
-    def path_pattern(self):
+    def path_pattern(self) -> Optional[str]:
         if self.request.resolver_match is None:
             return None
 
@@ -58,13 +64,17 @@ class DjangoOpenAPIRequest:
         return "/" + route
 
     @property
-    def method(self):
+    def method(self) -> str:
+        if self.request.method is None:
+            return ""
+        assert isinstance(self.request.method, str)
         return self.request.method.lower()
 
     @property
-    def body(self):
-        return self.request.body
+    def body(self) -> str:
+        assert isinstance(self.request.body, bytes)
+        return self.request.body.decode("utf-8")
 
     @property
-    def mimetype(self):
-        return self.request.content_type
+    def mimetype(self) -> str:
+        return self.request.content_type or ""

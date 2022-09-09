@@ -10,7 +10,7 @@ class MediaTypeDeserializeError(DeserializeError):
     mimetype: str
     value: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             "Failed to deserialize value with {mimetype} mimetype: {value}"
         ).format(value=self.value, mimetype=self.mimetype)

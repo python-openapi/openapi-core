@@ -1,4 +1,8 @@
 """OpenAPI core testing requests module"""
+from typing import Any
+from typing import Dict
+from typing import Optional
+
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -8,16 +12,16 @@ from openapi_core.validation.request.datatypes import RequestParameters
 class MockRequest:
     def __init__(
         self,
-        host_url,
-        method,
-        path,
-        path_pattern=None,
-        args=None,
-        view_args=None,
-        headers=None,
-        cookies=None,
-        data=None,
-        mimetype="application/json",
+        host_url: str,
+        method: str,
+        path: str,
+        path_pattern: Optional[str] = None,
+        args: Optional[Dict[str, Any]] = None,
+        view_args: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, Any]] = None,
+        cookies: Optional[Dict[str, Any]] = None,
+        data: Optional[str] = None,
+        mimetype: str = "application/json",
     ):
         self.host_url = host_url
         self.method = method.lower()

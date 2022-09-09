@@ -1,18 +1,29 @@
 """OpenAPI core validation request validators module"""
 import warnings
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.exceptions import CastError
+from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.media_types import (
     media_type_deserializers_factory,
 )
+from openapi_core.deserializing.media_types.factories import (
+    MediaTypeDeserializersFactory,
+)
 from openapi_core.deserializing.parameters import (
     parameter_deserializers_factory,
 )
-from openapi_core.schema.parameters import iter_params
+from openapi_core.deserializing.parameters.factories import (
+    ParameterDeserializersFactory,
+)
 from openapi_core.security import security_provider_factory
 from openapi_core.security.exceptions import SecurityError
+from openapi_core.security.factories import SecurityProviderFactory
+from openapi_core.spec.paths import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
@@ -21,6 +32,7 @@ from openapi_core.unmarshalling.schemas.exceptions import ValidateError
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
+from openapi_core.util import chainiters
 from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.exceptions import MissingParameter
 from openapi_core.validation.exceptions import MissingRequiredParameter
@@ -31,17 +43,18 @@ from openapi_core.validation.request.exceptions import (
     MissingRequiredRequestBody,
 )
 from openapi_core.validation.request.exceptions import ParametersError
+from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.validators import BaseValidator
 
 
 class BaseRequestValidator(BaseValidator):
     def __init__(
         self,
-        schema_unmarshallers_factory,
-        schema_casters_factory=schema_casters_factory,
-        parameter_deserializers_factory=parameter_deserializers_factory,
-        media_type_deserializers_factory=media_type_deserializers_factory,
-        security_provider_factory=security_provider_factory,
+        schema_unmarshallers_factory: SchemaUnmarshallersFactory,
+        schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
+        parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
+        media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        security_provider_factory: SecurityProviderFactory = security_provider_factory,
     ):
         super().__init__(
             schema_unmarshallers_factory,
@@ -53,20 +66,22 @@ class BaseRequestValidator(BaseValidator):
 
     def validate(
         self,
-        spec,
-        request,
-        base_url=None,
-    ):
+        spec: Spec,
+        request: Request,
+        base_url: Optional[str] = None,
+    ) -> RequestValidationResult:
         raise NotImplementedError
 
-    def _get_parameters(self, request, path, operation):
+    def _get_parameters(
+        self, request: Request, path: Spec, operation: Spec
+    ) -> Parameters:
         operation_params = operation.get("parameters", [])
         path_params = path.get("parameters", [])
 
         errors = []
         seen = set()
         parameters = Parameters()
-        params_iter = iter_params(operation_params, path_params)
+        params_iter = chainiters(operation_params, path_params)
         for param in params_iter:
             param_name = param["name"]
             param_location = param["in"]
@@ -97,7 +112,7 @@ class BaseRequestValidator(BaseValidator):
 
         return parameters
 
-    def _get_parameter(self, param, request):
+    def _get_parameter(self, param: Spec, request: Request) -> Any:
         name = param["name"]
         deprecated = param.getkey("deprecated", False)
         if deprecated:
@@ -116,7 +131,9 @@ class BaseRequestValidator(BaseValidator):
                 raise MissingRequiredParameter(name)
             raise MissingParameter(name)
 
-    def _get_security(self, spec, request, operation):
+    def _get_security(
+        self, spec: Spec, request: Request, operation: Spec
+    ) -> Optional[Dict[str, str]]:
         security = None
         if "security" in spec:
             security = spec / "security"
@@ -139,7 +156,9 @@ class BaseRequestValidator(BaseValidator):
 
         raise InvalidSecurity
 
-    def _get_security_value(self, spec, scheme_name, request):
+    def _get_security_value(
+        self, spec: Spec, scheme_name: str, request: Request
+    ) -> Any:
         security_schemes = spec / "components#securitySchemes"
         if scheme_name not in security_schemes:
             return
@@ -147,7 +166,7 @@ class BaseRequestValidator(BaseValidator):
         security_provider = self.security_provider_factory.create(scheme)
         return security_provider(request)
 
-    def _get_body(self, request, operation):
+    def _get_body(self, request: Request, operation: Spec) -> Any:
         if "requestBody" not in operation:
             return None
 
@@ -168,7 +187,7 @@ class BaseRequestValidator(BaseValidator):
 
         return body
 
-    def _get_body_value(self, request_body, request):
+    def _get_body_value(self, request_body: Spec, request: Request) -> Any:
         if not request.body:
             if request_body.getkey("required", False):
                 raise MissingRequiredRequestBody(request)
@@ -179,10 +198,10 @@ class BaseRequestValidator(BaseValidator):
 class RequestParametersValidator(BaseRequestValidator):
     def validate(
         self,
-        spec,
-        request,
-        base_url=None,
-    ):
+        spec: Spec,
+        request: Request,
+        base_url: Optional[str] = None,
+    ) -> RequestValidationResult:
         try:
             path, operation, _, path_result, _ = self._find_path(
                 spec, request, base_url=base_url
@@ -211,10 +230,10 @@ class RequestParametersValidator(BaseRequestValidator):
 class RequestBodyValidator(BaseRequestValidator):
     def validate(
         self,
-        spec,
-        request,
-        base_url=None,
-    ):
+        spec: Spec,
+        request: Request,
+        base_url: Optional[str] = None,
+    ) -> RequestValidationResult:
         try:
             _, operation, _, _, _ = self._find_path(
                 spec, request, base_url=base_url
@@ -249,10 +268,10 @@ class RequestBodyValidator(BaseRequestValidator):
 class RequestSecurityValidator(BaseRequestValidator):
     def validate(
         self,
-        spec,
-        request,
-        base_url=None,
-    ):
+        spec: Spec,
+        request: Request,
+        base_url: Optional[str] = None,
+    ) -> RequestValidationResult:
         try:
             _, operation, _, _, _ = self._find_path(
                 spec, request, base_url=base_url
@@ -274,10 +293,10 @@ class RequestSecurityValidator(BaseRequestValidator):
 class RequestValidator(BaseRequestValidator):
     def validate(
         self,
-        spec,
-        request,
-        base_url=None,
-    ):
+        spec: Spec,
+        request: Request,
+        base_url: Optional[str] = None,
+    ) -> RequestValidationResult:
         try:
             path, operation, _, path_result, _ = self._find_path(
                 spec, request, base_url=base_url
@@ -321,7 +340,7 @@ class RequestValidator(BaseRequestValidator):
         else:
             body_errors = []
 
-        errors = params_errors + body_errors
+        errors = list(chainiters(params_errors, body_errors))
         return RequestValidationResult(
             errors=errors,
             body=body,

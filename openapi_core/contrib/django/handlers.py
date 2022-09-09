@@ -1,5 +1,13 @@
 """OpenAPI core contrib django handlers module"""
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import Optional
+from typing import Type
+
 from django.http import JsonResponse
+from django.http.request import HttpRequest
+from django.http.response import HttpResponse
 
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
@@ -11,7 +19,7 @@ from openapi_core.validation.exceptions import MissingRequiredParameter
 
 class DjangoOpenAPIErrorsHandler:
 
-    OPENAPI_ERROR_STATUS = {
+    OPENAPI_ERROR_STATUS: Dict[Type[Exception], int] = {
         MissingRequiredParameter: 400,
         ServerNotFound: 400,
         InvalidSecurity: 403,
@@ -21,7 +29,12 @@ class DjangoOpenAPIErrorsHandler:
     }
 
     @classmethod
-    def handle(cls, errors, req, resp=None):
+    def handle(
+        cls,
+        errors: Iterable[Exception],
+        req: HttpRequest,
+        resp: Optional[HttpResponse] = None,
+    ) -> JsonResponse:
         data_errors = [cls.format_openapi_error(err) for err in errors]
         data = {
             "errors": data_errors,
@@ -30,7 +43,7 @@ class DjangoOpenAPIErrorsHandler:
         return JsonResponse(data, status=data_error_max["status"])
 
     @classmethod
-    def format_openapi_error(cls, error):
+    def format_openapi_error(cls, error: Exception) -> Dict[str, Any]:
         return {
             "title": str(error),
             "status": cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
@@ -38,5 +51,5 @@ class DjangoOpenAPIErrorsHandler:
         }
 
     @classmethod
-    def get_error_status(cls, error):
-        return error["status"]
+    def get_error_status(cls, error: Dict[str, Any]) -> str:
+        return str(error["status"])

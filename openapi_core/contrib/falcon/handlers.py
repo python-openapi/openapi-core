@@ -1,8 +1,14 @@
 """OpenAPI core contrib falcon handlers module"""
 from json import dumps
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import Type
 
 from falcon import status_codes
 from falcon.constants import MEDIA_JSON
+from falcon.request import Request
+from falcon.response import Response
 
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
@@ -14,7 +20,7 @@ from openapi_core.validation.exceptions import MissingRequiredParameter
 
 class FalconOpenAPIErrorsHandler:
 
-    OPENAPI_ERROR_STATUS = {
+    OPENAPI_ERROR_STATUS: Dict[Type[Exception], int] = {
         MissingRequiredParameter: 400,
         ServerNotFound: 400,
         InvalidSecurity: 403,
@@ -24,7 +30,9 @@ class FalconOpenAPIErrorsHandler:
     }
 
     @classmethod
-    def handle(cls, req, resp, errors):
+    def handle(
+        cls, req: Request, resp: Response, errors: Iterable[Exception]
+    ) -> None:
         data_errors = [cls.format_openapi_error(err) for err in errors]
         data = {
             "errors": data_errors,
@@ -41,7 +49,7 @@ class FalconOpenAPIErrorsHandler:
         resp.complete = True
 
     @classmethod
-    def format_openapi_error(cls, error):
+    def format_openapi_error(cls, error: Exception) -> Dict[str, Any]:
         return {
             "title": str(error),
             "status": cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
@@ -49,5 +57,5 @@ class FalconOpenAPIErrorsHandler:
         }
 
     @classmethod
-    def get_error_status(cls, error):
-        return error["status"]
+    def get_error_status(cls, error: Dict[str, Any]) -> int:
+        return int(error["status"])

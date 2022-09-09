@@ -10,7 +10,7 @@ class ValidationError(OpenAPIError):
 
 @dataclass
 class InvalidSecurity(ValidationError):
-    def __str__(self):
+    def __str__(self) -> str:
         return "Security not valid for any requirement"
 
 
@@ -26,7 +26,7 @@ class MissingParameterError(OpenAPIParameterError):
 class MissingParameter(MissingParameterError):
     name: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Missing parameter (without default value): {self.name}"
 
 
@@ -34,7 +34,7 @@ class MissingParameter(MissingParameterError):
 class MissingRequiredParameter(MissingParameterError):
     name: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Missing required parameter: {self.name}"
 
 
@@ -50,7 +50,7 @@ class MissingHeaderError(OpenAPIHeaderError):
 class MissingHeader(MissingHeaderError):
     name: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Missing header (without default value): {self.name}"
 
 
@@ -58,5 +58,5 @@ class MissingHeader(MissingHeaderError):
 class MissingRequiredHeader(MissingHeaderError):
     name: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Missing required header: {self.name}"

@@ -1,10 +1,18 @@
 """OpenAPI core testing responses module"""
+from typing import Any
+from typing import Dict
+from typing import Optional
+
 from werkzeug.datastructures import Headers
 
 
 class MockResponse:
     def __init__(
-        self, data, status_code=200, headers=None, mimetype="application/json"
+        self,
+        data: str,
+        status_code: int = 200,
+        headers: Optional[Dict[str, Any]] = None,
+        mimetype: str = "application/json",
     ):
         self.data = data
         self.status_code = status_code

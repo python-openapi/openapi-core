@@ -13,7 +13,7 @@ class PathNotFound(PathError):
 
     url: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Path not found for {self.url}"
 
 
@@ -24,7 +24,7 @@ class OperationNotFound(PathError):
     url: str
     method: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Operation {self.method} not found for {self.url}"
 
 
@@ -34,5 +34,5 @@ class ServerNotFound(PathError):
 
     url: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Server not found for {self.url}"
