@@ -2,6 +2,7 @@
 import warnings
 from typing import Any
 from typing import Dict
+from typing import Iterator
 from typing import List
 from typing import Optional
 
@@ -30,6 +31,16 @@ from openapi_core.validation.validators import BaseValidator
 
 
 class BaseResponseValidator(BaseValidator):
+    def iter_errors(
+        self,
+        spec: Spec,
+        request: Request,
+        response: Response,
+        base_url: Optional[str] = None,
+    ) -> Iterator[Exception]:
+        result = self.validate(spec, request, response, base_url=base_url)
+        yield from result.errors
+
     def validate(
         self,
         spec: Spec,

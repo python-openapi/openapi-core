@@ -2,12 +2,15 @@ import pytest
 
 
 class TestMinimal:
-
-    spec_paths = ["data/v3.0/path_param.yaml"]
-
-    @pytest.mark.parametrize("spec_path", spec_paths)
-    def test_param_present(self, factory, spec_path):
-        spec = factory.spec_from_file(spec_path)
+    @pytest.mark.parametrize(
+        "spec_file",
+        [
+            "data/v3.0/path_param.yaml",
+            "data/v3.1/path_param.yaml",
+        ],
+    )
+    def test_param_present(self, spec_file, factory):
+        spec = factory.spec_from_file(spec_file)
 
         path = spec / "paths#/resource/{resId}"
 

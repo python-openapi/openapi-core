@@ -2,6 +2,7 @@
 import warnings
 from typing import Any
 from typing import Dict
+from typing import Iterator
 from typing import Optional
 
 from openapi_core.casting.schemas import schema_casters_factory
@@ -20,6 +21,7 @@ from openapi_core.deserializing.parameters import (
 from openapi_core.deserializing.parameters.factories import (
     ParameterDeserializersFactory,
 )
+from openapi_core.exceptions import OpenAPIError
 from openapi_core.security import security_provider_factory
 from openapi_core.security.exceptions import SecurityError
 from openapi_core.security.factories import SecurityProviderFactory
@@ -63,6 +65,15 @@ class BaseRequestValidator(BaseValidator):
             media_type_deserializers_factory=media_type_deserializers_factory,
         )
         self.security_provider_factory = security_provider_factory
+
+    def iter_errors(
+        self,
+        spec: Spec,
+        request: Request,
+        base_url: Optional[str] = None,
+    ) -> Iterator[Exception]:
+        result = self.validate(spec, request, base_url=base_url)
+        yield from result.errors
 
     def validate(
         self,

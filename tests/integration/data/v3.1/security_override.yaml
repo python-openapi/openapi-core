@@ -1,0 +1,41 @@
+openapi: "3.1.0"
+info:
+  title: Minimal OpenAPI specification with security override
+  version: "0.1"
+security:
+  - api_key: []
+paths:
+  /resource/{resId}:
+    parameters:
+      - name: resId
+        in: path
+        required: true
+        description: the ID of the resource to retrieve
+        schema:
+          type: string
+    get:
+      responses:
+        default:
+          description: Default security.
+    post:
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+      responses:
+        default:
+          description: Override security.
+    put:
+      security: []
+      responses:
+        default:
+          description: Remove security.
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: query
+    petstore_auth:
+      type: http
+      scheme: basic

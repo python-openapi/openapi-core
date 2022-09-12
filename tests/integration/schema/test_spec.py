@@ -1,6 +1,8 @@
 from base64 import b64encode
 
 import pytest
+from openapi_spec_validator import openapi_v30_spec_validator
+from openapi_spec_validator import openapi_v31_spec_validator
 
 from openapi_core.schema.servers import get_server_url
 from openapi_core.schema.specs import get_spec_url
@@ -30,7 +32,9 @@ class TestPetstore:
 
     @pytest.fixture
     def spec(self, spec_dict, spec_uri):
-        return Spec.create(spec_dict, url=spec_uri)
+        return Spec.create(
+            spec_dict, url=spec_uri, validator=openapi_v30_spec_validator
+        )
 
     @pytest.fixture
     def request_validator(self, spec):
@@ -297,3 +301,59 @@ class TestPetstore:
             schema_spec = spec_dict["components"]["schemas"][schema_name]
             assert schema.getkey("readOnly") == schema_spec.get("readOnly")
             assert schema.getkey("writeOnly") == schema_spec.get("writeOnly")
+
+
+class TestWebhook:
+    api_key = "12345"
+
+    @property
+    def api_key_encoded(self):
+        api_key_bytes = self.api_key.encode("utf8")
+        api_key_bytes_enc = b64encode(api_key_bytes)
+        return str(api_key_bytes_enc, "utf8")
+
+    @pytest.fixture
+    def spec_uri(self):
+        return "file://tests/integration/data/v3.1/webhook-example.yaml"
+
+    @pytest.fixture
+    def spec_dict(self, factory):
+        content, _ = factory.content_from_file(
+            "data/v3.1/webhook-example.yaml"
+        )
+        return content
+
+    @pytest.fixture
+    def spec(self, spec_dict, spec_uri):
+        return Spec.create(
+            spec_dict,
+            url=spec_uri,
+            validator=openapi_v31_spec_validator,
+        )
+
+    @pytest.fixture
+    def request_validator(self, spec):
+        return RequestValidator(spec)
+
+    @pytest.fixture
+    def response_validator(self, spec):
+        return ResponseValidator(spec)
+
+    def test_spec(self, spec, spec_dict):
+
+        info = spec / "info"
+        info_spec = spec_dict["info"]
+        assert info["title"] == info_spec["title"]
+        assert info["version"] == info_spec["version"]
+
+        webhooks = spec / "webhooks"
+        webhooks_spec = spec_dict["webhooks"]
+        assert webhooks["newPet"] == webhooks_spec["newPet"]
+
+        components = spec.get("components")
+        if not components:
+            return
+
+        schemas = components.get("schemas", {})
+        for schema_name, schema in schemas.items():
+            assert spec_dict["components"]["schemas"][schema_name] is not None

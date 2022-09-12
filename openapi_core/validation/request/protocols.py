@@ -13,7 +13,9 @@ else:
         from typing_extensions import Protocol
         from typing_extensions import runtime_checkable
 
+from openapi_core.spec import Spec
 from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.validation.request.datatypes import RequestValidationResult
 
 
 @runtime_checkable
@@ -84,4 +86,15 @@ class SupportsPathPattern(Protocol):
 
     @property
     def path_pattern(self) -> str:
+        ...
+
+
+@runtime_checkable
+class RequestValidator(Protocol):
+    def validate(
+        self,
+        spec: Spec,
+        request: Request,
+        base_url: Optional[str] = None,
+    ) -> RequestValidationResult:
         ...
