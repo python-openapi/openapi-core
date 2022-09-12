@@ -7,13 +7,13 @@ from typing import List
 from typing import Optional
 
 from isodate.isodatetime import parse_datetime
+from jsonschema._types import is_array
+from jsonschema._types import is_bool
+from jsonschema._types import is_integer
+from jsonschema._types import is_number
+from jsonschema._types import is_object
 from jsonschema.protocols import Validator
 from openapi_schema_validator._format import oas30_format_checker
-from openapi_schema_validator._types import is_array
-from openapi_schema_validator._types import is_bool
-from openapi_schema_validator._types import is_integer
-from openapi_schema_validator._types import is_number
-from openapi_schema_validator._types import is_object
 from openapi_schema_validator._types import is_string
 
 from openapi_core.extensions.models.factories import ModelFactory

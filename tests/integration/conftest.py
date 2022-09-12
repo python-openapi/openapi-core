@@ -2,19 +2,27 @@ from os import path
 from urllib import request
 
 import pytest
-from openapi_spec_validator.schemas import read_yaml_file
+from openapi_spec_validator.readers import read_from_filename
 from yaml import safe_load
+
+from openapi_core.spec import Spec
+
+
+def content_from_file(spec_file):
+    directory = path.abspath(path.dirname(__file__))
+    path_full = path.join(directory, spec_file)
+    return read_from_filename(path_full)
 
 
 def spec_from_file(spec_file):
-    directory = path.abspath(path.dirname(__file__))
-    path_full = path.join(directory, spec_file)
-    return read_yaml_file(path_full)
+    spec_dict, spec_url = content_from_file(spec_file)
+    return Spec.create(spec_dict, url=spec_url)
 
 
 def spec_from_url(spec_url):
     content = request.urlopen(spec_url)
-    return safe_load(content)
+    spec_dict = safe_load(content)
+    return Spec.create(spec_dict, url=spec_url)
 
 
 class Factory(dict):
@@ -25,6 +33,7 @@ class Factory(dict):
 @pytest.fixture(scope="session")
 def factory():
     return Factory(
+        content_from_file=content_from_file,
         spec_from_file=spec_from_file,
         spec_from_url=spec_from_url,
     )

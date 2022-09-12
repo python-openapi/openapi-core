@@ -1,10 +1,6 @@
-from openapi_core.spec import Spec
-
-
 class TestLinkSpec:
     def test_no_param(self, factory):
-        spec_dict = factory.spec_from_file("data/v3.0/links.yaml")
-        spec = Spec.create(spec_dict)
+        spec = factory.spec_from_file("data/v3.0/links.yaml")
         resp = spec / "paths#/status#get#responses#default"
 
         links = resp / "links"
@@ -17,8 +13,7 @@ class TestLinkSpec:
         assert "parameters" not in link
 
     def test_param(self, factory):
-        spec_dict = factory.spec_from_file("data/v3.0/links.yaml")
-        spec = Spec.create(spec_dict)
+        spec = factory.spec_from_file("data/v3.0/links.yaml")
         resp = spec / "paths#/status/{resourceId}#get#responses#default"
 
         links = resp / "links"

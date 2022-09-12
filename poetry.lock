@@ -370,6 +370,28 @@ format = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validat
 format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "uri-template", "webcolors (>=1.11)"]
 
 [[package]]
+name = "jsonschema-spec"
+version = "0.1.2"
+description = "JSONSchema Spec with object-oriented paths"
+category = "main"
+optional = false
+python-versions = ">=3.7.0,<4.0.0"
+
+[package.dependencies]
+jsonschema = ">=4.0.0,<5.0.0"
+pathable = ">=0.4.1,<0.5.0"
+PyYAML = ">=5.1"
+typing-extensions = ">=4.3.0,<5.0.0"
+
+[[package]]
+name = "lazy-object-proxy"
+version = "1.7.1"
+description = "A fast and thorough lazy object proxy."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "markupsafe"
 version = "2.1.1"
 description = "Safely add untrusted strings to HTML/XML markup."
@@ -430,14 +452,15 @@ python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*
 
 [[package]]
 name = "openapi-schema-validator"
-version = "0.2.3"
+version = "0.3.4"
 description = "OpenAPI schema validation for Python"
 category = "main"
 optional = false
 python-versions = ">=3.7.0,<4.0.0"
 
 [package.dependencies]
-jsonschema = ">=3.0.0,<5.0.0"
+attrs = ">=19.2.0"
+jsonschema = ">=4.0.0,<5.0.0"
 
 [package.extras]
 isodate = ["isodate"]
@@ -446,15 +469,18 @@ rfc3339-validator = ["rfc3339-validator"]
 
 [[package]]
 name = "openapi-spec-validator"
-version = "0.4.0"
-description = "OpenAPI 2.0 (aka Swagger) and OpenAPI 3.0 spec validator"
+version = "0.5.1"
+description = "OpenAPI 2.0 (aka Swagger) and OpenAPI 3 spec validator"
 category = "main"
 optional = false
 python-versions = ">=3.7.0,<4.0.0"
 
 [package.dependencies]
-jsonschema = ">=3.2.0,<5.0.0"
-openapi-schema-validator = ">=0.2.0,<0.3.0"
+importlib-resources = ">=5.8.0,<6.0.0"
+jsonschema = ">=4.0.0,<5.0.0"
+jsonschema-spec = ">=0.1.1,<0.2.0"
+lazy-object-proxy = ">=1.7.1,<2.0.0"
+openapi-schema-validator = ">=0.3.2,<0.4.0"
 PyYAML = ">=5.1"
 
 [package.extras]
@@ -875,25 +901,6 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
-name = "types-requests"
-version = "2.28.9"
-description = "Typing stubs for requests"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-types-urllib3 = "<1.27"
-
-[[package]]
-name = "types-urllib3"
-version = "1.26.23"
-description = "Typing stubs for urllib3"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "typing-extensions"
 version = "4.3.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -979,7 +986,7 @@ requests = ["requests"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.0"
-content-hash = "ffa07e7b70aec4ff76eba4855fbeb2e01b1eabe24f1967fefa25dbc184f0d9e4"
+content-hash = "5d1e37431d372cde35f18fea5c93c61703d9c6e85f870af6427e7be1f5564ce3"
 
 [metadata.files]
 alabaster = []
@@ -1013,6 +1020,8 @@ isort = []
 itsdangerous = []
 jinja2 = []
 jsonschema = []
+jsonschema-spec = []
+lazy-object-proxy = []
 markupsafe = []
 mccabe = []
 more-itertools = []
@@ -1057,8 +1066,6 @@ strict-rfc3339 = []
 toml = []
 tomli = []
 typed-ast = []
-types-requests = []
-types-urllib3 = []
 typing-extensions = []
 urllib3 = []
 virtualenv = []
