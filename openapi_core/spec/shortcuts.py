@@ -3,9 +3,11 @@ from typing import Any
 from typing import Dict
 from typing import Hashable
 from typing import Mapping
+from typing import Optional
 
 from jsonschema_spec import default_handlers
-from openapi_spec_validator import openapi_v30_spec_validator
+from openapi_spec_validator.validation import openapi_spec_validator_proxy
+from openapi_spec_validator.validation.protocols import SupportsValidation
 
 from openapi_core.spec.paths import Spec
 
@@ -16,9 +18,9 @@ def create_spec(
     handlers: Dict[str, Any] = default_handlers,
     validate_spec: bool = True,
 ) -> Spec:
-    validator = None
+    validator: Optional[SupportsValidation] = None
     if validate_spec:
-        validator = openapi_v30_spec_validator
+        validator = openapi_spec_validator_proxy
 
     return Spec.create(
         spec_dict,
