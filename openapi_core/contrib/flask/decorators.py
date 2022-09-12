@@ -16,10 +16,10 @@ from openapi_core.spec import Spec
 from openapi_core.validation.processors import OpenAPIProcessor
 from openapi_core.validation.request import openapi_request_validator
 from openapi_core.validation.request.datatypes import RequestValidationResult
-from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.request.protocols import RequestValidator
 from openapi_core.validation.response import openapi_response_validator
 from openapi_core.validation.response.datatypes import ResponseValidationResult
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.response.protocols import ResponseValidator
 
 
 class FlaskOpenAPIViewDecorator(OpenAPIProcessor):

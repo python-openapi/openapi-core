@@ -5,8 +5,8 @@ import pytest
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
-from openapi_core.validation.request import openapi_request_validator
-from openapi_core.validation.response import openapi_response_validator
+from openapi_core.validation.request import openapi_v30_request_validator
+from openapi_core.validation.response import openapi_v30_response_validator
 
 
 @pytest.fixture(scope="class")
@@ -27,7 +27,7 @@ class TestReadOnly:
             host_url="", method="POST", path="/users", data=data
         )
 
-        result = openapi_request_validator.validate(spec, request)
+        result = openapi_v30_request_validator.validate(spec, request)
 
         assert type(result.errors[0]) == InvalidSchemaValue
         assert result.body is None
@@ -44,7 +44,9 @@ class TestReadOnly:
 
         response = MockResponse(data)
 
-        result = openapi_response_validator.validate(spec, request, response)
+        result = openapi_v30_response_validator.validate(
+            spec, request, response
+        )
 
         assert not result.errors
         assert result.data == {
@@ -66,7 +68,7 @@ class TestWriteOnly:
             host_url="", method="POST", path="/users", data=data
         )
 
-        result = openapi_request_validator.validate(spec, request)
+        result = openapi_v30_request_validator.validate(spec, request)
 
         assert not result.errors
         assert result.body == {
@@ -86,7 +88,9 @@ class TestWriteOnly:
         request = MockRequest(host_url="", method="POST", path="/users")
         response = MockResponse(data)
 
-        result = openapi_response_validator.validate(spec, request, response)
+        result = openapi_v30_response_validator.validate(
+            spec, request, response
+        )
 
         assert type(result.errors[0]) == InvalidSchemaValue
         assert result.data is None

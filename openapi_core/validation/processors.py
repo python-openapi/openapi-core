@@ -2,10 +2,10 @@
 from openapi_core.spec import Spec
 from openapi_core.validation.request.datatypes import RequestValidationResult
 from openapi_core.validation.request.protocols import Request
-from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.request.protocols import RequestValidator
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.response.protocols import Response
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.response.protocols import ResponseValidator
 
 
 class OpenAPIProcessor:

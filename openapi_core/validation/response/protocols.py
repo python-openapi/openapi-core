@@ -1,5 +1,6 @@
 """OpenAPI core validation response protocols module"""
 from typing import TYPE_CHECKING
+from typing import Optional
 
 if TYPE_CHECKING:
     from typing_extensions import Protocol
@@ -13,6 +14,10 @@ else:
         from typing_extensions import runtime_checkable
 
 from werkzeug.datastructures import Headers
+
+from openapi_core.spec import Spec
+from openapi_core.validation.request.protocols import Request
+from openapi_core.validation.response.datatypes import ResponseValidationResult
 
 
 @runtime_checkable
@@ -44,4 +49,16 @@ class Response(Protocol):
 
     @property
     def headers(self) -> Headers:
+        ...
+
+
+@runtime_checkable
+class ResponseValidator(Protocol):
+    def validate(
+        self,
+        spec: Spec,
+        request: Request,
+        response: Response,
+        base_url: Optional[str] = None,
+    ) -> ResponseValidationResult:
         ...

@@ -20,6 +20,8 @@ class TestMinimal:
     spec_paths = [
         "data/v3.0/minimal_with_servers.yaml",
         "data/v3.0/minimal.yaml",
+        "data/v3.1/minimal_with_servers.yaml",
+        "data/v3.1/minimal.yaml",
     ]
 
     @pytest.mark.parametrize("server", servers)

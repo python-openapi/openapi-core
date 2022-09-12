@@ -19,7 +19,8 @@ About
 #####
 
 Openapi-core is a Python library that adds client-side and server-side support
-for the `OpenAPI Specification v3 <https://github.com/OAI/OpenAPI-Specification>`__.
+for the `OpenAPI v3.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md>`__
+and `OpenAPI v3.1 <https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md>`__ specification.
 
 Key features
 ************
@@ -57,7 +58,7 @@ Alternatively you can download the code and install from the repository:
 Usage
 #####
 
-Firstly create your specification object:
+Firstly create your specification object. By default, OpenAPI spec version is detected:
 
 .. code-block:: python
 
@@ -131,6 +132,19 @@ and unmarshal response data from validation result
    validated_data = result.data
 
 Response object should implement OpenAPI Response protocol (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
+
+In order to explicitly validate a:
+
+* OpenAPI 3.0 spec, import ``openapi_v30_request_validator`` or ``openapi_v30_response_validator`` 
+* OpenAPI 3.1 spec, import ``openapi_v31_request_validator`` or ``openapi_v31_response_validator`` 
+
+.. code:: python
+
+   from openapi_core.validation.response import openapi_v31_response_validator
+
+   result = openapi_v31_response_validator.validate(spec, request, response)
+
+You can also explicitly import ``openapi_v3_request_validator`` or ``openapi_v3_response_validator``  which is a shortcut to the latest v3 release.
 
 Related projects
 ################

@@ -1,16 +1,14 @@
 """OpenAPI core module"""
 from openapi_core.spec import Spec
-from openapi_core.validation.request.validators import RequestBodyValidator
-from openapi_core.validation.request.validators import (
-    RequestParametersValidator,
+from openapi_core.validation.request import openapi_request_body_validator
+from openapi_core.validation.request import (
+    openapi_request_parameters_validator,
 )
-from openapi_core.validation.request.validators import RequestSecurityValidator
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseDataValidator
-from openapi_core.validation.response.validators import (
-    ResponseHeadersValidator,
-)
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.request import openapi_request_security_validator
+from openapi_core.validation.request import openapi_request_validator
+from openapi_core.validation.response import openapi_response_data_validator
+from openapi_core.validation.response import openapi_response_headers_validator
+from openapi_core.validation.response import openapi_response_validator
 from openapi_core.validation.shortcuts import validate_request
 from openapi_core.validation.shortcuts import validate_response
 
@@ -24,11 +22,11 @@ __all__ = [
     "Spec",
     "validate_request",
     "validate_response",
-    "RequestValidator",
-    "ResponseValidator",
-    "RequestBodyValidator",
-    "RequestParametersValidator",
-    "RequestSecurityValidator",
-    "ResponseDataValidator",
-    "ResponseHeadersValidator",
+    "openapi_request_body_validator",
+    "openapi_request_parameters_validator",
+    "openapi_request_security_validator",
+    "openapi_request_validator",
+    "openapi_response_data_validator",
+    "openapi_response_headers_validator",
+    "openapi_response_validator",
 ]

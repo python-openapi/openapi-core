@@ -1,7 +1,7 @@
 Usage
 =====
 
-Firstly create your specification: object
+Firstly create your specification object. By default, OpenAPI spec version is detected:
 
 .. code-block:: python
 
@@ -46,7 +46,7 @@ and unmarshal request data from validation result
    # get security data
    validated_security = result.security
 
-Request object should be instance of OpenAPIRequest class (See :doc:`integrations`).
+Request object should implement OpenAPI Request protocol (See :doc:`integrations`).
 
 Response
 --------
@@ -75,7 +75,7 @@ and unmarshal response data from validation result
    # get data
    validated_data = result.data
 
-Response object should be instance of OpenAPIResponse class (See :doc:`integrations`).
+Response object should implement OpenAPI Response protocol  (See :doc:`integrations`).
 
 Security
 --------

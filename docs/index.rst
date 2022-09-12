@@ -7,7 +7,8 @@ Welcome to openapi-core's documentation!
 ========================================
 
 Openapi-core is a Python library that adds client-side and server-side support
-for the `OpenAPI Specification v3 <https://github.com/OAI/OpenAPI-Specification>`__.
+for the `OpenAPI v3.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md>`__
+and `OpenAPI v3.1 <https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md>`__ specification.
 
 Key features
 ------------

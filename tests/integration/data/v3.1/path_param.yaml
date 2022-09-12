@@ -1,0 +1,17 @@
+openapi: "3.1.0"
+info:
+  title: Minimal OpenAPI specification with path parameters
+  version: "0.1"
+paths:
+  /resource/{resId}:
+    parameters:
+      - name: resId
+        in: path
+        required: true
+        description: the ID of the resource to retrieve
+        schema:
+          type: string
+    get:
+      responses:
+        default:
+          description: Return the resource.
