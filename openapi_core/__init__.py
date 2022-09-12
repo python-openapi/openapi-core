@@ -16,7 +16,7 @@ from openapi_core.validation.shortcuts import validate_response
 
 __author__ = "Artur Maciag"
 __email__ = "maciag.artur@gmail.com"
-__version__ = "0.15.0a2"
+__version__ = "0.15.0"
 __url__ = "https://github.com/p1c2u/openapi-core"
 __license__ = "BSD 3-Clause License"
 
