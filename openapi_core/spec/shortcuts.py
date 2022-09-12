@@ -4,10 +4,8 @@ from typing import Dict
 from typing import Hashable
 from typing import Mapping
 
-from jsonschema.validators import RefResolver
-from openapi_spec_validator import default_handlers
-from openapi_spec_validator import openapi_v3_spec_validator
-from openapi_spec_validator.validators import Dereferencer
+from jsonschema_spec import default_handlers
+from openapi_spec_validator import openapi_v30_spec_validator
 
 from openapi_core.spec.paths import Spec
 
@@ -20,7 +18,7 @@ def create_spec(
 ) -> Spec:
     validator = None
     if validate_spec:
-        validator = openapi_v3_spec_validator
+        validator = openapi_v30_spec_validator
 
     return Spec.create(
         spec_dict,

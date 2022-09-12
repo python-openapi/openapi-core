@@ -2,7 +2,6 @@ import json
 
 import pytest
 
-from openapi_core.spec import Spec
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
@@ -12,8 +11,7 @@ from openapi_core.validation.response import openapi_response_validator
 
 @pytest.fixture(scope="class")
 def spec(factory):
-    spec_dict = factory.spec_from_file("data/v3.0/read_only_write_only.yaml")
-    return Spec.create(spec_dict)
+    return factory.spec_from_file("data/v3.0/read_only_write_only.yaml")
 
 
 class TestReadOnly:

@@ -4,7 +4,6 @@ from flask import jsonify
 from flask import make_response
 
 from openapi_core.contrib.flask.views import FlaskOpenAPIView
-from openapi_core.spec import Spec
 
 
 class TestFlaskOpenAPIView:
@@ -14,7 +13,7 @@ class TestFlaskOpenAPIView:
     @pytest.fixture
     def spec(self, factory):
         specfile = "contrib/flask/data/v3.0/flask_factory.yaml"
-        return Spec.create(factory.spec_from_file(specfile))
+        return factory.spec_from_file(specfile)
 
     @pytest.fixture
     def app(self):

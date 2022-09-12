@@ -105,7 +105,7 @@ class SchemaUnmarshallersFactory:
             return default_formatters.get(type_format)
 
     def get_validator(self, schema: Spec) -> Validator:
-        resolver = schema.accessor.dereferencer.resolver_manager.resolver  # type: ignore
+        resolver = schema.accessor.resolver  # type: ignore
         custom_format_checks = {
             name: formatter.validate
             for name, formatter in self.custom_formatters.items()

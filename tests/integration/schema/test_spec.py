@@ -25,7 +25,8 @@ class TestPetstore:
 
     @pytest.fixture
     def spec_dict(self, factory):
-        return factory.spec_from_file("data/v3.0/petstore.yaml")
+        content, _ = factory.content_from_file("data/v3.0/petstore.yaml")
+        return content
 
     @pytest.fixture
     def spec(self, spec_dict, spec_uri):

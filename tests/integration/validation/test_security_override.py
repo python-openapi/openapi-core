@@ -2,7 +2,6 @@ from base64 import b64encode
 
 import pytest
 
-from openapi_core.spec import Spec
 from openapi_core.testing import MockRequest
 from openapi_core.validation.exceptions import InvalidSecurity
 from openapi_core.validation.request import openapi_request_validator
@@ -10,8 +9,7 @@ from openapi_core.validation.request import openapi_request_validator
 
 @pytest.fixture(scope="class")
 def spec(factory):
-    spec_dict = factory.spec_from_file("data/v3.0/security_override.yaml")
-    return Spec.create(spec_dict)
+    return factory.spec_from_file("data/v3.0/security_override.yaml")
 
 
 class TestSecurityOverride:
