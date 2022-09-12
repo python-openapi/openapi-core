@@ -2,13 +2,14 @@ from typing import Any
 from typing import Dict
 from typing import Hashable
 from typing import Mapping
+from typing import Optional
 from typing import Type
 from typing import TypeVar
 
-from jsonschema.protocols import Validator
 from jsonschema_spec import Spec as JsonschemaSpec
 from jsonschema_spec import default_handlers
-from openapi_spec_validator import openapi_v30_spec_validator
+from openapi_spec_validator.validation import openapi_spec_validator_proxy
+from openapi_spec_validator.validation.protocols import SupportsValidation
 
 TSpec = TypeVar("TSpec", bound="Spec")
 
@@ -24,7 +25,7 @@ class Spec(JsonschemaSpec):
         url: str = "",
         ref_resolver_handlers: Dict[str, Any] = default_handlers,
         separator: str = SPEC_SEPARATOR,
-        validator: Validator = openapi_v30_spec_validator,
+        validator: Optional[SupportsValidation] = openapi_spec_validator_proxy,
     ) -> TSpec:
         if validator is not None:
             validator.validate(data, spec_url=url)
