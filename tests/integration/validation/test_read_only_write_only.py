@@ -1,4 +1,5 @@
 import json
+from dataclasses import is_dataclass
 
 import pytest
 
@@ -49,10 +50,10 @@ class TestReadOnly:
         )
 
         assert not result.errors
-        assert result.data == {
-            "id": 10,
-            "name": "Pedro",
-        }
+        assert is_dataclass(result.data)
+        assert result.data.__class__.__name__ == "Model"
+        assert result.data.id == 10
+        assert result.data.name == "Pedro"
 
 
 class TestWriteOnly:
@@ -71,10 +72,10 @@ class TestWriteOnly:
         result = openapi_v30_request_validator.validate(spec, request)
 
         assert not result.errors
-        assert result.body == {
-            "name": "Pedro",
-            "hidden": False,
-        }
+        assert is_dataclass(result.body)
+        assert result.body.__class__.__name__ == "Model"
+        assert result.body.name == "Pedro"
+        assert result.body.hidden == False
 
     def test_read_a_write_only_property(self, spec):
         data = json.dumps(

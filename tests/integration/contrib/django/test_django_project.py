@@ -54,7 +54,7 @@ class TestPetListView(BaseTestDjangoProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.validation.exceptions."
                         "MissingRequiredParameter'>"
                     ),
@@ -101,7 +101,7 @@ class TestPetListView(BaseTestDjangoProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.templating.paths.exceptions."
                         "ServerNotFound'>"
                     ),
@@ -148,7 +148,7 @@ class TestPetListView(BaseTestDjangoProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.validation.exceptions."
                         "MissingRequiredParameter'>"
                     ),
@@ -176,7 +176,7 @@ class TestPetListView(BaseTestDjangoProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.templating.media_types."
                         "exceptions.MediaTypeNotFound'>"
                     ),
@@ -213,7 +213,7 @@ class TestPetListView(BaseTestDjangoProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.validation.exceptions."
                         "MissingRequiredParameter'>"
                     ),
@@ -267,7 +267,7 @@ class TestPetDetailView(BaseTestDjangoProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.validation.exceptions."
                         "InvalidSecurity'>"
                     ),
@@ -289,7 +289,7 @@ class TestPetDetailView(BaseTestDjangoProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.templating.paths.exceptions."
                         "OperationNotFound'>"
                     ),

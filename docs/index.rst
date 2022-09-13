@@ -31,6 +31,7 @@ Table of contents
 
    installation
    usage
+   extensions
    customizations
    integrations
 
