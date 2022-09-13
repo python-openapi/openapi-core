@@ -26,15 +26,17 @@ class TestSchemaCaster:
         with pytest.raises(CastError):
             caster_factory(schema)(value)
 
-    def test_array_invalid_value(self, caster_factory):
+    @pytest.mark.parametrize("value", [3.14, "foo", b"foo"])
+    def test_array_invalid_value(self, value, caster_factory):
         spec = {
             "type": "array",
             "items": {
-                "type": "number",
+                "oneOf": [{"type": "number"}, {"type": "string"}],
             },
         }
         schema = Spec.from_dict(spec)
-        value = 3.14
 
-        with pytest.raises(CastError):
+        with pytest.raises(
+            CastError, match=f"Failed to cast value to array type: {value}"
+        ):
             caster_factory(schema)(value)

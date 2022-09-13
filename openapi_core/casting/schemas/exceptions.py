@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 from openapi_core.exceptions import OpenAPIError
 
@@ -7,7 +8,7 @@ from openapi_core.exceptions import OpenAPIError
 class CastError(OpenAPIError):
     """Schema cast operation error"""
 
-    value: str
+    value: Any
     type: str
 
     def __str__(self) -> str:
