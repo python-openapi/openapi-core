@@ -54,6 +54,10 @@ class ArrayCaster(ComplexCaster):
         return self.casters_factory.create(self.schema / "items")
 
     def cast(self, value: Any) -> List[Any]:
+        # str and bytes are not arrays according to the OpenAPI spec
+        if isinstance(value, (str, bytes)):
+            raise CastError(value, self.schema["type"])
+
         try:
             return list(map(self.items_caster, value))
         except (ValueError, TypeError):
