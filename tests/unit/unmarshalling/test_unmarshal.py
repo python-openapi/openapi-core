@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from dataclasses import is_dataclass
 
 import pytest
 from isodate.tzinfo import UTC
@@ -539,7 +540,8 @@ class TestSchemaUnmarshallerCall:
         value = {"foo": None}
         result = unmarshaller_factory(spec)(value)
 
-        assert result == {"foo": None}
+        assert is_dataclass(result)
+        assert result.foo == None
 
     def test_schema_any_one_of(self, unmarshaller_factory):
         schema = {
@@ -666,7 +668,15 @@ class TestSchemaUnmarshallerCall:
         spec = Spec.from_dict(schema)
 
         result = unmarshaller_factory(spec)(value)
-        assert result == value
+
+        assert is_dataclass(result)
+        for field, val in value.items():
+            result_field = getattr(result, field)
+            if isinstance(val, dict):
+                for field2, val2 in val.items():
+                    assert getattr(result_field, field2) == val2
+            else:
+                assert result_field == val
 
     def test_read_only_properties(self, unmarshaller_factory):
         schema = {
@@ -685,9 +695,9 @@ class TestSchemaUnmarshallerCall:
         result = unmarshaller_factory(spec, context=UnmarshalContext.RESPONSE)(
             {"id": 10}
         )
-        assert result == {
-            "id": 10,
-        }
+
+        assert is_dataclass(result)
+        assert result.id == 10
 
     def test_read_only_properties_invalid(self, unmarshaller_factory):
         schema = {
@@ -725,9 +735,9 @@ class TestSchemaUnmarshallerCall:
         result = unmarshaller_factory(spec, context=UnmarshalContext.REQUEST)(
             {"id": 10}
         )
-        assert result == {
-            "id": 10,
-        }
+
+        assert is_dataclass(result)
+        assert result.id == 10
 
     def test_write_only_properties_invalid(self, unmarshaller_factory):
         schema = {

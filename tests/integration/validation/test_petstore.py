@@ -1,5 +1,7 @@
 import json
 from base64 import b64encode
+from dataclasses import is_dataclass
+from dataclasses import make_dataclass
 from datetime import datetime
 from uuid import UUID
 
@@ -11,7 +13,6 @@ from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
     EmptyQueryParameterValue,
 )
-from openapi_core.extensions.models.models import BaseModel
 from openapi_core.spec import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
@@ -111,7 +112,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert response_result.data.data == []
         assert response_result.headers == {
             "x-next": "next-url",
@@ -170,7 +171,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert len(response_result.data.data) == 1
         assert response_result.data.data[0].id == 1
         assert response_result.data.data[0].name == "Cat"
@@ -338,7 +339,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert response_result.data.data == []
 
     def test_get_pets_tags_param(self, spec):
@@ -388,7 +389,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert response_result.data.data == []
 
     def test_get_pets_parameter_deserialization_error(self, spec):
@@ -640,14 +641,13 @@ class TestPetstore:
                 validator=openapi_v30_request_parameters_validator,
             )
 
-        assert result.parameters == Parameters(
-            query={
-                "limit": None,
-                "page": 1,
-                "search": "",
-                "coordinates": coordinates,
-            }
+        assert is_dataclass(result.parameters.query["coordinates"])
+        assert (
+            result.parameters.query["coordinates"].__class__.__name__
+            == "Model"
         )
+        assert result.parameters.query["coordinates"].lat == coordinates["lat"]
+        assert result.parameters.query["coordinates"].lon == coordinates["lon"]
 
         result = validate_request(
             spec, request, validator=openapi_v30_request_body_validator
@@ -703,17 +703,11 @@ class TestPetstore:
             spec, request, validator=openapi_v30_request_parameters_validator
         )
 
-        assert result.parameters == Parameters(
-            header={
-                "api-key": self.api_key,
-            },
-            cookie={
-                "user": 123,
-                "userdata": {
-                    "name": "user1",
-                },
-            },
+        assert is_dataclass(result.parameters.cookie["userdata"])
+        assert (
+            result.parameters.cookie["userdata"].__class__.__name__ == "Model"
         )
+        assert result.parameters.cookie["userdata"].name == "user1"
 
         result = validate_request(
             spec, request, validator=openapi_v30_request_body_validator
@@ -1221,8 +1215,8 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
-        assert isinstance(response_result.data.data, BaseModel)
+        assert is_dataclass(response_result.data)
+        assert is_dataclass(response_result.data.data)
         assert response_result.data.data.id == data_id
         assert response_result.data.data.name == data_name
 
@@ -1270,7 +1264,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert response_result.data.code == code
         assert response_result.data.message == message
         assert response_result.data.rootCause == rootCause
@@ -1453,7 +1447,7 @@ class TestPetstore:
             spec, request, validator=openapi_v30_request_body_validator
         )
 
-        assert isinstance(result.body, BaseModel)
+        assert is_dataclass(result.body)
         assert result.body.name == pet_name
 
         code = 400
@@ -1472,7 +1466,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert response_result.data.code == code
         assert response_result.data.message == message
         assert response_result.data.rootCause == rootCause
@@ -1507,7 +1501,7 @@ class TestPetstore:
             spec, request, validator=openapi_v30_request_body_validator
         )
 
-        assert isinstance(result.body, BaseModel)
+        assert is_dataclass(result.body)
         assert result.body.created == created
         assert result.body.name == pet_name
 
@@ -1527,7 +1521,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert response_result.data.code == code
         assert response_result.data.message == message
         assert response_result.data.rootCause == rootCause
@@ -1562,7 +1556,7 @@ class TestPetstore:
             spec, request, validator=openapi_v30_request_body_validator
         )
 
-        assert isinstance(result.body, BaseModel)
+        assert is_dataclass(result.body)
         assert result.body.created == datetime(
             2016, 4, 16, 16, 6, 5, tzinfo=UTC
         )
@@ -1588,7 +1582,7 @@ class TestPetstore:
             validator=openapi_v30_response_data_validator,
         )
 
-        assert isinstance(result.data, BaseModel)
+        assert is_dataclass(result.data)
         assert result.data.code == code
         assert result.data.message == message
         assert result.data.rootCause == rootCause
@@ -1597,7 +1591,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert response_result.data.code == code
         assert response_result.data.message == message
         assert response_result.data.rootCause == rootCause
@@ -1650,7 +1644,7 @@ class TestPetstore:
         response_result = validate_response(spec, request, response)
 
         assert response_result.errors == []
-        assert isinstance(response_result.data, BaseModel)
+        assert is_dataclass(response_result.data)
         assert response_result.data.code == code
         assert response_result.data.message == message
         assert response_result.data.correlationId == correlationId
@@ -1683,7 +1677,7 @@ class TestPetstore:
             spec, request, validator=openapi_v30_request_body_validator
         )
 
-        assert isinstance(result.body, BaseModel)
+        assert is_dataclass(result.body)
         assert result.body.ids == ids
 
         data = None

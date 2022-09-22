@@ -47,7 +47,7 @@ class DjangoOpenAPIErrorsHandler:
         return {
             "title": str(error),
             "status": cls.OPENAPI_ERROR_STATUS.get(error.__class__, 400),
-            "class": str(type(error)),
+            "type": str(type(error)),
         }
 
     @classmethod

@@ -1,5 +1,6 @@
 import json
 from base64 import b64encode
+from dataclasses import is_dataclass
 
 import pytest
 
@@ -7,7 +8,6 @@ from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.media_types.exceptions import (
     MediaTypeDeserializeError,
 )
-from openapi_core.extensions.models.models import BaseModel
 from openapi_core.spec import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
@@ -655,7 +655,7 @@ class TestResponseValidator:
         result = openapi_response_validator.validate(spec, request, response)
 
         assert result.errors == []
-        assert isinstance(result.data, BaseModel)
+        assert is_dataclass(result.data)
         assert len(result.data.data) == 1
         assert result.data.data[0].id == 1
         assert result.data.data[0].name == "Sparky"

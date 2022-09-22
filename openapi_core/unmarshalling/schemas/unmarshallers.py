@@ -3,6 +3,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
+from typing import Iterable
 from typing import List
 from typing import Optional
 
@@ -16,7 +17,7 @@ from jsonschema.protocols import Validator
 from openapi_schema_validator._format import oas30_format_checker
 from openapi_schema_validator._types import is_string
 
-from openapi_core.extensions.models.factories import ModelFactory
+from openapi_core.extensions.models.factories import ModelClassImporter
 from openapi_core.schema.schemas import get_all_properties
 from openapi_core.schema.schemas import get_all_properties_names
 from openapi_core.spec import Spec
@@ -196,8 +197,8 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
     }
 
     @property
-    def model_factory(self) -> ModelFactory:
-        return ModelFactory()
+    def object_class_factory(self) -> ModelClassImporter:
+        return ModelClassImporter()
 
     def unmarshal(self, value: Any) -> Any:
         try:
@@ -230,11 +231,11 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         else:
             properties = self._unmarshal_properties(value)
 
-        if "x-model" in self.schema:
-            name = self.schema["x-model"]
-            return self.model_factory.create(properties, name=name)
+        model = self.schema.getkey("x-model")
+        fields: Iterable[str] = properties and properties.keys() or []
+        object_class = self.object_class_factory.create(fields, model=model)
 
-        return properties
+        return object_class(**properties)
 
     def _unmarshal_properties(
         self, value: Any, one_of_schema: Optional[Spec] = None
@@ -253,17 +254,18 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         additional_properties = self.schema.getkey(
             "additionalProperties", True
         )
-        if isinstance(additional_properties, dict):
-            additional_prop_schema = self.schema / "additionalProperties"
+        if additional_properties is not False:
+            # free-form object
+            if additional_properties is True:
+                additional_prop_schema = Spec.from_dict({})
+            # defined schema
+            else:
+                additional_prop_schema = self.schema / "additionalProperties"
             for prop_name in extra_props:
                 prop_value = value[prop_name]
                 properties[prop_name] = self.unmarshallers_factory.create(
                     additional_prop_schema
                 )(prop_value)
-        elif additional_properties is True:
-            for prop_name in extra_props:
-                prop_value = value[prop_name]
-                properties[prop_name] = prop_value
 
         for prop_name, prop in list(all_props.items()):
             read_only = prop.getkey("readOnly", False)

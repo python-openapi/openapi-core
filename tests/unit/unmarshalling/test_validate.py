@@ -3,7 +3,6 @@ from unittest import mock
 
 import pytest
 
-from openapi_core.extensions.models.models import Model
 from openapi_core.spec.paths import Spec
 from openapi_core.unmarshalling.schemas import (
     oas30_request_schema_unmarshallers_factory,
@@ -729,7 +728,7 @@ class TestSchemaValidate:
     @pytest.mark.parametrize(
         "value",
         [
-            Model(),
+            dict(),
         ],
     )
     def test_object_multiple_one_of(self, value, validator_factory):

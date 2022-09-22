@@ -81,15 +81,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - lat
-                  - lon
-                properties:
-                  lat:
-                    type: number
-                  lon:
-                    type: number
+                $ref: "#/components/schemas/Coordinates"
       responses:
         '200':
           $ref: "#/components/responses/PetsResponse"
@@ -240,6 +232,16 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
 components:
   schemas:
+    Coordinates:
+      type: object
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+        lon:
+          type: number
     Userdata:
       type: object
       required:
@@ -411,7 +413,7 @@ components:
       required:
         - title
         - status
-        - class
+        - type
       properties:
         title:
           type: string
@@ -419,7 +421,7 @@ components:
           type: integer
           format: int32
           default: 400
-        class:
+        type:
           type: string
     StandardErrors:
       type: object

@@ -65,7 +65,7 @@ class TestPetListResource(BaseTestFalconProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.templating.paths.exceptions."
                         "ServerNotFound'>"
                     ),
@@ -119,7 +119,7 @@ class TestPetListResource(BaseTestFalconProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.validation.exceptions."
                         "MissingRequiredParameter'>"
                     ),
@@ -155,7 +155,7 @@ class TestPetListResource(BaseTestFalconProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.templating.media_types."
                         "exceptions.MediaTypeNotFound'>"
                     ),
@@ -198,7 +198,7 @@ class TestPetListResource(BaseTestFalconProject):
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.validation.exceptions."
                         "MissingRequiredParameter'>"
                     ),
@@ -249,7 +249,7 @@ class TestPetDetailResource:
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.templating.paths.exceptions."
                         "ServerNotFound'>"
                     ),
@@ -283,7 +283,7 @@ class TestPetDetailResource:
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.validation.exceptions."
                         "InvalidSecurity'>"
                     ),
@@ -324,7 +324,7 @@ class TestPetDetailResource:
         expected_data = {
             "errors": [
                 {
-                    "class": (
+                    "type": (
                         "<class 'openapi_core.templating.paths.exceptions."
                         "OperationNotFound'>"
                     ),
