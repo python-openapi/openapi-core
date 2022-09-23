@@ -1,3 +1,4 @@
+import re
 from functools import partial
 from typing import Dict
 
@@ -25,6 +26,7 @@ class ParameterDeserializersFactory:
         "simple": partial(split, separator=","),
         "spaceDelimited": partial(split, separator=" "),
         "pipeDelimited": partial(split, separator="|"),
+        "deepObject": partial(re.split, pattern=r"\[|\]"),
     }
 
     def create(self, param_or_header: Spec) -> BaseParameterDeserializer:

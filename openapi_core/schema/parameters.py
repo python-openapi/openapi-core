@@ -1,3 +1,4 @@
+import re
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -53,16 +54,39 @@ def get_value(
 ) -> Any:
     """Returns parameter/header value from specific location"""
     name = name or param_or_header["name"]
+    style = get_style(param_or_header)
 
     if name not in location:
-        raise KeyError
+        # Only check if the name is not in the location if the style of
+        # the param is deepObject,this is because deepObjects will never be found
+        # as their key also includes the properties of the object already.
+        if style != "deepObject":
+            raise KeyError
+        keys_str = " ".join(location.keys())
+        if not re.search(rf"{name}\[\w+\]", keys_str):
+            raise KeyError
 
     aslist = get_aslist(param_or_header)
     explode = get_explode(param_or_header)
     if aslist and explode:
+        if style == "deepObject":
+            return get_deep_object_value(location, name)
         if isinstance(location, SuportsGetAll):
             return location.getall(name)
         if isinstance(location, SuportsGetList):
             return location.getlist(name)
 
     return location[name]
+
+
+def get_deep_object_value(
+    location: Union[Headers, Dict[str, Any]],
+    name: Optional[str] = None,
+) -> Dict[str, Any]:
+    values = {}
+    for key, value in location.items():
+        # Split the key from the brackets.
+        key_split = re.split(pattern=r"\[|\]", string=key)
+        if key_split[0] == name:
+            values[key_split[1]] = value
+    return values
