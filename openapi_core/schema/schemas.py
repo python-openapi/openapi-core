@@ -1,6 +1,5 @@
 from typing import Any
 from typing import Dict
-from typing import Set
 
 from openapi_core.spec import Spec
 
@@ -17,8 +16,3 @@ def get_all_properties(schema: Spec) -> Dict[str, Any]:
         properties_dict.update(subschema_props)
 
     return properties_dict
-
-
-def get_all_properties_names(schema: Spec) -> Set[str]:
-    all_properties = get_all_properties(schema)
-    return set(all_properties.keys())
