@@ -869,6 +869,132 @@ class TestSchemaValidate:
             {},
         ],
     )
+    def test_object_multiple_any_of(self, value, validator_factory):
+        any_of = [
+            {
+                "type": "object",
+            },
+            {
+                "type": "object",
+            },
+        ]
+        schema = {
+            "type": "object",
+            "anyOf": any_of,
+        }
+        spec = Spec.from_dict(schema)
+
+        result = validator_factory(spec).validate(value)
+
+        assert result is None
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            {},
+        ],
+    )
+    def test_object_different_type_any_of(self, value, validator_factory):
+        any_of = [{"type": "integer"}, {"type": "string"}]
+        schema = {
+            "type": "object",
+            "anyOf": any_of,
+        }
+        spec = Spec.from_dict(schema)
+
+        with pytest.raises(InvalidSchemaValue):
+            validator_factory(spec).validate(value)
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            {},
+        ],
+    )
+    def test_object_no_any_of(self, value, validator_factory):
+        any_of = [
+            {
+                "type": "object",
+                "required": ["test1"],
+                "properties": {
+                    "test1": {
+                        "type": "string",
+                    },
+                },
+            },
+            {
+                "type": "object",
+                "required": ["test2"],
+                "properties": {
+                    "test2": {
+                        "type": "string",
+                    },
+                },
+            },
+        ]
+        schema = {
+            "type": "object",
+            "anyOf": any_of,
+        }
+        spec = Spec.from_dict(schema)
+
+        with pytest.raises(InvalidSchemaValue):
+            validator_factory(spec).validate(value)
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            {
+                "foo": "FOO",
+            },
+            {
+                "foo": "FOO",
+                "bar": "BAR",
+            },
+        ],
+    )
+    def test_unambiguous_any_of(self, value, validator_factory):
+        any_of = [
+            {
+                "type": "object",
+                "required": ["foo"],
+                "properties": {
+                    "foo": {
+                        "type": "string",
+                    },
+                },
+                "additionalProperties": False,
+            },
+            {
+                "type": "object",
+                "required": ["foo", "bar"],
+                "properties": {
+                    "foo": {
+                        "type": "string",
+                    },
+                    "bar": {
+                        "type": "string",
+                    },
+                },
+                "additionalProperties": False,
+            },
+        ]
+        schema = {
+            "type": "object",
+            "anyOf": any_of,
+        }
+        spec = Spec.from_dict(schema)
+
+        result = validator_factory(spec).validate(value)
+
+        assert result is None
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            {},
+        ],
+    )
     def test_object_default_property(self, value, validator_factory):
         schema = {
             "type": "object",

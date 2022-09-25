@@ -19,7 +19,6 @@ from openapi_schema_validator._types import is_string
 
 from openapi_core.extensions.models.factories import ModelClassImporter
 from openapi_core.schema.schemas import get_all_properties
-from openapi_core.schema.schemas import get_all_properties_names
 from openapi_core.spec import Spec
 from openapi_core.unmarshalling.schemas.datatypes import FormattersDict
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
@@ -201,6 +200,15 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         return ModelClassImporter()
 
     def unmarshal(self, value: Any) -> Any:
+        properties = self.unmarshal_raw(value)
+
+        model = self.schema.getkey("x-model")
+        fields: Iterable[str] = properties and properties.keys() or []
+        object_class = self.object_class_factory.create(fields, model=model)
+
+        return object_class(**properties)
+
+    def unmarshal_raw(self, value: Any) -> Any:
         try:
             value = self.formatter.unmarshal(value)
         except ValueError as exc:
@@ -209,65 +217,57 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         else:
             return self._unmarshal_object(value)
 
+    def _clone(self, schema: Spec) -> "ObjectUnmarshaller":
+        return ObjectUnmarshaller(
+            schema,
+            self.validator,
+            self.formatter,
+            self.unmarshallers_factory,
+            self.context,
+        )
+
     def _unmarshal_object(self, value: Any) -> Any:
+        properties = {}
+
         if "oneOf" in self.schema:
-            properties = None
+            one_of_properties = None
             for one_of_schema in self.schema / "oneOf":
                 try:
-                    unmarshalled = self._unmarshal_properties(
-                        value, one_of_schema
+                    unmarshalled = self._clone(one_of_schema).unmarshal_raw(
+                        value
                     )
                 except (UnmarshalError, ValueError):
                     pass
                 else:
-                    if properties is not None:
+                    if one_of_properties is not None:
                         log.warning("multiple valid oneOf schemas found")
                         continue
-                    properties = unmarshalled
+                    one_of_properties = unmarshalled
 
-            if properties is None:
+            if one_of_properties is None:
                 log.warning("valid oneOf schema not found")
-
-        else:
-            properties = self._unmarshal_properties(value)
-
-        model = self.schema.getkey("x-model")
-        fields: Iterable[str] = properties and properties.keys() or []
-        object_class = self.object_class_factory.create(fields, model=model)
-
-        return object_class(**properties)
-
-    def _unmarshal_properties(
-        self, value: Any, one_of_schema: Optional[Spec] = None
-    ) -> Dict[str, Any]:
-        all_props = get_all_properties(self.schema)
-        all_props_names = get_all_properties_names(self.schema)
-
-        if one_of_schema is not None:
-            all_props.update(get_all_properties(one_of_schema))
-            all_props_names |= get_all_properties_names(one_of_schema)
-
-        value_props_names = list(value.keys())
-        extra_props = set(value_props_names) - set(all_props_names)
-
-        properties: Dict[str, Any] = {}
-        additional_properties = self.schema.getkey(
-            "additionalProperties", True
-        )
-        if additional_properties is not False:
-            # free-form object
-            if additional_properties is True:
-                additional_prop_schema = Spec.from_dict({})
-            # defined schema
             else:
-                additional_prop_schema = self.schema / "additionalProperties"
-            for prop_name in extra_props:
-                prop_value = value[prop_name]
-                properties[prop_name] = self.unmarshallers_factory.create(
-                    additional_prop_schema
-                )(prop_value)
+                properties.update(one_of_properties)
 
-        for prop_name, prop in list(all_props.items()):
+        elif "anyOf" in self.schema:
+            any_of_properties = None
+            for any_of_schema in self.schema / "anyOf":
+                try:
+                    unmarshalled = self._clone(any_of_schema).unmarshal_raw(
+                        value
+                    )
+                except (UnmarshalError, ValueError):
+                    pass
+                else:
+                    any_of_properties = unmarshalled
+                    break
+
+            if any_of_properties is None:
+                log.warning("valid anyOf schema not found")
+            else:
+                properties.update(any_of_properties)
+
+        for prop_name, prop in get_all_properties(self.schema).items():
             read_only = prop.getkey("readOnly", False)
             if self.context == UnmarshalContext.REQUEST and read_only:
                 continue
@@ -284,6 +284,24 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             properties[prop_name] = self.unmarshallers_factory.create(prop)(
                 prop_value
             )
+
+        additional_properties = self.schema.getkey(
+            "additionalProperties", True
+        )
+        if additional_properties is not False:
+            # free-form object
+            if additional_properties is True:
+                additional_prop_schema = Spec.from_dict({})
+            # defined schema
+            else:
+                additional_prop_schema = self.schema / "additionalProperties"
+            additional_prop_unmarshaler = self.unmarshallers_factory.create(
+                additional_prop_schema
+            )
+            for prop_name, prop_value in value.items():
+                if prop_name in properties:
+                    continue
+                properties[prop_name] = additional_prop_unmarshaler(prop_value)
 
         return properties
 
@@ -303,6 +321,10 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         one_of_schema = self._get_one_of_schema(value)
         if one_of_schema:
             return self.unmarshallers_factory.create(one_of_schema)(value)
+
+        any_of_schema = self._get_any_of_schema(value)
+        if any_of_schema:
+            return self.unmarshallers_factory.create(any_of_schema)(value)
 
         all_of_schema = self._get_all_of_schema(value)
         if all_of_schema:
@@ -329,6 +351,21 @@ class AnyUnmarshaller(ComplexUnmarshaller):
 
         one_of_schemas = self.schema / "oneOf"
         for subschema in one_of_schemas:
+            unmarshaller = self.unmarshallers_factory.create(subschema)
+            try:
+                unmarshaller.validate(value)
+            except ValidateError:
+                continue
+            else:
+                return subschema
+        return None
+
+    def _get_any_of_schema(self, value: Any) -> Optional[Spec]:
+        if "anyOf" not in self.schema:
+            return None
+
+        any_of_schemas = self.schema / "anyOf"
+        for subschema in any_of_schemas:
             unmarshaller = self.unmarshallers_factory.create(subschema)
             try:
                 unmarshaller.validate(value)

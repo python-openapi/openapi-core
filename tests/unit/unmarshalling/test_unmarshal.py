@@ -560,6 +560,65 @@ class TestSchemaUnmarshallerCall:
         spec = Spec.from_dict(schema)
         assert unmarshaller_factory(spec)(["hello"]) == ["hello"]
 
+    def test_schema_any_any_of(self, unmarshaller_factory):
+        schema = {
+            "anyOf": [
+                {
+                    "type": "string",
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+            ],
+        }
+        spec = Spec.from_dict(schema)
+        assert unmarshaller_factory(spec)(["hello"]) == ["hello"]
+
+    def test_schema_object_any_of(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "anyOf": [
+                {
+                    "type": "object",
+                    "required": ["someint"],
+                    "properties": {"someint": {"type": "integer"}},
+                },
+                {
+                    "type": "object",
+                    "required": ["somestr"],
+                    "properties": {"somestr": {"type": "string"}},
+                },
+            ],
+        }
+        spec = Spec.from_dict(schema)
+        result = unmarshaller_factory(spec)({"someint": 1})
+
+        assert is_dataclass(result)
+        assert result.someint == 1
+
+    def test_schema_object_any_of_invalid(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "anyOf": [
+                {
+                    "type": "object",
+                    "required": ["someint"],
+                    "properties": {"someint": {"type": "integer"}},
+                },
+                {
+                    "type": "object",
+                    "required": ["somestr"],
+                    "properties": {"somestr": {"type": "string"}},
+                },
+            ],
+        }
+        spec = Spec.from_dict(schema)
+        with pytest.raises(UnmarshalError):
+            unmarshaller_factory(spec)({"someint": "1"})
+
     def test_schema_any_all_of(self, unmarshaller_factory):
         schema = {
             "allOf": [
