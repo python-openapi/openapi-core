@@ -6,6 +6,7 @@ from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Optional
+from typing import cast
 
 from isodate.isodatetime import parse_datetime
 from jsonschema._types import is_array
@@ -218,12 +219,9 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             return self._unmarshal_object(value)
 
     def _clone(self, schema: Spec) -> "ObjectUnmarshaller":
-        return ObjectUnmarshaller(
-            schema,
-            self.validator,
-            self.formatter,
-            self.unmarshallers_factory,
-            self.context,
+        return cast(
+            "ObjectUnmarshaller",
+            self.unmarshallers_factory.create(schema, "object"),
         )
 
     def _unmarshal_object(self, value: Any) -> Any:
