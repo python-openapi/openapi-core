@@ -192,7 +192,7 @@ In Flask, all unmarshalled request data are provided as Flask request object's `
 Low level
 ~~~~~~~~~
 
-You can use `FlaskOpenAPIRequest` as a Flask/Werkzeug request factory:
+You can use `FlaskOpenAPIRequest` as a Flask request factory:
 
 .. code-block:: python
 
@@ -202,15 +202,7 @@ You can use `FlaskOpenAPIRequest` as a Flask/Werkzeug request factory:
    openapi_request = FlaskOpenAPIRequest(flask_request)
    result = openapi_request_validator.validate(spec, openapi_request)
 
-You can use `FlaskOpenAPIResponse` as a Flask/Werkzeug response factory:
-
-.. code-block:: python
-
-   from openapi_core.validation.response import openapi_response_validator
-   from openapi_core.contrib.flask import FlaskOpenAPIResponse
-
-   openapi_response = FlaskOpenAPIResponse(flask_response)
-   result = openapi_response_validator.validate(spec, openapi_request, openapi_response)
+For response factory see `Werkzeug`_ integration.
 
 
 Pyramid
@@ -247,7 +239,37 @@ You can use `RequestsOpenAPIResponse` as a Requests response factory:
    openapi_response = RequestsOpenAPIResponse(requests_response)
    result = openapi_respose_validator.validate(spec, openapi_request, openapi_response)
 
+
 Tornado
 -------
 
 See `tornado-openapi3 <https://github.com/correl/tornado-openapi3>`_ project.
+
+
+Werkzeug
+--------
+
+This section describes integration with `Werkzeug <https://werkzeug.palletsprojects.com>`__ a WSGI web application library.
+
+Low level
+~~~~~~~~~
+
+You can use `WerkzeugOpenAPIRequest` as a Werkzeug request factory:
+
+.. code-block:: python
+
+   from openapi_core.validation.request import openapi_request_validator
+   from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest
+
+   openapi_request = WerkzeugOpenAPIRequest(werkzeug_request)
+   result = openapi_request_validator.validate(spec, openapi_request)
+
+You can use `WerkzeugOpenAPIResponse` as a Werkzeug response factory:
+
+.. code-block:: python
+
+   from openapi_core.validation.response import openapi_response_validator
+   from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
+
+   openapi_response = WerkzeugOpenAPIResponse(werkzeug_response)
+   result = openapi_response_validator.validate(spec, openapi_request, openapi_response)
