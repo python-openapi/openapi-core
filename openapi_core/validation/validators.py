@@ -1,11 +1,7 @@
 """OpenAPI core validation validators module"""
 from typing import Any
-from typing import Dict
+from typing import Mapping
 from typing import Optional
-from typing import Union
-from urllib.parse import urljoin
-
-from werkzeug.datastructures import Headers
 
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
@@ -82,7 +78,7 @@ class BaseValidator:
     def _get_param_or_header_value(
         self,
         param_or_header: Spec,
-        location: Union[Headers, Dict[str, Any]],
+        location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
         try:

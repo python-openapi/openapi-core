@@ -15,6 +15,7 @@ strict = true
 
 [[tool.mypy.overrides]]
 module = [
+    "asgiref.*",
     "django.*",
     "falcon.*",
     "isodate.*",
@@ -70,6 +71,7 @@ django = ["django"]
 falcon = ["falcon"]
 flask = ["flask"]
 requests = ["requests"]
+starlette = ["starlette", "httpx"]
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
@@ -88,6 +90,8 @@ sphinx-rtd-theme = "^0.5.2"
 strict-rfc3339 = "^0.7"
 webob = "*"
 mypy = "^0.971"
+starlette = "^0.21.0"
+httpx = "^0.23.0"
 
 [tool.pytest.ini_options]
 addopts = """
