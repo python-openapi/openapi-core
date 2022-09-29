@@ -1,5 +1,7 @@
 """OpenAPI core validation response protocols module"""
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import Mapping
 from typing import Optional
 
 if TYPE_CHECKING:
@@ -12,8 +14,6 @@ else:
     except ImportError:
         from typing_extensions import Protocol
         from typing_extensions import runtime_checkable
-
-from werkzeug.datastructures import Headers
 
 from openapi_core.spec import Spec
 from openapi_core.validation.request.protocols import Request
@@ -48,7 +48,7 @@ class Response(Protocol):
         ...
 
     @property
-    def headers(self) -> Headers:
+    def headers(self) -> Mapping[str, Any]:
         ...
 
 

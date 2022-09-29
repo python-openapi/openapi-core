@@ -1,0 +1,72 @@
+openapi: "3.0.0"
+info:
+  title: Basic OpenAPI specification used with starlette integration tests
+  version: "0.1"
+servers:
+  - url: 'http://localhost'
+paths:
+  '/browse/{id}/':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: the ID of the resource to retrieve
+        schema:
+          type: integer
+      - name: q
+        in: query
+        required: true
+        description: query key
+        schema:
+          type: string
+    post:
+      requestBody:
+        description: request data
+        required: True
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - param1
+              properties:
+                param1:
+                  type: integer
+      responses:
+        200:
+          description: Return the resource.
+          content:
+            application/json:    
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: string
+          headers:
+            X-Rate-Limit:
+              description: Rate limit
+              schema:
+                type: integer
+              required: true
+        default:
+          description: Return errors.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        code:
+                          type: string
+                        message:
+                          type: string

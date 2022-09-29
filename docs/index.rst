@@ -31,9 +31,9 @@ Table of contents
 
    installation
    usage
-   extensions
-   customizations
    integrations
+   customizations
+   extensions
 
 
 Related projects

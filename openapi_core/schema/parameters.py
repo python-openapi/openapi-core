@@ -1,10 +1,8 @@
 import re
 from typing import Any
 from typing import Dict
+from typing import Mapping
 from typing import Optional
-from typing import Union
-
-from werkzeug.datastructures import Headers
 
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList
@@ -49,7 +47,7 @@ def get_explode(param_or_header: Spec) -> bool:
 
 def get_value(
     param_or_header: Spec,
-    location: Union[Headers, Dict[str, Any]],
+    location: Mapping[str, Any],
     name: Optional[str] = None,
 ) -> Any:
     """Returns parameter/header value from specific location"""
@@ -80,7 +78,7 @@ def get_value(
 
 
 def get_deep_object_value(
-    location: Union[Headers, Dict[str, Any]],
+    location: Mapping[str, Any],
     name: Optional[str] = None,
 ) -> Dict[str, Any]:
     values = {}
