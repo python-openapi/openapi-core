@@ -719,6 +719,17 @@ class TestOAS30SchemaUnmarshallerCall:
         spec = Spec.from_dict(schema)
         assert unmarshaller_factory(spec)("string") == "string"
 
+    def test_schema_any_object(self, unmarshaller_factory):
+        schema = {
+            "required": ["someint"],
+            "properties": {"someint": {"type": "integer"}},
+        }
+        spec = Spec.from_dict(schema)
+        result = unmarshaller_factory(spec)({"someint": 1})
+
+        assert is_dataclass(result)
+        assert result.someint == 1
+
     @pytest.mark.parametrize(
         "value",
         [

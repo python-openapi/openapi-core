@@ -102,19 +102,11 @@ class SchemaUnmarshallersFactory:
         if schema_type in self.COMPLEX_UNMARSHALLERS:
             complex_klass = self.COMPLEX_UNMARSHALLERS[schema_type]
             return complex_klass(
-                schema, validator, formatter, self, context=self.context
+                schema, validator, self, formatter, context=self.context
             )
 
         klass = self.UNMARSHALLERS[schema_type]
-        return klass(schema, validator, formatter)
-
-    def get_formatter(
-        self, type_format: str, default_formatters: FormattersDict
-    ) -> Optional[Formatter]:
-        try:
-            return self.custom_formatters[type_format]
-        except KeyError:
-            return default_formatters.get(type_format)
+        return klass(schema, validator, self, formatter)
 
     def get_validator(self, schema: Spec) -> Validator:
         resolver = schema.accessor.resolver  # type: ignore

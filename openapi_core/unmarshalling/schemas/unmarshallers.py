@@ -19,9 +19,9 @@ from openapi_schema_validator._format import oas30_format_checker
 from openapi_schema_validator._types import is_string
 
 from openapi_core.extensions.models.factories import ModelPathFactory
-from openapi_core.schema.schemas import get_all_properties
 from openapi_core.spec import Spec
 from openapi_core.unmarshalling.schemas.datatypes import FormattersDict
+from openapi_core.unmarshalling.schemas.datatypes import SchemaUnmarshaller
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
@@ -31,7 +31,11 @@ from openapi_core.unmarshalling.schemas.exceptions import (
 )
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
+from openapi_core.unmarshalling.schemas.exceptions import UnmarshallerError
 from openapi_core.unmarshalling.schemas.exceptions import ValidateError
+from openapi_core.unmarshalling.schemas.finders import AllOfSchemasFinder
+from openapi_core.unmarshalling.schemas.finders import AnyOfSchemasFinder
+from openapi_core.unmarshalling.schemas.finders import OneOfSchemaFinder
 from openapi_core.unmarshalling.schemas.formatters import Formatter
 from openapi_core.unmarshalling.schemas.util import format_byte
 from openapi_core.unmarshalling.schemas.util import format_date
@@ -49,6 +53,7 @@ log = logging.getLogger(__name__)
 
 class BaseSchemaUnmarshaller:
 
+    TYPE = NotImplemented
     FORMATTERS: FormattersDict = {
         None: Formatter(),
     }
@@ -57,18 +62,15 @@ class BaseSchemaUnmarshaller:
         self,
         schema: Spec,
         validator: Validator,
-        formatter: Optional[Formatter],
+        unmarshallers_factory: "SchemaUnmarshallersFactory",
+        formatter: Optional[Formatter] = None,
     ):
         self.schema = schema
         self.validator = validator
-        self.format = schema.getkey("format")
+        self.unmarshallers_factory = unmarshallers_factory
 
-        if formatter is None:
-            if self.format not in self.FORMATTERS:
-                raise FormatterNotFoundError(self.format)
-            self.formatter = self.FORMATTERS[self.format]
-        else:
-            self.formatter = formatter
+        self.schema_format = schema.getkey("format")
+        self.formatter = formatter
 
     def __call__(self, value: Any) -> Any:
         if value is None:
@@ -78,28 +80,86 @@ class BaseSchemaUnmarshaller:
 
         return self.unmarshal(value)
 
-    def _formatter_validate(self, value: Any) -> None:
-        result = self.formatter.validate(value)
+    def _clone(self, schema: Spec) -> "ObjectUnmarshaller":
+        return self.unmarshallers_factory.create(
+            schema,
+            type_override=self.TYPE,
+        )
+
+    def _find_one_of_schema(self, value: Any) -> Optional[SchemaUnmarshaller]:
+        finder = OneOfSchemaFinder(self.schema, self.unmarshallers_factory)
+        return finder.find(value)
+
+    def _find_any_of_schemas(self, value: Any) -> Iterable[SchemaUnmarshaller]:
+        finder = AnyOfSchemasFinder(self.schema, self.unmarshallers_factory)
+        yield from finder.find(value)
+
+    def _find_all_of_schemas(self, value: Any) -> Iterable[SchemaUnmarshaller]:
+        finder = AllOfSchemasFinder(self.schema, self.unmarshallers_factory)
+        yield from finder.find(value)
+
+    def _get_formatter(self) -> Formatter:
+        if self.formatter is not None:
+            return self.formatter
+
+        if self.schema_format not in self.FORMATTERS:
+            raise FormatterNotFoundError(self.schema_format)
+        return self.FORMATTERS[self.schema_format]
+
+    def _get_best_formatter(self, value: Any) -> Formatter:
+        if self.formatter is not None:
+            return self.formatter
+
+        if self.schema_format is None:
+            for schema, unmarshaller in self._find_all_of_schemas(value):
+                if "format" in schema:
+                    return unmarshaller._get_formatter()
+
+            one_of = self._find_one_of_schema(value)
+            if one_of is not None:
+                if "format" in one_of.schema:
+                    return one_of.unmarshaller._get_formatter()
+
+            for schema, unmarshaller in self._find_any_of_schemas(value):
+                if "format" in schema:
+                    return unmarshaller._get_formatter()
+
+        if self.schema_format not in self.FORMATTERS:
+            raise FormatterNotFoundError(self.schema_format)
+        return self.FORMATTERS[self.schema_format]
+
+    def _validate_format(self, value: Any) -> None:
+        if self.formatter is not None:
+            formatter = self.formatter
+        else:
+            if self.schema_format not in self.FORMATTERS:
+                raise FormatterNotFoundError(self.schema_format)
+            formatter = self.FORMATTERS[self.schema_format]
+
+        result = formatter.validate(value)
         if not result:
-            schema_type = self.schema.getkey("type", "any")
-            raise InvalidSchemaValue(value, schema_type)
+            raise InvalidSchemaValue(value, self.TYPE)
+
+    def format(self, value: Any) -> Any:
+        formatter = self._get_best_formatter(value)
+        try:
+            return formatter.format(value)
+        except ValueError as exc:
+            raise InvalidSchemaFormatValue(value, self.schema_format, exc)
 
     def validate(self, value: Any) -> None:
         errors_iter = self.validator.iter_errors(value)
         errors = tuple(errors_iter)
         if errors:
-            schema_type = self.schema.getkey("type", "any")
-            raise InvalidSchemaValue(value, schema_type, schema_errors=errors)
+            raise InvalidSchemaValue(value, self.TYPE, schema_errors=errors)
 
     def unmarshal(self, value: Any) -> Any:
-        try:
-            return self.formatter.unmarshal(value)
-        except ValueError as exc:
-            raise InvalidSchemaFormatValue(value, self.format, exc)
+        return self.format(value)
 
 
 class StringUnmarshaller(BaseSchemaUnmarshaller):
 
+    TYPE = "string"
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_string, None), str),
         "password": Formatter.from_callables(
@@ -126,6 +186,7 @@ class StringUnmarshaller(BaseSchemaUnmarshaller):
 
 class IntegerUnmarshaller(BaseSchemaUnmarshaller):
 
+    TYPE = "integer"
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_integer, None), int),
         "int32": Formatter.from_callables(
@@ -139,6 +200,7 @@ class IntegerUnmarshaller(BaseSchemaUnmarshaller):
 
 class NumberUnmarshaller(BaseSchemaUnmarshaller):
 
+    TYPE = "number"
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(
             partial(is_number, None), format_number
@@ -154,6 +216,7 @@ class NumberUnmarshaller(BaseSchemaUnmarshaller):
 
 class BooleanUnmarshaller(BaseSchemaUnmarshaller):
 
+    TYPE = "boolean"
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_bool, None), forcebool),
     }
@@ -171,17 +234,17 @@ class ComplexUnmarshaller(BaseSchemaUnmarshaller):
         self,
         schema: Spec,
         validator: Validator,
-        formatter: Optional[Formatter],
         unmarshallers_factory: "SchemaUnmarshallersFactory",
+        formatter: Optional[Formatter] = None,
         context: Optional[UnmarshalContext] = None,
     ):
-        super().__init__(schema, validator, formatter)
-        self.unmarshallers_factory = unmarshallers_factory
+        super().__init__(schema, validator, unmarshallers_factory, formatter)
         self.context = context
 
 
 class ArrayUnmarshaller(ComplexUnmarshaller):
 
+    TYPE = "array"
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_array, None), list),
     }
@@ -192,8 +255,8 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
         items_schema = self.schema.get("items", Spec.from_dict({}))
         return self.unmarshallers_factory.create(items_schema)
 
-    def __call__(self, value: Any) -> Optional[List[Any]]:
-        value = super().__call__(value)
+    def unmarshal(self, value: Any) -> Optional[List[Any]]:
+        value = super().unmarshal(value)
         if value is None and self.schema.getkey("nullable", False):
             return None
         return list(map(self.items_unmarshaller, value))
@@ -201,6 +264,7 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
 
 class ObjectUnmarshaller(ComplexUnmarshaller):
 
+    TYPE = "object"
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_object, None), dict),
     }
@@ -210,21 +274,16 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         return ModelPathFactory()
 
     def unmarshal(self, value: Any) -> Any:
-        properties = self.unmarshal_raw(value)
+        properties = self.format(value)
 
         fields: Iterable[str] = properties and properties.keys() or []
         object_class = self.object_class_factory.create(self.schema, fields)
 
         return object_class(**properties)
 
-    def unmarshal_raw(self, value: Any) -> Any:
-        try:
-            value = self.formatter.unmarshal(value)
-        except ValueError as exc:
-            schema_format = self.schema.getkey("format")
-            raise InvalidSchemaFormatValue(value, schema_format, exc)
-        else:
-            return self._unmarshal_object(value)
+    def format(self, value: Any) -> Any:
+        formatted = super().format(value)
+        return self._unmarshal_properties(formatted)
 
     def _clone(self, schema: Spec) -> "ObjectUnmarshaller":
         return cast(
@@ -232,48 +291,25 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             self.unmarshallers_factory.create(schema, "object"),
         )
 
-    def _unmarshal_object(self, value: Any) -> Any:
+    def _unmarshal_properties(self, value: Any) -> Any:
         properties = {}
 
-        if "oneOf" in self.schema:
-            one_of_properties = None
-            for one_of_schema in self.schema / "oneOf":
-                try:
-                    unmarshalled = self._clone(one_of_schema).unmarshal_raw(
-                        value
-                    )
-                except (UnmarshalError, ValueError):
-                    pass
-                else:
-                    if one_of_properties is not None:
-                        log.warning("multiple valid oneOf schemas found")
-                        continue
-                    one_of_properties = unmarshalled
+        for _, unmarshaller in self._find_all_of_schemas(value):
+            all_of_properties = unmarshaller.format(value)
+            properties.update(all_of_properties)
 
-            if one_of_properties is None:
-                log.warning("valid oneOf schema not found")
-            else:
-                properties.update(one_of_properties)
+        one_of = self._find_one_of_schema(value)
+        if one_of is not None:
+            one_of_properties = one_of.unmarshaller.format(value)
+            properties.update(one_of_properties)
 
-        elif "anyOf" in self.schema:
-            any_of_properties = None
-            for any_of_schema in self.schema / "anyOf":
-                try:
-                    unmarshalled = self._clone(any_of_schema).unmarshal_raw(
-                        value
-                    )
-                except (UnmarshalError, ValueError):
-                    pass
-                else:
-                    any_of_properties = unmarshalled
-                    break
+        for _, unmarshaller in self._find_any_of_schemas(value):
+            any_of_properties = unmarshaller.format(value)
+            properties.update(any_of_properties)
 
-            if any_of_properties is None:
-                log.warning("valid anyOf schema not found")
-            else:
-                properties.update(any_of_properties)
-
-        for prop_name, prop in get_all_properties(self.schema).items():
+        schema_properties = self.schema.get("properties", {})
+        schema_properties_dict = dict(list(schema_properties.items()))
+        for prop_name, prop in schema_properties_dict.items():
             read_only = prop.getkey("readOnly", False)
             if self.context == UnmarshalContext.REQUEST and read_only:
                 continue
@@ -335,6 +371,7 @@ class MultiTypeUnmarshaller(ComplexUnmarshaller):
 
 class AnyUnmarshaller(ComplexUnmarshaller):
 
+    TYPE = "any"
     SCHEMA_TYPES_ORDER = [
         "object",
         "array",
@@ -344,77 +381,44 @@ class AnyUnmarshaller(ComplexUnmarshaller):
         "string",
     ]
 
-    def unmarshal(self, value: Any) -> Any:
-        one_of_schema = self._get_one_of_schema(value)
-        if one_of_schema:
-            return self.unmarshallers_factory.create(one_of_schema)(value)
+    _best_unmarshaller: Optional[BaseSchemaUnmarshaller] = None
 
-        any_of_schema = self._get_any_of_schema(value)
-        if any_of_schema:
-            return self.unmarshallers_factory.create(any_of_schema)(value)
-
-        all_of_schema = self._get_all_of_schema(value)
-        if all_of_schema:
-            return self.unmarshallers_factory.create(all_of_schema)(value)
-
+    def _get_best_unmarshaller(self, value: Any) -> BaseSchemaUnmarshaller:
         for schema_type in self.SCHEMA_TYPES_ORDER:
             unmarshaller = self.unmarshallers_factory.create(
                 self.schema, type_override=schema_type
             )
             # validate with validator of formatter (usualy type validator)
             try:
-                unmarshaller._formatter_validate(value)
+                unmarshaller._validate_format(value)
             except ValidateError:
                 continue
             else:
-                return unmarshaller(value)
+                return unmarshaller
 
-        log.warning("failed to unmarshal any type")
-        return value
+        raise UnmarshallerError("Unmarshaller not found for any type")
 
-    def _get_one_of_schema(self, value: Any) -> Optional[Spec]:
-        if "oneOf" not in self.schema:
-            return None
+    def get_best_unmarshaller(self, value: Any) -> Any:
+        if self._best_unmarshaller is None:
+            self._best_unmarshaller = self._get_best_unmarshaller(value)
+        return self._best_unmarshaller
 
-        one_of_schemas = self.schema / "oneOf"
-        for subschema in one_of_schemas:
-            unmarshaller = self.unmarshallers_factory.create(subschema)
-            try:
-                unmarshaller.validate(value)
-            except ValidateError:
-                continue
-            else:
-                return subschema
-        return None
+    def format(self, value: Any) -> Any:
+        unmarshaller = self.get_best_unmarshaller(value)
+        return unmarshaller.format(value)
 
-    def _get_any_of_schema(self, value: Any) -> Optional[Spec]:
-        if "anyOf" not in self.schema:
-            return None
+    def unmarshal(self, value: Any) -> Any:
+        # one_of_schema = self._get_one_of_schema(value)
+        # if one_of_schema:
+        #     return self.unmarshallers_factory.create(one_of_schema)(value)
 
-        any_of_schemas = self.schema / "anyOf"
-        for subschema in any_of_schemas:
-            unmarshaller = self.unmarshallers_factory.create(subschema)
-            try:
-                unmarshaller.validate(value)
-            except ValidateError:
-                continue
-            else:
-                return subschema
-        return None
+        # any_of_schema = self._get_any_of_schema(value)
+        # if any_of_schema:
+        #     return self.unmarshallers_factory.create(any_of_schema)(value)
 
-    def _get_all_of_schema(self, value: Any) -> Optional[Spec]:
-        if "allOf" not in self.schema:
-            return None
+        # all_of_schema = self._get_all_of_schema(value)
+        # if all_of_schema:
+        #     return self.unmarshallers_factory.create(all_of_schema)(value)
 
-        all_of_schemas = self.schema / "allOf"
-        for subschema in all_of_schemas:
-            if "type" not in subschema:
-                continue
-            unmarshaller = self.unmarshallers_factory.create(subschema)
-            try:
-                unmarshaller.validate(value)
-            except ValidateError:
-                continue
-            else:
-                return subschema
-        return None
+        unmarshaller = self.get_best_unmarshaller(value)
+        return unmarshaller.unmarshal(value)
