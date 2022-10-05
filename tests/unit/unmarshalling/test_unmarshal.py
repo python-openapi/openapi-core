@@ -818,9 +818,7 @@ class TestSchemaUnmarshallerCall:
             )
 
     def test_additional_properties_list(self, unmarshaller_factory):
-        schema = {
-            "type": "object"
-        }
+        schema = {"type": "object"}
         spec = Spec.from_dict(schema)
 
         result = unmarshaller_factory(spec, context=UnmarshalContext.RESPONSE)(
