@@ -181,7 +181,9 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
 
     @property
     def items_unmarshaller(self) -> "BaseSchemaUnmarshaller":
-        return self.unmarshallers_factory.create(self.schema / "items")
+        # sometimes we don't have any schema i.e. free-form objects
+        items_schema = self.schema.get("items", Spec.from_dict({}))
+        return self.unmarshallers_factory.create(items_schema)
 
     def __call__(self, value: Any) -> Optional[List[Any]]:
         value = super().__call__(value)

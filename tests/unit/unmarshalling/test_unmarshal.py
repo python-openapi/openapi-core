@@ -816,3 +816,14 @@ class TestSchemaUnmarshallerCall:
             unmarshaller_factory(spec, context=UnmarshalContext.RESPONSE)(
                 {"id": 10}
             )
+
+    def test_additional_properties_list(self, unmarshaller_factory):
+        schema = {"type": "object"}
+        spec = Spec.from_dict(schema)
+
+        result = unmarshaller_factory(spec, context=UnmarshalContext.RESPONSE)(
+            {"user_ids": [1, 2, 3, 4]}
+        )
+
+        assert is_dataclass(result)
+        assert result.user_ids == [1, 2, 3, 4]
