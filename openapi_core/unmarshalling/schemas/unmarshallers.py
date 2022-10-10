@@ -2,7 +2,6 @@ import logging
 from functools import partial
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Optional
@@ -12,6 +11,7 @@ from isodate.isodatetime import parse_datetime
 from jsonschema._types import is_array
 from jsonschema._types import is_bool
 from jsonschema._types import is_integer
+from jsonschema._types import is_null
 from jsonschema._types import is_number
 from jsonschema._types import is_object
 from jsonschema.protocols import Validator
@@ -156,6 +156,13 @@ class BooleanUnmarshaller(BaseSchemaUnmarshaller):
 
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_bool, None), forcebool),
+    }
+
+
+class NullUnmarshaller(BaseSchemaUnmarshaller):
+
+    FORMATTERS: FormattersDict = {
+        None: Formatter.from_callables(partial(is_null, None), None),
     }
 
 
