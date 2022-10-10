@@ -536,6 +536,7 @@ class TestPathItemParamsValidator:
                 "in": "query",
                 "required": True,
                 "schema": {
+                    "x-model": "paramObj",
                     "type": "object",
                     "properties": {
                         "count": {"type": "integer"},

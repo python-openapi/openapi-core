@@ -18,7 +18,7 @@ from jsonschema.protocols import Validator
 from openapi_schema_validator._format import oas30_format_checker
 from openapi_schema_validator._types import is_string
 
-from openapi_core.extensions.models.factories import ModelClassImporter
+from openapi_core.extensions.models.factories import ModelPathFactory
 from openapi_core.schema.schemas import get_all_properties
 from openapi_core.spec import Spec
 from openapi_core.unmarshalling.schemas.datatypes import FormattersDict
@@ -199,15 +199,14 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
     }
 
     @property
-    def object_class_factory(self) -> ModelClassImporter:
-        return ModelClassImporter()
+    def object_class_factory(self) -> ModelPathFactory:
+        return ModelPathFactory()
 
     def unmarshal(self, value: Any) -> Any:
         properties = self.unmarshal_raw(value)
 
-        model = self.schema.getkey("x-model")
         fields: Iterable[str] = properties and properties.keys() or []
-        object_class = self.object_class_factory.create(fields, model=model)
+        object_class = self.object_class_factory.create(self.schema, fields)
 
         return object_class(**properties)
 

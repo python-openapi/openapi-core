@@ -23,6 +23,7 @@ paths:
 components:
   schemas:
     User:
+      x-model: User
       type: object
       required:
         - id

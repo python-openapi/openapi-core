@@ -9,43 +9,40 @@ from typing import Optional
 from typing import Type
 
 from openapi_core.extensions.models.types import Field
+from openapi_core.spec import Spec
 
 
 class DictFactory:
 
     base_class = dict
 
-    def create(self, fields: Iterable[Field]) -> Type[Dict[Any, Any]]:
+    def create(
+        self, schema: Spec, fields: Iterable[Field]
+    ) -> Type[Dict[Any, Any]]:
         return self.base_class
 
 
-class DataClassFactory(DictFactory):
+class ModelFactory(DictFactory):
     def create(
         self,
+        schema: Spec,
         fields: Iterable[Field],
-        name: str = "Model",
     ) -> Type[Any]:
+        name = schema.getkey("x-model")
+        if name is None:
+            return super().create(schema, fields)
+
         return make_dataclass(name, fields, frozen=True)
 
 
-class ModelClassImporter(DataClassFactory):
+class ModelPathFactory(ModelFactory):
     def create(
         self,
+        schema: Spec,
         fields: Iterable[Field],
-        name: str = "Model",
-        model: Optional[str] = None,
     ) -> Any:
-        if model is None:
-            return super().create(fields, name=name)
+        model_class_path = schema.getkey("x-model-path")
+        if model_class_path is None:
+            return super().create(schema, fields)
 
-        model_class = self._get_class(model)
-        if model_class is not None:
-            return model_class
-
-        return super().create(fields, name=model)
-
-    def _get_class(self, model_class_path: str) -> Optional[object]:
-        try:
-            return locate(model_class_path)
-        except ErrorDuringImport:
-            return None
+        return locate(model_class_path)
