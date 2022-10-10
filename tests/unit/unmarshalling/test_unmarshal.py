@@ -1,10 +1,12 @@
 import datetime
 import uuid
+from functools import partial
 
 import pytest
 from isodate.tzinfo import UTC
 from isodate.tzinfo import FixedOffset
 from openapi_schema_validator import OAS30Validator
+from openapi_schema_validator import OAS31Validator
 
 from openapi_core.spec.paths import Spec
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
@@ -23,13 +25,13 @@ from openapi_core.unmarshalling.schemas.formatters import Formatter
 
 
 @pytest.fixture
-def unmarshaller_factory():
+def schema_unmarshaller_factory():
     def create_unmarshaller(
-        schema, custom_formatters=None, context=UnmarshalContext.REQUEST
+        validator, schema, custom_formatters=None, context=None
     ):
         custom_formatters = custom_formatters or {}
         return SchemaUnmarshallersFactory(
-            OAS30Validator,
+            validator,
             custom_formatters=custom_formatters,
             context=context,
         ).create(schema)
@@ -37,7 +39,11 @@ def unmarshaller_factory():
     return create_unmarshaller
 
 
-class TestUnmarshal:
+class TestOAS30SchemaUnmarshallerUnmarshal:
+    @pytest.fixture
+    def unmarshaller_factory(self, schema_unmarshaller_factory):
+        return partial(schema_unmarshaller_factory, OAS30Validator)
+
     def test_no_schema(self, unmarshaller_factory):
         spec = None
         value = "test"
@@ -79,7 +85,11 @@ class TestUnmarshal:
             ).unmarshal(value)
 
 
-class TestSchemaUnmarshallerCall:
+class TestOAS30SchemaUnmarshallerCall:
+    @pytest.fixture
+    def unmarshaller_factory(self, schema_unmarshaller_factory):
+        return partial(schema_unmarshaller_factory, OAS30Validator)
+
     def test_deprecated(self, unmarshaller_factory):
         schema = {
             "type": "string",
@@ -824,3 +834,25 @@ class TestSchemaUnmarshallerCall:
         assert result == {
             "user_ids": [1, 2, 3, 4],
         }
+
+
+class TestOAS31SchemaUnmarshallerCall:
+    @pytest.fixture
+    def unmarshaller_factory(self, schema_unmarshaller_factory):
+        return partial(schema_unmarshaller_factory, OAS31Validator)
+
+    def test_null(self, unmarshaller_factory):
+        schema = {"type": "null"}
+        spec = Spec.from_dict(schema)
+
+        result = unmarshaller_factory(spec)(None)
+
+        assert result is None
+
+    @pytest.mark.parametrize("value", ["string", 2, 3.14, True, [1, 2], {}])
+    def test_null_invalid(self, unmarshaller_factory, value):
+        schema = {"type": "null"}
+        spec = Spec.from_dict(schema)
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(spec)(value)
