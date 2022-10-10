@@ -30,6 +30,7 @@ from openapi_core.unmarshalling.schemas.unmarshallers import (
 from openapi_core.unmarshalling.schemas.unmarshallers import (
     IntegerUnmarshaller,
 )
+from openapi_core.unmarshalling.schemas.unmarshallers import NullUnmarshaller
 from openapi_core.unmarshalling.schemas.unmarshallers import NumberUnmarshaller
 from openapi_core.unmarshalling.schemas.unmarshallers import ObjectUnmarshaller
 from openapi_core.unmarshalling.schemas.unmarshallers import StringUnmarshaller
@@ -45,6 +46,7 @@ class SchemaUnmarshallersFactory:
         "boolean": BooleanUnmarshaller,
         "array": ArrayUnmarshaller,
         "object": ObjectUnmarshaller,
+        "null": NullUnmarshaller,
         "any": AnyUnmarshaller,
     }
 
