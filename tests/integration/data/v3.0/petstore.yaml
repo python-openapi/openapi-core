@@ -233,6 +233,7 @@ paths:
 components:
   schemas:
     Coordinates:
+      x-model: Coordinates
       type: object
       required:
         - lat
@@ -243,6 +244,7 @@ components:
         lon:
           type: number
     Userdata:
+      x-model: Userdata
       type: object
       required:
         - name

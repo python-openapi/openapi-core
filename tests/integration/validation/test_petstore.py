@@ -644,7 +644,7 @@ class TestPetstore:
         assert is_dataclass(result.parameters.query["coordinates"])
         assert (
             result.parameters.query["coordinates"].__class__.__name__
-            == "Model"
+            == "Coordinates"
         )
         assert result.parameters.query["coordinates"].lat == coordinates["lat"]
         assert result.parameters.query["coordinates"].lon == coordinates["lon"]
@@ -705,7 +705,8 @@ class TestPetstore:
 
         assert is_dataclass(result.parameters.cookie["userdata"])
         assert (
-            result.parameters.cookie["userdata"].__class__.__name__ == "Model"
+            result.parameters.cookie["userdata"].__class__.__name__
+            == "Userdata"
         )
         assert result.parameters.cookie["userdata"].name == "user1"
 

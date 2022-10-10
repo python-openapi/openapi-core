@@ -6,7 +6,8 @@ from typing import Any
 
 import pytest
 
-from openapi_core.extensions.models.factories import ModelClassImporter
+from openapi_core.extensions.models.factories import ModelPathFactory
+from openapi_core.spec import Spec
 
 
 class TestImportModelCreate:
@@ -24,18 +25,20 @@ class TestImportModelCreate:
         del modules["foo"]
 
     def test_dynamic_model(self):
-        factory = ModelClassImporter()
+        factory = ModelPathFactory()
 
-        test_model_class = factory.create(["name"], model="TestModel")
+        schema = Spec.from_dict({"x-model": "TestModel"})
+        test_model_class = factory.create(schema, ["name"])
 
         assert is_dataclass(test_model_class)
         assert test_model_class.__name__ == "TestModel"
         assert list(test_model_class.__dataclass_fields__.keys()) == ["name"]
         assert test_model_class.__dataclass_fields__["name"].type == str(Any)
 
-    def test_imported_model(self, loaded_model_class):
-        factory = ModelClassImporter()
+    def test_model_path(self, loaded_model_class):
+        factory = ModelPathFactory()
 
-        test_model_class = factory.create(["a", "b"], model="foo.BarModel")
+        schema = Spec.from_dict({"x-model-path": "foo.BarModel"})
+        test_model_class = factory.create(schema, ["a", "b"])
 
         assert test_model_class == loaded_model_class
