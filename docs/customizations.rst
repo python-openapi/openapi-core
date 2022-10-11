@@ -61,7 +61,7 @@ Here's how you could add support for a ``usdate`` format that handles dates of t
        def validate(self, value) -> bool:
            return bool(re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", value))
 
-       def unmarshal(self, value):
+       def format(self, value):
            return datetime.strptime(value, "%m/%d/%y").date
 
 

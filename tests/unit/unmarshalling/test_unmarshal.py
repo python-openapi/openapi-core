@@ -406,7 +406,7 @@ class TestOAS30SchemaUnmarshallerCall:
         spec = Spec.from_dict(schema)
         value = None
 
-        with pytest.raises(TypeError):
+        with pytest.raises(InvalidSchemaValue):
             unmarshaller_factory(spec)(value)
 
     def test_array_nullable(self, unmarshaller_factory):
