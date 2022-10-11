@@ -1,6 +1,7 @@
 import warnings
 from typing import Any
 from typing import Dict
+from typing import Iterable
 from typing import Optional
 from typing import Type
 from typing import Union
@@ -29,6 +30,9 @@ from openapi_core.unmarshalling.schemas.unmarshallers import (
 )
 from openapi_core.unmarshalling.schemas.unmarshallers import (
     IntegerUnmarshaller,
+)
+from openapi_core.unmarshalling.schemas.unmarshallers import (
+    MultiTypeUnmarshaller,
 )
 from openapi_core.unmarshalling.schemas.unmarshallers import NullUnmarshaller
 from openapi_core.unmarshalling.schemas.unmarshallers import NumberUnmarshaller
@@ -89,6 +93,12 @@ class SchemaUnmarshallersFactory:
         formatter = self.custom_formatters.get(schema_format)
 
         schema_type = type_override or schema.getkey("type", "any")
+        if isinstance(schema_type, Iterable) and not isinstance(
+            schema_type, str
+        ):
+            return MultiTypeUnmarshaller(
+                schema, validator, formatter, self, context=self.context
+            )
         if schema_type in self.COMPLEX_UNMARSHALLERS:
             complex_klass = self.COMPLEX_UNMARSHALLERS[schema_type]
             return complex_klass(

@@ -835,6 +835,34 @@ class TestOAS30SchemaUnmarshallerCall:
             "user_ids": [1, 2, 3, 4],
         }
 
+    @pytest.mark.xfail(message="None and NOTSET should be distinguished")
+    def test_null_not_supported(self, unmarshaller_factory):
+        schema = {"type": "null"}
+        spec = Spec.from_dict(schema)
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(spec)(None)
+
+    @pytest.mark.parametrize(
+        "types,value",
+        [
+            (["string", "null"], "string"),
+            (["number", "null"], 2),
+            (["number", "null"], 3.14),
+            (["boolean", "null"], True),
+            (["array", "null"], [1, 2]),
+            (["object", "null"], {}),
+        ],
+    )
+    def test_nultiple_types_not_supported(
+        self, unmarshaller_factory, types, value
+    ):
+        schema = {"type": types}
+        spec = Spec.from_dict(schema)
+
+        with pytest.raises(TypeError):
+            unmarshaller_factory(spec)(value)
+
 
 class TestOAS31SchemaUnmarshallerCall:
     @pytest.fixture
@@ -852,6 +880,43 @@ class TestOAS31SchemaUnmarshallerCall:
     @pytest.mark.parametrize("value", ["string", 2, 3.14, True, [1, 2], {}])
     def test_null_invalid(self, unmarshaller_factory, value):
         schema = {"type": "null"}
+        spec = Spec.from_dict(schema)
+
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(spec)(value)
+
+    @pytest.mark.parametrize(
+        "types,value",
+        [
+            (["string", "null"], "string"),
+            (["number", "null"], 2),
+            (["number", "null"], 3.14),
+            (["boolean", "null"], True),
+            (["array", "null"], [1, 2]),
+            (["object", "null"], {}),
+        ],
+    )
+    def test_nultiple_types(self, unmarshaller_factory, types, value):
+        schema = {"type": types}
+        spec = Spec.from_dict(schema)
+
+        result = unmarshaller_factory(spec)(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize(
+        "types,value",
+        [
+            (["string", "null"], 2),
+            (["number", "null"], "string"),
+            (["number", "null"], True),
+            (["boolean", "null"], 3.14),
+            (["array", "null"], {}),
+            (["object", "null"], [1, 2]),
+        ],
+    )
+    def test_nultiple_types_invalid(self, unmarshaller_factory, types, value):
+        schema = {"type": types}
         spec = Spec.from_dict(schema)
 
         with pytest.raises(InvalidSchemaValue):

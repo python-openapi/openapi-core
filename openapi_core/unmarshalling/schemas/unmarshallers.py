@@ -312,6 +312,27 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         return properties
 
 
+class MultiTypeUnmarshaller(ComplexUnmarshaller):
+    @property
+    def types_unmarshallers(self) -> List["BaseSchemaUnmarshaller"]:
+        types = self.schema.getkey("type", ["any"])
+        unmarshaller = partial(self.unmarshallers_factory.create, self.schema)
+        return list(map(unmarshaller, types))
+
+    def unmarshal(self, value: Any) -> Any:
+        for unmarshaller in self.types_unmarshallers:
+            # validate with validator of formatter (usualy type validator)
+            try:
+                unmarshaller._formatter_validate(value)
+            except ValidateError:
+                continue
+            else:
+                return unmarshaller(value)
+
+        log.warning("failed to unmarshal multi type")
+        return value
+
+
 class AnyUnmarshaller(ComplexUnmarshaller):
 
     SCHEMA_TYPES_ORDER = [
