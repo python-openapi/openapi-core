@@ -22,7 +22,7 @@ repos:
         entry: flynt
         language: python
         additional_dependencies: ['flynt==0.64']
-      
+
       - id: black
         name: black
         entry: black
