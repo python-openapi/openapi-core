@@ -1,0 +1,58 @@
+openapi: "3.0.0"
+info:
+  version: "0.1"
+  title: OpenAPI specification with nullable refs
+paths:
+  /people/{personID}:
+    get:
+      summary: Show a person
+      parameters:
+        - name: personID
+          in: path
+          required: true
+          description: The ID of the person to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        default:
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+components:
+  schemas:
+    Person:
+      x-model: Person
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          description: The ID of the person.
+          type: string
+          format: uuid
+        name:
+          description: The full name of the person.
+          type: string
+        user:
+          description: The associated user account, if any.
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/User'
+    User:
+      x-model: User
+      type: object
+      required:
+        - id
+        - username
+      properties:
+        id:
+          description: The ID of the user.
+          type: string
+          format: uuid
+        username:
+          description: The username of the user.
+          type: string
