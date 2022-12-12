@@ -292,7 +292,7 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         if additional_properties is not False:
             # free-form object
             if additional_properties is True:
-                additional_prop_schema = Spec.from_dict({})
+                additional_prop_schema = Spec.from_dict({"nullable": True})
             # defined schema
             else:
                 additional_prop_schema = self.schema / "additionalProperties"
