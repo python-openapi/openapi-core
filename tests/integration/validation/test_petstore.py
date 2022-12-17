@@ -752,6 +752,7 @@ class TestPetstore:
             "ears": {
                 "healthy": pet_healthy,
             },
+            "extra": None,
         }
         data = json.dumps(data_json)
         headers = {
@@ -799,6 +800,7 @@ class TestPetstore:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
         assert result.body.healthy == pet_healthy
+        assert result.body.extra is None
 
     def test_post_cats_boolean_string(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
