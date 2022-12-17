@@ -39,9 +39,13 @@ class PetListView(APIView):
             "api-key": "12345",
         }
         assert request.openapi.body.__class__.__name__ == "PetCreate"
-        assert request.openapi.body.name == "Cat"
-        assert request.openapi.body.ears.__class__.__name__ == "Ears"
-        assert request.openapi.body.ears.healthy is True
+        assert request.openapi.body.name in ["Cat", "Bird"]
+        if request.openapi.body.name == "Cat":
+            assert request.openapi.body.ears.__class__.__name__ == "Ears"
+            assert request.openapi.body.ears.healthy is True
+        if request.openapi.body.name == "Bird":
+            assert request.openapi.body.wings.__class__.__name__ == "Wings"
+            assert request.openapi.body.wings.healthy is True
 
         django_response = HttpResponse(status=201)
         django_response["X-Rate-Limit"] = "12"

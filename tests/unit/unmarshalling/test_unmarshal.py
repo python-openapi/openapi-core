@@ -630,6 +630,100 @@ class TestOAS30SchemaUnmarshallerCall:
         with pytest.raises(UnmarshalError):
             unmarshaller_factory(spec)({"someint": "1"})
 
+    def test_schema_object_one_of_default(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "somestr": {
+                            "type": "string",
+                            "default": "defaultstring",
+                        },
+                    },
+                },
+                {
+                    "type": "object",
+                    "required": ["otherstr"],
+                    "properties": {
+                        "otherstr": {
+                            "type": "string",
+                        },
+                    },
+                },
+            ],
+            "properties": {
+                "someint": {
+                    "type": "integer",
+                },
+            },
+        }
+        spec = Spec.from_dict(schema)
+        assert unmarshaller_factory(spec)({"someint": 1}) == {
+            "someint": 1,
+            "somestr": "defaultstring",
+        }
+
+    def test_schema_object_any_of_default(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "someint": {
+                            "type": "integer",
+                        },
+                    },
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "somestr": {
+                            "type": "string",
+                            "default": "defaultstring",
+                        },
+                    },
+                },
+            ],
+        }
+        spec = Spec.from_dict(schema)
+        assert unmarshaller_factory(spec)({"someint": "1"}) == {
+            "someint": "1",
+            "somestr": "defaultstring",
+        }
+
+    def test_schema_object_all_of_default(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "somestr": {
+                            "type": "string",
+                            "default": "defaultstring",
+                        },
+                    },
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "someint": {
+                            "type": "integer",
+                            "default": 1,
+                        },
+                    },
+                },
+            ],
+        }
+        spec = Spec.from_dict(schema)
+        assert unmarshaller_factory(spec)({}) == {
+            "someint": 1,
+            "somestr": "defaultstring",
+        }
+
     def test_schema_any_all_of(self, unmarshaller_factory):
         schema = {
             "allOf": [
@@ -696,6 +790,23 @@ class TestOAS30SchemaUnmarshallerCall:
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller_factory(spec)(value)
+
+    def test_schema_any_any_of_any(self, unmarshaller_factory):
+        schema = {
+            "anyOf": [
+                {},
+                {
+                    "type": "string",
+                    "format": "date",
+                },
+            ],
+        }
+        spec = Spec.from_dict(schema)
+        value = "2018-01-02"
+
+        result = unmarshaller_factory(spec)(value)
+
+        assert result == datetime.date(2018, 1, 2)
 
     def test_schema_any_all_of_any(self, unmarshaller_factory):
         schema = {
