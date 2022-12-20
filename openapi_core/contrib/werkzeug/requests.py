@@ -31,7 +31,7 @@ class WerkzeugOpenAPIRequest:
 
     @property
     def path(self) -> str:
-        return self.request.path
+        return self.get_path(self.request.path)
 
     @property
     def method(self) -> str:
@@ -44,3 +44,6 @@ class WerkzeugOpenAPIRequest:
     @property
     def mimetype(self) -> str:
         return self.request.mimetype
+
+    def get_path(self, path: str) -> str:
+        return "".join([self.request.root_path, path])

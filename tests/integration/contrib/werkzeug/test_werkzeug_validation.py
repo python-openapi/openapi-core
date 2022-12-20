@@ -1,7 +1,6 @@
 from json import dumps
 
 import pytest
-import requests
 import responses
 from werkzeug.test import Client
 from werkzeug.wrappers import Request
@@ -39,6 +38,23 @@ class TestWerkzeugOpenAPIValidation:
     @pytest.fixture
     def client(self, app):
         return Client(app)
+
+    def test_request_validator_root_path(self, client, spec):
+        query_string = {
+            "q": "string",
+        }
+        headers = {"content-type": "application/json"}
+        data = {"param1": 1}
+        response = client.post(
+            "/12/",
+            base_url="http://localhost/browse",
+            query_string=query_string,
+            json=data,
+            headers=headers,
+        )
+        openapi_request = WerkzeugOpenAPIRequest(response.request)
+        result = openapi_request_validator.validate(spec, openapi_request)
+        assert not result.errors
 
     def test_request_validator_path_pattern(self, client, spec):
         query_string = {
