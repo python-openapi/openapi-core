@@ -20,7 +20,7 @@ from openapi_schema_validator._format import oas30_format_checker
 from openapi_schema_validator._types import is_string
 
 from openapi_core.extensions.models.factories import ModelPathFactory
-from openapi_core.schema.schemas import get_all_properties
+from openapi_core.schema.schemas import get_schema_properties
 from openapi_core.spec import Spec
 from openapi_core.unmarshalling.schemas.datatypes import FormattersDict
 from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
@@ -268,7 +268,9 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
             else:
                 properties.update(any_of_properties)
 
-        for prop_name, prop in get_all_properties(self.schema).items():
+        # unmarshal schema properties
+        schema_properties = get_schema_properties(self.schema)
+        for prop_name, prop in schema_properties.items():
             read_only = prop.getkey("readOnly", False)
             if self.context == UnmarshalContext.REQUEST and read_only:
                 continue
@@ -286,23 +288,24 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
                 prop_value
             )
 
+        # unmarshal additional properties
         additional_properties = self.schema.getkey(
             "additionalProperties", True
         )
         if additional_properties is not False:
             # free-form object
             if additional_properties is True:
-                additional_prop_schema = Spec.from_dict({})
+                unmarshal_func = lambda x: x
             # defined schema
             else:
                 additional_prop_schema = self.schema / "additionalProperties"
-            additional_prop_unmarshaler = self.unmarshallers_factory.create(
-                additional_prop_schema
-            )
+                unmarshal_func = self.unmarshallers_factory.create(
+                    additional_prop_schema
+                )
             for prop_name, prop_value in value.items():
-                if prop_name in properties:
+                if prop_name in schema_properties:
                     continue
-                properties[prop_name] = additional_prop_unmarshaler(prop_value)
+                properties[prop_name] = unmarshal_func(prop_value)
 
         return properties
 
