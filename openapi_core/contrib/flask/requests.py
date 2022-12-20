@@ -21,6 +21,7 @@ class FlaskOpenAPIRequest(WerkzeugOpenAPIRequest):
     @property
     def path_pattern(self) -> str:
         if self.request.url_rule is None:
-            return self.request.path
+            return self.path
 
-        return self.path_regex.sub(r"{\1}", self.request.url_rule.rule)
+        path = self.get_path(self.request.url_rule.rule)
+        return self.path_regex.sub(r"{\1}", path)
