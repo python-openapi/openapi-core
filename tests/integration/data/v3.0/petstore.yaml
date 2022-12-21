@@ -461,6 +461,7 @@ components:
       content:
         application/json:
           schema:
+            x-model: Error
             oneOf:
               - $ref: "#/components/schemas/StandardErrors"
               - $ref: "#/components/schemas/ExtendedError"

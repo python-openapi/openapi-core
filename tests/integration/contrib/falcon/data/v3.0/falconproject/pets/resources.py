@@ -38,9 +38,18 @@ class PetListResource:
             "api-key": "12345",
         }
         assert request.context.openapi.body.__class__.__name__ == "PetCreate"
-        assert request.context.openapi.body.name == "Cat"
-        assert request.context.openapi.body.ears.__class__.__name__ == "Ears"
-        assert request.context.openapi.body.ears.healthy is True
+        assert request.context.openapi.body.name in ["Cat", "Bird"]
+        if request.context.openapi.body.name == "Cat":
+            assert (
+                request.context.openapi.body.ears.__class__.__name__ == "Ears"
+            )
+            assert request.context.openapi.body.ears.healthy is True
+        if request.context.openapi.body.name == "Bird":
+            assert (
+                request.context.openapi.body.wings.__class__.__name__
+                == "Wings"
+            )
+            assert request.context.openapi.body.wings.healthy is True
 
         response.status = HTTP_201
         response.set_header("X-Rate-Limit", "12")

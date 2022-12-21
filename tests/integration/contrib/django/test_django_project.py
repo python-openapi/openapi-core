@@ -225,16 +225,28 @@ class TestPetListView(BaseTestDjangoProject):
         assert response.status_code == 400
         assert response.json() == expected_data
 
-    def test_post_valid(self, client):
+    @pytest.mark.parametrize(
+        "data_json",
+        [
+            {
+                "id": 12,
+                "name": "Cat",
+                "ears": {
+                    "healthy": True,
+                },
+            },
+            {
+                "id": 12,
+                "name": "Bird",
+                "wings": {
+                    "healthy": True,
+                },
+            },
+        ],
+    )
+    def test_post_valid(self, client, data_json):
         client.cookies.load({"user": 1})
         content_type = "application/json"
-        data_json = {
-            "id": 12,
-            "name": "Cat",
-            "ears": {
-                "healthy": True,
-            },
-        }
         headers = {
             "HTTP_AUTHORIZATION": "Basic testuser",
             "HTTP_HOST": "staging.gigantic-server.com",
