@@ -1,3 +1,4 @@
+import sys
 import warnings
 from typing import Any
 from typing import Dict
@@ -6,7 +7,10 @@ from typing import Optional
 from typing import Type
 from typing import Union
 
-from backports.cached_property import cached_property
+if sys.version_info >= (3, 9):
+    from functools import cached_property
+else:
+    from backports.cached_property import cached_property
 from jsonschema.protocols import Validator
 from openapi_schema_validator import OAS30Validator
 

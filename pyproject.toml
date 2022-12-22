@@ -65,7 +65,7 @@ requests = {version = "*", optional = true}
 werkzeug = "*"
 typing-extensions = "^4.3.0"
 jsonschema-spec = "^0.1.1"
-backports-cached-property = "^1.0.2"
+backports-cached-property = {version = "^1.0.2", python = "<3.9" }
 
 [tool.poetry.extras]
 django = ["django"]
