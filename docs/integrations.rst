@@ -66,11 +66,11 @@ You can use ``DjangoOpenAPIResponse`` as a Django response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_respose_validator
+   from openapi_core.validation.response import openapi_response_validator
    from openapi_core.contrib.django import DjangoOpenAPIResponse
 
    openapi_response = DjangoOpenAPIResponse(django_response)
-   result = openapi_respose_validator.validate(spec, openapi_request, openapi_response)
+   result = openapi_response_validator.validate(spec, openapi_request, openapi_response)
 
 
 Falcon
@@ -125,11 +125,11 @@ You can use ``FalconOpenAPIResponse`` as a Falcon response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_respose_validator
+   from openapi_core.validation.response import openapi_response_validator
    from openapi_core.contrib.falcon import FalconOpenAPIResponse
 
    openapi_response = FalconOpenAPIResponse(falcon_response)
-   result = openapi_respose_validator.validate(spec, openapi_request, openapi_response)
+   result = openapi_response_validator.validate(spec, openapi_request, openapi_response)
 
 
 Flask
@@ -233,11 +233,11 @@ You can use ``RequestsOpenAPIResponse`` as a Requests response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_respose_validator
+   from openapi_core.validation.response import openapi_response_validator
    from openapi_core.contrib.requests import RequestsOpenAPIResponse
 
    openapi_response = RequestsOpenAPIResponse(requests_response)
-   result = openapi_respose_validator.validate(spec, openapi_request, openapi_response)
+   result = openapi_response_validator.validate(spec, openapi_request, openapi_response)
 
 
 Starlette
@@ -262,11 +262,11 @@ You can use ``StarletteOpenAPIResponse`` as a Starlette response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_respose_validator
+   from openapi_core.validation.response import openapi_response_validator
    from openapi_core.contrib.starlette import StarletteOpenAPIResponse
 
    openapi_response = StarletteOpenAPIResponse(starlette_response)
-   result = openapi_respose_validator.validate(spec, openapi_request, openapi_response)
+   result = openapi_response_validator.validate(spec, openapi_request, openapi_response)
 
 
 Tornado
