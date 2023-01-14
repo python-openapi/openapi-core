@@ -2,10 +2,10 @@ import pytest
 import requests
 import responses
 
+from openapi_core import openapi_request_validator
+from openapi_core import openapi_response_validator
 from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
-from openapi_core.validation.request import openapi_request_validator
-from openapi_core.validation.response import openapi_response_validator
 
 
 class TestRequestsOpenAPIValidation:

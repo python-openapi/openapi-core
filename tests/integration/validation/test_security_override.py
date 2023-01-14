@@ -2,9 +2,9 @@ from base64 import b64encode
 
 import pytest
 
+from openapi_core import openapi_request_validator
 from openapi_core.testing import MockRequest
 from openapi_core.validation.exceptions import InvalidSecurity
-from openapi_core.validation.request import openapi_request_validator
 
 
 @pytest.fixture(scope="class")

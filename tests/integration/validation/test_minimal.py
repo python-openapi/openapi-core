@@ -1,9 +1,9 @@
 import pytest
 
+from openapi_core import openapi_request_validator
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.testing import MockRequest
-from openapi_core.validation.request import openapi_request_validator
 from openapi_core.validation.request.datatypes import Parameters
 
 

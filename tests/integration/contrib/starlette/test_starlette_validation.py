@@ -8,10 +8,10 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
+from openapi_core import openapi_request_validator
+from openapi_core import openapi_response_validator
 from openapi_core.contrib.starlette import StarletteOpenAPIRequest
 from openapi_core.contrib.starlette import StarletteOpenAPIResponse
-from openapi_core.validation.request import openapi_request_validator
-from openapi_core.validation.response import openapi_response_validator
 
 
 class TestStarletteOpenAPIValidation:
