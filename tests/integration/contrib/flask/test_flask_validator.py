@@ -5,8 +5,8 @@ from flask import Flask
 from flask.testing import FlaskClient
 from flask.wrappers import Response
 
+from openapi_core import openapi_request_validator
 from openapi_core.contrib.flask import FlaskOpenAPIRequest
-from openapi_core.validation.request import openapi_request_validator
 
 
 class TestWerkzeugOpenAPIValidation:

@@ -56,7 +56,7 @@ You can use ``DjangoOpenAPIRequest`` as a Django request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request import openapi_request_validator
+   from openapi_core import openapi_request_validator
    from openapi_core.contrib.django import DjangoOpenAPIRequest
 
    openapi_request = DjangoOpenAPIRequest(django_request)
@@ -66,7 +66,7 @@ You can use ``DjangoOpenAPIResponse`` as a Django response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_response_validator
+   from openapi_core import openapi_response_validator
    from openapi_core.contrib.django import DjangoOpenAPIResponse
 
    openapi_response = DjangoOpenAPIResponse(django_response)
@@ -115,7 +115,7 @@ You can use ``FalconOpenAPIRequest`` as a Falcon request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request import openapi_request_validator
+   from openapi_core import openapi_request_validator
    from openapi_core.contrib.falcon import FalconOpenAPIRequest
 
    openapi_request = FalconOpenAPIRequest(falcon_request)
@@ -125,7 +125,7 @@ You can use ``FalconOpenAPIResponse`` as a Falcon response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_response_validator
+   from openapi_core import openapi_response_validator
    from openapi_core.contrib.falcon import FalconOpenAPIResponse
 
    openapi_response = FalconOpenAPIResponse(falcon_response)
@@ -196,7 +196,7 @@ You can use ``FlaskOpenAPIRequest`` as a Flask request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request import openapi_request_validator
+   from openapi_core import openapi_request_validator
    from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
    openapi_request = FlaskOpenAPIRequest(flask_request)
@@ -223,7 +223,7 @@ You can use ``RequestsOpenAPIRequest`` as a Requests request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request import openapi_request_validator
+   from openapi_core import openapi_request_validator
    from openapi_core.contrib.requests import RequestsOpenAPIRequest
 
    openapi_request = RequestsOpenAPIRequest(requests_request)
@@ -233,7 +233,7 @@ You can use ``RequestsOpenAPIResponse`` as a Requests response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_response_validator
+   from openapi_core import openapi_response_validator
    from openapi_core.contrib.requests import RequestsOpenAPIResponse
 
    openapi_response = RequestsOpenAPIResponse(requests_response)
@@ -252,7 +252,7 @@ You can use ``StarletteOpenAPIRequest`` as a Starlette request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request import openapi_request_validator
+   from openapi_core import openapi_request_validator
    from openapi_core.contrib.starlette import StarletteOpenAPIRequest
 
    openapi_request = StarletteOpenAPIRequest(starlette_request)
@@ -262,7 +262,7 @@ You can use ``StarletteOpenAPIResponse`` as a Starlette response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_response_validator
+   from openapi_core import openapi_response_validator
    from openapi_core.contrib.starlette import StarletteOpenAPIResponse
 
    openapi_response = StarletteOpenAPIResponse(starlette_response)
@@ -287,7 +287,7 @@ You can use ``WerkzeugOpenAPIRequest`` as a Werkzeug request factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.request import openapi_request_validator
+   from openapi_core import openapi_request_validator
    from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest
 
    openapi_request = WerkzeugOpenAPIRequest(werkzeug_request)
@@ -297,7 +297,7 @@ You can use ``WerkzeugOpenAPIResponse`` as a Werkzeug response factory:
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_response_validator
+   from openapi_core import openapi_response_validator
    from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
 
    openapi_response = WerkzeugOpenAPIResponse(werkzeug_response)

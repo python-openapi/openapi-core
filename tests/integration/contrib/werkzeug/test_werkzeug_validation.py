@@ -6,10 +6,10 @@ from werkzeug.test import Client
 from werkzeug.wrappers import Request
 from werkzeug.wrappers import Response
 
+from openapi_core import openapi_request_validator
+from openapi_core import openapi_response_validator
 from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest
 from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
-from openapi_core.validation.request import openapi_request_validator
-from openapi_core.validation.response import openapi_response_validator
 
 
 class TestWerkzeugOpenAPIValidation:

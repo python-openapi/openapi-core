@@ -77,7 +77,7 @@ Now you can use it to validate against requests
 
 .. code-block:: python
 
-   from openapi_core.validation.request import openapi_request_validator
+   from openapi_core import openapi_request_validator
 
    result = openapi_request_validator.validate(spec, request)
 
@@ -111,7 +111,7 @@ You can also validate against responses
 
 .. code-block:: python
 
-   from openapi_core.validation.response import openapi_response_validator
+   from openapi_core import openapi_response_validator
 
    result = openapi_response_validator.validate(spec, request, response)
 
@@ -140,7 +140,7 @@ In order to explicitly validate a:
 
 .. code:: python
 
-   from openapi_core.validation.response import openapi_v31_response_validator
+   from openapi_core import openapi_v31_response_validator
 
    result = openapi_v31_response_validator.validate(spec, request, response)
 
