@@ -22,7 +22,6 @@ Pass custom defined media type deserializers dictionary with supported mimetypes
 .. code-block:: python
 
    from openapi_core.deserializing.media_types.factories import MediaTypeDeserializersFactory
-   from openapi_core.unmarshalling.schemas import oas30_response_schema_unmarshallers_factory
 
    def protobuf_deserializer(message):
        feature = route_guide_pb2.Feature()
@@ -36,12 +35,12 @@ Pass custom defined media type deserializers dictionary with supported mimetypes
        custom_deserializers=custom_media_type_deserializers,
    )
 
-   validator = ResponseValidator(
-       oas30_response_schema_unmarshallers_factory,
+   result = validate_response(
+       request, response,
+       spec=spec,
+       cls=V30ResponseValidator,
        media_type_deserializers_factory=media_type_deserializers_factory,
    )
-
-   result = validator.validate(spec, request, response)
 
 Formats
 -------
@@ -75,7 +74,11 @@ Here's how you could add support for a ``usdate`` format that handles dates of t
        custom_formatters=custom_formatters,
        context=UnmarshalContext.RESPONSE,
    )
-   validator = ResponseValidator(schema_unmarshallers_factory)
 
-   result = validator.validate(spec, request, response)
+   result = validate_response(
+       request, response,
+       spec=spec,
+       cls=ResponseValidator,
+       schema_unmarshallers_factory=schema_unmarshallers_factory,
+   )
 

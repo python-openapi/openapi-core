@@ -28,7 +28,12 @@ from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.spec.paths import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
-from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
+from openapi_core.unmarshalling.schemas import (
+    oas30_request_schema_unmarshallers_factory,
+)
+from openapi_core.unmarshalling.schemas import (
+    oas31_schema_unmarshallers_factory,
+)
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 from openapi_core.unmarshalling.schemas.exceptions import ValidateError
 from openapi_core.unmarshalling.schemas.factories import (
@@ -52,35 +57,31 @@ from openapi_core.validation.validators import BaseValidator
 class BaseRequestValidator(BaseValidator):
     def __init__(
         self,
-        schema_unmarshallers_factory: SchemaUnmarshallersFactory,
+        spec: Spec,
+        base_url: Optional[str] = None,
+        schema_unmarshallers_factory: Optional[
+            SchemaUnmarshallersFactory
+        ] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
     ):
         super().__init__(
-            schema_unmarshallers_factory,
+            spec,
+            base_url=base_url,
+            schema_unmarshallers_factory=schema_unmarshallers_factory,
             schema_casters_factory=schema_casters_factory,
             parameter_deserializers_factory=parameter_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
         )
         self.security_provider_factory = security_provider_factory
 
-    def iter_errors(
-        self,
-        spec: Spec,
-        request: Request,
-        base_url: Optional[str] = None,
-    ) -> Iterator[Exception]:
-        result = self.validate(spec, request, base_url=base_url)
+    def iter_errors(self, request: Request) -> Iterator[Exception]:
+        result = self.validate(request)
         yield from result.errors
 
-    def validate(
-        self,
-        spec: Spec,
-        request: Request,
-        base_url: Optional[str] = None,
-    ) -> RequestValidationResult:
+    def validate(self, request: Request) -> RequestValidationResult:
         raise NotImplementedError
 
     def _get_parameters(
@@ -143,11 +144,11 @@ class BaseRequestValidator(BaseValidator):
             raise MissingParameter(name)
 
     def _get_security(
-        self, spec: Spec, request: Request, operation: Spec
+        self, request: Request, operation: Spec
     ) -> Optional[Dict[str, str]]:
         security = None
-        if "security" in spec:
-            security = spec / "security"
+        if "security" in self.spec:
+            security = self.spec / "security"
         if "security" in operation:
             security = operation / "security"
 
@@ -157,9 +158,7 @@ class BaseRequestValidator(BaseValidator):
         for security_requirement in security:
             try:
                 return {
-                    scheme_name: self._get_security_value(
-                        spec, scheme_name, request
-                    )
+                    scheme_name: self._get_security_value(scheme_name, request)
                     for scheme_name in list(security_requirement.keys())
                 }
             except SecurityError:
@@ -167,10 +166,8 @@ class BaseRequestValidator(BaseValidator):
 
         raise InvalidSecurity
 
-    def _get_security_value(
-        self, spec: Spec, scheme_name: str, request: Request
-    ) -> Any:
-        security_schemes = spec / "components#securitySchemes"
+    def _get_security_value(self, scheme_name: str, request: Request) -> Any:
+        security_schemes = self.spec / "components#securitySchemes"
         if scheme_name not in security_schemes:
             return
         scheme = security_schemes[scheme_name]
@@ -207,16 +204,9 @@ class BaseRequestValidator(BaseValidator):
 
 
 class RequestParametersValidator(BaseRequestValidator):
-    def validate(
-        self,
-        spec: Spec,
-        request: Request,
-        base_url: Optional[str] = None,
-    ) -> RequestValidationResult:
+    def validate(self, request: Request) -> RequestValidationResult:
         try:
-            path, operation, _, path_result, _ = self._find_path(
-                spec, request, base_url=base_url
-            )
+            path, operation, _, path_result, _ = self._find_path(request)
         except PathError as exc:
             return RequestValidationResult(errors=[exc])
 
@@ -239,16 +229,9 @@ class RequestParametersValidator(BaseRequestValidator):
 
 
 class RequestBodyValidator(BaseRequestValidator):
-    def validate(
-        self,
-        spec: Spec,
-        request: Request,
-        base_url: Optional[str] = None,
-    ) -> RequestValidationResult:
+    def validate(self, request: Request) -> RequestValidationResult:
         try:
-            _, operation, _, _, _ = self._find_path(
-                spec, request, base_url=base_url
-            )
+            _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
             return RequestValidationResult(errors=[exc])
 
@@ -277,21 +260,14 @@ class RequestBodyValidator(BaseRequestValidator):
 
 
 class RequestSecurityValidator(BaseRequestValidator):
-    def validate(
-        self,
-        spec: Spec,
-        request: Request,
-        base_url: Optional[str] = None,
-    ) -> RequestValidationResult:
+    def validate(self, request: Request) -> RequestValidationResult:
         try:
-            _, operation, _, _, _ = self._find_path(
-                spec, request, base_url=base_url
-            )
+            _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
             return RequestValidationResult(errors=[exc])
 
         try:
-            security = self._get_security(spec, request, operation)
+            security = self._get_security(request, operation)
         except InvalidSecurity as exc:
             return RequestValidationResult(errors=[exc])
 
@@ -302,22 +278,15 @@ class RequestSecurityValidator(BaseRequestValidator):
 
 
 class RequestValidator(BaseRequestValidator):
-    def validate(
-        self,
-        spec: Spec,
-        request: Request,
-        base_url: Optional[str] = None,
-    ) -> RequestValidationResult:
+    def validate(self, request: Request) -> RequestValidationResult:
         try:
-            path, operation, _, path_result, _ = self._find_path(
-                spec, request, base_url=base_url
-            )
+            path, operation, _, path_result, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
             return RequestValidationResult(errors=[exc])
 
         try:
-            security = self._get_security(spec, request, operation)
+            security = self._get_security(request, operation)
         except InvalidSecurity as exc:
             return RequestValidationResult(errors=[exc])
 
@@ -358,3 +327,35 @@ class RequestValidator(BaseRequestValidator):
             parameters=params,
             security=security,
         )
+
+
+class V30RequestBodyValidator(RequestBodyValidator):
+    schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
+
+
+class V30RequestParametersValidator(RequestParametersValidator):
+    schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
+
+
+class V30RequestSecurityValidator(RequestSecurityValidator):
+    schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
+
+
+class V30RequestValidator(RequestValidator):
+    schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
+
+
+class V31RequestBodyValidator(RequestBodyValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V31RequestParametersValidator(RequestParametersValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V31RequestSecurityValidator(RequestSecurityValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V31RequestValidator(RequestValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory

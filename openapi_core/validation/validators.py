@@ -1,7 +1,10 @@
 """OpenAPI core validation validators module"""
 from typing import Any
+from typing import Dict
 from typing import Mapping
 from typing import Optional
+from typing import Tuple
+from urllib.parse import urljoin
 
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
@@ -30,28 +33,42 @@ from openapi_core.validation.request.protocols import SupportsPathPattern
 
 
 class BaseValidator:
+
+    schema_unmarshallers_factory: SchemaUnmarshallersFactory = NotImplemented
+
     def __init__(
         self,
-        schema_unmarshallers_factory: SchemaUnmarshallersFactory,
+        spec: Spec,
+        base_url: Optional[str] = None,
+        schema_unmarshallers_factory: Optional[
+            SchemaUnmarshallersFactory
+        ] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
     ):
-        self.schema_unmarshallers_factory = schema_unmarshallers_factory
+        self.spec = spec
+        self.base_url = base_url
+
+        self.schema_unmarshallers_factory = (
+            schema_unmarshallers_factory or self.schema_unmarshallers_factory
+        )
+        if self.schema_unmarshallers_factory is NotImplemented:
+            raise NotImplementedError(
+                "schema_unmarshallers_factory is not assigned"
+            )
+
         self.schema_casters_factory = schema_casters_factory
         self.parameter_deserializers_factory = parameter_deserializers_factory
         self.media_type_deserializers_factory = (
             media_type_deserializers_factory
         )
 
-    def _find_path(
-        self, spec: Spec, request: Request, base_url: Optional[str] = None
-    ) -> ServerOperationPath:
-        path_finder = PathFinder(spec, base_url=base_url)
-        path_pattern = getattr(request, "path_pattern", None)
-        return path_finder.find(
-            request.method, request.host_url, request.path, path_pattern
-        )
+    def _find_path(self, request: Request) -> ServerOperationPath:
+        path_finder = PathFinder(self.spec, base_url=self.base_url)
+        path_pattern = getattr(request, "path_pattern", None) or request.path
+        full_url = urljoin(request.host_url, path_pattern)
+        return path_finder.find(request.method, full_url)
 
     def _get_media_type(self, content: Spec, mimetype: str) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder

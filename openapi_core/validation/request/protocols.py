@@ -87,10 +87,11 @@ class SupportsPathPattern(Protocol):
 
 @runtime_checkable
 class RequestValidator(Protocol):
+    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+        ...
+
     def validate(
         self,
-        spec: Spec,
         request: Request,
-        base_url: Optional[str] = None,
     ) -> RequestValidationResult:
         ...

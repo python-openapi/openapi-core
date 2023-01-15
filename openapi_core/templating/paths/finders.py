@@ -29,15 +29,8 @@ class PathFinder:
     def find(
         self,
         method: str,
-        host_url: str,
-        path: str,
-        path_pattern: Optional[str] = None,
+        full_url: str,
     ) -> ServerOperationPath:
-        if path_pattern is not None:
-            full_url = urljoin(host_url, path_pattern)
-        else:
-            full_url = urljoin(host_url, path)
-
         paths_iter = self._get_paths_iter(full_url)
         paths_iter_peek = peekable(paths_iter)
 

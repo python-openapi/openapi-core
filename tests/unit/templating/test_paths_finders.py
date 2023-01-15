@@ -181,11 +181,11 @@ class BaseTestServerNotFound:
 
     @pytest.mark.xfail(reason="returns default server")
     def test_raises(self, finder):
-        request_uri = "/resource"
-        request = MockRequest("http://petstore.swagger.io", "get", request_uri)
+        method = "get"
+        full_url = "http://petstore.swagger.io/resource"
 
         with pytest.raises(ServerNotFound):
-            finder.find(request.method, request.host_url, request.path)
+            finder.find(method, full_url)
 
 
 class BaseTestOperationNotFound:
@@ -194,22 +194,19 @@ class BaseTestOperationNotFound:
         return {}
 
     def test_raises(self, finder):
-        request_uri = "/resource"
-        request = MockRequest("http://petstore.swagger.io", "get", request_uri)
+        method = "get"
+        full_url = "http://petstore.swagger.io/resource"
 
         with pytest.raises(OperationNotFound):
-            finder.find(request.method, request.host_url, request.path)
+            finder.find(method, full_url)
 
 
 class BaseTestValid:
     def test_simple(self, finder, spec):
-        request_uri = "/resource"
         method = "get"
-        request = MockRequest(
-            "http://petstore.swagger.io", method, request_uri
-        )
+        full_url = "http://petstore.swagger.io/resource"
 
-        result = finder.find(request.method, request.host_url, request.path)
+        result = finder.find(method, full_url)
 
         path = spec / "paths" / self.path_name
         operation = spec / "paths" / self.path_name / method
@@ -228,13 +225,10 @@ class BaseTestValid:
 class BaseTestVariableValid:
     @pytest.mark.parametrize("version", ["v1", "v2"])
     def test_variable(self, finder, spec, version):
-        request_uri = f"/{version}/resource"
         method = "get"
-        request = MockRequest(
-            "http://petstore.swagger.io", method, request_uri
-        )
+        full_url = f"http://petstore.swagger.io/{version}/resource"
 
-        result = finder.find(request.method, request.host_url, request.path)
+        result = finder.find(method, full_url)
 
         path = spec / "paths" / self.path_name
         operation = spec / "paths" / self.path_name / method
@@ -253,13 +247,10 @@ class BaseTestVariableValid:
 class BaseTestPathVariableValid:
     @pytest.mark.parametrize("res_id", ["111", "222"])
     def test_path_variable(self, finder, spec, res_id):
-        request_uri = f"/resource/{res_id}"
         method = "get"
-        request = MockRequest(
-            "http://petstore.swagger.io", method, request_uri
-        )
+        full_url = f"http://petstore.swagger.io/resource/{res_id}"
 
-        result = finder.find(request.method, request.host_url, request.path)
+        result = finder.find(method, full_url)
 
         path = spec / "paths" / self.path_name
         operation = spec / "paths" / self.path_name / method
@@ -281,11 +272,11 @@ class BaseTestPathNotFound:
         return {}
 
     def test_raises(self, finder):
-        request_uri = "/resource"
-        request = MockRequest("http://petstore.swagger.io", "get", request_uri)
+        method = "get"
+        full_url = "http://petstore.swagger.io/resource"
 
         with pytest.raises(PathNotFound):
-            finder.find(request.method, request.host_url, request.path)
+            finder.find(method, full_url)
 
 
 class TestSpecSimpleServerServerNotFound(
@@ -559,13 +550,10 @@ class TestSimilarPaths(BaseTestSpecServer, BaseTestSimpleServer):
 
     def test_valid(self, finder, spec):
         token_id = "123"
-        request_uri = f"/keys/{token_id}/tokens"
         method = "get"
-        request = MockRequest(
-            "http://petstore.swagger.io", method, request_uri
-        )
+        full_url = f"http://petstore.swagger.io/keys/{token_id}/tokens"
 
-        result = finder.find(request.method, request.host_url, request.path)
+        result = finder.find(method, full_url)
 
         path_2 = spec / "paths" / self.path_2_name
         operation_2 = spec / "paths" / self.path_2_name / method
@@ -614,12 +602,9 @@ class TestConcretePaths(BaseTestSpecServer, BaseTestSimpleServer):
         }
 
     def test_valid(self, finder, spec):
-        request_uri = "/keys/master/tokens"
         method = "get"
-        request = MockRequest(
-            "http://petstore.swagger.io", method, request_uri
-        )
-        result = finder.find(request.method, request.host_url, request.path)
+        full_url = "http://petstore.swagger.io/keys/master/tokens"
+        result = finder.find(method, full_url)
 
         path_2 = spec / "paths" / self.path_2_name
         operation_2 = spec / "paths" / self.path_2_name / method
@@ -669,12 +654,9 @@ class TestTemplateConcretePaths(BaseTestSpecServer, BaseTestSimpleServer):
 
     def test_valid(self, finder, spec):
         token_id = "123"
-        request_uri = f"/keys/{token_id}/tokens/master"
         method = "get"
-        request = MockRequest(
-            "http://petstore.swagger.io", method, request_uri
-        )
-        result = finder.find(request.method, request.host_url, request.path)
+        full_url = f"http://petstore.swagger.io/keys/{token_id}/tokens/master"
+        result = finder.find(method, full_url)
 
         path_2 = spec / "paths" / self.path_2_name
         operation_2 = spec / "paths" / self.path_2_name / method

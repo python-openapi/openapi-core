@@ -13,12 +13,14 @@ from openapi_core.spec import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.responses.exceptions import ResponseFinderError
-from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
+from openapi_core.unmarshalling.schemas import (
+    oas30_response_schema_unmarshallers_factory,
+)
+from openapi_core.unmarshalling.schemas import (
+    oas31_schema_unmarshallers_factory,
+)
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 from openapi_core.unmarshalling.schemas.exceptions import ValidateError
-from openapi_core.unmarshalling.schemas.factories import (
-    SchemaUnmarshallersFactory,
-)
 from openapi_core.util import chainiters
 from openapi_core.validation.exceptions import MissingHeader
 from openapi_core.validation.exceptions import MissingRequiredHeader
@@ -33,33 +35,25 @@ from openapi_core.validation.validators import BaseValidator
 class BaseResponseValidator(BaseValidator):
     def iter_errors(
         self,
-        spec: Spec,
         request: Request,
         response: Response,
-        base_url: Optional[str] = None,
     ) -> Iterator[Exception]:
-        result = self.validate(spec, request, response, base_url=base_url)
+        result = self.validate(request, response)
         yield from result.errors
 
     def validate(
         self,
-        spec: Spec,
         request: Request,
         response: Response,
-        base_url: Optional[str] = None,
     ) -> ResponseValidationResult:
         raise NotImplementedError
 
     def _find_operation_response(
         self,
-        spec: Spec,
         request: Request,
         response: Response,
-        base_url: Optional[str] = None,
     ) -> Spec:
-        _, operation, _, _, _ = self._find_path(
-            spec, request, base_url=base_url
-        )
+        _, operation, _, _, _ = self._find_path(request)
         return self._get_operation_response(operation, response)
 
     def _get_operation_response(
@@ -152,17 +146,13 @@ class BaseResponseValidator(BaseValidator):
 class ResponseDataValidator(BaseResponseValidator):
     def validate(
         self,
-        spec: Spec,
         request: Request,
         response: Response,
-        base_url: Optional[str] = None,
     ) -> ResponseValidationResult:
         try:
             operation_response = self._find_operation_response(
-                spec,
                 request,
                 response,
-                base_url=base_url,
             )
         # don't process if operation errors
         except (PathError, ResponseFinderError) as exc:
@@ -192,17 +182,13 @@ class ResponseDataValidator(BaseResponseValidator):
 class ResponseHeadersValidator(BaseResponseValidator):
     def validate(
         self,
-        spec: Spec,
         request: Request,
         response: Response,
-        base_url: Optional[str] = None,
     ) -> ResponseValidationResult:
         try:
             operation_response = self._find_operation_response(
-                spec,
                 request,
                 response,
-                base_url=base_url,
             )
         # don't process if operation errors
         except (PathError, ResponseFinderError) as exc:
@@ -225,17 +211,13 @@ class ResponseHeadersValidator(BaseResponseValidator):
 class ResponseValidator(BaseResponseValidator):
     def validate(
         self,
-        spec: Spec,
         request: Request,
         response: Response,
-        base_url: Optional[str] = None,
     ) -> ResponseValidationResult:
         try:
             operation_response = self._find_operation_response(
-                spec,
                 request,
                 response,
-                base_url=base_url,
             )
         # don't process if operation errors
         except (PathError, ResponseFinderError) as exc:
@@ -270,3 +252,27 @@ class ResponseValidator(BaseResponseValidator):
             data=data,
             headers=headers,
         )
+
+
+class V30ResponseDataValidator(ResponseDataValidator):
+    schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
+
+
+class V30ResponseHeadersValidator(ResponseHeadersValidator):
+    schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
+
+
+class V30ResponseValidator(ResponseValidator):
+    schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
+
+
+class V31ResponseDataValidator(ResponseDataValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V31ResponseHeadersValidator(ResponseHeadersValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V31ResponseValidator(ResponseValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
