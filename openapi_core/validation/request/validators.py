@@ -119,7 +119,7 @@ class BaseRequestValidator(BaseValidator):
                 location[param_name] = value
 
         if errors:
-            raise ParametersError(errors=errors, parameters=parameters)
+            raise ParametersError(context=errors, parameters=parameters)
 
         return parameters
 
