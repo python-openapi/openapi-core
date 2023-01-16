@@ -1,4 +1,5 @@
 """OpenAPI core spec shortcuts module"""
+import warnings
 from typing import Any
 from typing import Dict
 from typing import Hashable
@@ -18,13 +19,18 @@ def create_spec(
     handlers: Dict[str, Any] = default_handlers,
     validate_spec: bool = True,
 ) -> Spec:
+    warnings.warn(
+        "create_spec function is deprecated. Use Spec.from_dict instead.",
+        DeprecationWarning,
+    )
+
     validator: Optional[SupportsValidation] = None
     if validate_spec:
         validator = openapi_spec_validator_proxy
 
-    return Spec.create(
+    return Spec.from_dict(
         spec_dict,
-        url=spec_url,
+        spec_url=spec_url,
         ref_resolver_handlers=handlers,
         validator=validator,
     )

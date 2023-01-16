@@ -16,13 +16,13 @@ def content_from_file(spec_file):
 
 def spec_from_file(spec_file):
     spec_dict, spec_url = content_from_file(spec_file)
-    return Spec.create(spec_dict, url=spec_url)
+    return Spec.from_dict(spec_dict, spec_url=spec_url)
 
 
 def spec_from_url(spec_url):
     content = request.urlopen(spec_url)
     spec_dict = safe_load(content)
-    return Spec.create(spec_dict, url=spec_url)
+    return Spec.from_dict(spec_dict, spec_url=spec_url)
 
 
 class Factory(dict):

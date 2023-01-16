@@ -32,7 +32,7 @@ class TestHttpProvider:
             "/pets",
             headers=headers,
         )
-        scheme = Spec.from_dict(spec)
+        scheme = Spec.from_dict(spec, validator=None)
         provider = HttpProvider(scheme)
 
         result = provider(request)

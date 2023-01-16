@@ -35,7 +35,7 @@ class TestSchemaValidate:
         schema = {
             "type": schema_type,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
         value = None
 
         with pytest.raises(InvalidSchemaValue):
@@ -56,7 +56,7 @@ class TestSchemaValidate:
             "type": schema_type,
             "nullable": True,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
         value = None
 
         result = validator_factory(spec).validate(value)
@@ -69,7 +69,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": custom_format,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
         value = "x"
 
         with pytest.raises(FormatterNotFoundError):
@@ -80,7 +80,7 @@ class TestSchemaValidate:
         schema = {
             "type": "boolean",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -91,7 +91,7 @@ class TestSchemaValidate:
         schema = {
             "type": "boolean",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -101,7 +101,7 @@ class TestSchemaValidate:
         schema = {
             "type": "array",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -114,7 +114,7 @@ class TestSchemaValidate:
                 "type": "integer",
             },
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -125,7 +125,7 @@ class TestSchemaValidate:
         schema = {
             "type": "array",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -135,7 +135,7 @@ class TestSchemaValidate:
         schema = {
             "type": "integer",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -146,7 +146,7 @@ class TestSchemaValidate:
         schema = {
             "type": "integer",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -157,7 +157,7 @@ class TestSchemaValidate:
             "type": "integer",
             "minimum": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -168,7 +168,7 @@ class TestSchemaValidate:
             "type": "integer",
             "minimum": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -180,7 +180,7 @@ class TestSchemaValidate:
             "type": "integer",
             "maximum": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -191,7 +191,7 @@ class TestSchemaValidate:
             "type": "integer",
             "maximum": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -203,7 +203,7 @@ class TestSchemaValidate:
             "type": "integer",
             "multipleOf": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -214,7 +214,7 @@ class TestSchemaValidate:
             "type": "integer",
             "multipleOf": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -225,7 +225,7 @@ class TestSchemaValidate:
         schema = {
             "type": "number",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -236,7 +236,7 @@ class TestSchemaValidate:
         schema = {
             "type": "number",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -247,7 +247,7 @@ class TestSchemaValidate:
             "type": "number",
             "minimum": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -258,7 +258,7 @@ class TestSchemaValidate:
             "type": "number",
             "minimum": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -271,7 +271,7 @@ class TestSchemaValidate:
             "minimum": 3,
             "exclusiveMinimum": True,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -283,7 +283,7 @@ class TestSchemaValidate:
             "minimum": 3,
             "exclusiveMinimum": True,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -295,7 +295,7 @@ class TestSchemaValidate:
             "type": "number",
             "maximum": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -306,7 +306,7 @@ class TestSchemaValidate:
             "type": "number",
             "maximum": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -319,7 +319,7 @@ class TestSchemaValidate:
             "maximum": 3,
             "exclusiveMaximum": True,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -331,7 +331,7 @@ class TestSchemaValidate:
             "maximum": 3,
             "exclusiveMaximum": True,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -343,7 +343,7 @@ class TestSchemaValidate:
             "type": "number",
             "multipleOf": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -354,7 +354,7 @@ class TestSchemaValidate:
             "type": "number",
             "multipleOf": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -365,7 +365,7 @@ class TestSchemaValidate:
         schema = {
             "type": "string",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -376,7 +376,7 @@ class TestSchemaValidate:
         schema = {
             "type": "string",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -398,7 +398,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "date",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -415,7 +415,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "date",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -432,7 +432,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "uuid",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -456,7 +456,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "uuid",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -478,7 +478,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "date-time",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -503,7 +503,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "date-time",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -528,7 +528,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "date-time",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -551,7 +551,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "binary",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -568,7 +568,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "binary",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -586,7 +586,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "byte",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -605,7 +605,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": "byte",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -625,7 +625,7 @@ class TestSchemaValidate:
             "type": "string",
             "format": unknown_format,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(FormatterNotFoundError):
             validator_factory(spec).validate(value)
@@ -636,7 +636,7 @@ class TestSchemaValidate:
             "type": "string",
             "minLength": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -647,7 +647,7 @@ class TestSchemaValidate:
             "type": "string",
             "minLength": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -664,7 +664,7 @@ class TestSchemaValidate:
             "type": "string",
             "maxLength": -1,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -675,7 +675,7 @@ class TestSchemaValidate:
             "type": "string",
             "maxLength": 1,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -686,7 +686,7 @@ class TestSchemaValidate:
             "type": "string",
             "maxLength": 1,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -698,7 +698,7 @@ class TestSchemaValidate:
             "type": "string",
             "pattern": "baz",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -709,7 +709,7 @@ class TestSchemaValidate:
             "type": "string",
             "pattern": "bar",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -720,7 +720,7 @@ class TestSchemaValidate:
         schema = {
             "type": "object",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -744,7 +744,7 @@ class TestSchemaValidate:
             "type": "object",
             "oneOf": one_of,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -768,7 +768,7 @@ class TestSchemaValidate:
             "type": "object",
             "oneOf": one_of,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -808,7 +808,7 @@ class TestSchemaValidate:
             "type": "object",
             "oneOf": one_of,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -857,7 +857,7 @@ class TestSchemaValidate:
             "type": "object",
             "oneOf": one_of,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -882,7 +882,7 @@ class TestSchemaValidate:
             "type": "object",
             "anyOf": any_of,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -900,7 +900,7 @@ class TestSchemaValidate:
             "type": "object",
             "anyOf": any_of,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -936,7 +936,7 @@ class TestSchemaValidate:
             "type": "object",
             "anyOf": any_of,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -983,7 +983,7 @@ class TestSchemaValidate:
             "type": "object",
             "anyOf": any_of,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -1000,7 +1000,7 @@ class TestSchemaValidate:
             "type": "object",
             "default": "value1",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -1019,7 +1019,7 @@ class TestSchemaValidate:
             "type": "object",
             "minProperties": 2,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -1038,7 +1038,7 @@ class TestSchemaValidate:
             "properties": {k: {"type": "number"} for k in ["a", "b", "c"]},
             "minProperties": 4,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -1057,7 +1057,7 @@ class TestSchemaValidate:
             "properties": {k: {"type": "number"} for k in ["a", "b", "c"]},
             "minProperties": 1,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
         result = validator_factory(spec).validate(value)
 
         assert result is None
@@ -1075,7 +1075,7 @@ class TestSchemaValidate:
             "type": "object",
             "maxProperties": -1,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -1094,7 +1094,7 @@ class TestSchemaValidate:
             "properties": {k: {"type": "number"} for k in ["a", "b", "c"]},
             "maxProperties": 0,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -1113,7 +1113,7 @@ class TestSchemaValidate:
             "properties": {k: {"type": "number"} for k in ["a", "b", "c"]},
             "maxProperties": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -1129,7 +1129,7 @@ class TestSchemaValidate:
         schema = {
             "type": "object",
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -1148,7 +1148,7 @@ class TestSchemaValidate:
             "type": "object",
             "additionalProperties": False,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -1169,7 +1169,7 @@ class TestSchemaValidate:
             "type": "object",
             "additionalProperties": additional_properties,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -1184,7 +1184,7 @@ class TestSchemaValidate:
             },
             "minItems": 3,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(Exception):
             validator_factory(spec).validate(value)
@@ -1198,7 +1198,7 @@ class TestSchemaValidate:
             },
             "minItems": 0,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -1218,7 +1218,7 @@ class TestSchemaValidate:
             },
             "maxItems": -1,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
@@ -1232,7 +1232,7 @@ class TestSchemaValidate:
             },
             "maxItems": 1,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(Exception):
             validator_factory(spec).validate(value)
@@ -1246,7 +1246,7 @@ class TestSchemaValidate:
             },
             "uniqueItems": True,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(Exception):
             validator_factory(spec).validate(value)
@@ -1278,7 +1278,7 @@ class TestSchemaValidate:
                 },
             },
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         result = validator_factory(spec).validate(value)
 
@@ -1319,7 +1319,7 @@ class TestSchemaValidate:
             },
             "additionalProperties": False,
         }
-        spec = Spec.from_dict(schema)
+        spec = Spec.from_dict(schema, validator=None)
 
         with pytest.raises(Exception):
             validator_factory(spec).validate(value)

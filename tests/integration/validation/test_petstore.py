@@ -61,7 +61,7 @@ class TestPetstore:
 
     @pytest.fixture(scope="module")
     def spec(self, spec_dict, spec_uri):
-        return Spec.create(spec_dict, url=spec_uri)
+        return Spec.from_dict(spec_dict, spec_url=spec_uri)
 
     def test_get_pets(self, spec):
         host_url = "http://petstore.swagger.io/v1"

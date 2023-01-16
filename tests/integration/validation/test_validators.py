@@ -45,7 +45,7 @@ class TestRequestValidator:
 
     @pytest.fixture(scope="session")
     def spec(self, spec_dict):
-        return Spec.create(spec_dict)
+        return Spec.from_dict(spec_dict)
 
     def test_request_server_error(self, spec):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
@@ -443,7 +443,7 @@ class TestPathItemParamsValidator:
 
     @pytest.fixture(scope="session")
     def spec(self, spec_dict):
-        return Spec.create(spec_dict)
+        return Spec.from_dict(spec_dict)
 
     def test_request_missing_param(self, spec):
         request = MockRequest("http://example.com", "get", "/resource")
@@ -576,7 +576,7 @@ class TestResponseValidator:
 
     @pytest.fixture
     def spec(self, spec_dict):
-        return Spec.create(spec_dict)
+        return Spec.from_dict(spec_dict)
 
     def test_invalid_server(self, spec):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")

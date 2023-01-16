@@ -123,4 +123,4 @@ OPENAPI_SPEC_PATH = Path("tests/integration/data/v3.0/petstore.yaml")
 
 OPENAPI_SPEC_DICT = yaml.load(OPENAPI_SPEC_PATH.read_text(), yaml.Loader)
 
-OPENAPI_SPEC = Spec.create(OPENAPI_SPEC_DICT)
+OPENAPI_SPEC = Spec.from_dict(OPENAPI_SPEC_DICT)

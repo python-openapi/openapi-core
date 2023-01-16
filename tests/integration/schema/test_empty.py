@@ -7,4 +7,4 @@ from openapi_core.spec import Spec
 class TestEmpty:
     def test_raises_on_invalid(self):
         with pytest.raises(ValidatorDetectError):
-            Spec.create("")
+            Spec.from_dict("")
