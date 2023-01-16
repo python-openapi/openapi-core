@@ -530,14 +530,13 @@ setuptools = "*"
 
 [[package]]
 name = "openapi-schema-validator"
-version = "0.3.4"
+version = "0.4.0"
 description = "OpenAPI schema validation for Python"
 category = "main"
 optional = false
 python-versions = ">=3.7.0,<4.0.0"
 
 [package.dependencies]
-attrs = ">=19.2.0"
 jsonschema = ">=4.0.0,<5.0.0"
 
 [package.extras]
@@ -547,19 +546,18 @@ strict-rfc3339 = ["strict-rfc3339"]
 
 [[package]]
 name = "openapi-spec-validator"
-version = "0.5.1"
+version = "0.5.2"
 description = "OpenAPI 2.0 (aka Swagger) and OpenAPI 3 spec validator"
 category = "main"
 optional = false
 python-versions = ">=3.7.0,<4.0.0"
 
 [package.dependencies]
-importlib-resources = ">=5.8.0,<6.0.0"
+importlib-resources = {version = ">=5.8.0,<6.0.0", markers = "python_version < \"3.9\""}
 jsonschema = ">=4.0.0,<5.0.0"
 jsonschema-spec = ">=0.1.1,<0.2.0"
 lazy-object-proxy = ">=1.7.1,<2.0.0"
-openapi-schema-validator = ">=0.3.2,<0.4.0"
-PyYAML = ">=5.1"
+openapi-schema-validator = ">=0.3.2,<0.5"
 
 [package.extras]
 requests = ["requests"]
@@ -1125,7 +1123,7 @@ starlette = []
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.0"
-content-hash = "49bdb4e150245eb8dec5b3c7a4de8473e9beb8f8790d7d8af454d526ffae538d"
+content-hash = "e5ec69330ace1d6535f46237a0887688df8a933a5490f6f0b0da20d1e1f4d56c"
 
 [metadata.files]
 alabaster = [
@@ -1477,12 +1475,12 @@ nodeenv = [
     {file = "nodeenv-1.7.0.tar.gz", hash = "sha256:e0e7f7dfb85fc5394c6fe1e8fa98131a2473e04311a45afb6508f7cf1836fa2b"},
 ]
 openapi-schema-validator = [
-    {file = "openapi-schema-validator-0.3.4.tar.gz", hash = "sha256:7cf27585dd7970b7257cefe48e1a3a10d4e34421831bdb472d96967433bc27bd"},
-    {file = "openapi_schema_validator-0.3.4-py3-none-any.whl", hash = "sha256:34fbd14b7501abe25e64d7b4624a9db02cde1a578d285b3da6f34b290cdf0b3a"},
+    {file = "openapi_schema_validator-0.4.0-py3-none-any.whl", hash = "sha256:f1faaae0b1076d6f6bf6ad5d8bb53f49d9cc49621f5e224e2bc121ef76016c04"},
+    {file = "openapi_schema_validator-0.4.0.tar.gz", hash = "sha256:fb591258bbe1e24f381d83cff2e9a1a6fc547936adb46143fdd089f6ea411cc8"},
 ]
 openapi-spec-validator = [
-    {file = "openapi-spec-validator-0.5.1.tar.gz", hash = "sha256:8248634bad1f23cac5d5a34e193ab36e23914057ca69e91a1ede5af75552c465"},
-    {file = "openapi_spec_validator-0.5.1-py3-none-any.whl", hash = "sha256:4a8aee1e45b1ac868e07ab25e18828fe9837baddd29a8e20fdb3d3c61c8eea3d"},
+    {file = "openapi_spec_validator-0.5.2-py3-none-any.whl", hash = "sha256:1f8db08ecbcf4ec8c558d65b65b3b7b428f81da6642f2f163e992ae3e17b229c"},
+    {file = "openapi_spec_validator-0.5.2.tar.gz", hash = "sha256:ebed7f1c567780859402ad64b128e17f519d15f605f1b41d1e9a4a7a1690be07"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
