@@ -1,19 +1,15 @@
 """OpenAPI core validation response protocols module"""
-from typing import TYPE_CHECKING
+import sys
 from typing import Any
 from typing import Mapping
 from typing import Optional
 
-if TYPE_CHECKING:
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+    from typing import runtime_checkable
+else:
     from typing_extensions import Protocol
     from typing_extensions import runtime_checkable
-else:
-    try:
-        from typing import Protocol
-        from typing import runtime_checkable
-    except ImportError:
-        from typing_extensions import Protocol
-        from typing_extensions import runtime_checkable
 
 from openapi_core.spec import Spec
 from openapi_core.validation.request.protocols import Request
