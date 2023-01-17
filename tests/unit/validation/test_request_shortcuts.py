@@ -17,7 +17,7 @@ class TestValidateRequest:
         validation_result = ResultMock(parameters=parameters)
         mock_validate.return_value = validation_result
 
-        result = validate_request(spec, request)
+        result = validate_request(request, spec=spec)
 
         assert result == validation_result
         mock_validate.aasert_called_once_with(request)
@@ -31,6 +31,6 @@ class TestValidateRequest:
         mock_validate.return_value = ResultMock(error_to_raise=ValueError)
 
         with pytest.raises(ValueError):
-            validate_request(spec, request)
+            validate_request(request, spec=spec)
 
         mock_validate.aasert_called_once_with(request)

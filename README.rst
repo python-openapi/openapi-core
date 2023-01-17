@@ -77,15 +77,10 @@ Now you can use it to validate against requests
 
 .. code-block:: python
 
-   from openapi_core import openapi_request_validator
+   from openapi_core import validate_request
 
-   result = openapi_request_validator.validate(spec, request)
-
-   # raise errors if request invalid
-   result.raise_for_errors()
-
-   # get list of errors
-   errors = result.errors
+   # raise error if request is invalid
+   result = validate_request(request, spec=spec)
 
 and unmarshal request data from validation result
 
@@ -111,15 +106,10 @@ You can also validate against responses
 
 .. code-block:: python
 
-   from openapi_core import openapi_response_validator
+   from openapi_core import validate_response
 
-   result = openapi_response_validator.validate(spec, request, response)
-
-   # raise errors if response invalid
-   result.raise_for_errors()
-
-   # get list of errors
-   errors = result.errors
+   # raise error if response is invalid
+   result = validate_response(request, response, spec=spec)
 
 and unmarshal response data from validation result
 
@@ -142,7 +132,7 @@ In order to explicitly validate a:
 
    from openapi_core import openapi_v31_response_validator
 
-   result = openapi_v31_response_validator.validate(spec, request, response)
+   result = validate_response(request, response, spec=spec, validator=openapi_v31_response_validator)
 
 You can also explicitly import ``openapi_v3_request_validator`` or ``openapi_v3_response_validator``  which is a shortcut to the latest v3 release.
 

@@ -18,7 +18,7 @@ class TestSpecValidateData:
         validation_result = ResultMock(data=data)
         mock_validate.return_value = validation_result
 
-        result = validate_response(spec, request, response)
+        result = validate_response(request, response, spec=spec)
 
         assert result == validation_result
         mock_validate.aasert_called_once_with(request, response)
@@ -33,6 +33,6 @@ class TestSpecValidateData:
         mock_validate.return_value = ResultMock(error_to_raise=ValueError)
 
         with pytest.raises(ValueError):
-            validate_response(spec, request, response)
+            validate_response(request, response, spec=spec)
 
         mock_validate.aasert_called_once_with(request, response)
