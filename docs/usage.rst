@@ -5,13 +5,9 @@ Firstly create your specification object. By default, OpenAPI spec version is de
 
 .. code-block:: python
 
-   from json import load
    from openapi_core import Spec
 
-   with open('openapi.json', 'r') as spec_file:
-      spec_dict = load(spec_file)
-
-   spec = Spec.create(spec_dict)
+   spec = Spec.from_file_path('openapi.json')
 
 
 Request

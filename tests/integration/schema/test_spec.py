@@ -32,8 +32,8 @@ class TestPetstore:
 
     @pytest.fixture
     def spec(self, spec_dict, spec_uri):
-        return Spec.create(
-            spec_dict, url=spec_uri, validator=openapi_v30_spec_validator
+        return Spec.from_dict(
+            spec_dict, spec_url=spec_uri, validator=openapi_v30_spec_validator
         )
 
     @pytest.fixture
@@ -325,9 +325,9 @@ class TestWebhook:
 
     @pytest.fixture
     def spec(self, spec_dict, spec_uri):
-        return Spec.create(
+        return Spec.from_dict(
             spec_dict,
-            url=spec_uri,
+            spec_url=spec_uri,
             validator=openapi_v31_spec_validator,
         )
 

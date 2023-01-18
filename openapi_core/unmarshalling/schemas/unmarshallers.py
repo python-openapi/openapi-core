@@ -294,7 +294,9 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
     @property
     def items_unmarshaller(self) -> "BaseSchemaUnmarshaller":
         # sometimes we don't have any schema i.e. free-form objects
-        items_schema = self.schema.get("items", Spec.from_dict({}))
+        items_schema = self.schema.get(
+            "items", Spec.from_dict({}, validator=None)
+        )
         return self.unmarshallers_factory.create(items_schema)
 
     def unmarshal(self, value: Any) -> Optional[List[Any]]:
@@ -383,7 +385,9 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
         if additional_properties is not False:
             # free-form object
             if additional_properties is True:
-                additional_prop_schema = Spec.from_dict({"nullable": True})
+                additional_prop_schema = Spec.from_dict(
+                    {"nullable": True}, validator=None
+                )
             # defined schema
             else:
                 additional_prop_schema = self.schema / "additionalProperties"
