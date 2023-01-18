@@ -13,8 +13,8 @@ from openapi_core.validation.response.protocols import ResponseValidator
 
 
 def validate_request(
-    spec: Spec,
     request: Request,
+    spec: Spec,
     base_url: Optional[str] = None,
     validator: RequestValidator = openapi_request_validator,
 ) -> RequestValidationResult:
@@ -24,9 +24,9 @@ def validate_request(
 
 
 def validate_response(
-    spec: Spec,
     request: Request,
     response: Response,
+    spec: Spec,
     base_url: Optional[str] = None,
     validator: ResponseValidator = openapi_response_validator,
 ) -> ResponseValidationResult:

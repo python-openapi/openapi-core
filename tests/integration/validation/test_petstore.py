@@ -9,6 +9,8 @@ import pytest
 from isodate.tzinfo import UTC
 
 from openapi_core import openapi_v30_response_validator
+from openapi_core import validate_request
+from openapi_core import validate_response
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
@@ -36,8 +38,6 @@ from openapi_core.validation.response import (
 from openapi_core.validation.response import (
     openapi_v30_response_headers_validator,
 )
-from openapi_core.validation.shortcuts import validate_request
-from openapi_core.validation.shortcuts import validate_response
 
 
 class TestPetstore:
@@ -80,8 +80,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -94,7 +94,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_body_validator,
         )
 
         assert result.body is None
@@ -109,7 +111,7 @@ class TestPetstore:
         }
         response = MockResponse(data, headers=headers)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -135,8 +137,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -149,7 +151,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -168,7 +170,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -193,8 +195,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -207,7 +209,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -216,7 +218,7 @@ class TestPetstore:
         response = MockResponse(data, status_code=404, mimetype="text/html")
 
         with pytest.warns(UserWarning):
-            response_result = validate_response(spec, request, response)
+            response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data
@@ -238,8 +240,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -252,7 +254,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -272,9 +274,9 @@ class TestPetstore:
 
         with pytest.raises(InvalidSchemaValue):
             validate_response(
-                spec,
                 request,
                 response,
+                spec=spec,
                 validator=openapi_v30_response_data_validator,
             )
 
@@ -310,8 +312,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -325,7 +327,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -336,7 +338,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -360,8 +362,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -375,7 +377,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -386,7 +388,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -411,13 +413,13 @@ class TestPetstore:
         with pytest.warns(DeprecationWarning):
             with pytest.raises(DeserializeError):
                 validate_request(
-                    spec,
                     request,
+                    spec=spec,
                     validator=openapi_v30_request_parameters_validator,
                 )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -440,13 +442,13 @@ class TestPetstore:
         with pytest.warns(DeprecationWarning):
             with pytest.raises(CastError):
                 validate_request(
-                    spec,
                     request,
+                    spec=spec,
                     validator=openapi_v30_request_parameters_validator,
                 )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -464,13 +466,13 @@ class TestPetstore:
         with pytest.warns(DeprecationWarning):
             with pytest.raises(MissingRequiredParameter):
                 validate_request(
-                    spec,
                     request,
+                    spec=spec,
                     validator=openapi_v30_request_parameters_validator,
                 )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -493,12 +495,12 @@ class TestPetstore:
         with pytest.warns(DeprecationWarning):
             with pytest.raises(EmptyQueryParameterValue):
                 validate_request(
-                    spec,
                     request,
+                    spec=spec,
                     validator=openapi_v30_request_parameters_validator,
                 )
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -521,8 +523,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -535,7 +537,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -557,8 +559,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -571,7 +573,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -594,8 +596,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -609,7 +611,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -636,8 +638,8 @@ class TestPetstore:
 
         with pytest.warns(DeprecationWarning):
             result = validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
@@ -650,7 +652,7 @@ class TestPetstore:
         assert result.parameters.query["coordinates"].lon == coordinates["lon"]
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -700,7 +702,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert is_dataclass(result.parameters.cookie["userdata"])
@@ -711,7 +715,7 @@ class TestPetstore:
         assert result.parameters.cookie["userdata"].name == "user1"
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         schemas = spec_dict["components"]["schemas"]
@@ -727,7 +731,9 @@ class TestPetstore:
         assert result.body.healthy == pet_healthy
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_security_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_security_validator,
         )
 
         assert result.security == {}
@@ -773,7 +779,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters(
@@ -786,7 +794,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         schemas = spec_dict["components"]["schemas"]
@@ -842,7 +850,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters(
@@ -855,7 +865,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         schemas = spec_dict["components"]["schemas"]
@@ -898,7 +908,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters(
@@ -912,7 +924,9 @@ class TestPetstore:
 
         with pytest.raises(InvalidSchemaValue):
             validate_request(
-                spec, request, validator=openapi_v30_request_body_validator
+                request,
+                spec=spec,
+                validator=openapi_v30_request_body_validator,
             )
 
     def test_post_cats_only_required_body(self, spec, spec_dict):
@@ -945,7 +959,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters(
@@ -958,7 +974,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         schemas = spec_dict["components"]["schemas"]
@@ -995,7 +1011,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters(
@@ -1009,7 +1027,9 @@ class TestPetstore:
 
         with pytest.raises(MediaTypeNotFound):
             validate_request(
-                spec, request, validator=openapi_v30_request_body_validator
+                request,
+                spec=spec,
+                validator=openapi_v30_request_body_validator,
             )
 
     def test_post_pets_missing_cookie(self, spec, spec_dict):
@@ -1039,13 +1059,13 @@ class TestPetstore:
 
         with pytest.raises(MissingRequiredParameter):
             validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         schemas = spec_dict["components"]["schemas"]
@@ -1082,13 +1102,13 @@ class TestPetstore:
 
         with pytest.raises(MissingRequiredParameter):
             validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         schemas = spec_dict["components"]["schemas"]
@@ -1126,14 +1146,16 @@ class TestPetstore:
 
         with pytest.raises(ServerNotFound):
             validate_request(
-                spec,
                 request,
+                spec=spec,
                 validator=openapi_v30_request_parameters_validator,
             )
 
         with pytest.raises(ServerNotFound):
             validate_request(
-                spec, request, validator=openapi_v30_request_body_validator
+                request,
+                spec=spec,
+                validator=openapi_v30_request_body_validator,
             )
 
         data_id = 1
@@ -1152,9 +1174,9 @@ class TestPetstore:
 
         with pytest.raises(ServerNotFound):
             validate_response(
-                spec,
                 request,
                 response,
+                spec=spec,
                 validator=openapi_v30_response_data_validator,
             )
 
@@ -1178,7 +1200,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters(
@@ -1188,13 +1212,15 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_security_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_security_validator,
         )
 
         assert result.security == {
@@ -1215,7 +1241,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1238,7 +1264,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters(
@@ -1248,7 +1276,7 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -1264,7 +1292,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1287,7 +1315,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters(
@@ -1297,7 +1327,9 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_body_validator,
         )
 
         assert result.body is None
@@ -1306,7 +1338,7 @@ class TestPetstore:
         response = MockResponse(data, mimetype="image/png")
 
         with pytest.warns(UserWarning):
-            response_result = validate_response(spec, request, response)
+            response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data
@@ -1323,13 +1355,15 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -1338,7 +1372,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data_json
@@ -1363,14 +1397,18 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         with pytest.raises(InvalidSchemaValue):
             validate_request(
-                spec, request, validator=openapi_v30_request_body_validator
+                request,
+                spec=spec,
+                validator=openapi_v30_request_body_validator,
             )
 
     def test_post_tags_empty_body(self, spec, spec_dict):
@@ -1388,14 +1426,18 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         with pytest.raises(InvalidSchemaValue):
             validate_request(
-                spec, request, validator=openapi_v30_request_body_validator
+                request,
+                spec=spec,
+                validator=openapi_v30_request_body_validator,
             )
 
     def test_post_tags_wrong_property_type(self, spec):
@@ -1413,14 +1455,18 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         with pytest.raises(InvalidSchemaValue):
             validate_request(
-                spec, request, validator=openapi_v30_request_body_validator
+                request,
+                spec=spec,
+                validator=openapi_v30_request_body_validator,
             )
 
     def test_post_tags_additional_properties(self, spec):
@@ -1441,13 +1487,15 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert is_dataclass(result.body)
@@ -1466,7 +1514,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1495,13 +1543,15 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert is_dataclass(result.body)
@@ -1521,7 +1571,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1550,13 +1600,15 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert is_dataclass(result.body)
@@ -1579,9 +1631,9 @@ class TestPetstore:
         response = MockResponse(response_data, status_code=404)
 
         result = validate_response(
-            spec,
             request,
             response,
+            spec=spec,
             validator=openapi_v30_response_data_validator,
         )
 
@@ -1591,7 +1643,7 @@ class TestPetstore:
         assert result.data.rootCause == rootCause
         assert result.data.additionalinfo == additionalinfo
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1620,14 +1672,18 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         with pytest.raises(InvalidSchemaValue):
             validate_request(
-                spec, request, validator=openapi_v30_request_body_validator
+                request,
+                spec=spec,
+                validator=openapi_v30_request_body_validator,
             )
 
         code = 400
@@ -1644,7 +1700,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = validate_response(spec, request, response)
+        response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1671,13 +1727,15 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert is_dataclass(result.body)
@@ -1690,15 +1748,15 @@ class TestPetstore:
         response = MockResponse(data, status_code=200, headers=headers)
 
         with pytest.warns(DeprecationWarning):
-            response_result = validate_response(spec, request, response)
+            response_result = validate_response(request, response, spec=spec)
         assert response_result.errors == []
         assert response_result.data is None
 
         with pytest.warns(DeprecationWarning):
             result = validate_response(
-                spec,
                 request,
                 response,
+                spec=spec,
                 validator=openapi_v30_response_headers_validator,
             )
 
@@ -1717,13 +1775,15 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
@@ -1739,13 +1799,15 @@ class TestPetstore:
         )
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_parameters_validator
+            request,
+            spec=spec,
+            validator=openapi_v30_request_parameters_validator,
         )
 
         assert result.parameters == Parameters()
 
         result = validate_request(
-            spec, request, validator=openapi_v30_request_body_validator
+            request, spec=spec, validator=openapi_v30_request_body_validator
         )
 
         assert result.body is None
