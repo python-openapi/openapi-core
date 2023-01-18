@@ -11,12 +11,8 @@ from openapi_core.contrib.django.handlers import DjangoOpenAPIErrorsHandler
 from openapi_core.contrib.django.requests import DjangoOpenAPIRequest
 from openapi_core.contrib.django.responses import DjangoOpenAPIResponse
 from openapi_core.validation.processors import OpenAPIProcessor
-from openapi_core.validation.request import openapi_request_validator
 from openapi_core.validation.request.datatypes import RequestValidationResult
-from openapi_core.validation.request.protocols import Request
-from openapi_core.validation.response import openapi_response_validator
 from openapi_core.validation.response.datatypes import ResponseValidationResult
-from openapi_core.validation.response.protocols import Response
 
 
 class DjangoOpenAPIMiddleware:
@@ -31,15 +27,11 @@ class DjangoOpenAPIMiddleware:
         if not hasattr(settings, "OPENAPI_SPEC"):
             raise ImproperlyConfigured("OPENAPI_SPEC not defined in settings")
 
-        self.validation_processor = OpenAPIProcessor(
-            openapi_request_validator, openapi_response_validator
-        )
+        self.validation_processor = OpenAPIProcessor(settings.OPENAPI_SPEC)
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
         openapi_request = self._get_openapi_request(request)
-        req_result = self.validation_processor.process_request(
-            settings.OPENAPI_SPEC, openapi_request
-        )
+        req_result = self.validation_processor.process_request(openapi_request)
         if req_result.errors:
             response = self._handle_request_errors(req_result, request)
         else:
@@ -48,7 +40,7 @@ class DjangoOpenAPIMiddleware:
 
         openapi_response = self._get_openapi_response(response)
         resp_result = self.validation_processor.process_response(
-            settings.OPENAPI_SPEC, openapi_request, openapi_response
+            openapi_request, openapi_response
         )
         if resp_result.errors:
             return self._handle_response_errors(resp_result, request, response)

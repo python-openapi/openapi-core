@@ -58,7 +58,7 @@ Alternatively you can download the code and install from the repository:
 Usage
 #####
 
-Firstly create your specification object. By default, OpenAPI spec version is detected:
+Firstly create your specification object.
 
 .. code-block:: python
 
@@ -66,10 +66,12 @@ Firstly create your specification object. By default, OpenAPI spec version is de
 
    spec = Spec.from_file_path('openapi.json')
 
+Now you can use it to validate against requests and/or responses. 
+
 Request
 *******
 
-Now you can use it to validate against requests
+Use ``validate_request`` function to validate request against a given spec.
 
 .. code-block:: python
 
@@ -78,7 +80,7 @@ Now you can use it to validate against requests
    # raise error if request is invalid
    result = validate_request(request, spec=spec)
 
-and unmarshal request data from validation result
+Retrieve request data from validation result
 
 .. code-block:: python
 
@@ -98,7 +100,7 @@ Request object should implement OpenAPI Request protocol (See `Integrations <htt
 Response
 ********
 
-You can also validate against responses
+Use ``validate_response`` function to validate response against a given spec.
 
 .. code-block:: python
 
@@ -121,16 +123,16 @@ Response object should implement OpenAPI Response protocol (See `Integrations <h
 
 In order to explicitly validate a:
 
-* OpenAPI 3.0 spec, import ``openapi_v30_request_validator`` or ``openapi_v30_response_validator`` 
-* OpenAPI 3.1 spec, import ``openapi_v31_request_validator`` or ``openapi_v31_response_validator`` 
+* OpenAPI 3.0 spec, import ``V30RequestValidator`` or ``V30ResponseValidator`` 
+* OpenAPI 3.1 spec, import ``V31RequestValidator`` or ``V31ResponseValidator`` 
 
 .. code:: python
 
-   from openapi_core import openapi_v31_response_validator
+   from openapi_core import V31ResponseValidator
 
-   result = validate_response(request, response, spec=spec, validator=openapi_v31_response_validator)
+   result = validate_response(request, response, spec=spec, cls=V31ResponseValidator)
 
-You can also explicitly import ``openapi_v3_request_validator`` or ``openapi_v3_response_validator``  which is a shortcut to the latest v3 release.
+You can also explicitly import ``V3RequestValidator`` or ``V3ResponseValidator``  which is a shortcut to the latest v3 release.
 
 Related projects
 ################

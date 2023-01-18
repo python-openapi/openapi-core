@@ -1,7 +1,7 @@
 Usage
 =====
 
-Firstly create your specification object. By default, OpenAPI spec version is detected:
+Firstly create your specification object.
 
 .. code-block:: python
 
@@ -9,11 +9,12 @@ Firstly create your specification object. By default, OpenAPI spec version is de
 
    spec = Spec.from_file_path('openapi.json')
 
+Now you can use it to validate against requests and/or responses. 
 
 Request
 -------
 
-Now you can use it to validate against requests
+Use ``validate_request`` function to validate request against a given spec. By default, OpenAPI spec version is detected:
 
 .. code-block:: python
 
@@ -22,7 +23,7 @@ Now you can use it to validate against requests
    # raise error if request is invalid
    result = validate_request(request, spec=spec)
 
-and unmarshal request data from validation result
+Retrieve validated and unmarshalled request data from validation result
 
 .. code-block:: python
 
@@ -42,7 +43,7 @@ Request object should implement OpenAPI Request protocol (See :doc:`integrations
 Response
 --------
 
-You can also validate against responses
+Use ``validate_response`` function to validate response against a given spec. By default, OpenAPI spec version is detected:
 
 .. code-block:: python
 
@@ -51,7 +52,7 @@ You can also validate against responses
    # raise error if response is invalid
    result = validate_response(request, response, spec=spec)
 
-and unmarshal response data from validation result
+Retrieve validated and unmarshalled response data from validation result
 
 .. code-block:: python
 
@@ -88,8 +89,6 @@ For given security specification:
 you can access your security data the following:
 
 .. code-block:: python
-
-   result = validator.validate(request)
 
    # get basic auth decoded credentials
    result.security['BasicAuth']

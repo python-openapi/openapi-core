@@ -2,6 +2,7 @@
 from functools import wraps
 from typing import Any
 from typing import Callable
+from typing import Optional
 from typing import Type
 
 from flask.globals import request
@@ -14,10 +15,8 @@ from openapi_core.contrib.flask.requests import FlaskOpenAPIRequest
 from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
 from openapi_core.spec import Spec
 from openapi_core.validation.processors import OpenAPIProcessor
-from openapi_core.validation.request import openapi_request_validator
 from openapi_core.validation.request.datatypes import RequestValidationResult
 from openapi_core.validation.request.protocols import RequestValidator
-from openapi_core.validation.response import openapi_response_validator
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.response.protocols import ResponseValidator
 
@@ -26,8 +25,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
     def __init__(
         self,
         spec: Spec,
-        request_validator: RequestValidator,
-        response_validator: ResponseValidator,
+        request_validator_cls: Optional[Type[RequestValidator]] = None,
+        response_validator_cls: Optional[Type[ResponseValidator]] = None,
         request_class: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
         response_class: Type[FlaskOpenAPIResponse] = FlaskOpenAPIResponse,
         request_provider: Type[FlaskRequestProvider] = FlaskRequestProvider,
@@ -35,8 +34,11 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
             FlaskOpenAPIErrorsHandler
         ] = FlaskOpenAPIErrorsHandler,
     ):
-        super().__init__(request_validator, response_validator)
-        self.spec = spec
+        super().__init__(
+            spec,
+            request_validator_cls=request_validator_cls,
+            response_validator_cls=response_validator_cls,
+        )
         self.request_class = request_class
         self.response_class = response_class
         self.request_provider = request_provider
@@ -47,7 +49,7 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
         def decorated(*args: Any, **kwargs: Any) -> Response:
             request = self._get_request()
             openapi_request = self._get_openapi_request(request)
-            request_result = self.process_request(self.spec, openapi_request)
+            request_result = self.process_request(openapi_request)
             if request_result.errors:
                 return self._handle_request_errors(request_result)
             response = self._handle_request_view(
@@ -55,7 +57,7 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
             )
             openapi_response = self._get_openapi_response(response)
             response_result = self.process_response(
-                self.spec, openapi_request, openapi_response
+                openapi_request, openapi_response
             )
             if response_result.errors:
                 return self._handle_response_errors(response_result)
@@ -99,6 +101,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
     def from_spec(
         cls,
         spec: Spec,
+        request_validator_cls: Optional[Type[RequestValidator]] = None,
+        response_validator_cls: Optional[Type[ResponseValidator]] = None,
         request_class: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
         response_class: Type[FlaskOpenAPIResponse] = FlaskOpenAPIResponse,
         request_provider: Type[FlaskRequestProvider] = FlaskRequestProvider,
@@ -108,8 +112,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
     ) -> "FlaskOpenAPIViewDecorator":
         return cls(
             spec,
-            request_validator=openapi_request_validator,
-            response_validator=openapi_response_validator,
+            request_validator_cls=request_validator_cls,
+            response_validator_cls=response_validator_cls,
             request_class=request_class,
             response_class=response_class,
             request_provider=request_provider,

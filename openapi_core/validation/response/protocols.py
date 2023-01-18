@@ -50,11 +50,12 @@ class Response(Protocol):
 
 @runtime_checkable
 class ResponseValidator(Protocol):
+    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+        ...
+
     def validate(
         self,
-        spec: Spec,
         request: Request,
         response: Response,
-        base_url: Optional[str] = None,
     ) -> ResponseValidationResult:
         ...
