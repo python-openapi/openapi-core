@@ -8,7 +8,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from openapi_core.validation.request.datatypes import RequestParameters
 
-# https://docs.djangoproject.com/en/2.2/topics/http/urls/
+# https://docs.djangoproject.com/en/stable/topics/http/urls/
 #
 # Currently unsupported are :
 #   - nested arguments, e.g.: ^comments/(?:page-(?P<page_number>\d+)/)?$
@@ -16,9 +16,11 @@ from openapi_core.validation.request.datatypes import RequestParameters
 #   - multiple named parameters between a single pair of slashes
 #     e.g.: <page_slug>-<page_id>/edit/
 #
-# The regex matches everything, except a "/" until "<". Than only the name
+# The regex matches everything, except a "/" until "<". Then only the name
 # is exported, after which it matches ">" and everything until a "/".
-PATH_PARAMETER_PATTERN = r"(?:[^\/]*?)<(?:(?:.*?:))*?(\w+)>(?:[^\/]*)"
+# A check is made to ensure that "/" is not in an excluded character set such
+# as may be found with Django REST Framwork's default value pattern, "[^/.]+".
+PATH_PARAMETER_PATTERN = r"(?:[^/]*?)<(?:(?:.*?:))*?(\w+)>(?:(?:[^/]*?\[\^[^/]*/)?[^/]*)"
 
 
 class DjangoOpenAPIRequest:

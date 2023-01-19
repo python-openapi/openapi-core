@@ -43,6 +43,7 @@ class BaseTestDjango:
         settings.ROOT_URLCONF = (
             path("admin/", admin.site.urls),
             re_path("^test/test-regexp/$", lambda d: None),
+            re_path("^object/(?P<pk>[^/.]+)/action/$", lambda d: None),
         )
 
     @pytest.fixture
@@ -68,27 +69,16 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
 
         openapi_request = DjangoOpenAPIRequest(request)
 
-        path = {}
-        query = ImmutableMultiDict(
-            [
-                ("test1", "test2"),
-            ]
-        )
-        headers = Headers(
-            {
-                "Cookie": "",
-            }
-        )
-        cookies = {}
         assert openapi_request.parameters == RequestParameters(
-            path=path,
-            query=query,
-            header=headers,
-            cookie=cookies,
+            path={},
+            query=ImmutableMultiDict([("test1", "test2")]),
+            header=Headers({"Cookie": ""}),
+            cookie={},
         )
         assert openapi_request.method == request.method.lower()
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
+        assert openapi_request.path_pattern is None
         assert openapi_request.body == ""
         assert openapi_request.mimetype == request.content_type
 
@@ -96,27 +86,20 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         from django.urls import resolve
 
         request = request_factory.get("/admin/")
-        request.resolver_match = resolve("/admin/")
+        request.resolver_match = resolve(request.path)
 
         openapi_request = DjangoOpenAPIRequest(request)
 
-        path = {}
-        query = {}
-        headers = Headers(
-            {
-                "Cookie": "",
-            }
-        )
-        cookies = {}
         assert openapi_request.parameters == RequestParameters(
-            path=path,
-            query=query,
-            header=headers,
-            cookie=cookies,
+            path={},
+            query={},
+            header=Headers({"Cookie": ""}),
+            cookie={},
         )
         assert openapi_request.method == request.method.lower()
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
+        assert openapi_request.path_pattern == request.path
         assert openapi_request.body == ""
         assert openapi_request.mimetype == request.content_type
 
@@ -124,25 +107,15 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         from django.urls import resolve
 
         request = request_factory.get("/admin/auth/group/1/")
-        request.resolver_match = resolve("/admin/auth/group/1/")
+        request.resolver_match = resolve(request.path)
 
         openapi_request = DjangoOpenAPIRequest(request)
 
-        path = {
-            "object_id": "1",
-        }
-        query = {}
-        headers = Headers(
-            {
-                "Cookie": "",
-            }
-        )
-        cookies = {}
         assert openapi_request.parameters == RequestParameters(
-            path=path,
-            query=query,
-            header=headers,
-            cookie=cookies,
+            path={"object_id": "1"},
+            query={},
+            header=Headers({"Cookie": ""}),
+            cookie={},
         )
         assert openapi_request.method == request.method.lower()
         assert openapi_request.host_url == request._current_scheme_host
@@ -155,27 +128,41 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         from django.urls import resolve
 
         request = request_factory.get("/test/test-regexp/")
-        request.resolver_match = resolve("/test/test-regexp/")
+        request.resolver_match = resolve(request.path)
 
         openapi_request = DjangoOpenAPIRequest(request)
 
-        path = {}
-        query = {}
-        headers = Headers(
-            {
-                "Cookie": "",
-            }
-        )
-        cookies = {}
         assert openapi_request.parameters == RequestParameters(
-            path=path,
-            query=query,
-            header=headers,
-            cookie=cookies,
+            path={},
+            query={},
+            header=Headers({"Cookie": ""}),
+            cookie={},
         )
         assert openapi_request.method == request.method.lower()
         assert openapi_request.host_url == request._current_scheme_host
-        assert openapi_request.path == "/test/test-regexp/"
+        assert openapi_request.path == request.path
+        assert openapi_request.path_pattern == request.path
+        assert openapi_request.body == ""
+        assert openapi_request.mimetype == request.content_type
+
+    def test_drf_default_value_pattern(self, request_factory):
+        from django.urls import resolve
+
+        request = request_factory.get("/object/123/action/")
+        request.resolver_match = resolve(request.path)
+
+        openapi_request = DjangoOpenAPIRequest(request)
+
+        assert openapi_request.parameters == RequestParameters(
+            path={"pk": "123"},
+            query={},
+            header=Headers({"Cookie": ""}),
+            cookie={},
+        )
+        assert openapi_request.method == request.method.lower()
+        assert openapi_request.host_url == request._current_scheme_host
+        assert openapi_request.path == request.path
+        assert openapi_request.path_pattern == "/object/{pk}/action/"
         assert openapi_request.body == ""
         assert openapi_request.mimetype == request.content_type
 
