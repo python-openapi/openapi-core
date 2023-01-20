@@ -25,7 +25,7 @@ Use ``validate_request`` function to validate request against a given spec. By d
 
 Request object should implement OpenAPI Request protocol (See :doc:`integrations`).
 
-Use the same function to validate webhook request against a given spec.
+(For OpenAPI v3.1) Use the same function to validate webhook request against a given spec.
 
 .. code-block:: python
 
@@ -63,7 +63,7 @@ Use ``validate_response`` function to validate response against a given spec. By
 
 Response object should implement OpenAPI Response protocol  (See :doc:`integrations`).
 
-Use the same function to validate response from webhook request against a given spec.
+(For OpenAPI v3.1) Use the same function to validate response from webhook request against a given spec.
 
 .. code-block:: python
 
