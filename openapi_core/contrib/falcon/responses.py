@@ -9,6 +9,8 @@ class FalconOpenAPIResponse:
 
     @property
     def data(self) -> str:
+        if self.response.text is None:
+            return ""
         assert isinstance(self.response.text, str)
         return self.response.text
 
