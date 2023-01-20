@@ -17,7 +17,7 @@ from openapi_schema_validator import OAS30Validator
 from openapi_core.spec import Spec
 from openapi_core.unmarshalling.schemas.datatypes import CustomFormattersDict
 from openapi_core.unmarshalling.schemas.datatypes import FormattersDict
-from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
+from openapi_core.unmarshalling.schemas.enums import ValidationContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
 )
@@ -49,15 +49,15 @@ from openapi_core.unmarshalling.schemas.util import build_format_checker
 class SchemaValidatorsFactory:
 
     CONTEXTS = {
-        UnmarshalContext.REQUEST: "write",
-        UnmarshalContext.RESPONSE: "read",
+        ValidationContext.REQUEST: "write",
+        ValidationContext.RESPONSE: "read",
     }
 
     def __init__(
         self,
         schema_validator_class: Type[Validator],
         custom_formatters: Optional[CustomFormattersDict] = None,
-        context: Optional[UnmarshalContext] = None,
+        context: Optional[ValidationContext] = None,
     ):
         self.schema_validator_class = schema_validator_class
         if custom_formatters is None:
@@ -105,7 +105,7 @@ class SchemaUnmarshallersFactory:
         self,
         schema_validator_class: Type[Validator],
         custom_formatters: Optional[CustomFormattersDict] = None,
-        context: Optional[UnmarshalContext] = None,
+        context: Optional[ValidationContext] = None,
     ):
         self.schema_validator_class = schema_validator_class
         if custom_formatters is None:
