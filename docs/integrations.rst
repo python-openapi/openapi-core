@@ -240,6 +240,17 @@ You can use ``RequestsOpenAPIResponse`` as a Requests response factory:
    result = validate_response(openapi_request, openapi_response, spec=spec)
 
 
+You can use ``RequestsOpenAPIWebhookRequest`` as a Requests webhook request factory:
+
+.. code-block:: python
+
+   from openapi_core import validate_request
+   from openapi_core.contrib.requests import RequestsOpenAPIWebhookRequest
+
+   openapi_webhook_request = RequestsOpenAPIWebhookRequest(requests_request, "my_webhook")
+   result = validate_request(openapi_webhook_request, spec=spec)
+
+
 Starlette
 ---------
 

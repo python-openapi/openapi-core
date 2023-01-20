@@ -4,14 +4,19 @@ from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import List
+from typing import Mapping
 from typing import Optional
+from urllib.parse import urljoin
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.exceptions import OpenAPIError
 from openapi_core.spec import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
+from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.exceptions import PathError
+from openapi_core.templating.paths.finders import APICallPathFinder
+from openapi_core.templating.paths.finders import WebhookPathFinder
 from openapi_core.templating.responses.exceptions import ResponseFinderError
 from openapi_core.unmarshalling.schemas import (
     oas30_response_schema_unmarshallers_factory,
@@ -25,53 +30,138 @@ from openapi_core.util import chainiters
 from openapi_core.validation.exceptions import MissingHeader
 from openapi_core.validation.exceptions import MissingRequiredHeader
 from openapi_core.validation.request.protocols import Request
+from openapi_core.validation.request.protocols import WebhookRequest
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.response.exceptions import HeadersError
 from openapi_core.validation.response.exceptions import MissingResponseContent
 from openapi_core.validation.response.protocols import Response
+from openapi_core.validation.validators import BaseAPICallValidator
 from openapi_core.validation.validators import BaseValidator
+from openapi_core.validation.validators import BaseWebhookValidator
 
 
 class BaseResponseValidator(BaseValidator):
-    def iter_errors(
+    def _validate(
         self,
-        request: Request,
-        response: Response,
-    ) -> Iterator[Exception]:
-        result = self.validate(request, response)
-        yield from result.errors
-
-    def validate(
-        self,
-        request: Request,
-        response: Response,
+        status_code: int,
+        data: str,
+        headers: Mapping[str, Any],
+        mimetype: str,
+        operation: Spec,
     ) -> ResponseValidationResult:
-        raise NotImplementedError
+        try:
+            operation_response = self._get_operation_response(
+                status_code, operation
+            )
+        # don't process if operation errors
+        except ResponseFinderError as exc:
+            return ResponseValidationResult(errors=[exc])
 
-    def _find_operation_response(
-        self,
-        request: Request,
-        response: Response,
-    ) -> Spec:
-        _, operation, _, _, _ = self._find_path(request)
-        return self._get_operation_response(operation, response)
+        try:
+            validated_data = self._get_data(data, mimetype, operation_response)
+        except (
+            MediaTypeFinderError,
+            MissingResponseContent,
+            DeserializeError,
+            CastError,
+            ValidateError,
+            UnmarshalError,
+        ) as exc:
+            validated_data = None
+            data_errors = [exc]
+        else:
+            data_errors = []
+
+        try:
+            validated_headers = self._get_headers(headers, operation_response)
+        except HeadersError as exc:
+            validated_headers = exc.headers
+            headers_errors = exc.context
+        else:
+            headers_errors = []
+
+        errors = list(chainiters(data_errors, headers_errors))
+        return ResponseValidationResult(
+            errors=errors,
+            data=validated_data,
+            headers=validated_headers,
+        )
+
+    def _validate_data(
+        self, status_code: int, data: str, mimetype: str, operation: Spec
+    ) -> ResponseValidationResult:
+        try:
+            operation_response = self._get_operation_response(
+                status_code, operation
+            )
+        # don't process if operation errors
+        except ResponseFinderError as exc:
+            return ResponseValidationResult(errors=[exc])
+
+        try:
+            validated = self._get_data(data, mimetype, operation_response)
+        except (
+            MediaTypeFinderError,
+            MissingResponseContent,
+            DeserializeError,
+            CastError,
+            ValidateError,
+            UnmarshalError,
+        ) as exc:
+            validated = None
+            data_errors = [exc]
+        else:
+            data_errors = []
+
+        return ResponseValidationResult(
+            errors=data_errors,
+            data=validated,
+        )
+
+    def _validate_headers(
+        self, status_code: int, headers: Mapping[str, Any], operation: Spec
+    ) -> ResponseValidationResult:
+        try:
+            operation_response = self._get_operation_response(
+                status_code, operation
+            )
+        # don't process if operation errors
+        except ResponseFinderError as exc:
+            return ResponseValidationResult(errors=[exc])
+
+        try:
+            validated = self._get_headers(headers, operation_response)
+        except HeadersError as exc:
+            validated = exc.headers
+            headers_errors = exc.context
+        else:
+            headers_errors = []
+
+        return ResponseValidationResult(
+            errors=headers_errors,
+            headers=validated,
+        )
 
     def _get_operation_response(
-        self, operation: Spec, response: Response
+        self,
+        status_code: int,
+        operation: Spec,
     ) -> Spec:
         from openapi_core.templating.responses.finders import ResponseFinder
 
         finder = ResponseFinder(operation / "responses")
-        return finder.find(str(response.status_code))
+        return finder.find(str(status_code))
 
-    def _get_data(self, response: Response, operation_response: Spec) -> Any:
+    def _get_data(
+        self, data: str, mimetype: str, operation_response: Spec
+    ) -> Any:
         if "content" not in operation_response:
             return None
 
         media_type, mimetype = self._get_media_type(
-            operation_response / "content", response.mimetype
+            operation_response / "content", mimetype
         )
-        raw_data = self._get_data_value(response)
+        raw_data = self._get_data_value(data)
         deserialised = self._deserialise_data(mimetype, raw_data)
         casted = self._cast(media_type, deserialised)
 
@@ -83,28 +173,28 @@ class BaseResponseValidator(BaseValidator):
 
         return data
 
-    def _get_data_value(self, response: Response) -> Any:
-        if not response.data:
-            raise MissingResponseContent(response)
+    def _get_data_value(self, data: str) -> Any:
+        if not data:
+            raise MissingResponseContent
 
-        return response.data
+        return data
 
     def _get_headers(
-        self, response: Response, operation_response: Spec
+        self, headers: Mapping[str, Any], operation_response: Spec
     ) -> Dict[str, Any]:
         if "headers" not in operation_response:
             return {}
 
-        headers = operation_response / "headers"
+        response_headers = operation_response / "headers"
 
         errors: List[OpenAPIError] = []
         validated: Dict[str, Any] = {}
-        for name, header in list(headers.items()):
+        for name, header in list(response_headers.items()):
             # ignore Content-Type header
             if name.lower() == "content-type":
                 continue
             try:
-                value = self._get_header(name, header, response)
+                value = self._get_header(headers, name, header)
             except MissingHeader:
                 continue
             except (
@@ -124,7 +214,9 @@ class BaseResponseValidator(BaseValidator):
 
         return validated
 
-    def _get_header(self, name: str, header: Spec, response: Response) -> Any:
+    def _get_header(
+        self, headers: Mapping[str, Any], name: str, header: Spec
+    ) -> Any:
         deprecated = header.getkey("deprecated", False)
         if deprecated:
             warnings.warn(
@@ -133,9 +225,7 @@ class BaseResponseValidator(BaseValidator):
             )
 
         try:
-            return self._get_param_or_header_value(
-                header, response.headers, name=name
-            )
+            return self._get_param_or_header_value(header, headers, name=name)
         except KeyError:
             required = header.getkey("required", False)
             if required:
@@ -143,114 +233,151 @@ class BaseResponseValidator(BaseValidator):
             raise MissingHeader(name)
 
 
-class ResponseDataValidator(BaseResponseValidator):
+class BaseAPICallResponseValidator(
+    BaseResponseValidator, BaseAPICallValidator
+):
+    def iter_errors(
+        self,
+        request: Request,
+        response: Response,
+    ) -> Iterator[Exception]:
+        result = self.validate(request, response)
+        yield from result.errors
+
+    def validate(
+        self,
+        request: Request,
+        response: Response,
+    ) -> ResponseValidationResult:
+        raise NotImplementedError
+
+
+class BaseWebhookResponseValidator(
+    BaseResponseValidator, BaseWebhookValidator
+):
+    def iter_errors(
+        self,
+        request: WebhookRequest,
+        response: Response,
+    ) -> Iterator[Exception]:
+        result = self.validate(request, response)
+        yield from result.errors
+
+    def validate(
+        self,
+        request: WebhookRequest,
+        response: Response,
+    ) -> ResponseValidationResult:
+        raise NotImplementedError
+
+
+class ResponseDataValidator(BaseAPICallResponseValidator):
     def validate(
         self,
         request: Request,
         response: Response,
     ) -> ResponseValidationResult:
         try:
-            operation_response = self._find_operation_response(
-                request,
-                response,
-            )
+            _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
-        except (PathError, ResponseFinderError) as exc:
+        except PathError as exc:
             return ResponseValidationResult(errors=[exc])
 
-        try:
-            data = self._get_data(response, operation_response)
-        except (
-            MediaTypeFinderError,
-            MissingResponseContent,
-            DeserializeError,
-            CastError,
-            ValidateError,
-            UnmarshalError,
-        ) as exc:
-            data = None
-            data_errors = [exc]
-        else:
-            data_errors = []
-
-        return ResponseValidationResult(
-            errors=data_errors,
-            data=data,
+        return self._validate_data(
+            response.status_code, response.data, response.mimetype, operation
         )
 
 
-class ResponseHeadersValidator(BaseResponseValidator):
+class ResponseHeadersValidator(BaseAPICallResponseValidator):
     def validate(
         self,
         request: Request,
         response: Response,
     ) -> ResponseValidationResult:
         try:
-            operation_response = self._find_operation_response(
-                request,
-                response,
-            )
+            _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
-        except (PathError, ResponseFinderError) as exc:
+        except PathError as exc:
             return ResponseValidationResult(errors=[exc])
 
-        try:
-            headers = self._get_headers(response, operation_response)
-        except HeadersError as exc:
-            headers = exc.headers
-            headers_errors = exc.context
-        else:
-            headers_errors = []
-
-        return ResponseValidationResult(
-            errors=headers_errors,
-            headers=headers,
+        return self._validate_headers(
+            response.status_code, response.headers, operation
         )
 
 
-class ResponseValidator(BaseResponseValidator):
+class ResponseValidator(BaseAPICallResponseValidator):
     def validate(
         self,
         request: Request,
         response: Response,
     ) -> ResponseValidationResult:
         try:
-            operation_response = self._find_operation_response(
-                request,
-                response,
-            )
+            _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
-        except (PathError, ResponseFinderError) as exc:
+        except PathError as exc:
             return ResponseValidationResult(errors=[exc])
 
-        try:
-            data = self._get_data(response, operation_response)
-        except (
-            MediaTypeFinderError,
-            MissingResponseContent,
-            DeserializeError,
-            CastError,
-            ValidateError,
-            UnmarshalError,
-        ) as exc:
-            data = None
-            data_errors = [exc]
-        else:
-            data_errors = []
+        return self._validate(
+            response.status_code,
+            response.data,
+            response.headers,
+            response.mimetype,
+            operation,
+        )
 
-        try:
-            headers = self._get_headers(response, operation_response)
-        except HeadersError as exc:
-            headers = exc.headers
-            headers_errors = exc.context
-        else:
-            headers_errors = []
 
-        errors = list(chainiters(data_errors, headers_errors))
-        return ResponseValidationResult(
-            errors=errors,
-            data=data,
-            headers=headers,
+class WebhookResponseDataValidator(BaseWebhookResponseValidator):
+    def validate(
+        self,
+        request: WebhookRequest,
+        response: Response,
+    ) -> ResponseValidationResult:
+        try:
+            _, operation, _, _, _ = self._find_path(request)
+        # don't process if operation errors
+        except PathError as exc:
+            return ResponseValidationResult(errors=[exc])
+
+        return self._validate_data(
+            response.status_code, response.data, response.mimetype, operation
+        )
+
+
+class WebhookResponseHeadersValidator(BaseWebhookResponseValidator):
+    def validate(
+        self,
+        request: WebhookRequest,
+        response: Response,
+    ) -> ResponseValidationResult:
+        try:
+            _, operation, _, _, _ = self._find_path(request)
+        # don't process if operation errors
+        except PathError as exc:
+            return ResponseValidationResult(errors=[exc])
+
+        return self._validate_headers(
+            response.status_code, response.headers, operation
+        )
+
+
+class WebhookResponseValidator(BaseWebhookResponseValidator):
+    def validate(
+        self,
+        request: WebhookRequest,
+        response: Response,
+    ) -> ResponseValidationResult:
+        try:
+            _, operation, _, _, _ = self._find_path(request)
+        # don't process if operation errors
+        except PathError as exc:
+            return ResponseValidationResult(errors=[exc])
+
+        return self._validate(
+            response.status_code,
+            response.data,
+            response.headers,
+            response.mimetype,
+            operation,
         )
 
 
@@ -275,4 +402,16 @@ class V31ResponseHeadersValidator(ResponseHeadersValidator):
 
 
 class V31ResponseValidator(ResponseValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V31WebhookResponseDataValidator(WebhookResponseDataValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V31WebhookResponseHeadersValidator(WebhookResponseHeadersValidator):
+    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V31WebhookResponseValidator(WebhookResponseValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory

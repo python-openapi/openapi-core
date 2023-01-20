@@ -16,7 +16,7 @@ from openapi_core.validation.request.datatypes import RequestParameters
 
 class RequestsOpenAPIRequest:
     """
-    Converts a requests request to an OpenAPI one
+    Converts a requests request to an OpenAPI request
 
     Internally converts to a `PreparedRequest` first to parse the exact
     payload being sent
@@ -76,3 +76,16 @@ class RequestsOpenAPIRequest:
             self.request.headers.get("Content-Type")
             or self.request.headers.get("Accept")
         )
+
+
+class RequestsOpenAPIWebhookRequest(RequestsOpenAPIRequest):
+    """
+    Converts a requests request to an OpenAPI Webhook request
+
+    Internally converts to a `PreparedRequest` first to parse the exact
+    payload being sent
+    """
+
+    def __init__(self, request: Union[Request, PreparedRequest], name: str):
+        super().__init__(request)
+        self.name = name

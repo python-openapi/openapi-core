@@ -35,6 +35,6 @@ class TestHttpProvider:
         scheme = Spec.from_dict(spec, validator=None)
         provider = HttpProvider(scheme)
 
-        result = provider(request)
+        result = provider(request.parameters)
 
         assert result == value

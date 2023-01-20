@@ -5,7 +5,7 @@ from openapi_core.templating.datatypes import TemplateResult
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
-from openapi_core.templating.paths.finders import PathFinder
+from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.testing import MockRequest
 
 
@@ -132,7 +132,7 @@ class BaseTestSpecServer:
 
     @pytest.fixture
     def finder(self, spec):
-        return PathFinder(spec)
+        return APICallPathFinder(spec)
 
 
 class BaseTestPathServer(BaseTestSpecServer):

@@ -23,6 +23,17 @@ Use ``validate_request`` function to validate request against a given spec. By d
    # raise error if request is invalid
    result = validate_request(request, spec=spec)
 
+Request object should implement OpenAPI Request protocol (See :doc:`integrations`).
+
+Use the same function to validate webhook request against a given spec.
+
+.. code-block:: python
+
+   # raise error if request is invalid
+   result = validate_request(webhook_request, spec=spec)
+
+Webhook request object should implement OpenAPI WebhookRequest protocol (See :doc:`integrations`).
+
 Retrieve validated and unmarshalled request data from validation result
 
 .. code-block:: python
@@ -38,8 +49,6 @@ Retrieve validated and unmarshalled request data from validation result
    # get security data
    validated_security = result.security
 
-Request object should implement OpenAPI Request protocol (See :doc:`integrations`).
-
 Response
 --------
 
@@ -52,6 +61,15 @@ Use ``validate_response`` function to validate response against a given spec. By
    # raise error if response is invalid
    result = validate_response(request, response, spec=spec)
 
+Response object should implement OpenAPI Response protocol  (See :doc:`integrations`).
+
+Use the same function to validate response from webhook request against a given spec.
+
+.. code-block:: python
+
+   # raise error if request is invalid
+   result = validate_response(webhook_request, response, spec=spec)
+
 Retrieve validated and unmarshalled response data from validation result
 
 .. code-block:: python
@@ -61,8 +79,6 @@ Retrieve validated and unmarshalled response data from validation result
 
    # get data
    validated_data = result.data
-
-Response object should implement OpenAPI Response protocol  (See :doc:`integrations`).
 
 Security
 --------

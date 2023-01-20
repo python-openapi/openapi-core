@@ -15,7 +15,25 @@ from openapi_core.validation.request.datatypes import RequestValidationResult
 
 
 @runtime_checkable
-class Request(Protocol):
+class BaseRequest(Protocol):
+
+    parameters: RequestParameters
+
+    @property
+    def method(self) -> str:
+        ...
+
+    @property
+    def body(self) -> Optional[str]:
+        ...
+
+    @property
+    def mimetype(self) -> str:
+        ...
+
+
+@runtime_checkable
+class Request(BaseRequest, Protocol):
     """Request attributes protocol.
 
     Attributes:
@@ -44,8 +62,6 @@ class Request(Protocol):
             the mimetype would be "text/html".
     """
 
-    parameters: RequestParameters
-
     @property
     def host_url(self) -> str:
         ...
@@ -54,16 +70,30 @@ class Request(Protocol):
     def path(self) -> str:
         ...
 
-    @property
-    def method(self) -> str:
-        ...
+
+@runtime_checkable
+class WebhookRequest(BaseRequest, Protocol):
+    """Webhook request attributes protocol.
+
+    Attributes:
+        name
+            Webhook name
+        method
+            The request method, as lowercase string.
+        parameters
+            A RequestParameters object. Needs to supports path attribute setter
+            to write resolved path parameters.
+        body
+            The request body, as string.
+        mimetype
+            Like content type, but without parameters (eg, without charset,
+            type etc.) and always lowercase.
+            For example if the content type is "text/HTML; charset=utf-8"
+            the mimetype would be "text/html".
+    """
 
     @property
-    def body(self) -> Optional[str]:
-        ...
-
-    @property
-    def mimetype(self) -> str:
+    def name(self) -> str:
         ...
 
 
@@ -93,5 +123,17 @@ class RequestValidator(Protocol):
     def validate(
         self,
         request: Request,
+    ) -> RequestValidationResult:
+        ...
+
+
+@runtime_checkable
+class WebhookRequestValidator(Protocol):
+    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+        ...
+
+    def validate(
+        self,
+        request: WebhookRequest,
     ) -> RequestValidationResult:
         ...

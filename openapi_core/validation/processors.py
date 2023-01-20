@@ -47,9 +47,9 @@ class OpenAPIProcessor:
         if request_validator_cls is None or response_validator_cls is None:
             validators = get_validators(self.spec)
             if request_validator_cls is None:
-                request_validator_cls = validators.request
+                request_validator_cls = validators.request_cls
             if response_validator_cls is None:
-                response_validator_cls = validators.response
+                response_validator_cls = validators.response_cls
         self.request_validator = request_validator_cls(self.spec)
         self.response_validator = response_validator_cls(self.spec)
 

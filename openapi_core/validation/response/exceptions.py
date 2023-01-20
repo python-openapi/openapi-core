@@ -17,9 +17,6 @@ class OpenAPIResponseError(OpenAPIError):
     pass
 
 
-@dataclass
 class MissingResponseContent(OpenAPIResponseError):
-    response: Response
-
     def __str__(self) -> str:
         return "Missing response content"

@@ -30,17 +30,11 @@ class MissingRequestBodyError(OpenAPIRequestBodyError):
     """Missing request body error"""
 
 
-@dataclass
 class MissingRequestBody(MissingRequestBodyError):
-    request: Request
-
     def __str__(self) -> str:
         return "Missing request body"
 
 
-@dataclass
 class MissingRequiredRequestBody(MissingRequestBodyError):
-    request: Request
-
     def __str__(self) -> str:
         return "Missing required request body"

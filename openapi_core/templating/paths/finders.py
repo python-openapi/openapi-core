@@ -10,9 +10,9 @@ from more_itertools import peekable
 from openapi_core.schema.servers import is_absolute
 from openapi_core.spec import Spec
 from openapi_core.templating.datatypes import TemplateResult
-from openapi_core.templating.paths.datatypes import OperationPath
 from openapi_core.templating.paths.datatypes import Path
-from openapi_core.templating.paths.datatypes import ServerOperationPath
+from openapi_core.templating.paths.datatypes import PathOperation
+from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
@@ -21,50 +21,69 @@ from openapi_core.templating.util import parse
 from openapi_core.templating.util import search
 
 
-class PathFinder:
+class BasePathFinder:
     def __init__(self, spec: Spec, base_url: Optional[str] = None):
         self.spec = spec
         self.base_url = base_url
 
-    def find(
-        self,
-        method: str,
-        full_url: str,
-    ) -> ServerOperationPath:
-        paths_iter = self._get_paths_iter(full_url)
+    def find(self, method: str, name: str) -> PathOperationServer:
+        paths_iter = self._get_paths_iter(name)
         paths_iter_peek = peekable(paths_iter)
 
         if not paths_iter_peek:
-            raise PathNotFound(full_url)
+            raise PathNotFound(name)
 
-        operations_iter = self._get_operations_iter(paths_iter_peek, method)
+        operations_iter = self._get_operations_iter(method, paths_iter_peek)
         operations_iter_peek = peekable(operations_iter)
 
         if not operations_iter_peek:
-            raise OperationNotFound(full_url, method)
+            raise OperationNotFound(name, method)
 
         servers_iter = self._get_servers_iter(
+            name,
             operations_iter_peek,
-            full_url,
         )
 
         try:
             return next(servers_iter)
         except StopIteration:
-            raise ServerNotFound(full_url)
+            raise ServerNotFound(name)
 
-    def _get_paths_iter(self, full_url: str) -> Iterator[Path]:
+    def _get_paths_iter(self, name: str) -> Iterator[Path]:
+        raise NotImplementedError
+
+    def _get_operations_iter(
+        self, method: str, paths_iter: Iterator[Path]
+    ) -> Iterator[PathOperation]:
+        for path, path_result in paths_iter:
+            if method not in path:
+                continue
+            operation = path / method
+            yield PathOperation(path, operation, path_result)
+
+    def _get_servers_iter(
+        self, name: str, operations_iter: Iterator[PathOperation]
+    ) -> Iterator[PathOperationServer]:
+        raise NotImplementedError
+
+
+class APICallPathFinder(BasePathFinder):
+    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+        self.spec = spec
+        self.base_url = base_url
+
+    def _get_paths_iter(self, name: str) -> Iterator[Path]:
         template_paths: List[Path] = []
         paths = self.spec / "paths"
         for path_pattern, path in list(paths.items()):
             # simple path.
             # Return right away since it is always the most concrete
-            if full_url.endswith(path_pattern):
+            if name.endswith(path_pattern):
                 path_result = TemplateResult(path_pattern, {})
                 yield Path(path, path_result)
             # template path
             else:
-                result = search(path_pattern, full_url)
+                result = search(path_pattern, name)
                 if result:
                     path_result = TemplateResult(path_pattern, result.named)
                     template_paths.append(Path(path, path_result))
@@ -72,18 +91,9 @@ class PathFinder:
         # Fewer variables -> more concrete path
         yield from sorted(template_paths, key=template_path_len)
 
-    def _get_operations_iter(
-        self, paths_iter: Iterator[Path], request_method: str
-    ) -> Iterator[OperationPath]:
-        for path, path_result in paths_iter:
-            if request_method not in path:
-                continue
-            operation = path / request_method
-            yield OperationPath(path, operation, path_result)
-
     def _get_servers_iter(
-        self, operations_iter: Iterator[OperationPath], full_url: str
-    ) -> Iterator[ServerOperationPath]:
+        self, name: str, operations_iter: Iterator[PathOperation]
+    ) -> Iterator[PathOperationServer]:
         for path, operation, path_result in operations_iter:
             servers = (
                 path.get("servers", None)
@@ -91,9 +101,7 @@ class PathFinder:
                 or self.spec.get("servers", [{"url": "/"}])
             )
             for server in servers:
-                server_url_pattern = full_url.rsplit(path_result.resolved, 1)[
-                    0
-                ]
+                server_url_pattern = name.rsplit(path_result.resolved, 1)[0]
                 server_url = server["url"]
                 if not is_absolute(server_url):
                     # relative to absolute url
@@ -107,7 +115,7 @@ class PathFinder:
                 # simple path
                 if server_url_pattern == server_url:
                     server_result = TemplateResult(server["url"], {})
-                    yield ServerOperationPath(
+                    yield PathOperationServer(
                         path,
                         operation,
                         server,
@@ -121,10 +129,33 @@ class PathFinder:
                         server_result = TemplateResult(
                             server["url"], result.named
                         )
-                        yield ServerOperationPath(
+                        yield PathOperationServer(
                             path,
                             operation,
                             server,
                             path_result,
                             server_result,
                         )
+
+
+class WebhookPathFinder(BasePathFinder):
+    def _get_paths_iter(self, name: str) -> Iterator[Path]:
+        if "webhooks" not in self.spec:
+            raise PathNotFound("Webhooks not found")
+        webhooks = self.spec / "webhooks"
+        for webhook_name, path in list(webhooks.items()):
+            if name == webhook_name:
+                path_result = TemplateResult(webhook_name, {})
+                yield Path(path, path_result)
+
+    def _get_servers_iter(
+        self, name: str, operations_iter: Iterator[PathOperation]
+    ) -> Iterator[PathOperationServer]:
+        for path, operation, path_result in operations_iter:
+            yield PathOperationServer(
+                path,
+                operation,
+                None,
+                path_result,
+                {},
+            )

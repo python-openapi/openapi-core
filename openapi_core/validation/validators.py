@@ -1,11 +1,17 @@
 """OpenAPI core validation validators module"""
+import sys
 from typing import Any
 from typing import Dict
 from typing import Mapping
 from typing import Optional
 from typing import Tuple
+from typing import Type
 from urllib.parse import urljoin
 
+if sys.version_info >= (3, 8):
+    from functools import cached_property
+else:
+    from backports.cached_property import cached_property
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (
@@ -23,13 +29,16 @@ from openapi_core.deserializing.parameters.factories import (
 from openapi_core.schema.parameters import get_value
 from openapi_core.spec import Spec
 from openapi_core.templating.media_types.datatypes import MediaType
-from openapi_core.templating.paths.datatypes import ServerOperationPath
-from openapi_core.templating.paths.finders import PathFinder
+from openapi_core.templating.paths.datatypes import PathOperationServer
+from openapi_core.templating.paths.finders import APICallPathFinder
+from openapi_core.templating.paths.finders import BasePathFinder
+from openapi_core.templating.paths.finders import WebhookPathFinder
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
 from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.request.protocols import SupportsPathPattern
+from openapi_core.validation.request.protocols import WebhookRequest
 
 
 class BaseValidator:
@@ -63,12 +72,6 @@ class BaseValidator:
         self.media_type_deserializers_factory = (
             media_type_deserializers_factory
         )
-
-    def _find_path(self, request: Request) -> ServerOperationPath:
-        path_finder = PathFinder(self.spec, base_url=self.base_url)
-        path_pattern = getattr(request, "path_pattern", None) or request.path
-        full_url = urljoin(request.host_url, path_pattern)
-        return path_finder.find(request.method, full_url)
 
     def _get_media_type(self, content: Spec, mimetype: str) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder
@@ -123,3 +126,23 @@ class BaseValidator:
             casted = self._cast(schema, deserialised)
         unmarshalled = self._unmarshal(schema, casted)
         return unmarshalled
+
+
+class BaseAPICallValidator(BaseValidator):
+    @cached_property
+    def path_finder(self) -> BasePathFinder:
+        return APICallPathFinder(self.spec, base_url=self.base_url)
+
+    def _find_path(self, request: Request) -> PathOperationServer:
+        path_pattern = getattr(request, "path_pattern", None) or request.path
+        full_url = urljoin(request.host_url, path_pattern)
+        return self.path_finder.find(request.method, full_url)
+
+
+class BaseWebhookValidator(BaseValidator):
+    @cached_property
+    def path_finder(self) -> BasePathFinder:
+        return WebhookPathFinder(self.spec, base_url=self.base_url)
+
+    def _find_path(self, request: WebhookRequest) -> PathOperationServer:
+        return self.path_finder.find(request.method, request.name)

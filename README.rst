@@ -80,6 +80,17 @@ Use ``validate_request`` function to validate request against a given spec.
    # raise error if request is invalid
    result = validate_request(request, spec=spec)
 
+Request object should implement OpenAPI Request protocol (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
+
+Use the same function to validate webhook request against a given spec.
+
+.. code-block:: python
+
+   # raise error if request is invalid
+   result = validate_request(webhook_request, spec=spec)
+
+Webhook request object should implement OpenAPI WebhookRequest protocol (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
+
 Retrieve request data from validation result
 
 .. code-block:: python
@@ -95,8 +106,6 @@ Retrieve request data from validation result
    # get security data
    validated_security = result.security
 
-Request object should implement OpenAPI Request protocol (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
-
 Response
 ********
 
@@ -109,7 +118,16 @@ Use ``validate_response`` function to validate response against a given spec.
    # raise error if response is invalid
    result = validate_response(request, response, spec=spec)
 
-and unmarshal response data from validation result
+Response object should implement OpenAPI Response protocol (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
+
+Use the same function to validate response from webhook request against a given spec.
+
+.. code-block:: python
+
+   # raise error if request is invalid
+   result = validate_response(webhook_request, response, spec=spec)
+
+Retrieve response data from validation result
 
 .. code-block:: python
 
@@ -119,12 +137,10 @@ and unmarshal response data from validation result
    # get data
    validated_data = result.data
 
-Response object should implement OpenAPI Response protocol (See `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__).
-
 In order to explicitly validate a:
 
 * OpenAPI 3.0 spec, import ``V30RequestValidator`` or ``V30ResponseValidator`` 
-* OpenAPI 3.1 spec, import ``V31RequestValidator`` or ``V31ResponseValidator`` 
+* OpenAPI 3.1 spec, import ``V31RequestValidator`` or ``V31ResponseValidator`` or ``V31WebhookRequestValidator`` or ``V31WebhookResponseValidator`` 
 
 .. code:: python
 
