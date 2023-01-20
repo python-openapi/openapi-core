@@ -16,7 +16,7 @@ class ParametersError(Exception):
     def context(self) -> Iterable[Exception]:
         warnings.warn(
             "context property of ParametersError is deprecated. "
-            "Use erros instead.",
+            "Use errors instead.",
             DeprecationWarning,
         )
         return self.errors
