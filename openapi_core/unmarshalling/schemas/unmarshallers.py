@@ -24,7 +24,7 @@ from openapi_core.extensions.models.factories import ModelPathFactory
 from openapi_core.schema.schemas import get_properties
 from openapi_core.spec import Spec
 from openapi_core.unmarshalling.schemas.datatypes import FormattersDict
-from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
+from openapi_core.unmarshalling.schemas.enums import ValidationContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
 )
@@ -273,7 +273,7 @@ class ComplexUnmarshaller(BaseSchemaUnmarshaller):
         formatter: Optional[Formatter],
         validators_factory: "SchemaValidatorsFactory",
         unmarshallers_factory: "SchemaUnmarshallersFactory",
-        context: Optional[UnmarshalContext] = None,
+        context: Optional[ValidationContext] = None,
     ):
         super().__init__(
             schema,
@@ -360,10 +360,10 @@ class ObjectUnmarshaller(ComplexUnmarshaller):
 
         for prop_name, prop_schema in get_properties(self.schema).items():
             read_only = prop_schema.getkey("readOnly", False)
-            if self.context == UnmarshalContext.REQUEST and read_only:
+            if self.context == ValidationContext.REQUEST and read_only:
                 continue
             write_only = prop_schema.getkey("writeOnly", False)
-            if self.context == UnmarshalContext.RESPONSE and write_only:
+            if self.context == ValidationContext.RESPONSE and write_only:
                 continue
             try:
                 prop_value = value[prop_name]

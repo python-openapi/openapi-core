@@ -2,6 +2,6 @@
 from enum import Enum
 
 
-class UnmarshalContext(Enum):
+class ValidationContext(Enum):
     REQUEST = "request"
     RESPONSE = "response"

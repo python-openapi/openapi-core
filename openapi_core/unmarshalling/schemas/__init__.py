@@ -1,7 +1,7 @@
 from openapi_schema_validator import OAS30Validator
 from openapi_schema_validator import OAS31Validator
 
-from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
+from openapi_core.unmarshalling.schemas.enums import ValidationContext
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
@@ -16,12 +16,12 @@ __all__ = [
 
 oas30_request_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
     OAS30Validator,
-    context=UnmarshalContext.REQUEST,
+    context=ValidationContext.REQUEST,
 )
 
 oas30_response_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
     OAS30Validator,
-    context=UnmarshalContext.RESPONSE,
+    context=ValidationContext.RESPONSE,
 )
 
 oas31_schema_unmarshallers_factory = SchemaUnmarshallersFactory(

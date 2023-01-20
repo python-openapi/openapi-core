@@ -9,7 +9,7 @@ from openapi_schema_validator import OAS30Validator
 from openapi_schema_validator import OAS31Validator
 
 from openapi_core.spec.paths import Spec
-from openapi_core.unmarshalling.schemas.enums import UnmarshalContext
+from openapi_core.unmarshalling.schemas.enums import ValidationContext
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
 )
@@ -866,9 +866,9 @@ class TestOAS30SchemaUnmarshallerCall:
         spec = Spec.from_dict(schema, validator=None)
 
         # readOnly properties may be admitted in a Response context
-        result = unmarshaller_factory(spec, context=UnmarshalContext.RESPONSE)(
-            {"id": 10}
-        )
+        result = unmarshaller_factory(
+            spec, context=ValidationContext.RESPONSE
+        )({"id": 10})
 
         assert result == {
             "id": 10,
@@ -889,7 +889,7 @@ class TestOAS30SchemaUnmarshallerCall:
 
         # readOnly properties are not admitted on a Request context
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller_factory(spec, context=UnmarshalContext.REQUEST)(
+            unmarshaller_factory(spec, context=ValidationContext.REQUEST)(
                 {"id": 10}
             )
 
@@ -907,7 +907,7 @@ class TestOAS30SchemaUnmarshallerCall:
         spec = Spec.from_dict(schema, validator=None)
 
         # readOnly properties may be admitted in a Response context
-        result = unmarshaller_factory(spec, context=UnmarshalContext.REQUEST)(
+        result = unmarshaller_factory(spec, context=ValidationContext.REQUEST)(
             {"id": 10}
         )
 
@@ -930,7 +930,7 @@ class TestOAS30SchemaUnmarshallerCall:
 
         # readOnly properties are not admitted on a Request context
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller_factory(spec, context=UnmarshalContext.RESPONSE)(
+            unmarshaller_factory(spec, context=ValidationContext.RESPONSE)(
                 {"id": 10}
             )
 
@@ -938,9 +938,9 @@ class TestOAS30SchemaUnmarshallerCall:
         schema = {"type": "object"}
         spec = Spec.from_dict(schema, validator=None)
 
-        result = unmarshaller_factory(spec, context=UnmarshalContext.RESPONSE)(
-            {"user_ids": [1, 2, 3, 4]}
-        )
+        result = unmarshaller_factory(
+            spec, context=ValidationContext.RESPONSE
+        )({"user_ids": [1, 2, 3, 4]})
 
         assert result == {
             "user_ids": [1, 2, 3, 4],
