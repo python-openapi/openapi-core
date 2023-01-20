@@ -13,6 +13,7 @@ else:
 
 from openapi_core.spec import Spec
 from openapi_core.validation.request.protocols import Request
+from openapi_core.validation.request.protocols import WebhookRequest
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 
 
@@ -56,6 +57,19 @@ class ResponseValidator(Protocol):
     def validate(
         self,
         request: Request,
+        response: Response,
+    ) -> ResponseValidationResult:
+        ...
+
+
+@runtime_checkable
+class WebhookResponseValidator(Protocol):
+    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+        ...
+
+    def validate(
+        self,
+        request: WebhookRequest,
         response: Response,
     ) -> ResponseValidationResult:
         ...

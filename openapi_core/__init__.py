@@ -1,8 +1,10 @@
 """OpenAPI core module"""
 from openapi_core.spec import Spec
 from openapi_core.validation.request import V3RequestValidator
+from openapi_core.validation.request import V3WebhookRequestValidator
 from openapi_core.validation.request import V30RequestValidator
 from openapi_core.validation.request import V31RequestValidator
+from openapi_core.validation.request import V31WebhookRequestValidator
 from openapi_core.validation.request import openapi_request_body_validator
 from openapi_core.validation.request import (
     openapi_request_parameters_validator,
@@ -13,8 +15,10 @@ from openapi_core.validation.request import openapi_v3_request_validator
 from openapi_core.validation.request import openapi_v30_request_validator
 from openapi_core.validation.request import openapi_v31_request_validator
 from openapi_core.validation.response import V3ResponseValidator
+from openapi_core.validation.response import V3WebhookResponseValidator
 from openapi_core.validation.response import V30ResponseValidator
 from openapi_core.validation.response import V31ResponseValidator
+from openapi_core.validation.response import V31WebhookResponseValidator
 from openapi_core.validation.response import openapi_response_data_validator
 from openapi_core.validation.response import openapi_response_headers_validator
 from openapi_core.validation.response import openapi_response_validator
@@ -36,10 +40,14 @@ __all__ = [
     "validate_response",
     "V30RequestValidator",
     "V31RequestValidator",
-    "V3RequestValidator",
     "V30ResponseValidator",
     "V31ResponseValidator",
+    "V31WebhookRequestValidator",
+    "V31WebhookResponseValidator",
+    "V3RequestValidator",
     "V3ResponseValidator",
+    "V3WebhookRequestValidator",
+    "V3WebhookResponseValidator",
     "openapi_v3_request_validator",
     "openapi_v30_request_validator",
     "openapi_v31_request_validator",

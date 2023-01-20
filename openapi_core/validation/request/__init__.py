@@ -33,6 +33,18 @@ from openapi_core.validation.request.validators import (
     V31RequestSecurityValidator,
 )
 from openapi_core.validation.request.validators import V31RequestValidator
+from openapi_core.validation.request.validators import (
+    V31WebhookRequestBodyValidator,
+)
+from openapi_core.validation.request.validators import (
+    V31WebhookRequestParametersValidator,
+)
+from openapi_core.validation.request.validators import (
+    V31WebhookRequestSecurityValidator,
+)
+from openapi_core.validation.request.validators import (
+    V31WebhookRequestValidator,
+)
 
 __all__ = [
     "V30RequestBodyValidator",
@@ -43,7 +55,12 @@ __all__ = [
     "V31RequestParametersValidator",
     "V31RequestSecurityValidator",
     "V31RequestValidator",
+    "V31WebhookRequestBodyValidator",
+    "V31WebhookRequestParametersValidator",
+    "V31WebhookRequestSecurityValidator",
+    "V31WebhookRequestValidator",
     "V3RequestValidator",
+    "V3WebhookRequestValidator",
     "openapi_v30_request_body_validator",
     "openapi_v30_request_parameters_validator",
     "openapi_v30_request_security_validator",
@@ -64,6 +81,7 @@ __all__ = [
 
 # alias to the latest v3 version
 V3RequestValidator = V31RequestValidator
+V3WebhookRequestValidator = V31WebhookRequestValidator
 
 # spec validators
 openapi_v30_request_body_validator = SpecRequestValidatorProxy(

@@ -12,13 +12,15 @@ from openapi_core.validation.exceptions import ValidatorDetectError
 from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.response.protocols import Response
-from openapi_core.validation.response.validators import BaseResponseValidator
+from openapi_core.validation.response.validators import (
+    BaseAPICallResponseValidator,
+)
 
 
 class SpecResponseValidatorProxy:
     def __init__(
         self,
-        validator_cls: Type[BaseResponseValidator],
+        validator_cls: Type[BaseAPICallResponseValidator],
         **validator_kwargs: Any,
     ):
         self.validator_cls = validator_cls
