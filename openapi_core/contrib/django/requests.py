@@ -20,7 +20,9 @@ from openapi_core.validation.request.datatypes import RequestParameters
 # is exported, after which it matches ">" and everything until a "/".
 # A check is made to ensure that "/" is not in an excluded character set such
 # as may be found with Django REST Framwork's default value pattern, "[^/.]+".
-PATH_PARAMETER_PATTERN = r"(?:[^/]*?)<(?:(?:.*?:))*?(\w+)>(?:(?:[^/]*?\[\^[^/]*/)?[^/]*)"
+PATH_PARAMETER_PATTERN = (
+    r"(?:[^/]*?)<(?:(?:.*?:))*?(\w+)>(?:(?:[^/]*?\[\^[^/]*/)?[^/]*)"
+)
 
 
 class DjangoOpenAPIRequest:
