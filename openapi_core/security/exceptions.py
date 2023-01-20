@@ -1,5 +1,5 @@
 from openapi_core.exceptions import OpenAPIError
 
 
-class SecurityError(OpenAPIError):
+class SecurityProviderError(OpenAPIError):
     pass

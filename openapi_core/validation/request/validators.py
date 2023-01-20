@@ -24,7 +24,7 @@ from openapi_core.deserializing.parameters.factories import (
 )
 from openapi_core.exceptions import OpenAPIError
 from openapi_core.security import security_provider_factory
-from openapi_core.security.exceptions import SecurityError
+from openapi_core.security.exceptions import SecurityProviderError
 from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.spec.paths import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
@@ -32,6 +32,7 @@ from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
+from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.unmarshalling.schemas import (
     oas30_request_schema_unmarshallers_factory,
 )
@@ -44,17 +45,23 @@ from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
 from openapi_core.util import chainiters
-from openapi_core.validation.exceptions import InvalidSecurity
-from openapi_core.validation.exceptions import MissingParameter
-from openapi_core.validation.exceptions import MissingRequiredParameter
+from openapi_core.validation.decorators import ValidationErrorWrapper
 from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.datatypes import RequestParameters
 from openapi_core.validation.request.datatypes import RequestValidationResult
+from openapi_core.validation.request.exceptions import InvalidParameter
+from openapi_core.validation.request.exceptions import InvalidRequestBody
+from openapi_core.validation.request.exceptions import InvalidSecurity
+from openapi_core.validation.request.exceptions import MissingParameter
 from openapi_core.validation.request.exceptions import MissingRequestBody
+from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import (
     MissingRequiredRequestBody,
 )
+from openapi_core.validation.request.exceptions import ParameterError
 from openapi_core.validation.request.exceptions import ParametersError
+from openapi_core.validation.request.exceptions import RequestBodyError
+from openapi_core.validation.request.exceptions import SecurityError
 from openapi_core.validation.request.protocols import BaseRequest
 from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.request.protocols import WebhookRequest
@@ -91,7 +98,7 @@ class BaseRequestValidator(BaseValidator):
     ) -> RequestValidationResult:
         try:
             security = self._get_security(request.parameters, operation)
-        except InvalidSecurity as exc:
+        except SecurityError as exc:
             return RequestValidationResult(errors=[exc])
 
         try:
@@ -104,19 +111,12 @@ class BaseRequestValidator(BaseValidator):
 
         try:
             body = self._get_body(request.body, request.mimetype, operation)
-        except (
-            MissingRequiredRequestBody,
-            MediaTypeFinderError,
-            DeserializeError,
-            CastError,
-            ValidateError,
-            UnmarshalError,
-        ) as exc:
-            body = None
-            body_errors = [exc]
         except MissingRequestBody:
             body = None
             body_errors = []
+        except RequestBodyError as exc:
+            body = None
+            body_errors = [exc]
         else:
             body_errors = []
 
@@ -133,19 +133,12 @@ class BaseRequestValidator(BaseValidator):
     ) -> RequestValidationResult:
         try:
             body = self._get_body(request.body, request.mimetype, operation)
-        except (
-            MissingRequiredRequestBody,
-            MediaTypeFinderError,
-            DeserializeError,
-            CastError,
-            ValidateError,
-            UnmarshalError,
-        ) as exc:
-            body = None
-            errors = [exc]
         except MissingRequestBody:
             body = None
             errors = []
+        except RequestBodyError as exc:
+            body = None
+            errors = [exc]
         else:
             errors = []
 
@@ -175,7 +168,7 @@ class BaseRequestValidator(BaseValidator):
     ) -> RequestValidationResult:
         try:
             security = self._get_security(request.parameters, operation)
-        except InvalidSecurity as exc:
+        except SecurityError as exc:
             return RequestValidationResult(errors=[exc])
 
         return RequestValidationResult(
@@ -208,13 +201,7 @@ class BaseRequestValidator(BaseValidator):
                 value = self._get_parameter(parameters, param)
             except MissingParameter:
                 continue
-            except (
-                MissingRequiredParameter,
-                DeserializeError,
-                CastError,
-                ValidateError,
-                UnmarshalError,
-            ) as exc:
+            except ParameterError as exc:
                 errors.append(exc)
                 continue
             else:
@@ -226,6 +213,12 @@ class BaseRequestValidator(BaseValidator):
 
         return validated
 
+    @ValidationErrorWrapper(
+        ParameterError,
+        InvalidParameter,
+        "from_spec",
+        spec="param",
+    )
     def _get_parameter(
         self, parameters: RequestParameters, param: Spec
     ) -> Any:
@@ -244,9 +237,10 @@ class BaseRequestValidator(BaseValidator):
         except KeyError:
             required = param.getkey("required", False)
             if required:
-                raise MissingRequiredParameter(name)
-            raise MissingParameter(name)
+                raise MissingRequiredParameter(name, param_location)
+            raise MissingParameter(name, param_location)
 
+    @ValidationErrorWrapper(SecurityError, InvalidSecurity)
     def _get_security(
         self, parameters: RequestParameters, operation: Spec
     ) -> Optional[Dict[str, str]]:
@@ -259,18 +253,21 @@ class BaseRequestValidator(BaseValidator):
         if not security:
             return {}
 
+        schemes = []
         for security_requirement in security:
             try:
+                scheme_names = list(security_requirement.keys())
+                schemes.append(scheme_names)
                 return {
                     scheme_name: self._get_security_value(
                         parameters, scheme_name
                     )
-                    for scheme_name in list(security_requirement.keys())
+                    for scheme_name in scheme_names
                 }
-            except SecurityError:
+            except SecurityProviderError:
                 continue
 
-        raise InvalidSecurity
+        raise SecurityNotFound(schemes)
 
     def _get_security_value(
         self, parameters: RequestParameters, scheme_name: str
@@ -282,6 +279,7 @@ class BaseRequestValidator(BaseValidator):
         security_provider = self.security_provider_factory.create(scheme)
         return security_provider(parameters)
 
+    @ValidationErrorWrapper(RequestBodyError, InvalidRequestBody)
     def _get_body(
         self, body: Optional[str], mimetype: str, operation: Spec
     ) -> Any:

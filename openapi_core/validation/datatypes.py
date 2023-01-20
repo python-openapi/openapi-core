@@ -2,10 +2,12 @@
 from dataclasses import dataclass
 from typing import Iterable
 
+from openapi_core.exceptions import OpenAPIError
+
 
 @dataclass
 class BaseValidationResult:
-    errors: Iterable[Exception]
+    errors: Iterable[OpenAPIError]
 
     def raise_for_errors(self) -> None:
         for error in self.errors:

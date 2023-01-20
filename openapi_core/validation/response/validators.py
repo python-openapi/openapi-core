@@ -27,13 +27,19 @@ from openapi_core.unmarshalling.schemas import (
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 from openapi_core.unmarshalling.schemas.exceptions import ValidateError
 from openapi_core.util import chainiters
-from openapi_core.validation.exceptions import MissingHeader
-from openapi_core.validation.exceptions import MissingRequiredHeader
+from openapi_core.validation.decorators import ValidationErrorWrapper
+from openapi_core.validation.exceptions import ValidationError
 from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.request.protocols import WebhookRequest
 from openapi_core.validation.response.datatypes import ResponseValidationResult
+from openapi_core.validation.response.exceptions import DataError
+from openapi_core.validation.response.exceptions import HeaderError
 from openapi_core.validation.response.exceptions import HeadersError
-from openapi_core.validation.response.exceptions import MissingResponseContent
+from openapi_core.validation.response.exceptions import InvalidData
+from openapi_core.validation.response.exceptions import InvalidHeader
+from openapi_core.validation.response.exceptions import MissingData
+from openapi_core.validation.response.exceptions import MissingHeader
+from openapi_core.validation.response.exceptions import MissingRequiredHeader
 from openapi_core.validation.response.protocols import Response
 from openapi_core.validation.validators import BaseAPICallValidator
 from openapi_core.validation.validators import BaseValidator
@@ -59,14 +65,7 @@ class BaseResponseValidator(BaseValidator):
 
         try:
             validated_data = self._get_data(data, mimetype, operation_response)
-        except (
-            MediaTypeFinderError,
-            MissingResponseContent,
-            DeserializeError,
-            CastError,
-            ValidateError,
-            UnmarshalError,
-        ) as exc:
+        except DataError as exc:
             validated_data = None
             data_errors = [exc]
         else:
@@ -100,14 +99,7 @@ class BaseResponseValidator(BaseValidator):
 
         try:
             validated = self._get_data(data, mimetype, operation_response)
-        except (
-            MediaTypeFinderError,
-            MissingResponseContent,
-            DeserializeError,
-            CastError,
-            ValidateError,
-            UnmarshalError,
-        ) as exc:
+        except DataError as exc:
             validated = None
             data_errors = [exc]
         else:
@@ -152,6 +144,7 @@ class BaseResponseValidator(BaseValidator):
         finder = ResponseFinder(operation / "responses")
         return finder.find(str(status_code))
 
+    @ValidationErrorWrapper(DataError, InvalidData)
     def _get_data(
         self, data: str, mimetype: str, operation_response: Spec
     ) -> Any:
@@ -175,7 +168,7 @@ class BaseResponseValidator(BaseValidator):
 
     def _get_data_value(self, data: str) -> Any:
         if not data:
-            raise MissingResponseContent
+            raise MissingData
 
         return data
 
@@ -197,13 +190,7 @@ class BaseResponseValidator(BaseValidator):
                 value = self._get_header(headers, name, header)
             except MissingHeader:
                 continue
-            except (
-                MissingRequiredHeader,
-                DeserializeError,
-                CastError,
-                ValidateError,
-                UnmarshalError,
-            ) as exc:
+            except ValidationError as exc:
                 errors.append(exc)
                 continue
             else:
@@ -214,6 +201,7 @@ class BaseResponseValidator(BaseValidator):
 
         return validated
 
+    @ValidationErrorWrapper(HeaderError, InvalidHeader, name="name")
     def _get_header(
         self, headers: Mapping[str, Any], name: str, header: Spec
     ) -> Any:
