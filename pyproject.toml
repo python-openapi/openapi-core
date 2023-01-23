@@ -92,7 +92,7 @@ strict-rfc3339 = "^0.7"
 webob = "*"
 mypy = "^0.971"
 starlette = "^0.21.0"
-httpx = "^0.23.0"
+httpx = "^0.23.3"
 
 [tool.pytest.ini_options]
 addopts = """
