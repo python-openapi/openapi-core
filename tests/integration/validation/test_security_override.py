@@ -3,8 +3,9 @@ from base64 import b64encode
 import pytest
 
 from openapi_core import openapi_request_validator
+from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.testing import MockRequest
-from openapi_core.validation.exceptions import InvalidSecurity
+from openapi_core.validation.request.exceptions import SecurityError
 
 
 @pytest.fixture(scope="class")
@@ -40,7 +41,9 @@ class TestSecurityOverride:
 
         result = openapi_request_validator.validate(spec, request)
 
-        assert type(result.errors[0]) == InvalidSecurity
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) is SecurityError
+        assert type(result.errors[0].__cause__) is SecurityNotFound
         assert result.security is None
 
     def test_override(self, spec):
@@ -64,7 +67,9 @@ class TestSecurityOverride:
 
         result = openapi_request_validator.validate(spec, request)
 
-        assert type(result.errors[0]) == InvalidSecurity
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) is SecurityError
+        assert type(result.errors[0].__cause__) is SecurityNotFound
         assert result.security is None
 
     def test_remove(self, spec):

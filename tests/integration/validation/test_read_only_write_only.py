@@ -7,7 +7,8 @@ from openapi_core import openapi_v30_request_validator
 from openapi_core import openapi_v30_response_validator
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
-from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
+from openapi_core.validation.request.exceptions import InvalidRequestBody
+from openapi_core.validation.response.exceptions import InvalidData
 
 
 @pytest.fixture(scope="class")
@@ -30,7 +31,8 @@ class TestReadOnly:
 
         result = openapi_v30_request_validator.validate(spec, request)
 
-        assert type(result.errors[0]) == InvalidSchemaValue
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidRequestBody
         assert result.body is None
 
     def test_read_only_property_response(self, spec):
@@ -93,5 +95,5 @@ class TestWriteOnly:
             spec, request, response
         )
 
-        assert type(result.errors[0]) == InvalidSchemaValue
+        assert result.errors == [InvalidData()]
         assert result.data is None

@@ -13,18 +13,25 @@ from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.responses.exceptions import ResponseNotFound
+from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation import openapi_request_validator
 from openapi_core.validation import openapi_response_validator
-from openapi_core.validation.exceptions import InvalidSecurity
-from openapi_core.validation.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.datatypes import Parameters
+from openapi_core.validation.request.exceptions import InvalidParameter
+from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import (
     MissingRequiredRequestBody,
 )
-from openapi_core.validation.response.exceptions import MissingResponseContent
+from openapi_core.validation.request.exceptions import ParameterError
+from openapi_core.validation.request.exceptions import RequestBodyError
+from openapi_core.validation.request.exceptions import SecurityError
+from openapi_core.validation.response.exceptions import DataError
+from openapi_core.validation.response.exceptions import InvalidData
+from openapi_core.validation.response.exceptions import InvalidHeader
+from openapi_core.validation.response.exceptions import MissingData
 
 
 class TestRequestValidator:
@@ -198,7 +205,11 @@ class TestRequestValidator:
         result = openapi_request_validator.validate(spec, request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == MediaTypeNotFound
+        assert type(result.errors[0]) == RequestBodyError
+        assert result.errors[0].__cause__ == MediaTypeNotFound(
+            mimetype="text/csv",
+            availableMimetypes=["application/json", "text/plain"],
+        )
         assert result.body is None
         assert result.parameters == Parameters(
             header={
@@ -250,8 +261,9 @@ class TestRequestValidator:
 
         result = openapi_request_validator.validate(spec, request)
 
-        assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidSchemaValue
+        assert result.errors == [
+            InvalidParameter(name="userdata", location="cookie")
+        ]
         assert result.parameters == Parameters(
             header={
                 "api-key": self.api_key,
@@ -331,7 +343,7 @@ class TestRequestValidator:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
-    def test_post_pets_plain_no_schema(self, spec, spec_dict):
+    def test_post_pets_plain_no_schema(self, spec):
         data = "plain text"
         headers = {
             "api-key": self.api_key_encoded,
@@ -376,9 +388,11 @@ class TestRequestValidator:
 
         result = openapi_request_validator.validate(spec, request)
 
-        assert result.errors == [
-            InvalidSecurity(),
-        ]
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) is SecurityError
+        assert result.errors[0].__cause__ == SecurityNotFound(
+            [["petstore_auth"]]
+        )
         assert result.body is None
         assert result.parameters == Parameters()
         assert result.security is None
@@ -463,8 +477,10 @@ class TestPathItemParamsValidator:
         )
         result = openapi_request_validator.validate(spec, request)
 
-        assert len(result.errors) == 1
-        assert type(result.errors[0]) == CastError
+        assert result.errors == [
+            ParameterError(name="resId", location="query")
+        ]
+        assert type(result.errors[0].__cause__) is CastError
         assert result.body is None
         assert result.parameters == Parameters()
 
@@ -617,8 +633,8 @@ class TestResponseValidator:
 
         result = openapi_response_validator.validate(spec, request, response)
 
-        assert len(result.errors) == 1
-        assert type(result.errors[0]) == MediaTypeNotFound
+        assert result.errors == [DataError()]
+        assert type(result.errors[0].__cause__) == MediaTypeNotFound
         assert result.data is None
         assert result.headers == {}
 
@@ -628,8 +644,7 @@ class TestResponseValidator:
 
         result = openapi_response_validator.validate(spec, request, response)
 
-        assert len(result.errors) == 1
-        assert type(result.errors[0]) == MissingResponseContent
+        assert result.errors == [MissingData()]
         assert result.data is None
         assert result.headers == {}
 
@@ -639,8 +654,10 @@ class TestResponseValidator:
 
         result = openapi_response_validator.validate(spec, request, response)
 
-        assert len(result.errors) == 1
-        assert type(result.errors[0]) == MediaTypeDeserializeError
+        assert result.errors == [DataError()]
+        assert result.errors[0].__cause__ == MediaTypeDeserializeError(
+            mimetype="application/json", value="abcde"
+        )
         assert result.data is None
         assert result.headers == {}
 
@@ -650,8 +667,8 @@ class TestResponseValidator:
 
         result = openapi_response_validator.validate(spec, request, response)
 
-        assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidSchemaValue
+        assert result.errors == [InvalidData()]
+        assert type(result.errors[0].__cause__) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 
@@ -667,10 +684,45 @@ class TestResponseValidator:
 
         result = openapi_response_validator.validate(spec, request, response)
 
-        assert len(result.errors) == 1
-        assert type(result.errors[0]) == InvalidSchemaValue
+        assert result.errors == [InvalidData()]
+        assert type(result.errors[0].__cause__) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
+
+    def test_invalid_header(self, spec):
+        userdata = {
+            "name": 1,
+        }
+        userdata_json = json.dumps(userdata)
+        request = MockRequest(
+            self.host_url,
+            "delete",
+            "/v1/tags",
+            path_pattern="/v1/tags",
+        )
+        response_json = {
+            "data": [
+                {
+                    "id": 1,
+                    "name": "Sparky",
+                    "ears": {
+                        "healthy": True,
+                    },
+                },
+            ],
+        }
+        response_data = json.dumps(response_json)
+        headers = {
+            "x-delete-confirm": "true",
+            "x-delete-date": "today",
+        }
+        response = MockResponse(response_data, headers=headers)
+
+        result = openapi_response_validator.validate(spec, request, response)
+
+        assert result.errors == [InvalidHeader(name="x-delete-date")]
+        assert result.data is None
+        assert result.headers == {"x-delete-confirm": True}
 
     def test_get_pets(self, spec):
         request = MockRequest(self.host_url, "get", "/v1/pets")

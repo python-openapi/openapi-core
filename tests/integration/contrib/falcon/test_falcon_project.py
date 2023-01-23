@@ -27,7 +27,20 @@ class TestPetListResource(BaseTestFalconProject):
                 "/v1/pets", host="petstore.swagger.io", headers=headers
             )
 
+        expected_data = {
+            "errors": [
+                {
+                    "type": (
+                        "<class 'openapi_core.validation.request.exceptions."
+                        "MissingRequiredParameter'>"
+                    ),
+                    "status": 400,
+                    "title": "Missing required query parameter: limit",
+                }
+            ]
+        }
         assert response.status_code == 400
+        assert response.json == expected_data
 
     def test_get_valid(self, client):
         headers = {
@@ -120,11 +133,11 @@ class TestPetListResource(BaseTestFalconProject):
             "errors": [
                 {
                     "type": (
-                        "<class 'openapi_core.validation.exceptions."
+                        "<class 'openapi_core.validation.request.exceptions."
                         "MissingRequiredParameter'>"
                     ),
                     "status": 400,
-                    "title": "Missing required parameter: api-key",
+                    "title": "Missing required header parameter: api-key",
                 }
             ]
         }
@@ -199,11 +212,11 @@ class TestPetListResource(BaseTestFalconProject):
             "errors": [
                 {
                     "type": (
-                        "<class 'openapi_core.validation.exceptions."
+                        "<class 'openapi_core.validation.request.exceptions."
                         "MissingRequiredParameter'>"
                     ),
                     "status": 400,
-                    "title": "Missing required parameter: user",
+                    "title": "Missing required cookie parameter: user",
                 }
             ]
         }
@@ -296,11 +309,14 @@ class TestPetDetailResource:
             "errors": [
                 {
                     "type": (
-                        "<class 'openapi_core.validation.exceptions."
-                        "InvalidSecurity'>"
+                        "<class 'openapi_core.templating.security.exceptions."
+                        "SecurityNotFound'>"
                     ),
                     "status": 403,
-                    "title": "Security not valid for any requirement",
+                    "title": (
+                        "Security not found. Schemes not valid for any "
+                        "requirement: [['petstore_auth']]"
+                    ),
                 }
             ]
         }

@@ -22,8 +22,6 @@ from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
-from openapi_core.validation.exceptions import MissingRequiredHeader
-from openapi_core.validation.exceptions import MissingRequiredParameter
 from openapi_core.validation.request import openapi_v30_request_body_validator
 from openapi_core.validation.request import (
     openapi_v30_request_parameters_validator,
@@ -32,12 +30,17 @@ from openapi_core.validation.request import (
     openapi_v30_request_security_validator,
 )
 from openapi_core.validation.request.datatypes import Parameters
+from openapi_core.validation.request.exceptions import MissingRequiredParameter
+from openapi_core.validation.request.exceptions import ParameterError
+from openapi_core.validation.request.exceptions import RequestBodyError
 from openapi_core.validation.response import (
     openapi_v30_response_data_validator,
 )
 from openapi_core.validation.response import (
     openapi_v30_response_headers_validator,
 )
+from openapi_core.validation.response.exceptions import InvalidData
+from openapi_core.validation.response.exceptions import MissingRequiredHeader
 
 
 class TestPetstore:
@@ -272,26 +275,26 @@ class TestPetstore:
         response_data = json.dumps(response_data_json)
         response = MockResponse(response_data)
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(InvalidData) as exc_info:
             validate_response(
                 request,
                 response,
                 spec=spec,
                 validator=openapi_v30_response_data_validator,
             )
+        assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
         response_result = openapi_v30_response_validator.validate(
             spec, request, response
         )
 
-        schema_errors = response_result.errors[0].schema_errors
-        assert response_result.errors == [
-            InvalidSchemaValue(
-                type="object",
-                value=response_data_json,
-                schema_errors=schema_errors,
-            ),
-        ]
+        assert response_result.errors == [InvalidData()]
+        schema_errors = response_result.errors[0].__cause__.schema_errors
+        assert response_result.errors[0].__cause__ == InvalidSchemaValue(
+            type="object",
+            value=response_data_json,
+            schema_errors=schema_errors,
+        )
         assert response_result.data is None
 
     def test_get_pets_ids_param(self, spec):
@@ -411,12 +414,13 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            with pytest.raises(DeserializeError):
+            with pytest.raises(ParameterError) as exc_info:
                 validate_request(
                     request,
                     spec=spec,
                     validator=openapi_v30_request_parameters_validator,
                 )
+        assert type(exc_info.value.__cause__) is DeserializeError
 
         result = validate_request(
             request, spec=spec, validator=openapi_v30_request_body_validator
@@ -440,12 +444,13 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            with pytest.raises(CastError):
+            with pytest.raises(ParameterError) as exc_info:
                 validate_request(
                     request,
                     spec=spec,
                     validator=openapi_v30_request_parameters_validator,
                 )
+        assert type(exc_info.value.__cause__) is CastError
 
         result = validate_request(
             request, spec=spec, validator=openapi_v30_request_body_validator
@@ -493,12 +498,14 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            with pytest.raises(EmptyQueryParameterValue):
+            with pytest.raises(ParameterError) as exc_info:
                 validate_request(
                     request,
                     spec=spec,
                     validator=openapi_v30_request_parameters_validator,
                 )
+        assert type(exc_info.value.__cause__) is EmptyQueryParameterValue
+
         result = validate_request(
             request, spec=spec, validator=openapi_v30_request_body_validator
         )
@@ -880,7 +887,7 @@ class TestPetstore:
         assert result.body.address.city == pet_city
         assert result.body.healthy is False
 
-    def test_post_no_one_of_schema(self, spec, spec_dict):
+    def test_post_no_one_of_schema(self, spec):
         host_url = "https://staging.gigantic-server.com/v1"
         path_pattern = "/v1/pets"
         pet_name = "Cat"
@@ -922,12 +929,13 @@ class TestPetstore:
             },
         )
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(RequestBodyError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
                 validator=openapi_v30_request_body_validator,
             )
+        assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
     def test_post_cats_only_required_body(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -1025,12 +1033,13 @@ class TestPetstore:
             },
         )
 
-        with pytest.raises(MediaTypeNotFound):
+        with pytest.raises(RequestBodyError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
                 validator=openapi_v30_request_body_validator,
             )
+        assert type(exc_info.value.__cause__) is MediaTypeNotFound
 
     def test_post_pets_missing_cookie(self, spec, spec_dict):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -1377,7 +1386,7 @@ class TestPetstore:
         assert response_result.errors == []
         assert response_result.data == data_json
 
-    def test_post_tags_extra_body_properties(self, spec, spec_dict):
+    def test_post_tags_extra_body_properties(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         pet_name = "Dog"
@@ -1404,14 +1413,15 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(RequestBodyError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
                 validator=openapi_v30_request_body_validator,
             )
+        assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
-    def test_post_tags_empty_body(self, spec, spec_dict):
+    def test_post_tags_empty_body(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         data_json = {}
@@ -1433,12 +1443,13 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(RequestBodyError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
                 validator=openapi_v30_request_body_validator,
             )
+        assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
     def test_post_tags_wrong_property_type(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -1462,12 +1473,13 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(RequestBodyError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
                 validator=openapi_v30_request_body_validator,
             )
+        assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
     def test_post_tags_additional_properties(self, spec):
         host_url = "http://petstore.swagger.io/v1"
@@ -1679,12 +1691,13 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.raises(InvalidSchemaValue):
+        with pytest.raises(RequestBodyError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
                 validator=openapi_v30_request_body_validator,
             )
+        assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
         code = 400
         message = "Bad request"

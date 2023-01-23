@@ -4,7 +4,8 @@ from typing import Dict
 from typing import Iterable
 
 from openapi_core.exceptions import OpenAPIError
-from openapi_core.validation.response.protocols import Response
+from openapi_core.unmarshalling.schemas.exceptions import ValidateError
+from openapi_core.validation.exceptions import ValidationError
 
 
 @dataclass
@@ -13,10 +14,41 @@ class HeadersError(Exception):
     context: Iterable[OpenAPIError]
 
 
-class OpenAPIResponseError(OpenAPIError):
-    pass
+class ResponseError(ValidationError):
+    """Response error"""
 
 
-class MissingResponseContent(OpenAPIResponseError):
+class DataError(ResponseError):
+    """Data error"""
+
+
+class InvalidData(DataError, ValidateError):
+    """Invalid data"""
+
+
+class MissingData(DataError):
     def __str__(self) -> str:
-        return "Missing response content"
+        return "Missing response data"
+
+
+@dataclass
+class HeaderError(ResponseError):
+    name: str
+
+
+class InvalidHeader(HeaderError, ValidateError):
+    """Invalid header"""
+
+
+class MissingHeaderError(HeaderError):
+    """Missing header error"""
+
+
+class MissingHeader(MissingHeaderError):
+    def __str__(self) -> str:
+        return f"Missing header (without default value): {self.name}"
+
+
+class MissingRequiredHeader(MissingHeaderError):
+    def __str__(self) -> str:
+        return f"Missing required header: {self.name}"

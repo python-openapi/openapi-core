@@ -228,6 +228,11 @@ paths:
               schema:
                 type: boolean
               required: true
+            x-delete-date:
+              description: Confirmation automation date
+              schema:
+                type: string
+                format: date
         default:
           $ref: "#/components/responses/ErrorResponse"
 components:
