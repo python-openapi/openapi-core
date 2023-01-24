@@ -83,8 +83,19 @@ def validate_request(
     cls: Optional[AnyRequestValidatorType] = None,
     **validator_kwargs: Any,
 ) -> RequestValidationResult:
+    if isinstance(spec, (Request, WebhookRequest)) and isinstance(
+        request, Spec
+    ):
+        warnings.warn(
+            "spec parameter as a first argument is deprecated. "
+            "Move it to second argument instead.",
+            DeprecationWarning,
+        )
+        request, spec = spec, request
     if not isinstance(request, (Request, WebhookRequest)):
-        raise TypeError("'request' is not (Webhook)Request")
+        raise TypeError("'request' argument is not type of (Webhook)Request")
+    if not isinstance(spec, Spec):
+        raise TypeError("'spec' argument is not type of Spec")
     if validator is not None and isinstance(request, Request):
         warnings.warn(
             "validator parameter is deprecated. Use cls instead.",
@@ -113,18 +124,33 @@ def validate_request(
 
 
 def validate_response(
-    request: AnyRequest,
-    response: Response,
-    spec: Spec,
+    request: Union[Request, WebhookRequest, Spec],
+    response: Union[Response, Request, WebhookRequest],
+    spec: Union[Spec, Response],
     base_url: Optional[str] = None,
     validator: Optional[SpecResponseValidatorProxy] = None,
     cls: Optional[AnyResponseValidatorType] = None,
     **validator_kwargs: Any,
 ) -> ResponseValidationResult:
+    if (
+        isinstance(request, Spec)
+        and isinstance(response, (Request, WebhookRequest))
+        and isinstance(spec, Response)
+    ):
+        warnings.warn(
+            "spec parameter as a first argument is deprecated. "
+            "Move it to third argument instead.",
+            DeprecationWarning,
+        )
+        args = request, response, spec
+        spec, request, response = args
+
     if not isinstance(request, (Request, WebhookRequest)):
-        raise TypeError("'request' is not (Webhook)Request")
+        raise TypeError("'request' argument is not type of (Webhook)Request")
     if not isinstance(response, Response):
-        raise TypeError("'response' is not Response")
+        raise TypeError("'response' argument is not type of Response")
+    if not isinstance(spec, Spec):
+        raise TypeError("'spec' argument is not type of Spec")
     if validator is not None and isinstance(request, Request):
         warnings.warn(
             "validator parameter is deprecated. Use cls instead.",
