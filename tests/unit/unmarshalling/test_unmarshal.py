@@ -5,17 +5,18 @@ from functools import partial
 import pytest
 from isodate.tzinfo import UTC
 from isodate.tzinfo import FixedOffset
+from openapi_schema_validator import OAS30ReadValidator
 from openapi_schema_validator import OAS30Validator
+from openapi_schema_validator import OAS30WriteValidator
 from openapi_schema_validator import OAS31Validator
 
 from openapi_core.spec.paths import Spec
+from openapi_core.unmarshalling.schemas import oas30_format_checker
+from openapi_core.unmarshalling.schemas import oas30_format_unmarshallers
+from openapi_core.unmarshalling.schemas import oas31_format_checker
 from openapi_core.unmarshalling.schemas.enums import ValidationContext
-from openapi_core.unmarshalling.schemas.exceptions import (
-    FormatterNotFoundError,
-)
-from openapi_core.unmarshalling.schemas.exceptions import (
-    InvalidSchemaFormatValue,
-)
+from openapi_core.unmarshalling.schemas.exceptions import FormatUnmarshalError
+from openapi_core.unmarshalling.schemas.exceptions import InvalidFormatValue
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 from openapi_core.unmarshalling.schemas.factories import (
@@ -27,11 +28,17 @@ from openapi_core.unmarshalling.schemas.formatters import Formatter
 @pytest.fixture
 def schema_unmarshaller_factory():
     def create_unmarshaller(
-        validator, schema, custom_formatters=None, context=None
+        validator,
+        schema,
+        base_format_checker=None,
+        custom_formatters=None,
+        context=None,
     ):
         custom_formatters = custom_formatters or {}
         return SchemaUnmarshallersFactory(
             validator,
+            format_unmarshallers=oas30_format_unmarshallers,
+            base_format_checker=base_format_checker,
             custom_formatters=custom_formatters,
             context=context,
         ).create(schema)
@@ -42,7 +49,11 @@ def schema_unmarshaller_factory():
 class TestOAS30SchemaUnmarshallerUnmarshal:
     @pytest.fixture
     def unmarshaller_factory(self, schema_unmarshaller_factory):
-        return partial(schema_unmarshaller_factory, OAS30Validator)
+        return partial(
+            schema_unmarshaller_factory,
+            OAS30Validator,
+            base_format_checker=oas30_format_checker,
+        )
 
     def test_no_schema(self, unmarshaller_factory):
         spec = None
@@ -58,7 +69,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
         spec = Spec.from_dict(schema, validator=None)
         value = "test"
 
-        with pytest.raises(InvalidSchemaFormatValue):
+        with pytest.raises(FormatUnmarshalError):
             unmarshaller_factory(spec).unmarshal(value)
 
     def test_schema_custom_format_invalid(self, unmarshaller_factory):
@@ -78,7 +89,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
         spec = Spec.from_dict(schema, validator=None)
         value = "test"
 
-        with pytest.raises(InvalidSchemaFormatValue):
+        with pytest.raises(FormatUnmarshalError):
             unmarshaller_factory(
                 spec,
                 custom_formatters=custom_formatters,
@@ -88,7 +99,11 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
 class TestOAS30SchemaUnmarshallerCall:
     @pytest.fixture
     def unmarshaller_factory(self, schema_unmarshaller_factory):
-        return partial(schema_unmarshaller_factory, OAS30Validator)
+        return partial(
+            schema_unmarshaller_factory,
+            OAS30Validator,
+            base_format_checker=oas30_format_checker,
+        )
 
     def test_deprecated(self, unmarshaller_factory):
         schema = {
@@ -297,12 +312,12 @@ class TestOAS30SchemaUnmarshallerCall:
             custom_format: formatter,
         }
 
-        with pytest.raises(InvalidSchemaFormatValue):
+        with pytest.raises(FormatUnmarshalError):
             unmarshaller_factory(spec, custom_formatters=custom_formatters)(
                 value
             )
 
-    def test_string_format_unknown(self, unmarshaller_factory):
+    def test_string_format_unknown_and_invalid(self, unmarshaller_factory):
         unknown_format = "unknown"
         schema = {
             "type": "string",
@@ -311,7 +326,7 @@ class TestOAS30SchemaUnmarshallerCall:
         spec = Spec.from_dict(schema, validator=None)
         value = "x"
 
-        with pytest.raises(FormatterNotFoundError):
+        with pytest.raises(InvalidSchemaValue):
             unmarshaller_factory(spec)(value)
 
     def test_string_format_invalid_value(self, unmarshaller_factory):
@@ -323,11 +338,15 @@ class TestOAS30SchemaUnmarshallerCall:
         spec = Spec.from_dict(schema, validator=None)
         value = "x"
 
-        with pytest.raises(
-            FormatterNotFoundError,
-            match="Formatter not found for custom format",
-        ):
+        with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller_factory(spec)(value)
+
+        schema_errors = exc_info.value.schema_errors
+        assert exc_info.value == InvalidSchemaValue(
+            type="string",
+            value=value,
+            schema_errors=schema_errors,
+        )
 
     def test_integer_valid(self, unmarshaller_factory):
         schema = {
@@ -917,13 +936,13 @@ class TestOAS30SchemaUnmarshallerCall:
             unmarshaller_factory(spec)(value)
 
 
-class TestOAS30ReadSchemaUnmarshallerCall:
+class TestOAS30ResponseSchemaUnmarshallerCall:
     @pytest.fixture
     def unmarshaller_factory(self, schema_unmarshaller_factory):
         return partial(
             schema_unmarshaller_factory,
-            OAS30Validator,
-            context=ValidationContext.RESPONSE,
+            OAS30ReadValidator,
+            base_format_checker=oas30_format_checker,
         )
 
     def test_read_only_properties(self, unmarshaller_factory):
@@ -964,13 +983,13 @@ class TestOAS30ReadSchemaUnmarshallerCall:
             unmarshaller_factory(spec)({"id": 10})
 
 
-class TestOAS30WriteSchemaUnmarshallerCall:
+class TestOAS30RequestSchemaUnmarshallerCall:
     @pytest.fixture
     def unmarshaller_factory(self, schema_unmarshaller_factory):
         return partial(
             schema_unmarshaller_factory,
-            OAS30Validator,
-            context=ValidationContext.REQUEST,
+            OAS30WriteValidator,
+            base_format_checker=oas30_format_checker,
         )
 
     def test_write_only_properties(self, unmarshaller_factory):
@@ -1014,7 +1033,11 @@ class TestOAS30WriteSchemaUnmarshallerCall:
 class TestOAS31SchemaUnmarshallerCall:
     @pytest.fixture
     def unmarshaller_factory(self, schema_unmarshaller_factory):
-        return partial(schema_unmarshaller_factory, OAS31Validator)
+        return partial(
+            schema_unmarshaller_factory,
+            OAS31Validator,
+            base_format_checker=oas31_format_checker,
+        )
 
     def test_null(self, unmarshaller_factory):
         schema = {"type": "null"}

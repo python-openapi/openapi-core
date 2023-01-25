@@ -883,14 +883,14 @@ setuptools = "*"
 
 [[package]]
 name = "openapi-schema-validator"
-version = "0.4.0"
+version = "0.4.1"
 description = "OpenAPI schema validation for Python"
 category = "main"
 optional = false
 python-versions = ">=3.7.0,<4.0.0"
 files = [
-    {file = "openapi_schema_validator-0.4.0-py3-none-any.whl", hash = "sha256:f1faaae0b1076d6f6bf6ad5d8bb53f49d9cc49621f5e224e2bc121ef76016c04"},
-    {file = "openapi_schema_validator-0.4.0.tar.gz", hash = "sha256:fb591258bbe1e24f381d83cff2e9a1a6fc547936adb46143fdd089f6ea411cc8"},
+    {file = "openapi_schema_validator-0.4.1-py3-none-any.whl", hash = "sha256:eb3d6da7a974098aed646e5ea8dd9c8860d8cec2eb087a9c5ab559226cc709ba"},
+    {file = "openapi_schema_validator-0.4.1.tar.gz", hash = "sha256:582d960f633549b6b981e51cc78e05e9fa9ae2b5ff1239a061ec6f53d39eff90"},
 ]
 
 [package.dependencies]
@@ -1736,4 +1736,4 @@ starlette = []
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7.0"
-content-hash = "2298aeb7e7f20f9f479ddc603380eb9868c2914a969de8ca6b097eb3cee16a3e"
+content-hash = "2ea378dcd253b0e619db0ff0adbee91e93326d5f9fa02c27179918e375186373"

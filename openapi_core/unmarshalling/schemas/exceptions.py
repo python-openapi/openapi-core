@@ -19,6 +19,8 @@ class UnmarshallerError(UnmarshalError):
 
 @dataclass
 class InvalidSchemaValue(ValidateError):
+    """Value not valid for schema"""
+
     value: str
     type: str
     schema_errors: Iterable[Exception] = field(default_factory=list)
@@ -30,8 +32,21 @@ class InvalidSchemaValue(ValidateError):
 
 
 @dataclass
-class InvalidSchemaFormatValue(UnmarshallerError):
-    """Value failed to format with formatter"""
+class InvalidFormatValue(UnmarshallerError):
+    """Value not valid for format"""
+
+    value: str
+    type: str
+
+    def __str__(self) -> str:
+        return ("value {value} not valid for format {type}").format(
+            value=self.value,
+            type=self.type,
+        )
+
+
+class FormatUnmarshalError(UnmarshallerError):
+    """Unable to unmarshal value for format"""
 
     value: str
     type: str
@@ -39,19 +54,9 @@ class InvalidSchemaFormatValue(UnmarshallerError):
 
     def __str__(self) -> str:
         return (
-            "Failed to format value {value} to format {type}: {exception}"
+            "Unable to unmarshal value {value} for format {type}: {exception}"
         ).format(
             value=self.value,
             type=self.type,
             exception=self.original_exception,
         )
-
-
-@dataclass
-class FormatterNotFoundError(UnmarshallerError):
-    """Formatter not found to unmarshal"""
-
-    type_format: str
-
-    def __str__(self) -> str:
-        return f"Formatter not found for {self.type_format} format"

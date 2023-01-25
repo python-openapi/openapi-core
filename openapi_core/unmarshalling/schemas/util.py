@@ -1,6 +1,6 @@
 """OpenAPI core schemas util module"""
 from base64 import b64decode
-from copy import copy
+from copy import deepcopy
 from datetime import date
 from datetime import datetime
 from functools import lru_cache
@@ -10,6 +10,7 @@ from typing import Optional
 from typing import Union
 from uuid import UUID
 
+from jsonschema._format import FormatChecker
 from openapi_schema_validator import oas30_format_checker
 
 
@@ -35,11 +36,19 @@ def format_number(value: str) -> Union[int, float]:
 
 
 @lru_cache()
-def build_format_checker(**custom_format_checks: Callable[[Any], Any]) -> Any:
-    if not custom_format_checks:
-        return oas30_format_checker
+def build_format_checker(
+    format_checker: Optional[FormatChecker] = None,
+    **format_checks: Callable[[Any], bool]
+) -> Any:
+    if format_checker is None:
+        fc = FormatChecker()
+    else:
+        if not format_checks:
+            return format_checker
+        fc = deepcopy(format_checker)
 
-    fc = copy(oas30_format_checker)
-    for name, check in custom_format_checks.items():
+    for name, check in format_checks.items():
+        if name in fc.checkers:
+            continue
         fc.checks(name)(check)
     return fc

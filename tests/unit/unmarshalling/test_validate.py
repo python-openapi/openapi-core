@@ -7,9 +7,6 @@ from openapi_core.spec.paths import Spec
 from openapi_core.unmarshalling.schemas import (
     oas30_request_schema_unmarshallers_factory,
 )
-from openapi_core.unmarshalling.schemas.exceptions import (
-    FormatterNotFoundError,
-)
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 
 
@@ -72,7 +69,7 @@ class TestSchemaValidate:
         spec = Spec.from_dict(schema, validator=None)
         value = "x"
 
-        with pytest.raises(FormatterNotFoundError):
+        with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
 
     @pytest.mark.parametrize("value", [False, True])
@@ -615,8 +612,6 @@ class TestSchemaValidate:
         [
             "test",
             b"stream",
-            datetime.date(1989, 1, 2),
-            datetime.datetime(1989, 1, 2, 0, 0, 0),
         ],
     )
     def test_string_format_unknown(self, value, validator_factory):
@@ -627,7 +622,25 @@ class TestSchemaValidate:
         }
         spec = Spec.from_dict(schema, validator=None)
 
-        with pytest.raises(FormatterNotFoundError):
+        with pytest.raises(InvalidSchemaValue):
+            validator_factory(spec).validate(value)
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            datetime.date(1989, 1, 2),
+            datetime.datetime(1989, 1, 2, 0, 0, 0),
+        ],
+    )
+    def test_string_format_unknown_and_invalid(self, value, validator_factory):
+        unknown_format = "unknown"
+        schema = {
+            "type": "string",
+            "format": unknown_format,
+        }
+        spec = Spec.from_dict(schema, validator=None)
+
+        with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
 
     @pytest.mark.parametrize("value", ["", "a", "ab"])

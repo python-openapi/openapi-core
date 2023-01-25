@@ -34,7 +34,8 @@ class RequestBodyError(RequestError):
 
 
 class InvalidRequestBody(RequestBodyError, ValidateError):
-    """Invalid request body"""
+    def __str__(self) -> str:
+        return f"Invalid request body"
 
 
 class MissingRequestBodyError(RequestBodyError):
