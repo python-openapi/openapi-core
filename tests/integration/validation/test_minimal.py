@@ -1,10 +1,9 @@
 import pytest
 
-from openapi_core import openapi_request_validator
+from openapi_core import validate_request
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.testing import MockRequest
-from openapi_core.validation.request.datatypes import Parameters
 
 
 class TestMinimal:
@@ -30,7 +29,7 @@ class TestMinimal:
         spec = factory.spec_from_file(spec_path)
         request = MockRequest(server, "get", "/status")
 
-        result = openapi_request_validator.validate(spec, request)
+        result = validate_request(request, spec=spec)
 
         assert not result.errors
 
@@ -40,12 +39,8 @@ class TestMinimal:
         spec = factory.spec_from_file(spec_path)
         request = MockRequest(server, "post", "/status")
 
-        result = openapi_request_validator.validate(spec, request)
-
-        assert len(result.errors) == 1
-        assert isinstance(result.errors[0], OperationNotFound)
-        assert result.body is None
-        assert result.parameters == Parameters()
+        with pytest.raises(OperationNotFound):
+            validate_request(request, spec)
 
     @pytest.mark.parametrize("server", servers)
     @pytest.mark.parametrize("spec_path", spec_paths)
@@ -53,9 +48,5 @@ class TestMinimal:
         spec = factory.spec_from_file(spec_path)
         request = MockRequest(server, "get", "/nonexistent")
 
-        result = openapi_request_validator.validate(spec, request)
-
-        assert len(result.errors) == 1
-        assert isinstance(result.errors[0], PathNotFound)
-        assert result.body is None
-        assert result.parameters == Parameters()
+        with pytest.raises(PathNotFound):
+            validate_request(request, spec=spec)

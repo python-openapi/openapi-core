@@ -6,8 +6,8 @@ from werkzeug.test import Client
 from werkzeug.wrappers import Request
 from werkzeug.wrappers import Response
 
-from openapi_core import openapi_request_validator
-from openapi_core import openapi_response_validator
+from openapi_core import V30RequestValidator
+from openapi_core import V30ResponseValidator
 from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest
 from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
 
@@ -53,7 +53,8 @@ class TestWerkzeugOpenAPIValidation:
             headers=headers,
         )
         openapi_request = WerkzeugOpenAPIRequest(response.request)
-        result = openapi_request_validator.validate(spec, openapi_request)
+        validator = V30RequestValidator(spec)
+        result = validator.validate(openapi_request)
         assert not result.errors
 
     def test_request_validator_path_pattern(self, client, spec):
@@ -70,7 +71,8 @@ class TestWerkzeugOpenAPIValidation:
             headers=headers,
         )
         openapi_request = WerkzeugOpenAPIRequest(response.request)
-        result = openapi_request_validator.validate(spec, openapi_request)
+        validator = V30RequestValidator(spec)
+        result = validator.validate(openapi_request)
         assert not result.errors
 
     @responses.activate
@@ -89,7 +91,6 @@ class TestWerkzeugOpenAPIValidation:
         )
         openapi_request = WerkzeugOpenAPIRequest(response.request)
         openapi_response = WerkzeugOpenAPIResponse(response)
-        result = openapi_response_validator.validate(
-            spec, openapi_request, openapi_response
-        )
+        validator = V30ResponseValidator(spec)
+        result = validator.validate(openapi_request, openapi_response)
         assert not result.errors

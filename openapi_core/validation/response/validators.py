@@ -26,6 +26,9 @@ from openapi_core.unmarshalling.schemas import (
 )
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 from openapi_core.unmarshalling.schemas.exceptions import ValidateError
+from openapi_core.unmarshalling.schemas.factories import (
+    SchemaUnmarshallersFactory,
+)
 from openapi_core.util import chainiters
 from openapi_core.validation.decorators import ValidationErrorWrapper
 from openapi_core.validation.exceptions import ValidationError
@@ -41,6 +44,7 @@ from openapi_core.validation.response.exceptions import MissingData
 from openapi_core.validation.response.exceptions import MissingHeader
 from openapi_core.validation.response.exceptions import MissingRequiredHeader
 from openapi_core.validation.response.protocols import Response
+from openapi_core.validation.response.proxies import SpecResponseValidatorProxy
 from openapi_core.validation.validators import BaseAPICallValidator
 from openapi_core.validation.validators import BaseValidator
 from openapi_core.validation.validators import BaseWebhookValidator
@@ -259,7 +263,7 @@ class BaseWebhookResponseValidator(
         raise NotImplementedError
 
 
-class ResponseDataValidator(BaseAPICallResponseValidator):
+class APICallResponseDataValidator(BaseAPICallResponseValidator):
     def validate(
         self,
         request: Request,
@@ -276,7 +280,7 @@ class ResponseDataValidator(BaseAPICallResponseValidator):
         )
 
 
-class ResponseHeadersValidator(BaseAPICallResponseValidator):
+class APICallResponseHeadersValidator(BaseAPICallResponseValidator):
     def validate(
         self,
         request: Request,
@@ -293,7 +297,7 @@ class ResponseHeadersValidator(BaseAPICallResponseValidator):
         )
 
 
-class ResponseValidator(BaseAPICallResponseValidator):
+class APICallResponseValidator(BaseAPICallResponseValidator):
     def validate(
         self,
         request: Request,
@@ -369,27 +373,27 @@ class WebhookResponseValidator(BaseWebhookResponseValidator):
         )
 
 
-class V30ResponseDataValidator(ResponseDataValidator):
+class V30ResponseDataValidator(APICallResponseDataValidator):
     schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
 
 
-class V30ResponseHeadersValidator(ResponseHeadersValidator):
+class V30ResponseHeadersValidator(APICallResponseHeadersValidator):
     schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
 
 
-class V30ResponseValidator(ResponseValidator):
+class V30ResponseValidator(APICallResponseValidator):
     schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
 
 
-class V31ResponseDataValidator(ResponseDataValidator):
+class V31ResponseDataValidator(APICallResponseDataValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
 
 
-class V31ResponseHeadersValidator(ResponseHeadersValidator):
+class V31ResponseHeadersValidator(APICallResponseHeadersValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
 
 
-class V31ResponseValidator(ResponseValidator):
+class V31ResponseValidator(APICallResponseValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
 
 
@@ -403,3 +407,17 @@ class V31WebhookResponseHeadersValidator(WebhookResponseHeadersValidator):
 
 class V31WebhookResponseValidator(WebhookResponseValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+# backward compatibility
+class ResponseValidator(SpecResponseValidatorProxy):
+    def __init__(
+        self,
+        schema_unmarshallers_factory: SchemaUnmarshallersFactory,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            APICallResponseValidator,
+            schema_unmarshallers_factory=schema_unmarshallers_factory,
+            **kwargs,
+        )

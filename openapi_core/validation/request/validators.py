@@ -65,6 +65,7 @@ from openapi_core.validation.request.exceptions import SecurityError
 from openapi_core.validation.request.protocols import BaseRequest
 from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.request.protocols import WebhookRequest
+from openapi_core.validation.request.proxies import SpecRequestValidatorProxy
 from openapi_core.validation.validators import BaseAPICallValidator
 from openapi_core.validation.validators import BaseValidator
 from openapi_core.validation.validators import BaseWebhookValidator
@@ -105,7 +106,7 @@ class BaseRequestValidator(BaseValidator):
             params = self._get_parameters(request.parameters, operation, path)
         except ParametersError as exc:
             params = exc.parameters
-            params_errors = exc.context
+            params_errors = exc.errors
         else:
             params_errors = []
 
@@ -154,7 +155,7 @@ class BaseRequestValidator(BaseValidator):
             params = self._get_parameters(request.parameters, path, operation)
         except ParametersError as exc:
             params = exc.parameters
-            params_errors = exc.context
+            params_errors = exc.errors
         else:
             params_errors = []
 
@@ -328,7 +329,7 @@ class BaseWebhookRequestValidator(BaseRequestValidator, BaseWebhookValidator):
         raise NotImplementedError
 
 
-class RequestBodyValidator(BaseAPICallRequestValidator):
+class APICallRequestBodyValidator(BaseAPICallRequestValidator):
     def validate(self, request: Request) -> RequestValidationResult:
         try:
             _, operation, _, _, _ = self._find_path(request)
@@ -338,7 +339,7 @@ class RequestBodyValidator(BaseAPICallRequestValidator):
         return self._validate_body(request, operation)
 
 
-class RequestParametersValidator(BaseAPICallRequestValidator):
+class APICallRequestParametersValidator(BaseAPICallRequestValidator):
     def validate(self, request: Request) -> RequestValidationResult:
         try:
             path, operation, _, path_result, _ = self._find_path(request)
@@ -352,7 +353,7 @@ class RequestParametersValidator(BaseAPICallRequestValidator):
         return self._validate_parameters(request, operation, path)
 
 
-class RequestSecurityValidator(BaseAPICallRequestValidator):
+class APICallRequestSecurityValidator(BaseAPICallRequestValidator):
     def validate(self, request: Request) -> RequestValidationResult:
         try:
             _, operation, _, _, _ = self._find_path(request)
@@ -362,7 +363,7 @@ class RequestSecurityValidator(BaseAPICallRequestValidator):
         return self._validate_security(request, operation)
 
 
-class RequestValidator(BaseAPICallRequestValidator):
+class APICallRequestValidator(BaseAPICallRequestValidator):
     def validate(self, request: Request) -> RequestValidationResult:
         try:
             path, operation, _, path_result, _ = self._find_path(request)
@@ -426,35 +427,35 @@ class WebhookRequestSecurityValidator(BaseWebhookRequestValidator):
         return self._validate_security(request, operation)
 
 
-class V30RequestBodyValidator(RequestBodyValidator):
+class V30RequestBodyValidator(APICallRequestBodyValidator):
     schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
 
 
-class V30RequestParametersValidator(RequestParametersValidator):
+class V30RequestParametersValidator(APICallRequestParametersValidator):
     schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
 
 
-class V30RequestSecurityValidator(RequestSecurityValidator):
+class V30RequestSecurityValidator(APICallRequestSecurityValidator):
     schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
 
 
-class V30RequestValidator(RequestValidator):
+class V30RequestValidator(APICallRequestValidator):
     schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
 
 
-class V31RequestBodyValidator(RequestBodyValidator):
+class V31RequestBodyValidator(APICallRequestBodyValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
 
 
-class V31RequestParametersValidator(RequestParametersValidator):
+class V31RequestParametersValidator(APICallRequestParametersValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
 
 
-class V31RequestSecurityValidator(RequestSecurityValidator):
+class V31RequestSecurityValidator(APICallRequestSecurityValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
 
 
-class V31RequestValidator(RequestValidator):
+class V31RequestValidator(APICallRequestValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
     path_finder_cls = WebhookPathFinder
 
@@ -477,3 +478,17 @@ class V31WebhookRequestSecurityValidator(WebhookRequestSecurityValidator):
 class V31WebhookRequestValidator(WebhookRequestValidator):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
     path_finder_cls = WebhookPathFinder
+
+
+# backward compatibility
+class RequestValidator(SpecRequestValidatorProxy):
+    def __init__(
+        self,
+        schema_unmarshallers_factory: SchemaUnmarshallersFactory,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            APICallRequestValidator,
+            schema_unmarshallers_factory=schema_unmarshallers_factory,
+            **kwargs,
+        )

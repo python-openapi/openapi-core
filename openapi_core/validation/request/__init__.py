@@ -11,12 +11,16 @@ from openapi_core.validation.request.proxies import (
     DetectSpecRequestValidatorProxy,
 )
 from openapi_core.validation.request.proxies import SpecRequestValidatorProxy
-from openapi_core.validation.request.validators import RequestBodyValidator
 from openapi_core.validation.request.validators import (
-    RequestParametersValidator,
+    APICallRequestBodyValidator,
 )
-from openapi_core.validation.request.validators import RequestSecurityValidator
-from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.request.validators import (
+    APICallRequestParametersValidator,
+)
+from openapi_core.validation.request.validators import (
+    APICallRequestSecurityValidator,
+)
+from openapi_core.validation.request.validators import APICallRequestValidator
 from openapi_core.validation.request.validators import V30RequestBodyValidator
 from openapi_core.validation.request.validators import (
     V30RequestParametersValidator,
@@ -85,37 +89,41 @@ V3WebhookRequestValidator = V31WebhookRequestValidator
 
 # spec validators
 openapi_v30_request_body_validator = SpecRequestValidatorProxy(
-    RequestBodyValidator,
+    APICallRequestBodyValidator,
     schema_unmarshallers_factory=oas30_request_schema_unmarshallers_factory,
 )
 openapi_v30_request_parameters_validator = SpecRequestValidatorProxy(
-    RequestParametersValidator,
+    APICallRequestParametersValidator,
     schema_unmarshallers_factory=oas30_request_schema_unmarshallers_factory,
 )
 openapi_v30_request_security_validator = SpecRequestValidatorProxy(
-    RequestSecurityValidator,
+    APICallRequestSecurityValidator,
     schema_unmarshallers_factory=oas30_request_schema_unmarshallers_factory,
 )
 openapi_v30_request_validator = SpecRequestValidatorProxy(
-    RequestValidator,
+    APICallRequestValidator,
     schema_unmarshallers_factory=oas30_request_schema_unmarshallers_factory,
+    deprecated="openapi_v30_request_validator",
+    use="V30RequestValidator",
 )
 
 openapi_v31_request_body_validator = SpecRequestValidatorProxy(
-    RequestBodyValidator,
+    APICallRequestBodyValidator,
     schema_unmarshallers_factory=oas31_schema_unmarshallers_factory,
 )
 openapi_v31_request_parameters_validator = SpecRequestValidatorProxy(
-    RequestParametersValidator,
+    APICallRequestParametersValidator,
     schema_unmarshallers_factory=oas31_schema_unmarshallers_factory,
 )
 openapi_v31_request_security_validator = SpecRequestValidatorProxy(
-    RequestSecurityValidator,
+    APICallRequestSecurityValidator,
     schema_unmarshallers_factory=oas31_schema_unmarshallers_factory,
 )
 openapi_v31_request_validator = SpecRequestValidatorProxy(
-    RequestValidator,
+    APICallRequestValidator,
     schema_unmarshallers_factory=oas31_schema_unmarshallers_factory,
+    deprecated="openapi_v31_request_validator",
+    use="V31RequestValidator",
 )
 
 # spec validators alias to the latest v3 version

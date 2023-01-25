@@ -3,8 +3,8 @@ from dataclasses import is_dataclass
 
 import pytest
 
-from openapi_core import openapi_v30_request_validator
-from openapi_core import openapi_v30_response_validator
+from openapi_core import V30RequestValidator
+from openapi_core import V30ResponseValidator
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.validation.request.exceptions import InvalidRequestBody
@@ -16,8 +16,18 @@ def spec(factory):
     return factory.spec_from_file("data/v3.0/read_only_write_only.yaml")
 
 
+@pytest.fixture(scope="class")
+def request_validator(spec):
+    return V30RequestValidator(spec)
+
+
+@pytest.fixture(scope="class")
+def response_validator(spec):
+    return V30ResponseValidator(spec)
+
+
 class TestReadOnly:
-    def test_write_a_read_only_property(self, spec):
+    def test_write_a_read_only_property(self, request_validator):
         data = json.dumps(
             {
                 "id": 10,
@@ -29,13 +39,13 @@ class TestReadOnly:
             host_url="", method="POST", path="/users", data=data
         )
 
-        result = openapi_v30_request_validator.validate(spec, request)
+        result = request_validator.validate(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidRequestBody
         assert result.body is None
 
-    def test_read_only_property_response(self, spec):
+    def test_read_only_property_response(self, response_validator):
         data = json.dumps(
             {
                 "id": 10,
@@ -47,9 +57,7 @@ class TestReadOnly:
 
         response = MockResponse(data)
 
-        result = openapi_v30_response_validator.validate(
-            spec, request, response
-        )
+        result = response_validator.validate(request, response)
 
         assert not result.errors
         assert is_dataclass(result.data)
@@ -59,7 +67,7 @@ class TestReadOnly:
 
 
 class TestWriteOnly:
-    def test_write_only_property(self, spec):
+    def test_write_only_property(self, request_validator):
         data = json.dumps(
             {
                 "name": "Pedro",
@@ -71,7 +79,7 @@ class TestWriteOnly:
             host_url="", method="POST", path="/users", data=data
         )
 
-        result = openapi_v30_request_validator.validate(spec, request)
+        result = request_validator.validate(request)
 
         assert not result.errors
         assert is_dataclass(result.body)
@@ -79,7 +87,7 @@ class TestWriteOnly:
         assert result.body.name == "Pedro"
         assert result.body.hidden == False
 
-    def test_read_a_write_only_property(self, spec):
+    def test_read_a_write_only_property(self, response_validator):
         data = json.dumps(
             {
                 "id": 10,
@@ -91,9 +99,7 @@ class TestWriteOnly:
         request = MockRequest(host_url="", method="POST", path="/users")
         response = MockResponse(data)
 
-        result = openapi_v30_response_validator.validate(
-            spec, request, response
-        )
+        result = response_validator.validate(request, response)
 
         assert result.errors == [InvalidData()]
         assert result.data is None

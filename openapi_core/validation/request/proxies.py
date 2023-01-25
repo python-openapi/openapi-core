@@ -1,5 +1,6 @@
 """OpenAPI spec validator validation proxies module."""
 import warnings
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterator
 from typing import Mapping
@@ -11,19 +12,26 @@ from openapi_core.spec import Spec
 from openapi_core.validation.exceptions import ValidatorDetectError
 from openapi_core.validation.request.datatypes import RequestValidationResult
 from openapi_core.validation.request.protocols import Request
-from openapi_core.validation.request.validators import (
-    BaseAPICallRequestValidator,
-)
+
+if TYPE_CHECKING:
+    from openapi_core.validation.request.validators import (
+        BaseAPICallRequestValidator,
+    )
 
 
 class SpecRequestValidatorProxy:
     def __init__(
         self,
-        validator_cls: Type[BaseAPICallRequestValidator],
+        validator_cls: Type["BaseAPICallRequestValidator"],
+        deprecated: str = "RequestValidator",
+        use: Optional[str] = None,
         **validator_kwargs: Any,
     ):
         self.validator_cls = validator_cls
         self.validator_kwargs = validator_kwargs
+
+        self.deprecated = deprecated
+        self.use = use or self.validator_cls.__name__
 
     def validate(
         self,
@@ -32,8 +40,7 @@ class SpecRequestValidatorProxy:
         base_url: Optional[str] = None,
     ) -> RequestValidationResult:
         warnings.warn(
-            "openapi_request_validator is deprecated. "
-            f"Use {self.validator_cls.__name__} class instead.",
+            f"{self.deprecated} is deprecated. Use {self.use} instead.",
             DeprecationWarning,
         )
         validator = self.validator_cls(
