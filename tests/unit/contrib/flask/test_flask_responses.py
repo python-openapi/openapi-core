@@ -1,7 +1,13 @@
+import pytest
+
 from openapi_core.contrib.flask import FlaskOpenAPIResponse
 
 
 class TestFlaskOpenAPIResponse:
+    def test_type_invalid(self):
+        with pytest.raises(TypeError):
+            FlaskOpenAPIResponse(None)
+
     def test_invalid_server(self, response_factory):
         data = "Not Found"
         status_code = 404

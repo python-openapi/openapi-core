@@ -17,6 +17,8 @@ class WerkzeugOpenAPIRequest:
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
     def __init__(self, request: Request):
+        if not isinstance(request, Request):
+            raise TypeError(f"'request' argument is not type of {Request}")
         self.request = request
 
         self.parameters = RequestParameters(

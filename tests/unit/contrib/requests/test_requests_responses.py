@@ -1,7 +1,13 @@
+import pytest
+
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
 
 
 class TestRequestsOpenAPIResponse:
+    def test_type_invalid(self):
+        with pytest.raises(TypeError):
+            RequestsOpenAPIResponse(None)
+
     def test_invalid_server(self, response_factory):
         data = "Not Found"
         status_code = 404

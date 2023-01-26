@@ -30,6 +30,8 @@ class DjangoOpenAPIRequest:
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
     def __init__(self, request: HttpRequest):
+        if not isinstance(request, HttpRequest):
+            raise TypeError(f"'request' argument is not type of {HttpRequest}")
         self.request = request
 
         path = (

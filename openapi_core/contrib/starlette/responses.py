@@ -5,6 +5,8 @@ from starlette.responses import Response
 
 class StarletteOpenAPIResponse:
     def __init__(self, response: Response):
+        if not isinstance(response, Response):
+            raise TypeError(f"'response' argument is not type of {Response}")
         self.response = response
 
     @property

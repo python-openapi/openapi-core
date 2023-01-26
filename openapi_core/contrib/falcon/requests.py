@@ -18,6 +18,8 @@ class FalconOpenAPIRequest:
         request: Request,
         default_when_empty: Optional[Dict[Any, Any]] = None,
     ):
+        if not isinstance(request, Request):
+            raise TypeError(f"'request' argument is not type of {Request}")
         self.request = request
         if default_when_empty is None:
             default_when_empty = {}
