@@ -15,10 +15,16 @@ paths:
           type: integer
     get:
       responses:
+        404:
+          description: Return error.
+          content:
+            text/html:
+              schema:
+                type: string
         200:
           description: Return the resource.
           content:
-            application/json:    
+            application/json:
               schema:
                 type: object
                 required:

@@ -6,6 +6,7 @@ from typing import Optional
 from typing import Type
 
 from flask.globals import request
+from flask.helpers import make_response
 from flask.wrappers import Request
 from flask.wrappers import Response
 
@@ -74,7 +75,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
     ) -> Response:
         request = self._get_request()
         request.openapi = request_result  # type: ignore
-        return view(*args, **kwargs)
+        rv = view(*args, **kwargs)
+        return make_response(rv)
 
     def _handle_request_errors(
         self, request_result: RequestValidationResult
