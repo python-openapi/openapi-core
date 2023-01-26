@@ -63,7 +63,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
 
     def test_schema_custom_format_invalid(self, unmarshaller_factory):
         class CustomFormatter(Formatter):
-            def unmarshal(self, value):
+            def format(self, value):
                 raise ValueError
 
         formatter = CustomFormatter()
@@ -233,7 +233,7 @@ class TestOAS30SchemaUnmarshallerCall:
         formatted = "x-custom"
 
         class CustomFormatter(Formatter):
-            def unmarshal(self, value):
+            def format(self, value):
                 return formatted
 
         custom_format = "custom"
@@ -254,9 +254,35 @@ class TestOAS30SchemaUnmarshallerCall:
 
         assert result == formatted
 
-    def test_string_format_custom_value_error(self, unmarshaller_factory):
+    def test_string_format_custom_formatter(self, unmarshaller_factory):
+        formatted = "x-custom"
+
         class CustomFormatter(Formatter):
             def unmarshal(self, value):
+                return formatted
+
+        custom_format = "custom"
+        schema = {
+            "type": "string",
+            "format": custom_format,
+        }
+        spec = Spec.from_dict(schema, validator=None)
+        value = "x"
+        formatter = CustomFormatter()
+        custom_formatters = {
+            custom_format: formatter,
+        }
+
+        with pytest.warns(DeprecationWarning):
+            result = unmarshaller_factory(
+                spec, custom_formatters=custom_formatters
+            )(value)
+
+        assert result == formatted
+
+    def test_string_format_custom_value_error(self, unmarshaller_factory):
+        class CustomFormatter(Formatter):
+            def format(self, value):
                 raise ValueError
 
         custom_format = "custom"
@@ -852,95 +878,11 @@ class TestOAS30SchemaUnmarshallerCall:
 
         assert result == value
 
-    def test_read_only_properties(self, unmarshaller_factory):
-        schema = {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "readOnly": True,
-                }
-            },
-        }
-        spec = Spec.from_dict(schema, validator=None)
-
-        # readOnly properties may be admitted in a Response context
-        result = unmarshaller_factory(
-            spec, context=ValidationContext.RESPONSE
-        )({"id": 10})
-
-        assert result == {
-            "id": 10,
-        }
-
-    def test_read_only_properties_invalid(self, unmarshaller_factory):
-        schema = {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "readOnly": True,
-                }
-            },
-        }
-        spec = Spec.from_dict(schema, validator=None)
-
-        # readOnly properties are not admitted on a Request context
-        with pytest.raises(InvalidSchemaValue):
-            unmarshaller_factory(spec, context=ValidationContext.REQUEST)(
-                {"id": 10}
-            )
-
-    def test_write_only_properties(self, unmarshaller_factory):
-        schema = {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "writeOnly": True,
-                }
-            },
-        }
-        spec = Spec.from_dict(schema, validator=None)
-
-        # readOnly properties may be admitted in a Response context
-        result = unmarshaller_factory(spec, context=ValidationContext.REQUEST)(
-            {"id": 10}
-        )
-
-        assert result == {
-            "id": 10,
-        }
-
-    def test_write_only_properties_invalid(self, unmarshaller_factory):
-        schema = {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "writeOnly": True,
-                }
-            },
-        }
-        spec = Spec.from_dict(schema, validator=None)
-
-        # readOnly properties are not admitted on a Request context
-        with pytest.raises(InvalidSchemaValue):
-            unmarshaller_factory(spec, context=ValidationContext.RESPONSE)(
-                {"id": 10}
-            )
-
     def test_additional_properties_list(self, unmarshaller_factory):
         schema = {"type": "object"}
         spec = Spec.from_dict(schema, validator=None)
 
-        result = unmarshaller_factory(
-            spec, context=ValidationContext.RESPONSE
-        )({"user_ids": [1, 2, 3, 4]})
+        result = unmarshaller_factory(spec)({"user_ids": [1, 2, 3, 4]})
 
         assert result == {
             "user_ids": [1, 2, 3, 4],
@@ -973,6 +915,100 @@ class TestOAS30SchemaUnmarshallerCall:
 
         with pytest.raises(TypeError):
             unmarshaller_factory(spec)(value)
+
+
+class TestOAS30ReadSchemaUnmarshallerCall:
+    @pytest.fixture
+    def unmarshaller_factory(self, schema_unmarshaller_factory):
+        return partial(
+            schema_unmarshaller_factory,
+            OAS30Validator,
+            context=ValidationContext.RESPONSE,
+        )
+
+    def test_read_only_properties(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "readOnly": True,
+                }
+            },
+        }
+        spec = Spec.from_dict(schema, validator=None)
+
+        # readOnly properties may be admitted in a Response context
+        result = unmarshaller_factory(spec)({"id": 10})
+
+        assert result == {
+            "id": 10,
+        }
+
+    def test_write_only_properties_invalid(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "writeOnly": True,
+                }
+            },
+        }
+        spec = Spec.from_dict(schema, validator=None)
+
+        # readOnly properties are not admitted on a Request context
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(spec)({"id": 10})
+
+
+class TestOAS30WriteSchemaUnmarshallerCall:
+    @pytest.fixture
+    def unmarshaller_factory(self, schema_unmarshaller_factory):
+        return partial(
+            schema_unmarshaller_factory,
+            OAS30Validator,
+            context=ValidationContext.REQUEST,
+        )
+
+    def test_write_only_properties(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "writeOnly": True,
+                }
+            },
+        }
+        spec = Spec.from_dict(schema, validator=None)
+
+        # readOnly properties may be admitted in a Response context
+        result = unmarshaller_factory(spec)({"id": 10})
+
+        assert result == {
+            "id": 10,
+        }
+
+    def test_read_only_properties_invalid(self, unmarshaller_factory):
+        schema = {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "readOnly": True,
+                }
+            },
+        }
+        spec = Spec.from_dict(schema, validator=None)
+
+        # readOnly properties are not admitted on a Request context
+        with pytest.raises(InvalidSchemaValue):
+            unmarshaller_factory(spec)({"id": 10})
 
 
 class TestOAS31SchemaUnmarshallerCall:

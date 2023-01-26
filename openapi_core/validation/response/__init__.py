@@ -11,11 +11,15 @@ from openapi_core.validation.response.proxies import (
     DetectResponseValidatorProxy,
 )
 from openapi_core.validation.response.proxies import SpecResponseValidatorProxy
-from openapi_core.validation.response.validators import ResponseDataValidator
 from openapi_core.validation.response.validators import (
-    ResponseHeadersValidator,
+    APICallResponseDataValidator,
 )
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.response.validators import (
+    APICallResponseHeadersValidator,
+)
+from openapi_core.validation.response.validators import (
+    APICallResponseValidator,
+)
 from openapi_core.validation.response.validators import (
     V30ResponseDataValidator,
 )
@@ -72,29 +76,33 @@ V3WebhookResponseValidator = V31WebhookResponseValidator
 
 # spec validators
 openapi_v30_response_data_validator = SpecResponseValidatorProxy(
-    ResponseDataValidator,
+    APICallResponseDataValidator,
     schema_unmarshallers_factory=oas30_response_schema_unmarshallers_factory,
 )
 openapi_v30_response_headers_validator = SpecResponseValidatorProxy(
-    ResponseHeadersValidator,
+    APICallResponseHeadersValidator,
     schema_unmarshallers_factory=oas30_response_schema_unmarshallers_factory,
 )
 openapi_v30_response_validator = SpecResponseValidatorProxy(
-    ResponseValidator,
+    APICallResponseValidator,
     schema_unmarshallers_factory=oas30_response_schema_unmarshallers_factory,
+    deprecated="openapi_v30_response_validator",
+    use="V30ResponseValidator",
 )
 
 openapi_v31_response_data_validator = SpecResponseValidatorProxy(
-    ResponseDataValidator,
+    APICallResponseDataValidator,
     schema_unmarshallers_factory=oas31_schema_unmarshallers_factory,
 )
 openapi_v31_response_headers_validator = SpecResponseValidatorProxy(
-    ResponseHeadersValidator,
+    APICallResponseHeadersValidator,
     schema_unmarshallers_factory=oas31_schema_unmarshallers_factory,
 )
 openapi_v31_response_validator = SpecResponseValidatorProxy(
-    ResponseValidator,
+    APICallResponseValidator,
     schema_unmarshallers_factory=oas31_schema_unmarshallers_factory,
+    deprecated="openapi_v31_response_validator",
+    use="V31ResponseValidator",
 )
 
 # spec validators alias to the latest v3 version

@@ -8,9 +8,13 @@ from openapi_core.testing.datatypes import ResultMock
 from openapi_core.validation.exceptions import ValidatorDetectError
 from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.request.protocols import WebhookRequest
+from openapi_core.validation.request.validators import APICallRequestValidator
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.request.validators import WebhookRequestValidator
 from openapi_core.validation.response.protocols import Response
+from openapi_core.validation.response.validators import (
+    APICallResponseValidator,
+)
 from openapi_core.validation.response.validators import ResponseValidator
 from openapi_core.validation.response.validators import (
     WebhookResponseValidator,
@@ -38,7 +42,8 @@ class TestValidateRequest:
             validate_request(request, spec=spec)
 
     @mock.patch(
-        "openapi_core.validation.request.validators.RequestValidator.validate",
+        "openapi_core.validation.request.validators.APICallRequestValidator."
+        "validate",
     )
     def test_request(self, mock_validate, spec_v31):
         request = mock.Mock(spec=Request)
@@ -46,10 +51,11 @@ class TestValidateRequest:
         result = validate_request(request, spec=spec_v31)
 
         assert result == mock_validate.return_value
-        mock_validate.validate.aasert_called_once_with(request)
+        mock_validate.assert_called_once_with(request)
 
     @mock.patch(
-        "openapi_core.validation.request.validators.RequestValidator.validate",
+        "openapi_core.validation.request.validators.APICallRequestValidator."
+        "validate",
     )
     def test_spec_as_first_arg_deprecated(self, mock_validate, spec_v31):
         request = mock.Mock(spec=Request)
@@ -58,10 +64,11 @@ class TestValidateRequest:
             result = validate_request(spec_v31, request)
 
         assert result == mock_validate.return_value
-        mock_validate.validate.aasert_called_once_with(request)
+        mock_validate.assert_called_once_with(request)
 
     @mock.patch(
-        "openapi_core.validation.request.validators.RequestValidator.validate",
+        "openapi_core.validation.request.validators.APICallRequestValidator."
+        "validate",
     )
     def test_request_error(self, mock_validate, spec_v31):
         request = mock.Mock(spec=Request)
@@ -70,7 +77,7 @@ class TestValidateRequest:
         with pytest.raises(ValueError):
             validate_request(request, spec=spec_v31)
 
-        mock_validate.aasert_called_once_with(request)
+        mock_validate.assert_called_once_with(request)
 
     def test_validator(self, spec_v31):
         request = mock.Mock(spec=Request)
@@ -82,16 +89,18 @@ class TestValidateRequest:
             )
 
         assert result == validator.validate.return_value
-        validator.validate.aasert_called_once_with(request)
+        validator.validate.assert_called_once_with(
+            spec_v31, request, base_url=None
+        )
 
     def test_validator_cls(self, spec_v31):
         request = mock.Mock(spec=Request)
-        validator_cls = mock.Mock(spec=RequestValidator)
+        validator_cls = mock.Mock(spec=APICallRequestValidator)
 
         result = validate_request(request, spec=spec_v31, cls=validator_cls)
 
         assert result == validator_cls().validate.return_value
-        validator_cls().validate.aasert_called_once_with(request)
+        validator_cls().validate.assert_called_once_with(request)
 
     @mock.patch(
         "openapi_core.validation.request.validators.WebhookRequestValidator."
@@ -103,7 +112,7 @@ class TestValidateRequest:
         result = validate_request(request, spec=spec_v31)
 
         assert result == mock_validate.return_value
-        mock_validate.validate.aasert_called_once_with(request)
+        mock_validate.assert_called_once_with(request)
 
     def test_webhook_request_validator_not_found(self, spec_v30):
         request = mock.Mock(spec=WebhookRequest)
@@ -122,7 +131,7 @@ class TestValidateRequest:
         with pytest.raises(ValueError):
             validate_request(request, spec=spec_v31)
 
-        mock_validate.aasert_called_once_with(request)
+        mock_validate.assert_called_once_with(request)
 
     def test_webhook_validator_cls(self, spec_v31):
         request = mock.Mock(spec=WebhookRequest)
@@ -131,7 +140,7 @@ class TestValidateRequest:
         result = validate_request(request, spec=spec_v31, cls=validator_cls)
 
         assert result == validator_cls().validate.return_value
-        validator_cls().validate.aasert_called_once_with(request)
+        validator_cls().validate.assert_called_once_with(request)
 
 
 class TestValidateResponse:
@@ -165,7 +174,7 @@ class TestValidateResponse:
             validate_response(request, response, spec=spec)
 
     @mock.patch(
-        "openapi_core.validation.response.validators.ResponseValidator."
+        "openapi_core.validation.response.validators.APICallResponseValidator."
         "validate",
     )
     def test_request_response(self, mock_validate, spec_v31):
@@ -175,23 +184,24 @@ class TestValidateResponse:
         result = validate_response(request, response, spec=spec_v31)
 
         assert result == mock_validate.return_value
-        mock_validate.aasert_called_once_with(request, response)
+        mock_validate.assert_called_once_with(request, response)
 
     @mock.patch(
-        "openapi_core.validation.response.validators.ResponseValidator."
+        "openapi_core.validation.response.validators.APICallResponseValidator."
         "validate",
     )
     def test_spec_as_first_arg_deprecated(self, mock_validate, spec_v31):
         request = mock.Mock(spec=Request)
         response = mock.Mock(spec=Response)
 
-        result = validate_response(spec_v31, request, response)
+        with pytest.warns(DeprecationWarning):
+            result = validate_response(spec_v31, request, response)
 
         assert result == mock_validate.return_value
-        mock_validate.aasert_called_once_with(request, response)
+        mock_validate.assert_called_once_with(request, response)
 
     @mock.patch(
-        "openapi_core.validation.response.validators.ResponseValidator."
+        "openapi_core.validation.response.validators.APICallResponseValidator."
         "validate",
     )
     def test_request_response_error(self, mock_validate, spec_v31):
@@ -202,7 +212,7 @@ class TestValidateResponse:
         with pytest.raises(ValueError):
             validate_response(request, response, spec=spec_v31)
 
-        mock_validate.aasert_called_once_with(request, response)
+        mock_validate.assert_called_once_with(request, response)
 
     def test_validator(self, spec_v31):
         request = mock.Mock(spec=Request)
@@ -215,19 +225,21 @@ class TestValidateResponse:
             )
 
         assert result == validator.validate.return_value
-        validator.validate.aasert_called_once_with(request)
+        validator.validate.assert_called_once_with(
+            spec_v31, request, response, base_url=None
+        )
 
     def test_validator_cls(self, spec_v31):
         request = mock.Mock(spec=Request)
         response = mock.Mock(spec=Response)
-        validator_cls = mock.Mock(spec=ResponseValidator)
+        validator_cls = mock.Mock(spec=APICallResponseValidator)
 
         result = validate_response(
             request, response, spec=spec_v31, cls=validator_cls
         )
 
         assert result == validator_cls().validate.return_value
-        validator_cls().validate.aasert_called_once_with(request)
+        validator_cls().validate.assert_called_once_with(request, response)
 
     def test_webhook_response_validator_not_found(self, spec_v30):
         request = mock.Mock(spec=WebhookRequest)
@@ -247,7 +259,7 @@ class TestValidateResponse:
         result = validate_response(request, response, spec=spec_v31)
 
         assert result == mock_validate.return_value
-        mock_validate.aasert_called_once_with(request, response)
+        mock_validate.assert_called_once_with(request, response)
 
     @mock.patch(
         "openapi_core.validation.response.validators.WebhookResponseValidator."
@@ -261,7 +273,7 @@ class TestValidateResponse:
         with pytest.raises(ValueError):
             validate_response(request, response, spec=spec_v31)
 
-        mock_validate.aasert_called_once_with(request, response)
+        mock_validate.assert_called_once_with(request, response)
 
     def test_webhook_response_cls(self, spec_v31):
         request = mock.Mock(spec=WebhookRequest)
@@ -273,4 +285,4 @@ class TestValidateResponse:
         )
 
         assert result == validator_cls().validate.return_value
-        validator_cls().validate.aasert_called_once_with(request)
+        validator_cls().validate.assert_called_once_with(request, response)

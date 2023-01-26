@@ -5,7 +5,7 @@ from flask import Flask
 from flask.testing import FlaskClient
 from flask.wrappers import Response
 
-from openapi_core import openapi_request_validator
+from openapi_core import V30RequestValidator
 from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
 
@@ -28,7 +28,8 @@ class TestWerkzeugOpenAPIValidation:
             from flask import request
 
             openapi_request = FlaskOpenAPIRequest(request)
-            result = openapi_request_validator.validate(spec, openapi_request)
+            validator = V30RequestValidator(spec)
+            result = validator.validate(openapi_request)
             assert not result.errors
 
             if request.args.get("q") == "string":
