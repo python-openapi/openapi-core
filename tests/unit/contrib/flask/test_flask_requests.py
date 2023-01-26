@@ -1,5 +1,6 @@
 from urllib.parse import urljoin
 
+import pytest
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -8,6 +9,10 @@ from openapi_core.validation.request.datatypes import RequestParameters
 
 
 class TestFlaskOpenAPIRequest:
+    def test_type_invalid(self):
+        with pytest.raises(TypeError):
+            FlaskOpenAPIRequest(None)
+
     def test_simple(self, request_factory, request):
         request = request_factory("GET", "/", subdomain="www")
 

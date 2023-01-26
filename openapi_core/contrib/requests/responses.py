@@ -5,6 +5,8 @@ from werkzeug.datastructures import Headers
 
 class RequestsOpenAPIResponse:
     def __init__(self, response: Response):
+        if not isinstance(response, Response):
+            raise TypeError(f"'response' argument is not type of {Response}")
         self.response = response
 
     @property

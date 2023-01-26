@@ -9,6 +9,8 @@ from openapi_core.validation.request.datatypes import RequestParameters
 
 class FlaskOpenAPIRequest(WerkzeugOpenAPIRequest):
     def __init__(self, request: Request):
+        if not isinstance(request, Request):
+            raise TypeError(f"'request' argument is not type of {Request}")
         self.request: Request = request
 
         self.parameters = RequestParameters(

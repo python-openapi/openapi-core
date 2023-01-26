@@ -5,6 +5,8 @@ from werkzeug.wrappers import Response
 
 class WerkzeugOpenAPIResponse:
     def __init__(self, response: Response):
+        if not isinstance(response, Response):
+            raise TypeError(f"'response' argument is not type of {Response}")
         self.response = response
 
     @property

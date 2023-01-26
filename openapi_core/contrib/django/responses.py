@@ -5,6 +5,10 @@ from werkzeug.datastructures import Headers
 
 class DjangoOpenAPIResponse:
     def __init__(self, response: HttpResponse):
+        if not isinstance(response, HttpResponse):
+            raise TypeError(
+                f"'response' argument is not type of {HttpResponse}"
+            )
         self.response = response
 
     @property

@@ -23,6 +23,11 @@ class RequestsOpenAPIRequest:
     """
 
     def __init__(self, request: Union[Request, PreparedRequest]):
+        if not isinstance(request, (Request, PreparedRequest)):
+            raise TypeError(
+                "'request' argument is not type of "
+                f"{Request} or {PreparedRequest}"
+            )
         if isinstance(request, Request):
             request = request.prepare()
 

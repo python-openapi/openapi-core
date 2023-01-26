@@ -63,6 +63,10 @@ class BaseTestDjango:
 
 
 class TestDjangoOpenAPIRequest(BaseTestDjango):
+    def test_type_invalid(self):
+        with pytest.raises(TypeError):
+            DjangoOpenAPIRequest(None)
+
     def test_no_resolver(self, request_factory):
         data = {"test1": "test2"}
         request = request_factory.get("/admin/", data)
@@ -168,6 +172,10 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
 
 
 class TestDjangoOpenAPIResponse(BaseTestDjango):
+    def test_type_invalid(self):
+        with pytest.raises(TypeError):
+            DjangoOpenAPIResponse(None)
+
     def test_stream_response(self, response_factory):
         response = response_factory()
         response.writelines(["foo\n", "bar\n", "baz\n"])
