@@ -88,3 +88,30 @@ class TestRequestsOpenAPIRequest:
         assert openapi_request.path == "/browse/12/"
         assert openapi_request.body == prepared.body
         assert openapi_request.mimetype == "application/json"
+
+    def test_hash_param(self, request_factory, request):
+        request = request_factory("GET", "/browse/#12", subdomain="kb")
+
+        openapi_request = RequestsOpenAPIRequest(request)
+
+        # empty when not bound to spec
+        path = {}
+        query = ImmutableMultiDict([])
+        headers = Headers(
+            {
+                "Content-Type": "application/json",
+            }
+        )
+        cookies = {}
+        assert openapi_request.parameters == RequestParameters(
+            path=path,
+            query=query,
+            header=headers,
+            cookie=cookies,
+        )
+        prepared = request.prepare()
+        assert openapi_request.method == request.method.lower()
+        assert openapi_request.host_url == "http://localhost"
+        assert openapi_request.path == "/browse/#12"
+        assert openapi_request.body == prepared.body
+        assert openapi_request.mimetype == "application/json"
