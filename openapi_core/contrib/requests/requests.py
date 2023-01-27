@@ -34,7 +34,7 @@ class RequestsOpenAPIRequest:
         self.request = request
         if request.url is None:
             raise RuntimeError("Request URL is missing")
-        self._url_parsed = urlparse(request.url)
+        self._url_parsed = urlparse(request.url, allow_fragments=False)
 
         cookie = {}
         if isinstance(self.request, SupportsCookieJar) and isinstance(
