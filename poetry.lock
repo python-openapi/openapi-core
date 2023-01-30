@@ -883,23 +883,21 @@ setuptools = "*"
 
 [[package]]
 name = "openapi-schema-validator"
-version = "0.4.0"
+version = "0.4.2"
 description = "OpenAPI schema validation for Python"
 category = "main"
 optional = false
 python-versions = ">=3.7.0,<4.0.0"
 files = [
-    {file = "openapi_schema_validator-0.4.0-py3-none-any.whl", hash = "sha256:f1faaae0b1076d6f6bf6ad5d8bb53f49d9cc49621f5e224e2bc121ef76016c04"},
-    {file = "openapi_schema_validator-0.4.0.tar.gz", hash = "sha256:fb591258bbe1e24f381d83cff2e9a1a6fc547936adb46143fdd089f6ea411cc8"},
+    {file = "openapi_schema_validator-0.4.2-py3-none-any.whl", hash = "sha256:a7978f231244e167819607e15f821546a381e469577de47428cb3fe5af59c737"},
+    {file = "openapi_schema_validator-0.4.2.tar.gz", hash = "sha256:6613714d6a9aee10b4268c47ba85b5b0b3ce87ac0e51e6b290e837994a6c61b7"},
 ]
 
 [package.dependencies]
 jsonschema = ">=4.0.0,<5.0.0"
 
 [package.extras]
-isodate = ["isodate"]
 rfc3339-validator = ["rfc3339-validator"]
-strict-rfc3339 = ["strict-rfc3339"]
 
 [[package]]
 name = "openapi-spec-validator"
