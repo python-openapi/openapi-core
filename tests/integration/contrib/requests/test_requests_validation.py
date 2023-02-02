@@ -1,7 +1,11 @@
+from base64 import b64encode
+
 import pytest
 import requests
 import responses
 
+from openapi_core import V30RequestUnmarshaller
+from openapi_core import V30ResponseUnmarshaller
 from openapi_core import V31RequestUnmarshaller
 from openapi_core import V31ResponseUnmarshaller
 from openapi_core import V31WebhookRequestUnmarshaller
@@ -11,10 +15,10 @@ from openapi_core.contrib.requests import RequestsOpenAPIResponse
 from openapi_core.contrib.requests import RequestsOpenAPIWebhookRequest
 
 
-class TestRequestsOpenAPIValidation:
+class TestV31RequestsFactory:
     @pytest.fixture
     def spec(self, factory):
-        specfile = "contrib/requests/data/v3.0/requests_factory.yaml"
+        specfile = "contrib/requests/data/v3.1/requests_factory.yaml"
         return factory.spec_from_file(specfile)
 
     @pytest.fixture
@@ -135,3 +139,84 @@ class TestRequestsOpenAPIValidation:
             openapi_webhook_request, openapi_response
         )
         assert not result.errors
+
+
+class BaseTestPetstore:
+    api_key = "12345"
+
+    @property
+    def api_key_encoded(self):
+        api_key_bytes = self.api_key.encode("utf8")
+        api_key_bytes_enc = b64encode(api_key_bytes)
+        return str(api_key_bytes_enc, "utf8")
+
+
+class TestPetstore(BaseTestPetstore):
+    @pytest.fixture
+    def spec(self, factory):
+        specfile = "data/v3.0/petstore.yaml"
+        return factory.spec_from_file(specfile)
+
+    @pytest.fixture
+    def request_unmarshaller(self, spec):
+        return V30RequestUnmarshaller(spec)
+
+    @pytest.fixture
+    def response_unmarshaller(self, spec):
+        return V30ResponseUnmarshaller(spec)
+
+    @pytest.mark.xfail(
+        reason="response binary format not supported",
+        strict=True,
+    )
+    @responses.activate
+    def test_response_binary_valid(self, response_unmarshaller, data_gif):
+        responses.add(
+            responses.GET,
+            "http://petstore.swagger.io/v1/pets/1/photo",
+            body=data_gif,
+            content_type="image/gif",
+            status=200,
+        )
+        headers = {
+            "Authorization": "Basic testuser",
+            "Api-Key": self.api_key_encoded,
+        }
+        request = requests.Request(
+            "GET",
+            "http://petstore.swagger.io/v1/pets/1/photo",
+            headers=headers,
+        )
+        request_prepared = request.prepare()
+        session = requests.Session()
+        response = session.send(request_prepared)
+        openapi_request = RequestsOpenAPIRequest(request)
+        openapi_response = RequestsOpenAPIResponse(response)
+        result = response_unmarshaller.unmarshal(
+            openapi_request, openapi_response
+        )
+        assert not result.errors
+        assert result.data == data_gif
+
+    @pytest.mark.xfail(
+        reason="request binary format not supported",
+        strict=True,
+    )
+    @responses.activate
+    def test_request_binary_valid(self, request_unmarshaller, data_gif):
+        headers = {
+            "Authorization": "Basic testuser",
+            "Api-Key": self.api_key_encoded,
+            "Content-Type": "image/gif",
+        }
+        request = requests.Request(
+            "POST",
+            "http://petstore.swagger.io/v1/pets/1/photo",
+            headers=headers,
+            data=data_gif,
+        )
+        request_prepared = request.prepare()
+        openapi_request = RequestsOpenAPIRequest(request)
+        result = request_unmarshaller.unmarshal(openapi_request)
+        assert not result.errors
+        assert result.body == data_gif
