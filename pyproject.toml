@@ -90,7 +90,7 @@ sphinx = "^4.0.2"
 sphinx-rtd-theme = "^0.5.2"
 strict-rfc3339 = "^0.7"
 webob = "*"
-mypy = "^0.991"
+mypy = "^1.0"
 starlette = "^0.24.0"
 httpx = "^0.23.3"
 
