@@ -8,7 +8,6 @@ import pytest
 
 
 class BaseTestDjangoProject:
-
     api_key = "12345"
 
     @property

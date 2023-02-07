@@ -10,7 +10,6 @@ from openapi_core.util import forcebool
 
 
 class SchemaCastersFactory:
-
     DUMMY_CASTERS = [
         "string",
         "object",

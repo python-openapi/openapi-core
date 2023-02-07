@@ -14,7 +14,6 @@ class ExtendedParser(Parser):  # type: ignore
 
 
 class PathParameter:
-
     name = "PathParameter"
     pattern = r"[^\/]+"
 

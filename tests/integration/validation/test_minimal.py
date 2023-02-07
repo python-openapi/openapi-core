@@ -7,7 +7,6 @@ from openapi_core.testing import MockRequest
 
 
 class TestMinimal:
-
     servers = [
         "http://minimal.test/",
         "https://bad.remote.domain.net/",

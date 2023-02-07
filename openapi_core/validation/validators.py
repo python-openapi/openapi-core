@@ -42,7 +42,6 @@ from openapi_core.validation.request.protocols import WebhookRequest
 
 
 class BaseValidator:
-
     schema_unmarshallers_factory: SchemaUnmarshallersFactory = NotImplemented
 
     def __init__(

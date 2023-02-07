@@ -19,7 +19,6 @@ def request_validator(spec):
 
 
 class TestSecurityOverride:
-
     host_url = "http://petstore.swagger.io"
 
     api_key = "12345"

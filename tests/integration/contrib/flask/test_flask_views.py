@@ -7,7 +7,6 @@ from openapi_core.contrib.flask.views import FlaskOpenAPIView
 
 
 class TestFlaskOpenAPIView:
-
     view_response = None
 
     @pytest.fixture

@@ -13,7 +13,6 @@ PATH_PARAMETER_PATTERN = r"<(?:(?:string|int|float|path|uuid):)?(\w+)>"
 
 
 class WerkzeugOpenAPIRequest:
-
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
     def __init__(self, request: Request):

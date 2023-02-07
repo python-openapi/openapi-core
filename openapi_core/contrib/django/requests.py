@@ -26,7 +26,6 @@ PATH_PARAMETER_PATTERN = (
 
 
 class DjangoOpenAPIRequest:
-
     path_regex = re.compile(PATH_PARAMETER_PATTERN)
 
     def __init__(self, request: HttpRequest):

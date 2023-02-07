@@ -12,7 +12,6 @@ from openapi_core.validation.response.validators import ResponseValidator
 
 
 class TestPetstore:
-
     api_key = "12345"
 
     @property
@@ -340,7 +339,6 @@ class TestWebhook:
         return ResponseValidator(spec)
 
     def test_spec(self, spec, spec_dict):
-
         info = spec / "info"
         info_spec = spec_dict["info"]
         assert info["title"] == info_spec["title"]

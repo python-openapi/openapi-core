@@ -10,7 +10,6 @@ from openapi_core.testing import MockRequest
 
 
 class BaseTestSimpleServer:
-
     server_url = "http://petstore.swagger.io"
 
     @pytest.fixture
@@ -42,7 +41,6 @@ class BaseTestSimpleServer:
 
 
 class BaseTestVariableServer(BaseTestSimpleServer):
-
     server_url = "http://petstore.swagger.io/{version}"
     server_variable_name = "version"
     server_variable_default = "v1"
@@ -59,7 +57,6 @@ class BaseTestVariableServer(BaseTestSimpleServer):
 
 
 class BaseTestSimplePath:
-
     path_name = "/resource"
 
     @pytest.fixture
@@ -74,7 +71,6 @@ class BaseTestSimplePath:
 
 
 class BaseTestVariablePath(BaseTestSimplePath):
-
     path_name = "/resource/{resource_id}"
     path_parameter_name = "resource_id"
 
@@ -99,7 +95,6 @@ class BaseTestVariablePath(BaseTestSimplePath):
 
 
 class BaseTestSpecServer:
-
     location = "spec"
 
     @pytest.fixture
@@ -136,7 +131,6 @@ class BaseTestSpecServer:
 
 
 class BaseTestPathServer(BaseTestSpecServer):
-
     location = "path"
 
     @pytest.fixture
@@ -155,7 +149,6 @@ class BaseTestPathServer(BaseTestSpecServer):
 
 
 class BaseTestOperationServer(BaseTestSpecServer):
-
     location = "operation"
 
     @pytest.fixture
@@ -517,7 +510,6 @@ class TestPathVariableServerValid(
 
 
 class TestSimilarPaths(BaseTestSpecServer, BaseTestSimpleServer):
-
     path_name = "/tokens"
     path_2_name = "/keys/{id}/tokens"
 
@@ -570,7 +562,6 @@ class TestSimilarPaths(BaseTestSpecServer, BaseTestSimpleServer):
 
 
 class TestConcretePaths(BaseTestSpecServer, BaseTestSimpleServer):
-
     path_name = "/keys/{id}/tokens"
     path_2_name = "/keys/master/tokens"
 
@@ -621,7 +612,6 @@ class TestConcretePaths(BaseTestSpecServer, BaseTestSimpleServer):
 
 
 class TestTemplateConcretePaths(BaseTestSpecServer, BaseTestSimpleServer):
-
     path_name = "/keys/{id}/tokens/{id2}"
     path_2_name = "/keys/{id}/tokens/master"
 

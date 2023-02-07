@@ -44,7 +44,6 @@ from openapi_core.validation.response.validators import (
 
 
 class TestPetstore:
-
     api_key = "12345"
 
     @property

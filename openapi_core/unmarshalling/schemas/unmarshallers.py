@@ -54,7 +54,6 @@ log = logging.getLogger(__name__)
 
 
 class BaseSchemaUnmarshaller:
-
     FORMATTERS: FormattersDict = {
         None: Formatter(),
     }
@@ -198,7 +197,6 @@ class BaseSchemaUnmarshaller:
 
 
 class StringUnmarshaller(BaseSchemaUnmarshaller):
-
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_string, None), str),
         "password": Formatter.from_callables(
@@ -224,7 +222,6 @@ class StringUnmarshaller(BaseSchemaUnmarshaller):
 
 
 class IntegerUnmarshaller(BaseSchemaUnmarshaller):
-
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_integer, None), int),
         "int32": Formatter.from_callables(
@@ -237,7 +234,6 @@ class IntegerUnmarshaller(BaseSchemaUnmarshaller):
 
 
 class NumberUnmarshaller(BaseSchemaUnmarshaller):
-
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(
             partial(is_number, None), format_number
@@ -252,14 +248,12 @@ class NumberUnmarshaller(BaseSchemaUnmarshaller):
 
 
 class BooleanUnmarshaller(BaseSchemaUnmarshaller):
-
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_bool, None), forcebool),
     }
 
 
 class NullUnmarshaller(BaseSchemaUnmarshaller):
-
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_null, None), None),
     }
@@ -286,7 +280,6 @@ class ComplexUnmarshaller(BaseSchemaUnmarshaller):
 
 
 class ArrayUnmarshaller(ComplexUnmarshaller):
-
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_array, None), list),
     }
@@ -305,7 +298,6 @@ class ArrayUnmarshaller(ComplexUnmarshaller):
 
 
 class ObjectUnmarshaller(ComplexUnmarshaller):
-
     FORMATTERS: FormattersDict = {
         None: Formatter.from_callables(partial(is_object, None), dict),
     }
@@ -439,7 +431,6 @@ class MultiTypeUnmarshaller(ComplexUnmarshaller):
 
 
 class AnyUnmarshaller(MultiTypeUnmarshaller):
-
     SCHEMA_TYPES_ORDER = [
         "object",
         "array",
