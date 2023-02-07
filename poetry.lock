@@ -899,14 +899,14 @@ rfc3339-validator = "*"
 
 [[package]]
 name = "openapi-spec-validator"
-version = "0.5.4"
+version = "0.5.5"
 description = "OpenAPI 2.0 (aka Swagger) and OpenAPI 3 spec validator"
 category = "main"
 optional = false
 python-versions = ">=3.7.0,<4.0.0"
 files = [
-    {file = "openapi_spec_validator-0.5.4-py3-none-any.whl", hash = "sha256:96be4258fdccc89d3da094738e19d56b94956914b93a22de795b9dd220cb4c7c"},
-    {file = "openapi_spec_validator-0.5.4.tar.gz", hash = "sha256:68654e81cc56c71392dba31bf55d11e1c03c99458bebcb0018959a7134e104da"},
+    {file = "openapi_spec_validator-0.5.5-py3-none-any.whl", hash = "sha256:93ba247f585e1447214b4207728a7cce3726d148238217be69e6b8725c118fbe"},
+    {file = "openapi_spec_validator-0.5.5.tar.gz", hash = "sha256:3010df5237748e25d7fac2b2aaf13457c1afd02735b2bd6f008a10079c8f443a"},
 ]
 
 [package.dependencies]
@@ -914,7 +914,7 @@ importlib-resources = {version = ">=5.8.0,<6.0.0", markers = "python_version < \
 jsonschema = ">=4.0.0,<5.0.0"
 jsonschema-spec = ">=0.1.1,<0.2.0"
 lazy-object-proxy = ">=1.7.1,<2.0.0"
-openapi-schema-validator = ">=0.3.2,<0.5"
+openapi-schema-validator = ">=0.4.2,<0.5.0"
 
 [package.extras]
 requests = ["requests"]
