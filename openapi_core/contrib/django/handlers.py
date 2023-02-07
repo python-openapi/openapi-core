@@ -17,7 +17,6 @@ from openapi_core.templating.security.exceptions import SecurityNotFound
 
 
 class DjangoOpenAPIErrorsHandler:
-
     OPENAPI_ERROR_STATUS: Dict[Type[BaseException], int] = {
         ServerNotFound: 400,
         SecurityNotFound: 403,

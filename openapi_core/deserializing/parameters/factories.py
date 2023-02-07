@@ -20,7 +20,6 @@ from openapi_core.spec import Spec
 
 
 class ParameterDeserializersFactory:
-
     PARAMETER_STYLE_DESERIALIZERS: Dict[str, DeserializerCallable] = {
         "form": partial(split, separator=","),
         "simple": partial(split, separator=","),

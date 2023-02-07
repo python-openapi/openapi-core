@@ -8,7 +8,6 @@ from openapi_core.validation.request.datatypes import Parameters
 
 
 class TestFlaskOpenAPIDecorator:
-
     view_response_callable = None
 
     @pytest.fixture

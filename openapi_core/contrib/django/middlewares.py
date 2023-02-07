@@ -16,7 +16,6 @@ from openapi_core.validation.response.datatypes import ResponseValidationResult
 
 
 class DjangoOpenAPIMiddleware:
-
     request_class = DjangoOpenAPIRequest
     response_class = DjangoOpenAPIResponse
     errors_handler = DjangoOpenAPIErrorsHandler()

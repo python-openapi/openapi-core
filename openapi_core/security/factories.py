@@ -10,7 +10,6 @@ from openapi_core.spec import Spec
 
 
 class SecurityProviderFactory:
-
     PROVIDERS: Dict[str, Type[BaseProvider]] = {
         "apiKey": ApiKeyProvider,
         "http": HttpProvider,

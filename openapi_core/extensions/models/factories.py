@@ -13,7 +13,6 @@ from openapi_core.spec import Spec
 
 
 class DictFactory:
-
     base_class = dict
 
     def create(

@@ -18,7 +18,6 @@ from openapi_core.validation.response.protocols import ResponseValidator
 
 
 class FalconOpenAPIMiddleware(OpenAPIProcessor):
-
     request_class = FalconOpenAPIRequest
     response_class = FalconOpenAPIResponse
     errors_handler = FalconOpenAPIErrorsHandler()

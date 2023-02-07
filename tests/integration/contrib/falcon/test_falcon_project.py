@@ -6,7 +6,6 @@ from falcon.constants import MEDIA_URLENCODED
 
 
 class BaseTestFalconProject:
-
     api_key = "12345"
 
     @property

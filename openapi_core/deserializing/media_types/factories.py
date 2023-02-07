@@ -21,7 +21,6 @@ from openapi_core.deserializing.media_types.util import urlencoded_form_loads
 
 
 class MediaTypeDeserializersFactory:
-
     MEDIA_TYPE_DESERIALIZERS: Dict[str, DeserializerCallable] = {
         "application/json": loads,
         "application/x-www-form-urlencoded": urlencoded_form_loads,

@@ -16,7 +16,6 @@ from openapi_core.validation.request.datatypes import RequestValidationResult
 
 @runtime_checkable
 class BaseRequest(Protocol):
-
     parameters: RequestParameters
 
     @property
