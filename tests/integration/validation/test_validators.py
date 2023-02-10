@@ -4,11 +4,14 @@ from dataclasses import is_dataclass
 
 import pytest
 
+from openapi_core import Spec
+from openapi_core import V30RequestValidator
+from openapi_core import V30ResponseValidator
+from openapi_core import openapi_request_validator
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.media_types.exceptions import (
     MediaTypeDeserializeError,
 )
-from openapi_core.spec import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
@@ -17,8 +20,6 @@ from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
-from openapi_core.validation import openapi_request_validator
-from openapi_core.validation import openapi_response_validator
 from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.exceptions import InvalidParameter
 from openapi_core.validation.request.exceptions import MissingRequiredParameter
@@ -54,44 +55,49 @@ class TestRequestValidator:
     def spec(self, spec_dict):
         return Spec.from_dict(spec_dict)
 
-    def test_request_server_error(self, spec):
+    @pytest.fixture(scope="session")
+    def request_validator(self, spec):
+        return V30RequestValidator(spec)
+
+    @pytest.fixture(scope="session")
+    def response_validator(self, spec):
+        return V30ResponseValidator(spec)
+
+    def test_request_server_error(self, request_validator):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+        result = request_validator.validate(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_invalid_path(self, spec):
+    def test_invalid_path(self, request_validator):
         request = MockRequest(self.host_url, "get", "/v1")
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+        result = request_validator.validate(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_invalid_operation(self, spec):
+    def test_invalid_operation(self, request_validator):
         request = MockRequest(self.host_url, "patch", "/v1/pets")
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+        result = request_validator.validate(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_missing_parameter(self, spec):
+    def test_missing_parameter(self, request_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
@@ -102,7 +108,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_get_pets(self, spec):
+    def test_get_pets(self, request_validator):
         args = {"limit": "10", "ids": ["1", "2"], "api_key": self.api_key}
         request = MockRequest(
             self.host_url,
@@ -113,7 +119,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert result.errors == []
         assert result.body is None
@@ -129,7 +135,7 @@ class TestRequestValidator:
             "api_key": self.api_key,
         }
 
-    def test_get_pets_webob(self, spec):
+    def test_get_pets_webob(self, request_validator):
         from webob.multidict import GetDict
 
         request = MockRequest(
@@ -143,7 +149,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert result.errors == []
         assert result.body is None
@@ -156,7 +162,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_missing_body(self, spec):
+    def test_missing_body(self, request_validator):
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -173,7 +179,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredRequestBody
@@ -187,7 +193,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_invalid_content_type(self, spec):
+    def test_invalid_content_type(self, request_validator):
         data = "csv,data"
         headers = {
             "api-key": self.api_key_encoded,
@@ -207,7 +213,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == RequestBodyError
@@ -225,7 +231,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_invalid_complex_parameter(self, spec, spec_dict):
+    def test_invalid_complex_parameter(self, request_validator, spec_dict):
         pet_name = "Cat"
         pet_tag = "cats"
         pet_street = "Piekna"
@@ -265,7 +271,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert result.errors == [
             InvalidParameter(name="userdata", location="cookie")
@@ -291,7 +297,7 @@ class TestRequestValidator:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
-    def test_post_pets(self, spec, spec_dict):
+    def test_post_pets(self, request_validator, spec_dict):
         pet_name = "Cat"
         pet_tag = "cats"
         pet_street = "Piekna"
@@ -326,7 +332,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert result.errors == []
         assert result.parameters == Parameters(
@@ -350,7 +356,7 @@ class TestRequestValidator:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
-    def test_post_pets_plain_no_schema(self, spec):
+    def test_post_pets_plain_no_schema(self, request_validator):
         data = "plain text"
         headers = {
             "api-key": self.api_key_encoded,
@@ -370,7 +376,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(UserWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert result.errors == []
         assert result.parameters == Parameters(
@@ -384,7 +390,7 @@ class TestRequestValidator:
         assert result.security == {}
         assert result.body == data
 
-    def test_get_pet_unauthorized(self, spec):
+    def test_get_pet_unauthorized(self, request_validator):
         request = MockRequest(
             self.host_url,
             "get",
@@ -393,8 +399,7 @@ class TestRequestValidator:
             view_args={"petId": "1"},
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+        result = request_validator.validate(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) is SecurityError
@@ -405,7 +410,7 @@ class TestRequestValidator:
         assert result.parameters == Parameters()
         assert result.security is None
 
-    def test_get_pet(self, spec):
+    def test_get_pet(self, request_validator):
         authorization = "Basic " + self.api_key_encoded
         headers = {
             "Authorization": authorization,
@@ -420,7 +425,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert result.errors == []
         assert result.body is None
@@ -468,25 +473,29 @@ class TestPathItemParamsValidator:
     def spec(self, spec_dict):
         return Spec.from_dict(spec_dict)
 
-    def test_request_missing_param(self, spec):
+    @pytest.fixture(scope="session")
+    def request_validator(self, spec):
+        return V30RequestValidator(spec)
+
+    def test_request_missing_param(self, request_validator):
         request = MockRequest("http://example.com", "get", "/resource")
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+
+        result = request_validator.validate(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_request_invalid_param(self, spec):
+    def test_request_invalid_param(self, request_validator):
         request = MockRequest(
             "http://example.com",
             "get",
             "/resource",
             args={"resId": "invalid"},
         )
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+
+        result = request_validator.validate(request)
 
         assert result.errors == [
             ParameterError(name="resId", location="query")
@@ -495,15 +504,16 @@ class TestPathItemParamsValidator:
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_request_valid_param(self, spec):
+    def test_request_valid_param(self, request_validator):
         request = MockRequest(
             "http://example.com",
             "get",
             "/resource",
             args={"resId": "10"},
         )
+
         with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(spec, request)
+            result = request_validator.validate(request)
 
         assert len(result.errors) == 0
         assert result.body is None
@@ -600,92 +610,78 @@ class TestPathItemParamsValidator:
 class TestResponseValidator:
     host_url = "http://petstore.swagger.io"
 
-    @pytest.fixture
+    @pytest.fixture(scope="session")
     def spec_dict(self, factory):
         content, _ = factory.content_from_file("data/v3.0/petstore.yaml")
         return content
 
-    @pytest.fixture
+    @pytest.fixture(scope="session")
     def spec(self, spec_dict):
         return Spec.from_dict(spec_dict)
 
-    def test_invalid_server(self, spec):
+    @pytest.fixture(scope="session")
+    def response_validator(self, spec):
+        return V30ResponseValidator(spec)
+
+    def test_invalid_server(self, response_validator):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
         response = MockResponse("Not Found", status_code=404)
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+        result = response_validator.validate(request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_operation(self, spec):
+    def test_invalid_operation(self, response_validator):
         request = MockRequest(self.host_url, "patch", "/v1/pets")
         response = MockResponse("Not Found", status_code=404)
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+        result = response_validator.validate(request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_response(self, spec):
+    def test_invalid_response(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("Not Found", status_code=409)
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+        result = response_validator.validate(request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == ResponseNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_content_type(self, spec):
+    def test_invalid_content_type(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("Not Found", mimetype="text/csv")
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+        result = response_validator.validate(request, response)
 
         assert result.errors == [DataError()]
         assert type(result.errors[0].__cause__) == MediaTypeNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_missing_body(self, spec):
+    def test_missing_body(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse(None)
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+        result = response_validator.validate(request, response)
 
         assert result.errors == [MissingData()]
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_media_type(self, spec):
+    def test_invalid_media_type(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("abcde")
 
-        with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+        result = response_validator.validate(request, response)
 
         assert result.errors == [DataError()]
         assert result.errors[0].__cause__ == MediaTypeDeserializeError(
@@ -694,21 +690,19 @@ class TestResponseValidator:
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_media_type_value(self, spec):
+    def test_invalid_media_type_value(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("{}")
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+            result = response_validator.validate(request, response)
 
         assert result.errors == [InvalidData()]
         assert type(result.errors[0].__cause__) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_value(self, spec):
+    def test_invalid_value(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/tags")
         response_json = {
             "data": [
@@ -719,16 +713,14 @@ class TestResponseValidator:
         response = MockResponse(response_data)
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+            result = response_validator.validate(request, response)
 
         assert result.errors == [InvalidData()]
         assert type(result.errors[0].__cause__) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_header(self, spec):
+    def test_invalid_header(self, response_validator):
         userdata = {
             "name": 1,
         }
@@ -758,15 +750,13 @@ class TestResponseValidator:
         response = MockResponse(response_data, headers=headers)
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+            result = response_validator.validate(request, response)
 
         assert result.errors == [InvalidHeader(name="x-delete-date")]
         assert result.data is None
         assert result.headers == {"x-delete-confirm": True}
 
-    def test_get_pets(self, spec):
+    def test_get_pets(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response_json = {
             "data": [
@@ -783,9 +773,7 @@ class TestResponseValidator:
         response = MockResponse(response_data)
 
         with pytest.warns(DeprecationWarning):
-            result = openapi_response_validator.validate(
-                spec, request, response
-            )
+            result = response_validator.validate(request, response)
 
         assert result.errors == []
         assert is_dataclass(result.data)
