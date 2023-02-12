@@ -23,16 +23,22 @@ if TYPE_CHECKING:
 class SpecResponseValidatorProxy:
     def __init__(
         self,
-        validator_cls: Type["BaseAPICallResponseValidator"],
+        unmarshaller_cls_name: Type["BaseAPICallResponseValidator"],
         deprecated: str = "ResponseValidator",
         use: Optional[str] = None,
-        **validator_kwargs: Any,
+        **unmarshaller_kwargs: Any,
     ):
-        self.validator_cls = validator_cls
-        self.validator_kwargs = validator_kwargs
+        self.unmarshaller_cls_name = unmarshaller_cls_name
+        self.unmarshaller_kwargs = unmarshaller_kwargs
 
         self.deprecated = deprecated
-        self.use = use or self.validator_cls.__name__
+        self.use = use or self.unmarshaller_cls_name
+
+    @property
+    def unmarshaller_cls(self) -> Type["BaseAPICallResponseValidator"]:
+        from openapi_core.unmarshalling.response import unmarshallers
+
+        return getattr(unmarshallers, self.unmarshaller_cls_name)
 
     def validate(
         self,
@@ -45,10 +51,10 @@ class SpecResponseValidatorProxy:
             f"{self.deprecated} is deprecated. Use {self.use} instead.",
             DeprecationWarning,
         )
-        validator = self.validator_cls(
-            spec, base_url=base_url, **self.validator_kwargs
+        unmarshaller = self.unmarshaller_cls(
+            spec, base_url=base_url, **self.unmarshaller_kwargs
         )
-        return validator.validate(request, response)
+        return unmarshaller.validate(request, response)
 
     def is_valid(
         self,
@@ -57,11 +63,11 @@ class SpecResponseValidatorProxy:
         response: Response,
         base_url: Optional[str] = None,
     ) -> bool:
-        validator = self.validator_cls(
-            spec, base_url=base_url, **self.validator_kwargs
+        unmarshaller = self.unmarshaller_cls(
+            spec, base_url=base_url, **self.unmarshaller_kwargs
         )
         error = next(
-            validator.iter_errors(request, response),
+            unmarshaller.iter_errors(request, response),
             None,
         )
         return error is None
@@ -73,10 +79,10 @@ class SpecResponseValidatorProxy:
         response: Response,
         base_url: Optional[str] = None,
     ) -> Iterator[Exception]:
-        validator = self.validator_cls(
-            spec, base_url=base_url, **self.validator_kwargs
+        unmarshaller = self.unmarshaller_cls(
+            spec, base_url=base_url, **self.unmarshaller_kwargs
         )
-        yield from validator.iter_errors(request, response)
+        yield from unmarshaller.iter_errors(request, response)
 
 
 class DetectResponseValidatorProxy:

@@ -37,3 +37,15 @@ def factory():
         spec_from_file=spec_from_file,
         spec_from_url=spec_from_url,
     )
+
+
+@pytest.fixture(scope="session")
+def v30_petstore_content(factory):
+    content, _ = factory.content_from_file("data/v3.0/petstore.yaml")
+    return content
+
+
+@pytest.fixture(scope="session")
+def v30_petstore_spec(v30_petstore_content):
+    spec_url = "file://tests/integration/data/v3.0/petstore.yaml"
+    return Spec.from_dict(v30_petstore_content, spec_url=spec_url)

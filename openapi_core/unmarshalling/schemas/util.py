@@ -1,16 +1,16 @@
 """OpenAPI core schemas util module"""
 from base64 import b64decode
-from copy import copy
 from datetime import date
 from datetime import datetime
-from functools import lru_cache
+from typing import TYPE_CHECKING
 from typing import Any
-from typing import Callable
-from typing import Optional
 from typing import Union
 from uuid import UUID
 
-from openapi_schema_validator import oas30_format_checker
+if TYPE_CHECKING:
+    StaticMethod = staticmethod[Any]
+else:
+    StaticMethod = staticmethod
 
 
 def format_date(value: str) -> date:
@@ -34,12 +34,12 @@ def format_number(value: str) -> Union[int, float]:
     return float(value)
 
 
-@lru_cache()
-def build_format_checker(**custom_format_checks: Callable[[Any], Any]) -> Any:
-    if not custom_format_checks:
-        return oas30_format_checker
+class callable_staticmethod(StaticMethod):
+    """Callable version of staticmethod.
 
-    fc = copy(oas30_format_checker)
-    for name, check in custom_format_checks.items():
-        fc.checks(name)(check)
-    return fc
+    Prior to Python 3.10, staticmethods are not directly callable
+    from inside the class.
+    """
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self.__func__(*args, **kwargs)

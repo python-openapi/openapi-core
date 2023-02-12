@@ -19,13 +19,12 @@ from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
 from openapi_core.templating.responses.exceptions import ResponseFinderError
 from openapi_core.unmarshalling.schemas import (
-    oas30_response_schema_unmarshallers_factory,
+    oas30_read_schema_unmarshallers_factory,
 )
 from openapi_core.unmarshalling.schemas import (
     oas31_schema_unmarshallers_factory,
 )
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
-from openapi_core.unmarshalling.schemas.exceptions import ValidateError
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
@@ -45,6 +44,10 @@ from openapi_core.validation.response.exceptions import MissingHeader
 from openapi_core.validation.response.exceptions import MissingRequiredHeader
 from openapi_core.validation.response.protocols import Response
 from openapi_core.validation.response.proxies import SpecResponseValidatorProxy
+from openapi_core.validation.schemas import (
+    oas30_read_schema_validators_factory,
+)
+from openapi_core.validation.schemas import oas31_schema_validators_factory
 from openapi_core.validation.validators import BaseAPICallValidator
 from openapi_core.validation.validators import BaseValidator
 from openapi_core.validation.validators import BaseWebhookValidator
@@ -155,20 +158,13 @@ class BaseResponseValidator(BaseValidator):
         if "content" not in operation_response:
             return None
 
-        media_type, mimetype = self._get_media_type(
-            operation_response / "content", mimetype
-        )
+        content = operation_response / "content"
+
         raw_data = self._get_data_value(data)
-        deserialised = self._deserialise_data(mimetype, raw_data)
-        casted = self._cast(media_type, deserialised)
-
-        if "schema" not in media_type:
-            return casted
-
-        schema = media_type / "schema"
-        data = self._unmarshal(schema, casted)
-
-        return data
+        casted, _ = self._get_content_value_and_schema(
+            raw_data, mimetype, content
+        )
+        return casted
 
     def _get_data_value(self, data: str) -> Any:
         if not data:
@@ -374,39 +370,39 @@ class WebhookResponseValidator(BaseWebhookResponseValidator):
 
 
 class V30ResponseDataValidator(APICallResponseDataValidator):
-    schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
+    schema_validators_factory = oas30_read_schema_validators_factory
 
 
 class V30ResponseHeadersValidator(APICallResponseHeadersValidator):
-    schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
+    schema_validators_factory = oas30_read_schema_validators_factory
 
 
 class V30ResponseValidator(APICallResponseValidator):
-    schema_unmarshallers_factory = oas30_response_schema_unmarshallers_factory
+    schema_validators_factory = oas30_read_schema_validators_factory
 
 
 class V31ResponseDataValidator(APICallResponseDataValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31ResponseHeadersValidator(APICallResponseHeadersValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31ResponseValidator(APICallResponseValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31WebhookResponseDataValidator(WebhookResponseDataValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31WebhookResponseHeadersValidator(WebhookResponseHeadersValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31WebhookResponseValidator(WebhookResponseValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 # backward compatibility
@@ -417,7 +413,10 @@ class ResponseValidator(SpecResponseValidatorProxy):
         **kwargs: Any,
     ):
         super().__init__(
-            APICallResponseValidator,
+            "APICallResponseUnmarshaller",
+            schema_validators_factory=(
+                schema_unmarshallers_factory.schema_validators_factory
+            ),
             schema_unmarshallers_factory=schema_unmarshallers_factory,
             **kwargs,
         )

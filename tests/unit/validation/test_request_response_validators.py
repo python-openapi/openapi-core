@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 from openapi_schema_validator import OAS31Validator
 
+from openapi_core.unmarshalling.schemas import oas31_types_unmarshaller
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
@@ -11,6 +12,7 @@ from openapi_core.validation import openapi_request_validator
 from openapi_core.validation import openapi_response_validator
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.schemas import oas31_schema_validators_factory
 
 
 class BaseTestValidate:
@@ -18,7 +20,8 @@ class BaseTestValidate:
     def schema_unmarshallers_factory(self):
         CUSTOM_FORMATTERS = {"custom": Formatter.from_callables()}
         return SchemaUnmarshallersFactory(
-            OAS31Validator,
+            oas31_schema_validators_factory,
+            oas31_types_unmarshaller,
             custom_formatters=CUSTOM_FORMATTERS,
         )
 

@@ -4,8 +4,8 @@ from typing import Dict
 from typing import Iterable
 
 from openapi_core.exceptions import OpenAPIError
-from openapi_core.unmarshalling.schemas.exceptions import ValidateError
 from openapi_core.validation.exceptions import ValidationError
+from openapi_core.validation.schemas.exceptions import ValidateError
 
 
 @dataclass

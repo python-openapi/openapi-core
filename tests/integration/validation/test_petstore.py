@@ -21,7 +21,6 @@ from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
-from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import ParameterError
@@ -41,6 +40,7 @@ from openapi_core.validation.response.validators import (
 from openapi_core.validation.response.validators import (
     V30ResponseHeadersValidator,
 )
+from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 
 class TestPetstore:
@@ -53,17 +53,12 @@ class TestPetstore:
         return str(api_key_bytes_enc, "utf8")
 
     @pytest.fixture(scope="module")
-    def spec_uri(self):
-        return "file://tests/integration/data/v3.0/petstore.yaml"
+    def spec_dict(self, v30_petstore_content):
+        return v30_petstore_content
 
     @pytest.fixture(scope="module")
-    def spec_dict(self, factory):
-        content, _ = factory.content_from_file("data/v3.0/petstore.yaml")
-        return content
-
-    @pytest.fixture(scope="module")
-    def spec(self, spec_dict, spec_uri):
-        return Spec.from_dict(spec_dict, spec_url=spec_uri)
+    def spec(self, v30_petstore_spec):
+        return v30_petstore_spec
 
     @pytest.fixture(scope="module")
     def request_parameters_validator(self, spec):

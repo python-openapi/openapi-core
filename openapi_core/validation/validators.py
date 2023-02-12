@@ -39,38 +39,37 @@ from openapi_core.unmarshalling.schemas.factories import (
 from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.request.protocols import SupportsPathPattern
 from openapi_core.validation.request.protocols import WebhookRequest
+from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 
 class BaseValidator:
+    schema_validators_factory: SchemaValidatorsFactory = NotImplemented
     schema_unmarshallers_factory: SchemaUnmarshallersFactory = NotImplemented
 
     def __init__(
         self,
         spec: Spec,
         base_url: Optional[str] = None,
-        schema_unmarshallers_factory: Optional[
-            SchemaUnmarshallersFactory
-        ] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
     ):
         self.spec = spec
         self.base_url = base_url
-
-        self.schema_unmarshallers_factory = (
-            schema_unmarshallers_factory or self.schema_unmarshallers_factory
-        )
-        if self.schema_unmarshallers_factory is NotImplemented:
-            raise NotImplementedError(
-                "schema_unmarshallers_factory is not assigned"
-            )
 
         self.schema_casters_factory = schema_casters_factory
         self.parameter_deserializers_factory = parameter_deserializers_factory
         self.media_type_deserializers_factory = (
             media_type_deserializers_factory
         )
+        self.schema_validators_factory = (
+            schema_validators_factory or self.schema_validators_factory
+        )
+        if self.schema_validators_factory is NotImplemented:
+            raise NotImplementedError(
+                "schema_validators_factory is not assigned"
+            )
 
     def _get_media_type(self, content: Spec, mimetype: str) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder
@@ -90,16 +89,23 @@ class BaseValidator:
         caster = self.schema_casters_factory.create(schema)
         return caster(value)
 
-    def _unmarshal(self, schema: Spec, value: Any) -> Any:
-        unmarshaller = self.schema_unmarshallers_factory.create(schema)
-        return unmarshaller(value)
-
     def _get_param_or_header_value(
         self,
         param_or_header: Spec,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
+        casted, _ = self._get_param_or_header_value_and_schema(
+            param_or_header, location, name
+        )
+        return casted
+
+    def _get_param_or_header_value_and_schema(
+        self,
+        param_or_header: Spec,
+        location: Mapping[str, Any],
+        name: Optional[str] = None,
+    ) -> Tuple[Any, Spec]:
         try:
             raw_value = get_value(param_or_header, location, name=name)
         except KeyError:
@@ -123,8 +129,20 @@ class BaseValidator:
                 deserialised = self._deserialise_data(mimetype, raw_value)
                 schema = media_type / "schema"
             casted = self._cast(schema, deserialised)
-        unmarshalled = self._unmarshal(schema, casted)
-        return unmarshalled
+        return casted, schema
+
+    def _get_content_value_and_schema(
+        self, raw: Any, mimetype: str, content: Spec
+    ) -> Tuple[Any, Optional[Spec]]:
+        media_type, mimetype = self._get_media_type(content, mimetype)
+        deserialised = self._deserialise_data(mimetype, raw)
+        casted = self._cast(media_type, deserialised)
+
+        if "schema" not in media_type:
+            return casted, None
+
+        schema = media_type / "schema"
+        return casted, schema
 
 
 class BaseAPICallValidator(BaseValidator):

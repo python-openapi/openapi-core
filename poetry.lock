@@ -1813,4 +1813,4 @@ starlette = []
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7.0"
-content-hash = "733c6dcfea0d5f94a264a3e954cfc8034d0a3c7be17bd88968ea387c8b19dff9"
+content-hash = "12999bd418fc1271f5956ac8cfd48f3f09f3c3d09defabc658eb7ad9b4f338af"

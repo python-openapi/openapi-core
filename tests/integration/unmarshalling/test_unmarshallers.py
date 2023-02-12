@@ -12,10 +12,10 @@ from jsonschema.exceptions import ValidationError
 
 from openapi_core import Spec
 from openapi_core.unmarshalling.schemas import (
-    oas30_request_schema_unmarshallers_factory,
+    oas30_read_schema_unmarshallers_factory,
 )
 from openapi_core.unmarshalling.schemas import (
-    oas30_response_schema_unmarshallers_factory,
+    oas30_write_schema_unmarshallers_factory,
 )
 from openapi_core.unmarshalling.schemas import (
     oas31_schema_unmarshallers_factory,
@@ -23,11 +23,8 @@ from openapi_core.unmarshalling.schemas import (
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
 )
-from openapi_core.unmarshalling.schemas.exceptions import (
-    InvalidSchemaFormatValue,
-)
-from openapi_core.unmarshalling.schemas.exceptions import InvalidSchemaValue
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
+from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 
 class BaseTestOASSchemaUnmarshallersFactoryCall:
@@ -762,7 +759,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        with pytest.raises(UnmarshalError):
+        with pytest.raises(InvalidSchemaValue):
             unmarshaller({"someint": "1"})
 
     def test_object_one_of_default(self, unmarshallers_factory):
@@ -1846,7 +1843,7 @@ class TestOAS30RequestSchemaUnmarshallersFactory(
 ):
     @pytest.fixture
     def unmarshallers_factory(self):
-        return oas30_request_schema_unmarshallers_factory
+        return oas30_write_schema_unmarshallers_factory
 
     def test_write_only_properties(self, unmarshallers_factory):
         schema = {
@@ -1894,7 +1891,7 @@ class TestOAS30ResponseSchemaUnmarshallersFactory(
 ):
     @pytest.fixture
     def unmarshallers_factory(self):
-        return oas30_response_schema_unmarshallers_factory
+        return oas30_read_schema_unmarshallers_factory
 
     def test_read_only_properties(self, unmarshallers_factory):
         schema = {

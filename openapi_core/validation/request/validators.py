@@ -4,6 +4,7 @@ from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import Optional
+from typing import Tuple
 from urllib.parse import urljoin
 
 from openapi_core.casting.schemas import schema_casters_factory
@@ -34,13 +35,12 @@ from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
 from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.unmarshalling.schemas import (
-    oas30_request_schema_unmarshallers_factory,
+    oas30_write_schema_unmarshallers_factory,
 )
 from openapi_core.unmarshalling.schemas import (
     oas31_schema_unmarshallers_factory,
 )
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
-from openapi_core.unmarshalling.schemas.exceptions import ValidateError
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
@@ -66,6 +66,11 @@ from openapi_core.validation.request.protocols import BaseRequest
 from openapi_core.validation.request.protocols import Request
 from openapi_core.validation.request.protocols import WebhookRequest
 from openapi_core.validation.request.proxies import SpecRequestValidatorProxy
+from openapi_core.validation.schemas import (
+    oas30_write_schema_validators_factory,
+)
+from openapi_core.validation.schemas import oas31_schema_validators_factory
+from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 from openapi_core.validation.validators import BaseAPICallValidator
 from openapi_core.validation.validators import BaseValidator
 from openapi_core.validation.validators import BaseWebhookValidator
@@ -76,21 +81,19 @@ class BaseRequestValidator(BaseValidator):
         self,
         spec: Spec,
         base_url: Optional[str] = None,
-        schema_unmarshallers_factory: Optional[
-            SchemaUnmarshallersFactory
-        ] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
     ):
         super().__init__(
             spec,
             base_url=base_url,
-            schema_unmarshallers_factory=schema_unmarshallers_factory,
             schema_casters_factory=schema_casters_factory,
             parameter_deserializers_factory=parameter_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
+            schema_validators_factory=schema_validators_factory,
         )
         self.security_provider_factory = security_provider_factory
 
@@ -283,25 +286,19 @@ class BaseRequestValidator(BaseValidator):
     @ValidationErrorWrapper(RequestBodyError, InvalidRequestBody)
     def _get_body(
         self, body: Optional[str], mimetype: str, operation: Spec
-    ) -> Any:
+    ) -> Tuple[Any, Optional[Spec]]:
         if "requestBody" not in operation:
             return None
 
+        # TODO: implement required flag checking
         request_body = operation / "requestBody"
+        content = request_body / "content"
 
         raw_body = self._get_body_value(body, request_body)
-        media_type, mimetype = self._get_media_type(
-            request_body / "content", mimetype
+        casted, _ = self._get_content_value_and_schema(
+            raw_body, mimetype, content
         )
-        deserialised = self._deserialise_data(mimetype, raw_body)
-        casted = self._cast(media_type, deserialised)
-
-        if "schema" not in media_type:
-            return casted
-
-        schema = media_type / "schema"
-        unmarshalled = self._unmarshal(schema, casted)
-        return unmarshalled
+        return casted
 
     def _get_body_value(self, body: Optional[str], request_body: Spec) -> Any:
         if not body:
@@ -428,55 +425,55 @@ class WebhookRequestSecurityValidator(BaseWebhookRequestValidator):
 
 
 class V30RequestBodyValidator(APICallRequestBodyValidator):
-    schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
+    schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestParametersValidator(APICallRequestParametersValidator):
-    schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
+    schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestSecurityValidator(APICallRequestSecurityValidator):
-    schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
+    schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestValidator(APICallRequestValidator):
-    schema_unmarshallers_factory = oas30_request_schema_unmarshallers_factory
+    schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V31RequestBodyValidator(APICallRequestBodyValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestParametersValidator(APICallRequestParametersValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestSecurityValidator(APICallRequestSecurityValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestValidator(APICallRequestValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestBodyValidator(WebhookRequestBodyValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestParametersValidator(WebhookRequestParametersValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestSecurityValidator(WebhookRequestSecurityValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestValidator(WebhookRequestValidator):
-    schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+    schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
@@ -488,7 +485,10 @@ class RequestValidator(SpecRequestValidatorProxy):
         **kwargs: Any,
     ):
         super().__init__(
-            APICallRequestValidator,
+            "APICallRequestUnmarshaller",
+            schema_validators_factory=(
+                schema_unmarshallers_factory.schema_validators_factory
+            ),
             schema_unmarshallers_factory=schema_unmarshallers_factory,
             **kwargs,
         )

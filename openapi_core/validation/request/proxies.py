@@ -22,16 +22,22 @@ if TYPE_CHECKING:
 class SpecRequestValidatorProxy:
     def __init__(
         self,
-        validator_cls: Type["BaseAPICallRequestValidator"],
+        unmarshaller_cls_name: str,
         deprecated: str = "RequestValidator",
         use: Optional[str] = None,
-        **validator_kwargs: Any,
+        **unmarshaller_kwargs: Any,
     ):
-        self.validator_cls = validator_cls
-        self.validator_kwargs = validator_kwargs
+        self.unmarshaller_cls_name = unmarshaller_cls_name
+        self.unmarshaller_kwargs = unmarshaller_kwargs
 
         self.deprecated = deprecated
-        self.use = use or self.validator_cls.__name__
+        self.use = use or self.unmarshaller_cls_name
+
+    @property
+    def unmarshaller_cls(self) -> Type["BaseAPICallRequestValidator"]:
+        from openapi_core.unmarshalling.request import unmarshallers
+
+        return getattr(unmarshallers, self.unmarshaller_cls_name)
 
     def validate(
         self,
@@ -43,10 +49,10 @@ class SpecRequestValidatorProxy:
             f"{self.deprecated} is deprecated. Use {self.use} instead.",
             DeprecationWarning,
         )
-        validator = self.validator_cls(
-            spec, base_url=base_url, **self.validator_kwargs
+        unmarshaller = self.unmarshaller_cls(
+            spec, base_url=base_url, **self.unmarshaller_kwargs
         )
-        return validator.validate(request)
+        return unmarshaller.validate(request)
 
     def is_valid(
         self,
@@ -54,10 +60,10 @@ class SpecRequestValidatorProxy:
         request: Request,
         base_url: Optional[str] = None,
     ) -> bool:
-        validator = self.validator_cls(
-            spec, base_url=base_url, **self.validator_kwargs
+        unmarshaller = self.unmarshaller_cls(
+            spec, base_url=base_url, **self.unmarshaller_kwargs
         )
-        error = next(validator.iter_errors(request), None)
+        error = next(unmarshaller.iter_errors(request), None)
         return error is None
 
     def iter_errors(
@@ -66,10 +72,10 @@ class SpecRequestValidatorProxy:
         request: Request,
         base_url: Optional[str] = None,
     ) -> Iterator[Exception]:
-        validator = self.validator_cls(
-            spec, base_url=base_url, **self.validator_kwargs
+        unmarshaller = self.unmarshaller_cls(
+            spec, base_url=base_url, **self.unmarshaller_kwargs
         )
-        yield from validator.iter_errors(request)
+        yield from unmarshaller.iter_errors(request)
 
 
 class DetectSpecRequestValidatorProxy:
