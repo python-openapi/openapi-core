@@ -91,7 +91,7 @@ sphinx-rtd-theme = "^1.2.0"
 strict-rfc3339 = "^0.7"
 webob = "*"
 mypy = "^1.0"
-starlette = "^0.24.0"
+starlette = "^0.25.0"
 httpx = "^0.23.3"
 
 [tool.pytest.ini_options]
