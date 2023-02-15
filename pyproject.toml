@@ -66,8 +66,11 @@ werkzeug = "*"
 typing-extensions = "^4.3.0"
 jsonschema-spec = "^0.1.1"
 backports-cached-property = {version = "^1.0.2", python = "<3.8" }
+sphinx = {version = "^5.3.0", optional = true}
+sphinx-immaterial = {version = "^0.11.0", optional = true}
 
 [tool.poetry.extras]
+docs = ["sphinx", "sphinx-immaterial"]
 django = ["django"]
 falcon = ["falcon"]
 flask = ["flask"]
@@ -86,13 +89,15 @@ pytest = "^7"
 pytest-flake8 = "*"
 pytest-cov = "*"
 responses = "*"
-sphinx = "^5.3.0"
-sphinx-rtd-theme = "^1.2.0"
 strict-rfc3339 = "^0.7"
 webob = "*"
 mypy = "^1.0"
 starlette = "^0.25.0"
 httpx = "^0.23.3"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^5.3.0"
+sphinx-immaterial = "^0.11.0"
 
 [tool.pytest.ini_options]
 addopts = """
