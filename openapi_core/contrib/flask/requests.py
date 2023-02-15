@@ -4,7 +4,7 @@ from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
 from openapi_core.contrib.werkzeug.requests import WerkzeugOpenAPIRequest
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.datatypes import RequestParameters
 
 
 class FlaskOpenAPIRequest(WerkzeugOpenAPIRequest):

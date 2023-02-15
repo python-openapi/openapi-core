@@ -6,7 +6,7 @@ from openapi_core.exceptions import OpenAPIError
 
 
 @dataclass
-class BaseValidationResult:
+class BaseUnmarshalResult:
     errors: Iterable[OpenAPIError]
 
     def raise_for_errors(self) -> None:

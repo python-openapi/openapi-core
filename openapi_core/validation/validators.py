@@ -1,11 +1,9 @@
 """OpenAPI core validation validators module"""
 import sys
 from typing import Any
-from typing import Dict
 from typing import Mapping
 from typing import Optional
 from typing import Tuple
-from typing import Type
 from urllib.parse import urljoin
 
 if sys.version_info >= (3, 8):
@@ -26,6 +24,8 @@ from openapi_core.deserializing.parameters import (
 from openapi_core.deserializing.parameters.factories import (
     ParameterDeserializersFactory,
 )
+from openapi_core.protocols import Request
+from openapi_core.protocols import WebhookRequest
 from openapi_core.schema.parameters import get_value
 from openapi_core.spec import Spec
 from openapi_core.templating.media_types.datatypes import MediaType
@@ -33,18 +33,11 @@ from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.templating.paths.finders import BasePathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
-from openapi_core.unmarshalling.schemas.factories import (
-    SchemaUnmarshallersFactory,
-)
-from openapi_core.validation.request.protocols import Request
-from openapi_core.validation.request.protocols import SupportsPathPattern
-from openapi_core.validation.request.protocols import WebhookRequest
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 
 class BaseValidator:
     schema_validators_factory: SchemaValidatorsFactory = NotImplemented
-    schema_unmarshallers_factory: SchemaUnmarshallersFactory = NotImplemented
 
     def __init__(
         self,
@@ -89,15 +82,33 @@ class BaseValidator:
         caster = self.schema_casters_factory.create(schema)
         return caster(value)
 
+    def _validate_schema(self, schema: Spec, value: Any) -> None:
+        validator = self.schema_validators_factory.create(schema)
+        validator.validate(value)
+
     def _get_param_or_header_value(
         self,
         param_or_header: Spec,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
-        casted, _ = self._get_param_or_header_value_and_schema(
+        casted, schema = self._get_param_or_header_value_and_schema(
             param_or_header, location, name
         )
+        if schema is None:
+            return casted
+        self._validate_schema(schema, casted)
+        return casted
+
+    def _get_content_value(
+        self, raw: Any, mimetype: str, content: Spec
+    ) -> Any:
+        casted, schema = self._get_content_value_and_schema(
+            raw, mimetype, content
+        )
+        if schema is None:
+            return casted
+        self._validate_schema(schema, casted)
         return casted
 
     def _get_param_or_header_value_and_schema(

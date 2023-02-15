@@ -3,15 +3,15 @@ from unittest import mock
 import pytest
 from openapi_schema_validator import OAS31Validator
 
+from openapi_core import RequestValidator
+from openapi_core import ResponseValidator
+from openapi_core import openapi_request_validator
+from openapi_core import openapi_response_validator
 from openapi_core.unmarshalling.schemas import oas31_types_unmarshaller
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
 from openapi_core.unmarshalling.schemas.formatters import Formatter
-from openapi_core.validation import openapi_request_validator
-from openapi_core.validation import openapi_response_validator
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseValidator
 from openapi_core.validation.schemas import oas31_schema_validators_factory
 
 
@@ -32,18 +32,18 @@ class TestRequestValidatorValidate(BaseTestValidate):
         return RequestValidator(schema_unmarshallers_factory)
 
     @mock.patch(
-        "openapi_core.validation.request.validators.APICallRequestValidator."
-        "validate",
+        "openapi_core.unmarshalling.request.unmarshallers.APICallRequestUnmarshaller."
+        "unmarshal",
     )
-    def test_valid(self, mock_validate, validator):
+    def test_valid(self, mock_unmarshal, validator):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
 
         with pytest.warns(DeprecationWarning):
             result = validator.validate(spec, request)
 
-        assert result == mock_validate.return_value
-        mock_validate.assert_called_once_with(request)
+        assert result == mock_unmarshal.return_value
+        mock_unmarshal.assert_called_once_with(request)
 
 
 class TestResponseValidatorValidate(BaseTestValidate):
@@ -52,10 +52,10 @@ class TestResponseValidatorValidate(BaseTestValidate):
         return ResponseValidator(schema_unmarshallers_factory)
 
     @mock.patch(
-        "openapi_core.validation.response.validators.APICallResponseValidator."
-        "validate",
+        "openapi_core.unmarshalling.response.unmarshallers.APICallResponseUnmarshaller."
+        "unmarshal",
     )
-    def test_valid(self, mock_validate, validator):
+    def test_valid(self, mock_unmarshal, validator):
         spec = mock.sentinel.spec
         request = mock.sentinel.request
         response = mock.sentinel.response
@@ -63,8 +63,8 @@ class TestResponseValidatorValidate(BaseTestValidate):
         with pytest.warns(DeprecationWarning):
             result = validator.validate(spec, request, response)
 
-        assert result == mock_validate.return_value
-        mock_validate.assert_called_once_with(request, response)
+        assert result == mock_unmarshal.return_value
+        mock_unmarshal.assert_called_once_with(request, response)
 
 
 class TestDetectProxyOpenAPIRequestValidator:
@@ -73,17 +73,17 @@ class TestDetectProxyOpenAPIRequestValidator:
         return openapi_request_validator
 
     @mock.patch(
-        "openapi_core.validation.request.validators.APICallRequestValidator."
-        "validate",
+        "openapi_core.unmarshalling.request.unmarshallers.APICallRequestUnmarshaller."
+        "unmarshal",
     )
-    def test_valid(self, mock_validate, validator, spec_v31):
+    def test_valid(self, mock_unmarshal, validator, spec_v31):
         request = mock.sentinel.request
 
         with pytest.warns(DeprecationWarning):
             result = validator.validate(spec_v31, request)
 
-        assert result == mock_validate.return_value
-        mock_validate.assert_called_once_with(request)
+        assert result == mock_unmarshal.return_value
+        mock_unmarshal.assert_called_once_with(request)
 
 
 class TestDetectProxyOpenAPIResponsealidator:
@@ -92,15 +92,15 @@ class TestDetectProxyOpenAPIResponsealidator:
         return openapi_response_validator
 
     @mock.patch(
-        "openapi_core.validation.response.validators.APICallResponseValidator."
-        "validate",
+        "openapi_core.unmarshalling.response.unmarshallers.APICallResponseUnmarshaller."
+        "unmarshal",
     )
-    def test_valid(self, mock_validate, validator, spec_v31):
+    def test_valid(self, mock_unmarshal, validator, spec_v31):
         request = mock.sentinel.request
         response = mock.sentinel.response
 
         with pytest.warns(DeprecationWarning):
             result = validator.validate(spec_v31, request, response)
 
-        assert result == mock_validate.return_value
-        mock_validate.assert_called_once_with(request, response)
+        assert result == mock_unmarshal.return_value
+        mock_unmarshal.assert_called_once_with(request, response)

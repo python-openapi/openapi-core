@@ -6,7 +6,7 @@ from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.wrappers import Request
 
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.datatypes import RequestParameters
 
 # http://flask.pocoo.org/docs/1.0/quickstart/#variable-rules
 PATH_PARAMETER_PATTERN = r"<(?:(?:string|int|float|path|uuid):)?(\w+)>"

@@ -15,19 +15,21 @@ from openapi_core.contrib.flask.providers import FlaskRequestProvider
 from openapi_core.contrib.flask.requests import FlaskOpenAPIRequest
 from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
 from openapi_core.spec import Spec
-from openapi_core.validation.processors import OpenAPIProcessor
-from openapi_core.validation.request.datatypes import RequestValidationResult
-from openapi_core.validation.request.protocols import RequestValidator
-from openapi_core.validation.response.datatypes import ResponseValidationResult
-from openapi_core.validation.response.protocols import ResponseValidator
+from openapi_core.unmarshalling.processors import UnmarshallingProcessor
+from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
+from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
+from openapi_core.unmarshalling.response.datatypes import (
+    ResponseUnmarshalResult,
+)
+from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 
 
-class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
+class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
     def __init__(
         self,
         spec: Spec,
-        request_validator_cls: Optional[Type[RequestValidator]] = None,
-        response_validator_cls: Optional[Type[ResponseValidator]] = None,
+        request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
+        response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         request_class: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
         response_class: Type[FlaskOpenAPIResponse] = FlaskOpenAPIResponse,
         request_provider: Type[FlaskRequestProvider] = FlaskRequestProvider,
@@ -37,8 +39,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
     ):
         super().__init__(
             spec,
-            request_validator_cls=request_validator_cls,
-            response_validator_cls=response_validator_cls,
+            request_unmarshaller_cls=request_unmarshaller_cls,
+            response_unmarshaller_cls=response_unmarshaller_cls,
         )
         self.request_class = request_class
         self.response_class = response_class
@@ -68,7 +70,7 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
 
     def _handle_request_view(
         self,
-        request_result: RequestValidationResult,
+        request_result: RequestUnmarshalResult,
         view: Callable[[Any], Response],
         *args: Any,
         **kwargs: Any
@@ -79,12 +81,12 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
         return make_response(rv)
 
     def _handle_request_errors(
-        self, request_result: RequestValidationResult
+        self, request_result: RequestUnmarshalResult
     ) -> Response:
         return self.openapi_errors_handler.handle(request_result.errors)
 
     def _handle_response_errors(
-        self, response_result: ResponseValidationResult
+        self, response_result: ResponseUnmarshalResult
     ) -> Response:
         return self.openapi_errors_handler.handle(response_result.errors)
 
@@ -103,8 +105,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
     def from_spec(
         cls,
         spec: Spec,
-        request_validator_cls: Optional[Type[RequestValidator]] = None,
-        response_validator_cls: Optional[Type[ResponseValidator]] = None,
+        request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
+        response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         request_class: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
         response_class: Type[FlaskOpenAPIResponse] = FlaskOpenAPIResponse,
         request_provider: Type[FlaskRequestProvider] = FlaskRequestProvider,
@@ -114,8 +116,8 @@ class FlaskOpenAPIViewDecorator(OpenAPIProcessor):
     ) -> "FlaskOpenAPIViewDecorator":
         return cls(
             spec,
-            request_validator_cls=request_validator_cls,
-            response_validator_cls=response_validator_cls,
+            request_unmarshaller_cls=request_unmarshaller_cls,
+            response_unmarshaller_cls=response_unmarshaller_cls,
             request_class=request_class,
             response_class=response_class,
             request_provider=request_provider,

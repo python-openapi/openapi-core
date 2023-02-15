@@ -3,10 +3,14 @@ from dataclasses import is_dataclass
 
 import pytest
 
-from openapi_core import V30RequestValidator
-from openapi_core import V30ResponseValidator
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
+from openapi_core.unmarshalling.request.unmarshallers import (
+    V30RequestUnmarshaller,
+)
+from openapi_core.unmarshalling.response.unmarshallers import (
+    V30ResponseUnmarshaller,
+)
 from openapi_core.validation.request.exceptions import InvalidRequestBody
 from openapi_core.validation.response.exceptions import InvalidData
 
@@ -17,17 +21,17 @@ def spec(factory):
 
 
 @pytest.fixture(scope="class")
-def request_validator(spec):
-    return V30RequestValidator(spec)
+def request_unmarshaller(spec):
+    return V30RequestUnmarshaller(spec)
 
 
 @pytest.fixture(scope="class")
-def response_validator(spec):
-    return V30ResponseValidator(spec)
+def response_unmarshaller(spec):
+    return V30ResponseUnmarshaller(spec)
 
 
 class TestReadOnly:
-    def test_write_a_read_only_property(self, request_validator):
+    def test_write_a_read_only_property(self, request_unmarshaller):
         data = json.dumps(
             {
                 "id": 10,
@@ -39,13 +43,13 @@ class TestReadOnly:
             host_url="", method="POST", path="/users", data=data
         )
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == InvalidRequestBody
         assert result.body is None
 
-    def test_read_only_property_response(self, response_validator):
+    def test_read_only_property_response(self, response_unmarshaller):
         data = json.dumps(
             {
                 "id": 10,
@@ -57,7 +61,7 @@ class TestReadOnly:
 
         response = MockResponse(data)
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert not result.errors
         assert is_dataclass(result.data)
@@ -67,7 +71,7 @@ class TestReadOnly:
 
 
 class TestWriteOnly:
-    def test_write_only_property(self, request_validator):
+    def test_write_only_property(self, request_unmarshaller):
         data = json.dumps(
             {
                 "name": "Pedro",
@@ -79,7 +83,7 @@ class TestWriteOnly:
             host_url="", method="POST", path="/users", data=data
         )
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert not result.errors
         assert is_dataclass(result.body)
@@ -87,7 +91,7 @@ class TestWriteOnly:
         assert result.body.name == "Pedro"
         assert result.body.hidden == False
 
-    def test_read_a_write_only_property(self, response_validator):
+    def test_read_a_write_only_property(self, response_unmarshaller):
         data = json.dumps(
             {
                 "id": 10,
@@ -99,7 +103,7 @@ class TestWriteOnly:
         request = MockRequest(host_url="", method="POST", path="/users")
         response = MockResponse(data)
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == [InvalidData()]
         assert result.data is None

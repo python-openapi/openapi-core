@@ -1,6 +1,7 @@
-"""OpenAPI core validation request protocols module"""
+"""OpenAPI core validation response protocols module"""
 import sys
-from typing import Iterator
+from typing import Any
+from typing import Mapping
 from typing import Optional
 
 if sys.version_info >= (3, 8):
@@ -11,41 +12,35 @@ else:
     from typing_extensions import runtime_checkable
 
 from openapi_core.protocols import Request
+from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
 from openapi_core.spec import Spec
+from openapi_core.unmarshalling.response.datatypes import (
+    ResponseUnmarshalResult,
+)
 
 
 @runtime_checkable
-class RequestValidator(Protocol):
+class ResponseUnmarshaller(Protocol):
     def __init__(self, spec: Spec, base_url: Optional[str] = None):
         ...
 
-    def iter_errors(
+    def unmarshal(
         self,
         request: Request,
-    ) -> Iterator[Exception]:
-        ...
-
-    def validate(
-        self,
-        request: Request,
-    ) -> None:
+        response: Response,
+    ) -> ResponseUnmarshalResult:
         ...
 
 
 @runtime_checkable
-class WebhookRequestValidator(Protocol):
+class WebhookResponseUnmarshaller(Protocol):
     def __init__(self, spec: Spec, base_url: Optional[str] = None):
         ...
 
-    def iter_errors(
+    def unmarshal(
         self,
         request: WebhookRequest,
-    ) -> Iterator[Exception]:
-        ...
-
-    def validate(
-        self,
-        request: WebhookRequest,
-    ) -> None:
+        response: Response,
+    ) -> ResponseUnmarshalResult:
         ...

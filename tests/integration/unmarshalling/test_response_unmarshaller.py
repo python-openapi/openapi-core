@@ -3,7 +3,6 @@ from dataclasses import is_dataclass
 
 import pytest
 
-from openapi_core import V30ResponseValidator
 from openapi_core.deserializing.media_types.exceptions import (
     MediaTypeDeserializeError,
 )
@@ -13,6 +12,9 @@ from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.responses.exceptions import ResponseNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.testing import MockResponse
+from openapi_core.unmarshalling.response.unmarshallers import (
+    V30ResponseUnmarshaller,
+)
 from openapi_core.validation.response.exceptions import DataError
 from openapi_core.validation.response.exceptions import InvalidData
 from openapi_core.validation.response.exceptions import InvalidHeader
@@ -20,7 +22,7 @@ from openapi_core.validation.response.exceptions import MissingData
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 
-class TestResponseValidator:
+class TestResponseUnmarshaller:
     host_url = "http://petstore.swagger.io"
 
     @pytest.fixture(scope="session")
@@ -32,68 +34,68 @@ class TestResponseValidator:
         return v30_petstore_spec
 
     @pytest.fixture(scope="session")
-    def response_validator(self, spec):
-        return V30ResponseValidator(spec)
+    def response_unmarshaller(self, spec):
+        return V30ResponseUnmarshaller(spec)
 
-    def test_invalid_server(self, response_validator):
+    def test_invalid_server(self, response_unmarshaller):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
         response = MockResponse("Not Found", status_code=404)
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_operation(self, response_validator):
+    def test_invalid_operation(self, response_unmarshaller):
         request = MockRequest(self.host_url, "patch", "/v1/pets")
         response = MockResponse("Not Found", status_code=404)
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_response(self, response_validator):
+    def test_invalid_response(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("Not Found", status_code=409)
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == ResponseNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_content_type(self, response_validator):
+    def test_invalid_content_type(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("Not Found", mimetype="text/csv")
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == [DataError()]
         assert type(result.errors[0].__cause__) == MediaTypeNotFound
         assert result.data is None
         assert result.headers == {}
 
-    def test_missing_body(self, response_validator):
+    def test_missing_body(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse(None)
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == [MissingData()]
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_media_type(self, response_validator):
+    def test_invalid_media_type(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("abcde")
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == [DataError()]
         assert result.errors[0].__cause__ == MediaTypeDeserializeError(
@@ -102,18 +104,18 @@ class TestResponseValidator:
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_media_type_value(self, response_validator):
+    def test_invalid_media_type_value(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("{}")
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == [InvalidData()]
         assert type(result.errors[0].__cause__) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_value(self, response_validator):
+    def test_invalid_value(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/tags")
         response_json = {
             "data": [
@@ -123,14 +125,14 @@ class TestResponseValidator:
         response_data = json.dumps(response_json)
         response = MockResponse(response_data)
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == [InvalidData()]
         assert type(result.errors[0].__cause__) == InvalidSchemaValue
         assert result.data is None
         assert result.headers == {}
 
-    def test_invalid_header(self, response_validator):
+    def test_invalid_header(self, response_unmarshaller):
         userdata = {
             "name": 1,
         }
@@ -160,13 +162,13 @@ class TestResponseValidator:
         response = MockResponse(response_data, headers=headers)
 
         with pytest.warns(DeprecationWarning):
-            result = response_validator.validate(request, response)
+            result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == [InvalidHeader(name="x-delete-date")]
         assert result.data is None
         assert result.headers == {"x-delete-confirm": True}
 
-    def test_get_pets(self, response_validator):
+    def test_get_pets(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response_json = {
             "data": [
@@ -182,7 +184,7 @@ class TestResponseValidator:
         response_data = json.dumps(response_json)
         response = MockResponse(response_data)
 
-        result = response_validator.validate(request, response)
+        result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == []
         assert is_dataclass(result.data)

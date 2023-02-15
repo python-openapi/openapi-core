@@ -1,11 +1,6 @@
-import datetime
-
 import pytest
 
 from openapi_core.spec.paths import Spec
-from openapi_core.unmarshalling.schemas.exceptions import (
-    FormatterNotFoundError,
-)
 from openapi_core.validation.schemas import (
     oas30_write_schema_validators_factory,
 )

@@ -1,6 +1,5 @@
 """OpenAPI core validation request protocols module"""
 import sys
-from typing import Iterator
 from typing import Optional
 
 if sys.version_info >= (3, 8):
@@ -13,39 +12,28 @@ else:
 from openapi_core.protocols import Request
 from openapi_core.protocols import WebhookRequest
 from openapi_core.spec import Spec
+from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
 
 
 @runtime_checkable
-class RequestValidator(Protocol):
+class RequestUnmarshaller(Protocol):
     def __init__(self, spec: Spec, base_url: Optional[str] = None):
         ...
 
-    def iter_errors(
+    def unmarshal(
         self,
         request: Request,
-    ) -> Iterator[Exception]:
-        ...
-
-    def validate(
-        self,
-        request: Request,
-    ) -> None:
+    ) -> RequestUnmarshalResult:
         ...
 
 
 @runtime_checkable
-class WebhookRequestValidator(Protocol):
+class WebhookRequestUnmarshaller(Protocol):
     def __init__(self, spec: Spec, base_url: Optional[str] = None):
         ...
 
-    def iter_errors(
+    def unmarshal(
         self,
         request: WebhookRequest,
-    ) -> Iterator[Exception]:
-        ...
-
-    def validate(
-        self,
-        request: WebhookRequest,
-    ) -> None:
+    ) -> RequestUnmarshalResult:
         ...

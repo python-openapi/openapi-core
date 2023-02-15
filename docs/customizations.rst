@@ -72,7 +72,6 @@ Here's how you could add support for a ``usdate`` format that handles dates of t
    schema_unmarshallers_factory = SchemaUnmarshallersFactory(
        OAS30Validator,
        custom_formatters=custom_formatters,
-       context=ValidationContext.RESPONSE,
    )
 
    result = validate_response(

@@ -4,7 +4,7 @@ from typing import Optional
 from asgiref.sync import AsyncToSync
 from starlette.requests import Request
 
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.datatypes import RequestParameters
 
 
 class StarletteOpenAPIRequest:

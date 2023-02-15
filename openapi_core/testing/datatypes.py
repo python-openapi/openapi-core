@@ -1,6 +1,6 @@
 from typing import Optional
 
-from openapi_core.validation.request.datatypes import Parameters
+from openapi_core.datatypes import Parameters
 
 
 class ResultMock:

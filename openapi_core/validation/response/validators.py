@@ -5,35 +5,16 @@ from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Mapping
-from typing import Optional
-from urllib.parse import urljoin
 
-from openapi_core.casting.schemas.exceptions import CastError
-from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.exceptions import OpenAPIError
+from openapi_core.protocols import Request
+from openapi_core.protocols import Response
+from openapi_core.protocols import WebhookRequest
 from openapi_core.spec import Spec
-from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
-from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.exceptions import PathError
-from openapi_core.templating.paths.finders import APICallPathFinder
-from openapi_core.templating.paths.finders import WebhookPathFinder
 from openapi_core.templating.responses.exceptions import ResponseFinderError
-from openapi_core.unmarshalling.schemas import (
-    oas30_read_schema_unmarshallers_factory,
-)
-from openapi_core.unmarshalling.schemas import (
-    oas31_schema_unmarshallers_factory,
-)
-from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
-from openapi_core.unmarshalling.schemas.factories import (
-    SchemaUnmarshallersFactory,
-)
-from openapi_core.util import chainiters
 from openapi_core.validation.decorators import ValidationErrorWrapper
 from openapi_core.validation.exceptions import ValidationError
-from openapi_core.validation.request.protocols import Request
-from openapi_core.validation.request.protocols import WebhookRequest
-from openapi_core.validation.response.datatypes import ResponseValidationResult
 from openapi_core.validation.response.exceptions import DataError
 from openapi_core.validation.response.exceptions import HeaderError
 from openapi_core.validation.response.exceptions import HeadersError
@@ -42,8 +23,6 @@ from openapi_core.validation.response.exceptions import InvalidHeader
 from openapi_core.validation.response.exceptions import MissingData
 from openapi_core.validation.response.exceptions import MissingHeader
 from openapi_core.validation.response.exceptions import MissingRequiredHeader
-from openapi_core.validation.response.protocols import Response
-from openapi_core.validation.response.proxies import SpecResponseValidatorProxy
 from openapi_core.validation.schemas import (
     oas30_read_schema_validators_factory,
 )
@@ -54,92 +33,66 @@ from openapi_core.validation.validators import BaseWebhookValidator
 
 
 class BaseResponseValidator(BaseValidator):
-    def _validate(
+    def _iter_errors(
         self,
         status_code: int,
         data: str,
         headers: Mapping[str, Any],
         mimetype: str,
         operation: Spec,
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             operation_response = self._get_operation_response(
                 status_code, operation
             )
         # don't process if operation errors
         except ResponseFinderError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
         try:
-            validated_data = self._get_data(data, mimetype, operation_response)
+            self._get_data(data, mimetype, operation_response)
         except DataError as exc:
-            validated_data = None
-            data_errors = [exc]
-        else:
-            data_errors = []
+            yield exc
 
         try:
-            validated_headers = self._get_headers(headers, operation_response)
+            self._get_headers(headers, operation_response)
         except HeadersError as exc:
-            validated_headers = exc.headers
-            headers_errors = exc.context
-        else:
-            headers_errors = []
+            yield from exc.context
 
-        errors = list(chainiters(data_errors, headers_errors))
-        return ResponseValidationResult(
-            errors=errors,
-            data=validated_data,
-            headers=validated_headers,
-        )
-
-    def _validate_data(
+    def _iter_data_errors(
         self, status_code: int, data: str, mimetype: str, operation: Spec
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             operation_response = self._get_operation_response(
                 status_code, operation
             )
         # don't process if operation errors
         except ResponseFinderError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
         try:
-            validated = self._get_data(data, mimetype, operation_response)
+            self._get_data(data, mimetype, operation_response)
         except DataError as exc:
-            validated = None
-            data_errors = [exc]
-        else:
-            data_errors = []
+            yield exc
 
-        return ResponseValidationResult(
-            errors=data_errors,
-            data=validated,
-        )
-
-    def _validate_headers(
+    def _iter_headers_errors(
         self, status_code: int, headers: Mapping[str, Any], operation: Spec
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             operation_response = self._get_operation_response(
                 status_code, operation
             )
         # don't process if operation errors
         except ResponseFinderError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
         try:
-            validated = self._get_headers(headers, operation_response)
+            self._get_headers(headers, operation_response)
         except HeadersError as exc:
-            validated = exc.headers
-            headers_errors = exc.context
-        else:
-            headers_errors = []
-
-        return ResponseValidationResult(
-            errors=headers_errors,
-            headers=validated,
-        )
+            yield from exc.context
 
     def _get_operation_response(
         self,
@@ -161,10 +114,7 @@ class BaseResponseValidator(BaseValidator):
         content = operation_response / "content"
 
         raw_data = self._get_data_value(data)
-        casted, _ = self._get_content_value_and_schema(
-            raw_data, mimetype, content
-        )
-        return casted
+        return self._get_content_value(raw_data, mimetype, content)
 
     def _get_data_value(self, data: str) -> Any:
         if not data:
@@ -229,15 +179,15 @@ class BaseAPICallResponseValidator(
         request: Request,
         response: Response,
     ) -> Iterator[Exception]:
-        result = self.validate(request, response)
-        yield from result.errors
+        raise NotImplementedError
 
     def validate(
         self,
         request: Request,
         response: Response,
-    ) -> ResponseValidationResult:
-        raise NotImplementedError
+    ) -> None:
+        for err in self.iter_errors(request, response):
+            raise err
 
 
 class BaseWebhookResponseValidator(
@@ -248,64 +198,67 @@ class BaseWebhookResponseValidator(
         request: WebhookRequest,
         response: Response,
     ) -> Iterator[Exception]:
-        result = self.validate(request, response)
-        yield from result.errors
+        raise NotImplementedError
 
     def validate(
         self,
         request: WebhookRequest,
         response: Response,
-    ) -> ResponseValidationResult:
-        raise NotImplementedError
+    ) -> None:
+        for err in self.iter_errors(request, response):
+            raise err
 
 
 class APICallResponseDataValidator(BaseAPICallResponseValidator):
-    def validate(
+    def iter_errors(
         self,
         request: Request,
         response: Response,
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate_data(
+        yield from self._iter_data_errors(
             response.status_code, response.data, response.mimetype, operation
         )
 
 
 class APICallResponseHeadersValidator(BaseAPICallResponseValidator):
-    def validate(
+    def iter_errors(
         self,
         request: Request,
         response: Response,
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate_headers(
+        yield from self._iter_headers_errors(
             response.status_code, response.headers, operation
         )
 
 
 class APICallResponseValidator(BaseAPICallResponseValidator):
-    def validate(
+    def iter_errors(
         self,
         request: Request,
         response: Response,
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate(
+        yield from self._iter_errors(
             response.status_code,
             response.data,
             response.headers,
@@ -315,52 +268,55 @@ class APICallResponseValidator(BaseAPICallResponseValidator):
 
 
 class WebhookResponseDataValidator(BaseWebhookResponseValidator):
-    def validate(
+    def iter_errors(
         self,
         request: WebhookRequest,
         response: Response,
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate_data(
+        yield from self._iter_data_errors(
             response.status_code, response.data, response.mimetype, operation
         )
 
 
 class WebhookResponseHeadersValidator(BaseWebhookResponseValidator):
-    def validate(
+    def iter_errors(
         self,
         request: WebhookRequest,
         response: Response,
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate_headers(
+        yield from self._iter_headers_errors(
             response.status_code, response.headers, operation
         )
 
 
 class WebhookResponseValidator(BaseWebhookResponseValidator):
-    def validate(
+    def iter_errors(
         self,
         request: WebhookRequest,
         response: Response,
-    ) -> ResponseValidationResult:
+    ) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return ResponseValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate(
+        yield from self._iter_errors(
             response.status_code,
             response.data,
             response.headers,
@@ -403,20 +359,3 @@ class V31WebhookResponseHeadersValidator(WebhookResponseHeadersValidator):
 
 class V31WebhookResponseValidator(WebhookResponseValidator):
     schema_validators_factory = oas31_schema_validators_factory
-
-
-# backward compatibility
-class ResponseValidator(SpecResponseValidatorProxy):
-    def __init__(
-        self,
-        schema_unmarshallers_factory: SchemaUnmarshallersFactory,
-        **kwargs: Any,
-    ):
-        super().__init__(
-            "APICallResponseUnmarshaller",
-            schema_validators_factory=(
-                schema_unmarshallers_factory.schema_validators_factory
-            ),
-            schema_unmarshallers_factory=schema_unmarshallers_factory,
-            **kwargs,
-        )

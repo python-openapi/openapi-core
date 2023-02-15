@@ -2,10 +2,10 @@ import warnings
 from dataclasses import dataclass
 from typing import Iterable
 
+from openapi_core.datatypes import Parameters
 from openapi_core.exceptions import OpenAPIError
 from openapi_core.spec import Spec
 from openapi_core.validation.exceptions import ValidationError
-from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.schemas.exceptions import ValidateError
 
 

@@ -9,7 +9,7 @@ from falcon.request import RequestOptions
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.datatypes import RequestParameters
 
 
 class FalconOpenAPIRequest:

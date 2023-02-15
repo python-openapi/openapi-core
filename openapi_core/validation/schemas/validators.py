@@ -13,7 +13,7 @@ if sys.version_info >= (3, 8):
 else:
     from backports.cached_property import cached_property
 
-from openapi_core import Spec
+from openapi_core.spec import Spec
 from openapi_core.validation.schemas.datatypes import FormatValidator
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.schemas.exceptions import ValidateError

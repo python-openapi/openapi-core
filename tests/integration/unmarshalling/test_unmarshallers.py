@@ -8,7 +8,6 @@ from isodate.tzinfo import UTC
 from isodate.tzinfo import FixedOffset
 from jsonschema.exceptions import SchemaError
 from jsonschema.exceptions import UnknownType
-from jsonschema.exceptions import ValidationError
 
 from openapi_core import Spec
 from openapi_core.unmarshalling.schemas import (
@@ -23,7 +22,6 @@ from openapi_core.unmarshalling.schemas import (
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
 )
-from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 
@@ -66,12 +64,34 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             False,
         ],
     )
+    def test_call_deprecated(self, unmarshallers_factory, value):
+        schema = {}
+        spec = Spec.from_dict(schema, validator=None)
+        unmarshaller = unmarshallers_factory.create(spec)
+
+        with pytest.warns(DeprecationWarning):
+            result = unmarshaller(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "test",
+            10,
+            10,
+            3.12,
+            ["one", "two"],
+            True,
+            False,
+        ],
+    )
     def test_no_type(self, unmarshallers_factory, value):
         schema = {}
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -94,7 +114,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -153,7 +173,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             InvalidSchemaValue,
             match=f"not valid for schema of type {type}",
         ) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"is not of type '{type}'"
@@ -201,7 +221,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == unmarshalled
 
@@ -244,7 +264,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == unmarshalled
 
@@ -269,7 +289,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"is not a '{format}'" in exc_info.value.schema_errors[0].message
@@ -289,7 +309,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == expected
 
@@ -302,7 +322,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = "2018-01-02"
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == date(2018, 1, 2)
 
@@ -324,7 +344,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == expected
 
@@ -338,7 +358,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         value = "2018-01-02T00:00:00"
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"is not a 'date-time'" in exc_info.value.schema_errors[0].message
@@ -353,7 +373,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = "passwd"
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -366,7 +386,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = str(uuid4())
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == UUID(value)
 
@@ -380,7 +400,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         value = "test"
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert f"is not a 'uuid'" in exc_info.value.schema_errors[0].message
 
@@ -413,7 +433,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == expected
 
@@ -426,7 +446,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -448,7 +468,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"'{value}' does not match '{pattern}'"
@@ -464,7 +484,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -478,7 +498,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"'{value}' is too short"
@@ -494,7 +514,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -508,7 +528,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"'{value}' is too long" in exc_info.value.schema_errors[0].message
@@ -531,7 +551,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     def test_integer_enum(self, unmarshallers_factory):
         schema = {
@@ -542,7 +562,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = 2
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == int(value)
 
@@ -557,7 +577,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         value = 12
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"{value} is not one of {enum}"
@@ -587,7 +607,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value_list = [value] * 3
 
-        result = unmarshaller(value_list)
+        result = unmarshaller.unmarshal(value_list)
 
         assert result == value_list
 
@@ -613,7 +633,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller([value])
+            unmarshaller.unmarshal([value])
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"is not of type '{type}'"
@@ -633,7 +653,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"{value} is too short" in exc_info.value.schema_errors[0].message
@@ -651,7 +671,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -675,7 +695,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize("value", [[1, 2], [2, 3, 4]])
     def test_array_max_items_invalid(self, unmarshallers_factory, value):
@@ -690,7 +710,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"{value} is too long" in exc_info.value.schema_errors[0].message
@@ -709,7 +729,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"{value} has non-unique elements"
@@ -736,7 +756,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = {"someint": 1}
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -760,7 +780,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller({"someint": "1"})
+            unmarshaller.unmarshal({"someint": "1"})
 
     def test_object_one_of_default(self, unmarshallers_factory):
         schema = {
@@ -794,7 +814,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        assert unmarshaller({"someint": 1}) == {
+        assert unmarshaller.unmarshal({"someint": 1}) == {
             "someint": 1,
             "somestr": "defaultstring",
         }
@@ -825,7 +845,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        assert unmarshaller({"someint": "1"}) == {
+        assert unmarshaller.unmarshal({"someint": "1"}) == {
             "someint": "1",
             "somestr": "defaultstring",
         }
@@ -857,7 +877,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        assert unmarshaller({}) == {
+        assert unmarshaller.unmarshal({}) == {
             "someint": 1,
             "somestr": "defaultstring",
         }
@@ -892,7 +912,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -937,7 +957,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -958,7 +978,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == {"prop": "value1"}
 
@@ -979,7 +999,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1000,7 +1020,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1009,7 +1029,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller({"user_ids": [1, 2, 3, 4]})
+        result = unmarshaller.unmarshal({"user_ids": [1, 2, 3, 4]})
 
         assert result == {
             "user_ids": [1, 2, 3, 4],
@@ -1028,7 +1048,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1051,7 +1071,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1072,7 +1092,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1094,7 +1114,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1113,7 +1133,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1132,7 +1152,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1154,7 +1174,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1173,7 +1193,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     def test_any_one_of(self, unmarshallers_factory):
         schema = {
@@ -1193,7 +1213,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = ["hello"]
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1215,7 +1235,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = ["hello"]
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1234,7 +1254,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = ["hello"]
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1288,7 +1308,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.xfail(
         reason=(
@@ -1310,7 +1330,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = "2018-01-02"
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == date(2018, 1, 2)
 
@@ -1328,7 +1348,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = "2018-01-02"
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == date(2018, 1, 2)
 
@@ -1346,7 +1366,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = "2018-01-02"
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == date(2018, 1, 2)
 
@@ -1364,7 +1384,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = "2018-01-02"
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == date(2018, 1, 2)
 
@@ -1402,7 +1422,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1442,7 +1462,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1459,7 +1479,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1483,7 +1503,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1529,7 +1549,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1555,7 +1575,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1582,7 +1602,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize(
         "value",
@@ -1630,7 +1650,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1642,7 +1662,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(UnknownType):
-            unmarshaller(None)
+            unmarshaller.unmarshal(None)
 
     @pytest.mark.parametrize(
         "type",
@@ -1659,7 +1679,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(None)
+        result = unmarshaller.unmarshal(None)
 
         assert result is None
 
@@ -1682,7 +1702,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
             InvalidSchemaValue,
             match=f"not valid for schema of type {type}",
         ) as exc_info:
-            unmarshaller(None)
+            unmarshaller.unmarshal(None)
         assert len(exc_info.value.schema_errors) == 2
         assert (
             "None for not nullable" in exc_info.value.schema_errors[0].message
@@ -1709,7 +1729,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == unmarshalled
 
@@ -1734,7 +1754,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
             InvalidSchemaValue,
             match=f"not valid for schema of type {type}",
         ) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             f"is not a '{format}'" in exc_info.value.schema_errors[0].message
@@ -1758,7 +1778,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
             InvalidSchemaValue,
             match=f"not valid for schema of type {type}",
         ):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     @pytest.mark.xfail(
         reason=(
@@ -1785,7 +1805,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(SchemaError):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     def test_integer_default_nullable(self, unmarshallers_factory):
         default_value = 123
@@ -1798,7 +1818,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = None
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result is None
 
@@ -1814,7 +1834,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = None
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result is None
 
@@ -1832,7 +1852,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         unmarshaller = unmarshallers_factory.create(spec)
         value = {"foo": None}
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1861,7 +1881,7 @@ class TestOAS30RequestSchemaUnmarshallersFactory(
         value = {"id": 10}
 
         # readOnly properties may be admitted in a Response context
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -1882,7 +1902,7 @@ class TestOAS30RequestSchemaUnmarshallersFactory(
 
         # readOnly properties are not admitted on a Request context
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
 
 class TestOAS30ResponseSchemaUnmarshallersFactory(
@@ -1908,7 +1928,7 @@ class TestOAS30ResponseSchemaUnmarshallersFactory(
         unmarshaller = unmarshallers_factory.create(spec)
 
         # readOnly properties may be admitted in a Response context
-        result = unmarshaller({"id": 10})
+        result = unmarshaller.unmarshal({"id": 10})
 
         assert result == {
             "id": 10,
@@ -1930,7 +1950,7 @@ class TestOAS30ResponseSchemaUnmarshallersFactory(
 
         # readOnly properties are not admitted on a Request context
         with pytest.raises(InvalidSchemaValue):
-            unmarshaller({"id": 10})
+            unmarshaller.unmarshal({"id": 10})
 
 
 class TestOAS31SchemaUnmarshallersFactory(
@@ -1987,14 +2007,14 @@ class TestOAS31SchemaUnmarshallersFactory(
             InvalidSchemaValue,
             match=f"not valid for schema of type {type}",
         ):
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
 
     def test_null(self, unmarshallers_factory):
         schema = {"type": "null"}
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(None)
+        result = unmarshaller.unmarshal(None)
 
         assert result is None
 
@@ -2005,7 +2025,7 @@ class TestOAS31SchemaUnmarshallersFactory(
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
             "is not of type 'null'" in exc_info.value.schema_errors[0].message
@@ -2027,7 +2047,7 @@ class TestOAS31SchemaUnmarshallersFactory(
         spec = Spec.from_dict(schema, validator=None)
         unmarshaller = unmarshallers_factory.create(spec)
 
-        result = unmarshaller(value)
+        result = unmarshaller.unmarshal(value)
 
         assert result == value
 
@@ -2048,6 +2068,6 @@ class TestOAS31SchemaUnmarshallersFactory(
         unmarshaller = unmarshallers_factory.create(spec)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
-            unmarshaller(value)
+            unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert "is not of type" in exc_info.value.schema_errors[0].message

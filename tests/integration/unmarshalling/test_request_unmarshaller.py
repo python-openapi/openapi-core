@@ -3,13 +3,13 @@ from base64 import b64encode
 
 import pytest
 
-from openapi_core import V30RequestValidator
+from openapi_core import V30RequestUnmarshaller
+from openapi_core.datatypes import Parameters
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.testing import MockRequest
-from openapi_core.validation.request.datatypes import Parameters
 from openapi_core.validation.request.exceptions import InvalidParameter
 from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import (
@@ -19,7 +19,7 @@ from openapi_core.validation.request.exceptions import RequestBodyError
 from openapi_core.validation.request.exceptions import SecurityError
 
 
-class TestRequestValidator:
+class TestRequestUnmarshaller:
     host_url = "http://petstore.swagger.io"
 
     api_key = "12345"
@@ -39,44 +39,44 @@ class TestRequestValidator:
         return v30_petstore_spec
 
     @pytest.fixture(scope="session")
-    def request_validator(self, spec):
-        return V30RequestValidator(spec)
+    def request_unmarshaller(self, spec):
+        return V30RequestUnmarshaller(spec)
 
-    def test_request_server_error(self, request_validator):
+    def test_request_server_error(self, request_unmarshaller):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_invalid_path(self, request_validator):
+    def test_invalid_path(self, request_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1")
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == PathNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_invalid_operation(self, request_validator):
+    def test_invalid_operation(self, request_unmarshaller):
         request = MockRequest(self.host_url, "patch", "/v1/pets")
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == OperationNotFound
         assert result.body is None
         assert result.parameters == Parameters()
 
-    def test_missing_parameter(self, request_validator):
+    def test_missing_parameter(self, request_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
 
         with pytest.warns(DeprecationWarning):
-            result = request_validator.validate(request)
+            result = request_unmarshaller.unmarshal(request)
 
         assert type(result.errors[0]) == MissingRequiredParameter
         assert result.body is None
@@ -87,7 +87,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_get_pets(self, request_validator):
+    def test_get_pets(self, request_unmarshaller):
         args = {"limit": "10", "ids": ["1", "2"], "api_key": self.api_key}
         request = MockRequest(
             self.host_url,
@@ -98,7 +98,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = request_validator.validate(request)
+            result = request_unmarshaller.unmarshal(request)
 
         assert result.errors == []
         assert result.body is None
@@ -114,7 +114,7 @@ class TestRequestValidator:
             "api_key": self.api_key,
         }
 
-    def test_get_pets_webob(self, request_validator):
+    def test_get_pets_webob(self, request_unmarshaller):
         from webob.multidict import GetDict
 
         request = MockRequest(
@@ -128,7 +128,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(DeprecationWarning):
-            result = request_validator.validate(request)
+            result = request_unmarshaller.unmarshal(request)
 
         assert result.errors == []
         assert result.body is None
@@ -141,7 +141,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_missing_body(self, request_validator):
+    def test_missing_body(self, request_unmarshaller):
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -157,7 +157,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredRequestBody
@@ -171,7 +171,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_invalid_content_type(self, request_validator):
+    def test_invalid_content_type(self, request_unmarshaller):
         data = "csv,data"
         headers = {
             "api-key": self.api_key_encoded,
@@ -190,7 +190,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == RequestBodyError
@@ -208,7 +208,7 @@ class TestRequestValidator:
             },
         )
 
-    def test_invalid_complex_parameter(self, request_validator, spec_dict):
+    def test_invalid_complex_parameter(self, request_unmarshaller, spec_dict):
         pet_name = "Cat"
         pet_tag = "cats"
         pet_street = "Piekna"
@@ -247,7 +247,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert result.errors == [
             InvalidParameter(name="userdata", location="cookie")
@@ -273,7 +273,7 @@ class TestRequestValidator:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
-    def test_post_pets(self, request_validator, spec_dict):
+    def test_post_pets(self, request_unmarshaller, spec_dict):
         pet_name = "Cat"
         pet_tag = "cats"
         pet_street = "Piekna"
@@ -307,7 +307,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert result.errors == []
         assert result.parameters == Parameters(
@@ -331,7 +331,7 @@ class TestRequestValidator:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
 
-    def test_post_pets_plain_no_schema(self, request_validator):
+    def test_post_pets_plain_no_schema(self, request_unmarshaller):
         data = "plain text"
         headers = {
             "api-key": self.api_key_encoded,
@@ -351,7 +351,7 @@ class TestRequestValidator:
         )
 
         with pytest.warns(UserWarning):
-            result = request_validator.validate(request)
+            result = request_unmarshaller.unmarshal(request)
 
         assert result.errors == []
         assert result.parameters == Parameters(
@@ -365,7 +365,7 @@ class TestRequestValidator:
         assert result.security == {}
         assert result.body == data
 
-    def test_get_pet_unauthorized(self, request_validator):
+    def test_get_pet_unauthorized(self, request_unmarshaller):
         request = MockRequest(
             self.host_url,
             "get",
@@ -374,7 +374,7 @@ class TestRequestValidator:
             view_args={"petId": "1"},
         )
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) is SecurityError
@@ -385,7 +385,7 @@ class TestRequestValidator:
         assert result.parameters == Parameters()
         assert result.security is None
 
-    def test_get_pet(self, request_validator):
+    def test_get_pet(self, request_unmarshaller):
         authorization = "Basic " + self.api_key_encoded
         headers = {
             "Authorization": authorization,
@@ -399,7 +399,7 @@ class TestRequestValidator:
             headers=headers,
         )
 
-        result = request_validator.validate(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert result.errors == []
         assert result.body is None

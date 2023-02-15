@@ -6,7 +6,7 @@ from django.http.request import HttpRequest
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.datatypes import RequestParameters
 
 # https://docs.djangoproject.com/en/stable/topics/http/urls/
 #

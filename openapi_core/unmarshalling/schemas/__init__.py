@@ -1,9 +1,7 @@
 from collections import OrderedDict
-from functools import partial
 
 from isodate.isodatetime import parse_datetime
 
-from openapi_core.unmarshalling.schemas.enums import ValidationContext
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
@@ -12,13 +10,7 @@ from openapi_core.unmarshalling.schemas.unmarshallers import ArrayUnmarshaller
 from openapi_core.unmarshalling.schemas.unmarshallers import (
     MultiTypeUnmarshaller,
 )
-from openapi_core.unmarshalling.schemas.unmarshallers import (
-    ObjectReadUnmarshaller,
-)
 from openapi_core.unmarshalling.schemas.unmarshallers import ObjectUnmarshaller
-from openapi_core.unmarshalling.schemas.unmarshallers import (
-    ObjectWriteUnmarshaller,
-)
 from openapi_core.unmarshalling.schemas.unmarshallers import (
     PrimitiveUnmarshaller,
 )
@@ -52,18 +44,6 @@ oas30_unmarshallers_dict = OrderedDict(
         ("object", ObjectUnmarshaller),
     ]
 )
-oas30_write_unmarshallers_dict = oas30_unmarshallers_dict.copy()
-oas30_write_unmarshallers_dict.update(
-    {
-        "object": ObjectWriteUnmarshaller,
-    }
-)
-oas30_read_unmarshallers_dict = oas30_unmarshallers_dict.copy()
-oas30_read_unmarshallers_dict.update(
-    {
-        "object": ObjectReadUnmarshaller,
-    }
-)
 oas31_unmarshallers_dict = oas30_unmarshallers_dict.copy()
 oas31_unmarshallers_dict.update(
     {
@@ -71,11 +51,7 @@ oas31_unmarshallers_dict.update(
     }
 )
 
-oas30_write_types_unmarshaller = TypesUnmarshaller(
-    oas30_unmarshallers_dict,
-    AnyUnmarshaller,
-)
-oas30_read_types_unmarshaller = TypesUnmarshaller(
+oas30_types_unmarshaller = TypesUnmarshaller(
     oas30_unmarshallers_dict,
     AnyUnmarshaller,
 )
@@ -97,13 +73,13 @@ oas31_format_unmarshallers = oas30_format_unmarshallers
 
 oas30_write_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
     oas30_write_schema_validators_factory,
-    oas30_write_types_unmarshaller,
+    oas30_types_unmarshaller,
     format_unmarshallers=oas30_format_unmarshallers,
 )
 
 oas30_read_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
     oas30_read_schema_validators_factory,
-    oas30_read_types_unmarshaller,
+    oas30_types_unmarshaller,
     format_unmarshallers=oas30_format_unmarshallers,
 )
 

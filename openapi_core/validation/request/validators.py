@@ -4,13 +4,11 @@ from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import Optional
-from typing import Tuple
-from urllib.parse import urljoin
 
 from openapi_core.casting.schemas import schema_casters_factory
-from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
-from openapi_core.deserializing.exceptions import DeserializeError
+from openapi_core.datatypes import Parameters
+from openapi_core.datatypes import RequestParameters
 from openapi_core.deserializing.media_types import (
     media_type_deserializers_factory,
 )
@@ -23,32 +21,18 @@ from openapi_core.deserializing.parameters import (
 from openapi_core.deserializing.parameters.factories import (
     ParameterDeserializersFactory,
 )
-from openapi_core.exceptions import OpenAPIError
+from openapi_core.protocols import BaseRequest
+from openapi_core.protocols import Request
+from openapi_core.protocols import WebhookRequest
 from openapi_core.security import security_provider_factory
 from openapi_core.security.exceptions import SecurityProviderError
 from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.spec.paths import Spec
-from openapi_core.templating.media_types.exceptions import MediaTypeFinderError
-from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.exceptions import PathError
-from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
 from openapi_core.templating.security.exceptions import SecurityNotFound
-from openapi_core.unmarshalling.schemas import (
-    oas30_write_schema_unmarshallers_factory,
-)
-from openapi_core.unmarshalling.schemas import (
-    oas31_schema_unmarshallers_factory,
-)
-from openapi_core.unmarshalling.schemas.exceptions import UnmarshalError
-from openapi_core.unmarshalling.schemas.factories import (
-    SchemaUnmarshallersFactory,
-)
 from openapi_core.util import chainiters
 from openapi_core.validation.decorators import ValidationErrorWrapper
-from openapi_core.validation.request.datatypes import Parameters
-from openapi_core.validation.request.datatypes import RequestParameters
-from openapi_core.validation.request.datatypes import RequestValidationResult
 from openapi_core.validation.request.exceptions import InvalidParameter
 from openapi_core.validation.request.exceptions import InvalidRequestBody
 from openapi_core.validation.request.exceptions import InvalidSecurity
@@ -62,10 +46,6 @@ from openapi_core.validation.request.exceptions import ParameterError
 from openapi_core.validation.request.exceptions import ParametersError
 from openapi_core.validation.request.exceptions import RequestBodyError
 from openapi_core.validation.request.exceptions import SecurityError
-from openapi_core.validation.request.protocols import BaseRequest
-from openapi_core.validation.request.protocols import Request
-from openapi_core.validation.request.protocols import WebhookRequest
-from openapi_core.validation.request.proxies import SpecRequestValidatorProxy
 from openapi_core.validation.schemas import (
     oas30_write_schema_validators_factory,
 )
@@ -97,88 +77,49 @@ class BaseRequestValidator(BaseValidator):
         )
         self.security_provider_factory = security_provider_factory
 
-    def _validate(
+    def _iter_errors(
         self, request: BaseRequest, operation: Spec, path: Spec
-    ) -> RequestValidationResult:
+    ) -> Iterator[Exception]:
         try:
-            security = self._get_security(request.parameters, operation)
+            self._get_security(request.parameters, operation)
+        # don't process if security errors
         except SecurityError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
         try:
-            params = self._get_parameters(request.parameters, operation, path)
+            self._get_parameters(request.parameters, operation, path)
         except ParametersError as exc:
-            params = exc.parameters
-            params_errors = exc.errors
-        else:
-            params_errors = []
+            yield from exc.errors
 
         try:
-            body = self._get_body(request.body, request.mimetype, operation)
-        except MissingRequestBody:
-            body = None
-            body_errors = []
+            self._get_body(request.body, request.mimetype, operation)
         except RequestBodyError as exc:
-            body = None
-            body_errors = [exc]
-        else:
-            body_errors = []
+            yield exc
 
-        errors = list(chainiters(params_errors, body_errors))
-        return RequestValidationResult(
-            errors=errors,
-            body=body,
-            parameters=params,
-            security=security,
-        )
-
-    def _validate_body(
+    def _iter_body_errors(
         self, request: BaseRequest, operation: Spec
-    ) -> RequestValidationResult:
+    ) -> Iterator[Exception]:
         try:
-            body = self._get_body(request.body, request.mimetype, operation)
-        except MissingRequestBody:
-            body = None
-            errors = []
+            self._get_body(request.body, request.mimetype, operation)
         except RequestBodyError as exc:
-            body = None
-            errors = [exc]
-        else:
-            errors = []
+            yield exc
 
-        return RequestValidationResult(
-            errors=errors,
-            body=body,
-        )
-
-    def _validate_parameters(
+    def _iter_parameters_errors(
         self, request: BaseRequest, operation: Spec, path: Spec
-    ) -> RequestValidationResult:
+    ) -> Iterator[Exception]:
         try:
-            params = self._get_parameters(request.parameters, path, operation)
+            self._get_parameters(request.parameters, path, operation)
         except ParametersError as exc:
-            params = exc.parameters
-            params_errors = exc.errors
-        else:
-            params_errors = []
+            yield from exc.errors
 
-        return RequestValidationResult(
-            errors=params_errors,
-            parameters=params,
-        )
-
-    def _validate_security(
+    def _iter_security_errors(
         self, request: BaseRequest, operation: Spec
-    ) -> RequestValidationResult:
+    ) -> Iterator[Exception]:
         try:
-            security = self._get_security(request.parameters, operation)
+            self._get_security(request.parameters, operation)
         except SecurityError as exc:
-            return RequestValidationResult(errors=[exc])
-
-        return RequestValidationResult(
-            errors=[],
-            security=security,
-        )
+            yield exc
 
     def _get_parameters(
         self,
@@ -286,7 +227,7 @@ class BaseRequestValidator(BaseValidator):
     @ValidationErrorWrapper(RequestBodyError, InvalidRequestBody)
     def _get_body(
         self, body: Optional[str], mimetype: str, operation: Spec
-    ) -> Tuple[Any, Optional[Spec]]:
+    ) -> Any:
         if "requestBody" not in operation:
             return None
 
@@ -295,10 +236,7 @@ class BaseRequestValidator(BaseValidator):
         content = request_body / "content"
 
         raw_body = self._get_body_value(body, request_body)
-        casted, _ = self._get_content_value_and_schema(
-            raw_body, mimetype, content
-        )
-        return casted
+        return self._get_content_value(raw_body, mimetype, content)
 
     def _get_body_value(self, body: Optional[str], request_body: Spec) -> Any:
         if not body:
@@ -310,118 +248,126 @@ class BaseRequestValidator(BaseValidator):
 
 class BaseAPICallRequestValidator(BaseRequestValidator, BaseAPICallValidator):
     def iter_errors(self, request: Request) -> Iterator[Exception]:
-        result = self.validate(request)
-        yield from result.errors
-
-    def validate(self, request: Request) -> RequestValidationResult:
         raise NotImplementedError
+
+    def validate(self, request: Request) -> None:
+        for err in self.iter_errors(request):
+            raise err
 
 
 class BaseWebhookRequestValidator(BaseRequestValidator, BaseWebhookValidator):
     def iter_errors(self, request: WebhookRequest) -> Iterator[Exception]:
-        result = self.validate(request)
-        yield from result.errors
-
-    def validate(self, request: WebhookRequest) -> RequestValidationResult:
         raise NotImplementedError
+
+    def validate(self, request: WebhookRequest) -> None:
+        for err in self.iter_errors(request):
+            raise err
 
 
 class APICallRequestBodyValidator(BaseAPICallRequestValidator):
-    def validate(self, request: Request) -> RequestValidationResult:
+    def iter_errors(self, request: Request) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate_body(request, operation)
+        yield from self._iter_body_errors(request, operation)
 
 
 class APICallRequestParametersValidator(BaseAPICallRequestValidator):
-    def validate(self, request: Request) -> RequestValidationResult:
+    def iter_errors(self, request: Request) -> Iterator[Exception]:
         try:
             path, operation, _, path_result, _ = self._find_path(request)
         except PathError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
         request.parameters.path = (
             request.parameters.path or path_result.variables
         )
 
-        return self._validate_parameters(request, operation, path)
+        yield from self._iter_parameters_errors(request, operation, path)
 
 
 class APICallRequestSecurityValidator(BaseAPICallRequestValidator):
-    def validate(self, request: Request) -> RequestValidationResult:
+    def iter_errors(self, request: Request) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate_security(request, operation)
+        yield from self._iter_security_errors(request, operation)
 
 
 class APICallRequestValidator(BaseAPICallRequestValidator):
-    def validate(self, request: Request) -> RequestValidationResult:
+    def iter_errors(self, request: Request) -> Iterator[Exception]:
         try:
             path, operation, _, path_result, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
         request.parameters.path = (
             request.parameters.path or path_result.variables
         )
 
-        return self._validate(request, operation, path)
+        yield from self._iter_errors(request, operation, path)
 
 
 class WebhookRequestValidator(BaseWebhookRequestValidator):
-    def validate(self, request: WebhookRequest) -> RequestValidationResult:
+    def iter_errors(self, request: WebhookRequest) -> Iterator[Exception]:
         try:
             path, operation, _, path_result, _ = self._find_path(request)
         # don't process if operation errors
         except PathError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
         request.parameters.path = (
             request.parameters.path or path_result.variables
         )
 
-        return self._validate(request, operation, path)
+        yield from self._iter_errors(request, operation, path)
 
 
 class WebhookRequestBodyValidator(BaseWebhookRequestValidator):
-    def validate(self, request: WebhookRequest) -> RequestValidationResult:
+    def iter_errors(self, request: WebhookRequest) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate_body(request, operation)
+        yield from self._iter_body_errors(request, operation)
 
 
 class WebhookRequestParametersValidator(BaseWebhookRequestValidator):
-    def validate(self, request: WebhookRequest) -> RequestValidationResult:
+    def iter_errors(self, request: WebhookRequest) -> Iterator[Exception]:
         try:
             path, operation, _, path_result, _ = self._find_path(request)
         except PathError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
         request.parameters.path = (
             request.parameters.path or path_result.variables
         )
 
-        return self._validate_parameters(request, operation, path)
+        yield from self._iter_parameters_errors(request, operation, path)
 
 
 class WebhookRequestSecurityValidator(BaseWebhookRequestValidator):
-    def validate(self, request: WebhookRequest) -> RequestValidationResult:
+    def iter_errors(self, request: WebhookRequest) -> Iterator[Exception]:
         try:
             _, operation, _, _, _ = self._find_path(request)
         except PathError as exc:
-            return RequestValidationResult(errors=[exc])
+            yield exc
+            return
 
-        return self._validate_security(request, operation)
+        yield from self._iter_security_errors(request, operation)
 
 
 class V30RequestBodyValidator(APICallRequestBodyValidator):
@@ -475,20 +421,3 @@ class V31WebhookRequestSecurityValidator(WebhookRequestSecurityValidator):
 class V31WebhookRequestValidator(WebhookRequestValidator):
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
-
-
-# backward compatibility
-class RequestValidator(SpecRequestValidatorProxy):
-    def __init__(
-        self,
-        schema_unmarshallers_factory: SchemaUnmarshallersFactory,
-        **kwargs: Any,
-    ):
-        super().__init__(
-            "APICallRequestUnmarshaller",
-            schema_validators_factory=(
-                schema_unmarshallers_factory.schema_validators_factory
-            ),
-            schema_unmarshallers_factory=schema_unmarshallers_factory,
-            **kwargs,
-        )

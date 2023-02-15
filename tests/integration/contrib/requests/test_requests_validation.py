@@ -2,10 +2,10 @@ import pytest
 import requests
 import responses
 
-from openapi_core import V31RequestValidator
-from openapi_core import V31ResponseValidator
-from openapi_core import V31WebhookRequestValidator
-from openapi_core import V31WebhookResponseValidator
+from openapi_core import V31RequestUnmarshaller
+from openapi_core import V31ResponseUnmarshaller
+from openapi_core import V31WebhookRequestUnmarshaller
+from openapi_core import V31WebhookResponseUnmarshaller
 from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
 from openapi_core.contrib.requests import RequestsOpenAPIWebhookRequest
@@ -18,23 +18,23 @@ class TestRequestsOpenAPIValidation:
         return factory.spec_from_file(specfile)
 
     @pytest.fixture
-    def request_validator(self, spec):
-        return V31RequestValidator(spec)
+    def request_unmarshaller(self, spec):
+        return V31RequestUnmarshaller(spec)
 
     @pytest.fixture
-    def response_validator(self, spec):
-        return V31ResponseValidator(spec)
+    def response_unmarshaller(self, spec):
+        return V31ResponseUnmarshaller(spec)
 
     @pytest.fixture
-    def webhook_request_validator(self, spec):
-        return V31WebhookRequestValidator(spec)
+    def webhook_request_unmarshaller(self, spec):
+        return V31WebhookRequestUnmarshaller(spec)
 
     @pytest.fixture
-    def webhook_response_validator(self, spec):
-        return V31WebhookResponseValidator(spec)
+    def webhook_response_unmarshaller(self, spec):
+        return V31WebhookResponseUnmarshaller(spec)
 
     @responses.activate
-    def test_response_validator_path_pattern(self, response_validator):
+    def test_response_validator_path_pattern(self, response_unmarshaller):
         responses.add(
             responses.POST,
             "http://localhost/browse/12/?q=string",
@@ -55,10 +55,12 @@ class TestRequestsOpenAPIValidation:
         response = session.send(request_prepared)
         openapi_request = RequestsOpenAPIRequest(request)
         openapi_response = RequestsOpenAPIResponse(response)
-        result = response_validator.validate(openapi_request, openapi_response)
+        result = response_unmarshaller.unmarshal(
+            openapi_request, openapi_response
+        )
         assert not result.errors
 
-    def test_request_validator_path_pattern(self, request_validator):
+    def test_request_validator_path_pattern(self, request_unmarshaller):
         request = requests.Request(
             "POST",
             "http://localhost/browse/12/",
@@ -67,10 +69,10 @@ class TestRequestsOpenAPIValidation:
             json={"param1": 1},
         )
         openapi_request = RequestsOpenAPIRequest(request)
-        result = request_validator.validate(openapi_request)
+        result = request_unmarshaller.unmarshal(openapi_request)
         assert not result.errors
 
-    def test_request_validator_prepared_request(self, request_validator):
+    def test_request_validator_prepared_request(self, request_unmarshaller):
         request = requests.Request(
             "POST",
             "http://localhost/browse/12/",
@@ -80,10 +82,12 @@ class TestRequestsOpenAPIValidation:
         )
         request_prepared = request.prepare()
         openapi_request = RequestsOpenAPIRequest(request_prepared)
-        result = request_validator.validate(openapi_request)
+        result = request_unmarshaller.unmarshal(openapi_request)
         assert not result.errors
 
-    def test_webhook_request_validator_path(self, webhook_request_validator):
+    def test_webhook_request_validator_path(
+        self, webhook_request_unmarshaller
+    ):
         request = requests.Request(
             "POST",
             "http://otherhost/callback/",
@@ -96,11 +100,15 @@ class TestRequestsOpenAPIValidation:
         openapi_webhook_request = RequestsOpenAPIWebhookRequest(
             request, "resourceAdded"
         )
-        result = webhook_request_validator.validate(openapi_webhook_request)
+        result = webhook_request_unmarshaller.unmarshal(
+            openapi_webhook_request
+        )
         assert not result.errors
 
     @responses.activate
-    def test_webhook_response_validator_path(self, webhook_response_validator):
+    def test_webhook_response_validator_path(
+        self, webhook_response_unmarshaller
+    ):
         responses.add(
             responses.POST,
             "http://otherhost/callback/",
@@ -123,7 +131,7 @@ class TestRequestsOpenAPIValidation:
             request, "resourceAdded"
         )
         openapi_response = RequestsOpenAPIResponse(response)
-        result = webhook_response_validator.validate(
+        result = webhook_response_unmarshaller.unmarshal(
             openapi_webhook_request, openapi_response
         )
         assert not result.errors

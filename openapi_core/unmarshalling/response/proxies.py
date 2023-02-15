@@ -8,43 +8,41 @@ from typing import Optional
 from typing import Tuple
 from typing import Type
 
+from openapi_core.exceptions import SpecError
+from openapi_core.protocols import Request
+from openapi_core.protocols import Response
 from openapi_core.spec import Spec
-from openapi_core.validation.exceptions import ValidatorDetectError
-from openapi_core.validation.request.datatypes import RequestValidationResult
-from openapi_core.validation.request.protocols import Request
+from openapi_core.unmarshalling.response.datatypes import (
+    ResponseUnmarshalResult,
+)
 
 if TYPE_CHECKING:
-    from openapi_core.validation.request.validators import (
-        BaseAPICallRequestValidator,
+    from openapi_core.unmarshalling.response.unmarshallers import (
+        APICallResponseUnmarshaller,
     )
 
 
-class SpecRequestValidatorProxy:
+class SpecResponseValidatorProxy:
     def __init__(
         self,
-        unmarshaller_cls_name: str,
-        deprecated: str = "RequestValidator",
+        unmarshaller_cls: Type["APICallResponseUnmarshaller"],
+        deprecated: str = "ResponseValidator",
         use: Optional[str] = None,
         **unmarshaller_kwargs: Any,
     ):
-        self.unmarshaller_cls_name = unmarshaller_cls_name
+        self.unmarshaller_cls = unmarshaller_cls
         self.unmarshaller_kwargs = unmarshaller_kwargs
 
         self.deprecated = deprecated
-        self.use = use or self.unmarshaller_cls_name
-
-    @property
-    def unmarshaller_cls(self) -> Type["BaseAPICallRequestValidator"]:
-        from openapi_core.unmarshalling.request import unmarshallers
-
-        return getattr(unmarshallers, self.unmarshaller_cls_name)
+        self.use = use or self.unmarshaller_cls.__name__
 
     def validate(
         self,
         spec: Spec,
         request: Request,
+        response: Response,
         base_url: Optional[str] = None,
-    ) -> RequestValidationResult:
+    ) -> "ResponseUnmarshalResult":
         warnings.warn(
             f"{self.deprecated} is deprecated. Use {self.use} instead.",
             DeprecationWarning,
@@ -52,62 +50,70 @@ class SpecRequestValidatorProxy:
         unmarshaller = self.unmarshaller_cls(
             spec, base_url=base_url, **self.unmarshaller_kwargs
         )
-        return unmarshaller.validate(request)
+        return unmarshaller.unmarshal(request, response)
 
     def is_valid(
         self,
         spec: Spec,
         request: Request,
+        response: Response,
         base_url: Optional[str] = None,
     ) -> bool:
         unmarshaller = self.unmarshaller_cls(
             spec, base_url=base_url, **self.unmarshaller_kwargs
         )
-        error = next(unmarshaller.iter_errors(request), None)
+        error = next(
+            unmarshaller.iter_errors(request, response),
+            None,
+        )
         return error is None
 
     def iter_errors(
         self,
         spec: Spec,
         request: Request,
+        response: Response,
         base_url: Optional[str] = None,
     ) -> Iterator[Exception]:
         unmarshaller = self.unmarshaller_cls(
             spec, base_url=base_url, **self.unmarshaller_kwargs
         )
-        yield from unmarshaller.iter_errors(request)
+        yield from unmarshaller.iter_errors(request, response)
 
 
-class DetectSpecRequestValidatorProxy:
+class DetectResponseValidatorProxy:
     def __init__(
-        self, choices: Mapping[Tuple[str, str], SpecRequestValidatorProxy]
+        self, choices: Mapping[Tuple[str, str], SpecResponseValidatorProxy]
     ):
         self.choices = choices
 
-    def detect(self, spec: Spec) -> SpecRequestValidatorProxy:
+    def detect(self, spec: Spec) -> SpecResponseValidatorProxy:
         for (key, value), validator in self.choices.items():
             if key in spec and spec[key].startswith(value):
                 return validator
-        raise ValidatorDetectError("Spec schema version not detected")
+        raise SpecError("Spec schema version not detected")
 
     def validate(
         self,
         spec: Spec,
         request: Request,
+        response: Response,
         base_url: Optional[str] = None,
-    ) -> RequestValidationResult:
+    ) -> "ResponseUnmarshalResult":
         validator = self.detect(spec)
-        return validator.validate(spec, request, base_url=base_url)
+        return validator.validate(spec, request, response, base_url=base_url)
 
     def is_valid(
         self,
         spec: Spec,
         request: Request,
+        response: Response,
         base_url: Optional[str] = None,
     ) -> bool:
         validator = self.detect(spec)
         error = next(
-            validator.iter_errors(spec, request, base_url=base_url), None
+            validator.iter_errors(spec, request, response, base_url=base_url),
+            None,
         )
         return error is None
 
@@ -115,7 +121,10 @@ class DetectSpecRequestValidatorProxy:
         self,
         spec: Spec,
         request: Request,
+        response: Response,
         base_url: Optional[str] = None,
     ) -> Iterator[Exception]:
         validator = self.detect(spec)
-        yield from validator.iter_errors(spec, request, base_url=base_url)
+        yield from validator.iter_errors(
+            spec, request, response, base_url=base_url
+        )

@@ -1,9 +1,9 @@
 import warnings
 from typing import Any
 
+from openapi_core.datatypes import RequestParameters
 from openapi_core.security.exceptions import SecurityProviderError
 from openapi_core.spec import Spec
-from openapi_core.validation.request.datatypes import RequestParameters
 
 
 class BaseProvider:

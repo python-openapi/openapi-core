@@ -4,7 +4,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from openapi_core.contrib.django import DjangoOpenAPIRequest
 from openapi_core.contrib.django import DjangoOpenAPIResponse
-from openapi_core.validation.request.datatypes import RequestParameters
+from openapi_core.datatypes import RequestParameters
 
 
 class BaseTestDjango:
