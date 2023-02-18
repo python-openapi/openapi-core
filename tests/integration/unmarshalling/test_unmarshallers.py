@@ -180,12 +180,6 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             in exc_info.value.schema_errors[0].message
         )
 
-    @pytest.mark.xfail(
-        reason=(
-            "Format assigned to type bug. "
-            "See https://github.com/p1c2u/openapi-core/issues/483"
-        )
-    )
     @pytest.mark.parametrize(
         "format,value,unmarshalled",
         [
@@ -406,8 +400,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
 
     @pytest.mark.xfail(
         reason=(
-            "Format assigned to type bug. "
-            "See https://github.com/p1c2u/openapi-core/issues/483"
+            "Formats raise error for other types. "
+            "See https://github.com/p1c2u/openapi-schema-validator/issues/66"
         )
     )
     @pytest.mark.parametrize(
@@ -1310,12 +1304,6 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
 
-    @pytest.mark.xfail(
-        reason=(
-            "Format assigned to type bug. "
-            "See https://github.com/p1c2u/openapi-core/issues/483"
-        )
-    )
     def test_any_format_one_of(self, unmarshallers_factory):
         schema = {
             "format": "date",
