@@ -12,11 +12,13 @@ from typing import Union
 from openapi_core.extensions.models.factories import ModelPathFactory
 from openapi_core.schema.schemas import get_properties
 from openapi_core.spec import Spec
-from openapi_core.unmarshalling.schemas.datatypes import CustomFormattersDict
 from openapi_core.unmarshalling.schemas.datatypes import FormatUnmarshaller
-from openapi_core.unmarshalling.schemas.datatypes import UnmarshallersDict
+from openapi_core.unmarshalling.schemas.datatypes import (
+    FormatUnmarshallersDict,
+)
 from openapi_core.unmarshalling.schemas.exceptions import FormatUnmarshalError
 from openapi_core.unmarshalling.schemas.exceptions import UnmarshallerError
+from openapi_core.validation.schemas.datatypes import CustomFormattersDict
 from openapi_core.validation.schemas.validators import SchemaValidator
 
 log = logging.getLogger(__name__)
@@ -212,12 +214,16 @@ class TypesUnmarshaller:
 class FormatsUnmarshaller:
     def __init__(
         self,
-        format_unmarshallers: Optional[UnmarshallersDict] = None,
+        format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
+        extra_format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
         custom_formatters: Optional[CustomFormattersDict] = None,
     ):
         if format_unmarshallers is None:
             format_unmarshallers = {}
         self.format_unmarshallers = format_unmarshallers
+        if extra_format_unmarshallers is None:
+            extra_format_unmarshallers = {}
+        self.extra_format_unmarshallers = extra_format_unmarshallers
         if custom_formatters is None:
             custom_formatters = {}
         self.custom_formatters = custom_formatters
@@ -237,10 +243,23 @@ class FormatsUnmarshaller:
         if schema_format in self.custom_formatters:
             formatter = self.custom_formatters[schema_format]
             return formatter.format
+        if schema_format in self.extra_format_unmarshallers:
+            return self.extra_format_unmarshallers[schema_format]
         if schema_format in self.format_unmarshallers:
             return self.format_unmarshallers[schema_format]
 
         return None
+
+    def __contains__(self, schema_format: str) -> bool:
+        format_unmarshallers_dicts: List[Mapping[str, Any]] = [
+            self.custom_formatters,
+            self.extra_format_unmarshallers,
+            self.format_unmarshallers,
+        ]
+        for content in format_unmarshallers_dicts:
+            if schema_format in content:
+                return True
+        return False
 
 
 class SchemaUnmarshaller:

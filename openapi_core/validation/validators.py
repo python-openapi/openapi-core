@@ -33,6 +33,7 @@ from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.templating.paths.finders import BasePathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
+from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 
@@ -47,6 +48,8 @@ class BaseValidator:
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        format_validators: Optional[FormatValidatorsDict] = None,
+        extra_format_validators: Optional[FormatValidatorsDict] = None,
     ):
         self.spec = spec
         self.base_url = base_url
@@ -63,6 +66,8 @@ class BaseValidator:
             raise NotImplementedError(
                 "schema_validators_factory is not assigned"
             )
+        self.format_validators = format_validators
+        self.extra_format_validators = extra_format_validators
 
     def _get_media_type(self, content: Spec, mimetype: str) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder
@@ -83,7 +88,11 @@ class BaseValidator:
         return caster(value)
 
     def _validate_schema(self, schema: Spec, value: Any) -> None:
-        validator = self.schema_validators_factory.create(schema)
+        validator = self.schema_validators_factory.create(
+            schema,
+            format_validators=self.format_validators,
+            extra_format_validators=self.extra_format_validators,
+        )
         validator.validate(value)
 
     def _get_param_or_header_value(

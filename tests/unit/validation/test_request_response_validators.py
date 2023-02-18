@@ -11,19 +11,20 @@ from openapi_core.unmarshalling.schemas import oas31_types_unmarshaller
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
-from openapi_core.unmarshalling.schemas.formatters import Formatter
 from openapi_core.validation.schemas import oas31_schema_validators_factory
+from openapi_core.validation.schemas.formatters import Formatter
 
 
 class BaseTestValidate:
     @pytest.fixture
     def schema_unmarshallers_factory(self):
         CUSTOM_FORMATTERS = {"custom": Formatter.from_callables()}
-        return SchemaUnmarshallersFactory(
-            oas31_schema_validators_factory,
-            oas31_types_unmarshaller,
-            custom_formatters=CUSTOM_FORMATTERS,
-        )
+        with pytest.warns(DeprecationWarning):
+            return SchemaUnmarshallersFactory(
+                oas31_schema_validators_factory,
+                oas31_types_unmarshaller,
+                custom_formatters=CUSTOM_FORMATTERS,
+            )
 
 
 class TestRequestValidatorValidate(BaseTestValidate):

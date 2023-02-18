@@ -50,6 +50,7 @@ from openapi_core.validation.schemas import (
     oas30_write_schema_validators_factory,
 )
 from openapi_core.validation.schemas import oas31_schema_validators_factory
+from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 from openapi_core.validation.validators import BaseAPICallValidator
 from openapi_core.validation.validators import BaseValidator
@@ -65,6 +66,8 @@ class BaseRequestValidator(BaseValidator):
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        format_validators: Optional[FormatValidatorsDict] = None,
+        extra_format_validators: Optional[FormatValidatorsDict] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
     ):
         super().__init__(
@@ -74,6 +77,8 @@ class BaseRequestValidator(BaseValidator):
             parameter_deserializers_factory=parameter_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
             schema_validators_factory=schema_validators_factory,
+            format_validators=format_validators,
+            extra_format_validators=extra_format_validators,
         )
         self.security_provider_factory = security_provider_factory
 

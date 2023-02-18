@@ -30,6 +30,9 @@ class SchemaValidator:
         self.schema = schema
         self.validator = validator
 
+    def __contains__(self, schema_format: str) -> bool:
+        return schema_format in self.validator.format_checker.checkers
+
     def validate(self, value: Any) -> None:
         errors_iter = self.validator.iter_errors(value)
         errors = tuple(errors_iter)
