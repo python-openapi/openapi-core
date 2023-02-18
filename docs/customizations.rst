@@ -42,43 +42,54 @@ Pass custom defined media type deserializers dictionary with supported mimetypes
        media_type_deserializers_factory=media_type_deserializers_factory,
    )
 
-Formats
--------
+Format validators
+-----------------
 
 OpenAPI defines a ``format`` keyword that hints at how a value should be interpreted, e.g. a ``string`` with the type ``date`` should conform to the RFC 3339 date format.
 
-Openapi-core comes with a set of built-in formatters, but it's also possible to add custom formatters in `SchemaUnmarshallersFactory` and pass it to `RequestValidator` or `ResponseValidator`.
+OpenAPI comes with a set of built-in format validators, but it's also possible to add custom ones.
 
 Here's how you could add support for a ``usdate`` format that handles dates of the form MM/DD/YYYY:
 
 .. code-block:: python
 
-   from openapi_core.unmarshalling.schemas.factories import SchemaUnmarshallersFactory
-   from openapi_schema_validator import OAS30Validator
-   from datetime import datetime
    import re
 
-   class USDateFormatter:
-       def validate(self, value) -> bool:
-           return bool(re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", value))
+   def validate_usdate(value):
+       return bool(re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", value))
 
-       def format(self, value):
-           return datetime.strptime(value, "%m/%d/%y").date
-
-
-   custom_formatters = {
-       'usdate': USDateFormatter(),
+   extra_format_validators = {
+       'usdate': validate_usdate,
    }
-   schema_unmarshallers_factory = SchemaUnmarshallersFactory(
-       OAS30Validator,
-       custom_formatters=custom_formatters,
-       context=ValidationContext.RESPONSE,
-   )
 
    result = validate_response(
        request, response,
        spec=spec,
-       cls=ResponseValidator,
-       schema_unmarshallers_factory=schema_unmarshallers_factory,
+       extra_format_validators=extra_format_validators,
    )
 
+Format unmarshallers
+--------------------
+
+Based on ``format`` keyword, openapi-core can also unmarshal values to specific formats.
+
+Openapi-core comes with a set of built-in format unmarshallers, but it's also possible to add custom ones.
+
+Here's an example with the ``usdate`` format that converts a value to date object:
+
+.. code-block:: python
+
+   from datetime import datetime
+
+   def unmarshal_usdate(value):
+       return datetime.strptime(value, "%m/%d/%y").date
+
+   extra_format_unmarshallers = {
+       'usdate': unmarshal_usdate,
+   }
+
+   result = unmarshal_response(
+       request, response,
+       spec=spec,
+       extra_format_unmarshallers=extra_format_unmarshallers,
+   )

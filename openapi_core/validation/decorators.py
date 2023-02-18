@@ -6,7 +6,7 @@ from typing import Optional
 from typing import Type
 
 from openapi_core.exceptions import OpenAPIError
-from openapi_core.unmarshalling.schemas.exceptions import ValidateError
+from openapi_core.validation.schemas.exceptions import ValidateError
 
 OpenAPIErrorType = Type[OpenAPIError]
 

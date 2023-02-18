@@ -4,11 +4,11 @@ import pytest
 from openapi_spec_validator import openapi_v30_spec_validator
 from openapi_spec_validator import openapi_v31_spec_validator
 
+from openapi_core import RequestValidator
+from openapi_core import ResponseValidator
+from openapi_core import Spec
 from openapi_core.schema.servers import get_server_url
 from openapi_core.schema.specs import get_spec_url
-from openapi_core.spec import Spec
-from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.response.validators import ResponseValidator
 
 
 class TestPetstore:

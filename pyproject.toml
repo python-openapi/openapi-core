@@ -59,7 +59,7 @@ flask = {version = "*", optional = true}
 isodate = "*"
 more-itertools = "*"
 parse = "*"
-openapi-schema-validator = ">=0.3.0,<0.5"
+openapi-schema-validator = "^0.4.2"
 openapi-spec-validator = "^0.5.0"
 requests = {version = "*", optional = true}
 werkzeug = "*"

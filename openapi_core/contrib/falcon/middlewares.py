@@ -10,14 +10,16 @@ from openapi_core.contrib.falcon.handlers import FalconOpenAPIErrorsHandler
 from openapi_core.contrib.falcon.requests import FalconOpenAPIRequest
 from openapi_core.contrib.falcon.responses import FalconOpenAPIResponse
 from openapi_core.spec import Spec
-from openapi_core.validation.processors import OpenAPIProcessor
-from openapi_core.validation.request.datatypes import RequestValidationResult
-from openapi_core.validation.request.protocols import RequestValidator
-from openapi_core.validation.response.datatypes import ResponseValidationResult
-from openapi_core.validation.response.protocols import ResponseValidator
+from openapi_core.unmarshalling.processors import UnmarshallingProcessor
+from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
+from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
+from openapi_core.unmarshalling.response.datatypes import (
+    ResponseUnmarshalResult,
+)
+from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 
 
-class FalconOpenAPIMiddleware(OpenAPIProcessor):
+class FalconOpenAPIMiddleware(UnmarshallingProcessor):
     request_class = FalconOpenAPIRequest
     response_class = FalconOpenAPIResponse
     errors_handler = FalconOpenAPIErrorsHandler()
@@ -25,16 +27,16 @@ class FalconOpenAPIMiddleware(OpenAPIProcessor):
     def __init__(
         self,
         spec: Spec,
-        request_validator_cls: Optional[Type[RequestValidator]] = None,
-        response_validator_cls: Optional[Type[ResponseValidator]] = None,
+        request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
+        response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         request_class: Type[FalconOpenAPIRequest] = FalconOpenAPIRequest,
         response_class: Type[FalconOpenAPIResponse] = FalconOpenAPIResponse,
         errors_handler: Optional[FalconOpenAPIErrorsHandler] = None,
     ):
         super().__init__(
             spec,
-            request_validator_cls=request_validator_cls,
-            response_validator_cls=response_validator_cls,
+            request_unmarshaller_cls=request_unmarshaller_cls,
+            response_unmarshaller_cls=response_unmarshaller_cls,
         )
         self.request_class = request_class or self.request_class
         self.response_class = response_class or self.response_class
@@ -44,16 +46,16 @@ class FalconOpenAPIMiddleware(OpenAPIProcessor):
     def from_spec(
         cls,
         spec: Spec,
-        request_validator_cls: Optional[Type[RequestValidator]] = None,
-        response_validator_cls: Optional[Type[ResponseValidator]] = None,
+        request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
+        response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         request_class: Type[FalconOpenAPIRequest] = FalconOpenAPIRequest,
         response_class: Type[FalconOpenAPIResponse] = FalconOpenAPIResponse,
         errors_handler: Optional[FalconOpenAPIErrorsHandler] = None,
     ) -> "FalconOpenAPIMiddleware":
         return cls(
             spec,
-            request_validator_cls=request_validator_cls,
-            response_validator_cls=response_validator_cls,
+            request_unmarshaller_cls=request_unmarshaller_cls,
+            response_unmarshaller_cls=response_unmarshaller_cls,
             request_class=request_class,
             response_class=response_class,
             errors_handler=errors_handler,
@@ -82,7 +84,7 @@ class FalconOpenAPIMiddleware(OpenAPIProcessor):
         self,
         req: Request,
         resp: Response,
-        request_result: RequestValidationResult,
+        request_result: RequestUnmarshalResult,
     ) -> None:
         return self.errors_handler.handle(req, resp, request_result.errors)
 
@@ -90,7 +92,7 @@ class FalconOpenAPIMiddleware(OpenAPIProcessor):
         self,
         req: Request,
         resp: Response,
-        response_result: ResponseValidationResult,
+        response_result: ResponseUnmarshalResult,
     ) -> None:
         return self.errors_handler.handle(req, resp, response_result.errors)
 

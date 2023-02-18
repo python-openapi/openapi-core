@@ -1,11 +1,9 @@
 """OpenAPI core validation validators module"""
 import sys
 from typing import Any
-from typing import Dict
 from typing import Mapping
 from typing import Optional
 from typing import Tuple
-from typing import Type
 from urllib.parse import urljoin
 
 if sys.version_info >= (3, 8):
@@ -26,6 +24,8 @@ from openapi_core.deserializing.parameters import (
 from openapi_core.deserializing.parameters.factories import (
     ParameterDeserializersFactory,
 )
+from openapi_core.protocols import Request
+from openapi_core.protocols import WebhookRequest
 from openapi_core.schema.parameters import get_value
 from openapi_core.spec import Spec
 from openapi_core.templating.media_types.datatypes import MediaType
@@ -33,44 +33,41 @@ from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.templating.paths.finders import BasePathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
-from openapi_core.unmarshalling.schemas.factories import (
-    SchemaUnmarshallersFactory,
-)
-from openapi_core.validation.request.protocols import Request
-from openapi_core.validation.request.protocols import SupportsPathPattern
-from openapi_core.validation.request.protocols import WebhookRequest
+from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
+from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 
 class BaseValidator:
-    schema_unmarshallers_factory: SchemaUnmarshallersFactory = NotImplemented
+    schema_validators_factory: SchemaValidatorsFactory = NotImplemented
 
     def __init__(
         self,
         spec: Spec,
         base_url: Optional[str] = None,
-        schema_unmarshallers_factory: Optional[
-            SchemaUnmarshallersFactory
-        ] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        format_validators: Optional[FormatValidatorsDict] = None,
+        extra_format_validators: Optional[FormatValidatorsDict] = None,
     ):
         self.spec = spec
         self.base_url = base_url
-
-        self.schema_unmarshallers_factory = (
-            schema_unmarshallers_factory or self.schema_unmarshallers_factory
-        )
-        if self.schema_unmarshallers_factory is NotImplemented:
-            raise NotImplementedError(
-                "schema_unmarshallers_factory is not assigned"
-            )
 
         self.schema_casters_factory = schema_casters_factory
         self.parameter_deserializers_factory = parameter_deserializers_factory
         self.media_type_deserializers_factory = (
             media_type_deserializers_factory
         )
+        self.schema_validators_factory = (
+            schema_validators_factory or self.schema_validators_factory
+        )
+        if self.schema_validators_factory is NotImplemented:
+            raise NotImplementedError(
+                "schema_validators_factory is not assigned"
+            )
+        self.format_validators = format_validators
+        self.extra_format_validators = extra_format_validators
 
     def _get_media_type(self, content: Spec, mimetype: str) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder
@@ -90,9 +87,13 @@ class BaseValidator:
         caster = self.schema_casters_factory.create(schema)
         return caster(value)
 
-    def _unmarshal(self, schema: Spec, value: Any) -> Any:
-        unmarshaller = self.schema_unmarshallers_factory.create(schema)
-        return unmarshaller(value)
+    def _validate_schema(self, schema: Spec, value: Any) -> None:
+        validator = self.schema_validators_factory.create(
+            schema,
+            format_validators=self.format_validators,
+            extra_format_validators=self.extra_format_validators,
+        )
+        validator.validate(value)
 
     def _get_param_or_header_value(
         self,
@@ -100,6 +101,31 @@ class BaseValidator:
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
+        casted, schema = self._get_param_or_header_value_and_schema(
+            param_or_header, location, name
+        )
+        if schema is None:
+            return casted
+        self._validate_schema(schema, casted)
+        return casted
+
+    def _get_content_value(
+        self, raw: Any, mimetype: str, content: Spec
+    ) -> Any:
+        casted, schema = self._get_content_value_and_schema(
+            raw, mimetype, content
+        )
+        if schema is None:
+            return casted
+        self._validate_schema(schema, casted)
+        return casted
+
+    def _get_param_or_header_value_and_schema(
+        self,
+        param_or_header: Spec,
+        location: Mapping[str, Any],
+        name: Optional[str] = None,
+    ) -> Tuple[Any, Spec]:
         try:
             raw_value = get_value(param_or_header, location, name=name)
         except KeyError:
@@ -123,8 +149,20 @@ class BaseValidator:
                 deserialised = self._deserialise_data(mimetype, raw_value)
                 schema = media_type / "schema"
             casted = self._cast(schema, deserialised)
-        unmarshalled = self._unmarshal(schema, casted)
-        return unmarshalled
+        return casted, schema
+
+    def _get_content_value_and_schema(
+        self, raw: Any, mimetype: str, content: Spec
+    ) -> Tuple[Any, Optional[Spec]]:
+        media_type, mimetype = self._get_media_type(content, mimetype)
+        deserialised = self._deserialise_data(mimetype, raw)
+        casted = self._cast(media_type, deserialised)
+
+        if "schema" not in media_type:
+            return casted, None
+
+        schema = media_type / "schema"
+        return casted, schema
 
 
 class BaseAPICallValidator(BaseValidator):

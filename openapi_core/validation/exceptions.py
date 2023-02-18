@@ -4,10 +4,6 @@ from dataclasses import dataclass
 from openapi_core.exceptions import OpenAPIError
 
 
-class ValidatorDetectError(OpenAPIError):
-    pass
-
-
 @dataclass
 class ValidationError(OpenAPIError):
     def __str__(self) -> str:
