@@ -1,8 +1,8 @@
 Customizations
 ==============
 
-Spec validation
----------------
+Specification validation
+------------------------
 
 By default, the provided specification is validated on ``Spec`` object creation time.
 
@@ -62,7 +62,7 @@ Here's how you could add support for a ``usdate`` format that handles dates of t
        'usdate': validate_usdate,
    }
 
-   result = validate_response(
+   validate_response(
        request, response,
        spec=spec,
        extra_format_validators=extra_format_validators,

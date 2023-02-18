@@ -1,6 +1,8 @@
 Integrations
 ============
 
+Openapi-core integrates with your popular libraries and frameworks. Each integration offers different levels of integration that help validate and unmarshal your request and response data.
+
 Bottle
 ------
 
@@ -30,7 +32,7 @@ Django can be integrated by middleware. Add ``DjangoOpenAPIMiddleware`` to your 
 
    OPENAPI_SPEC = Spec.from_dict(spec_dict)
 
-After that you have access to validation result object with all validated request data from Django view through request object.
+After that you have access to unmarshal result object with all validated request data from Django view through request object.
 
 .. code-block:: python
 
@@ -56,21 +58,21 @@ You can use ``DjangoOpenAPIRequest`` as a Django request factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_request
+   from openapi_core import unmarshal_request
    from openapi_core.contrib.django import DjangoOpenAPIRequest
 
    openapi_request = DjangoOpenAPIRequest(django_request)
-   result = validate_request(openapi_request, spec=spec)
+   result = unmarshal_request(openapi_request, spec=spec)
 
 You can use ``DjangoOpenAPIResponse`` as a Django response factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_response
+   from openapi_core import unmarshal_response
    from openapi_core.contrib.django import DjangoOpenAPIResponse
 
    openapi_response = DjangoOpenAPIResponse(django_response)
-   result = validate_response(openapi_request, openapi_response, spec=spec)
+   result = unmarshal_response(openapi_request, openapi_response, spec=spec)
 
 
 Falcon
@@ -115,21 +117,21 @@ You can use ``FalconOpenAPIRequest`` as a Falcon request factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_request
+   from openapi_core import unmarshal_request
    from openapi_core.contrib.falcon import FalconOpenAPIRequest
 
    openapi_request = FalconOpenAPIRequest(falcon_request)
-   result = validate_request(openapi_request, spec=spec)
+   result = unmarshal_request(openapi_request, spec=spec)
 
 You can use ``FalconOpenAPIResponse`` as a Falcon response factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_response
+   from openapi_core import unmarshal_response
    from openapi_core.contrib.falcon import FalconOpenAPIResponse
 
    openapi_response = FalconOpenAPIResponse(falcon_response)
-   result = validate_response(openapi_request, openapi_response, spec=spec)
+   result = unmarshal_response(openapi_request, openapi_response, spec=spec)
 
 
 Flask
@@ -196,11 +198,11 @@ You can use ``FlaskOpenAPIRequest`` as a Flask request factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_request
+   from openapi_core import unmarshal_request
    from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
    openapi_request = FlaskOpenAPIRequest(flask_request)
-   result = validate_request(openapi_request, spec=spec)
+   result = unmarshal_request(openapi_request, spec=spec)
 
 For response factory see `Werkzeug`_ integration.
 
@@ -223,32 +225,32 @@ You can use ``RequestsOpenAPIRequest`` as a Requests request factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_request
+   from openapi_core import unmarshal_request
    from openapi_core.contrib.requests import RequestsOpenAPIRequest
 
    openapi_request = RequestsOpenAPIRequest(requests_request)
-   result = validate_request(openapi_request, spec=spec)
+   result = unmarshal_request(openapi_request, spec=spec)
 
 You can use ``RequestsOpenAPIResponse`` as a Requests response factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_response
+   from openapi_core import unmarshal_response
    from openapi_core.contrib.requests import RequestsOpenAPIResponse
 
    openapi_response = RequestsOpenAPIResponse(requests_response)
-   result = validate_response(openapi_request, openapi_response, spec=spec)
+   result = unmarshal_response(openapi_request, openapi_response, spec=spec)
 
 
 You can use ``RequestsOpenAPIWebhookRequest`` as a Requests webhook request factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_request
+   from openapi_core import unmarshal_request
    from openapi_core.contrib.requests import RequestsOpenAPIWebhookRequest
 
    openapi_webhook_request = RequestsOpenAPIWebhookRequest(requests_request, "my_webhook")
-   result = validate_request(openapi_webhook_request, spec=spec)
+   result = unmarshal_request(openapi_webhook_request, spec=spec)
 
 
 Starlette
@@ -263,21 +265,21 @@ You can use ``StarletteOpenAPIRequest`` as a Starlette request factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_request
+   from openapi_core import unmarshal_request
    from openapi_core.contrib.starlette import StarletteOpenAPIRequest
 
    openapi_request = StarletteOpenAPIRequest(starlette_request)
-   result = validate_request(openapi_request, spec=spec)
+   result = unmarshal_request(openapi_request, spec=spec)
 
 You can use ``StarletteOpenAPIResponse`` as a Starlette response factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_response
+   from openapi_core import unmarshal_response
    from openapi_core.contrib.starlette import StarletteOpenAPIResponse
 
    openapi_response = StarletteOpenAPIResponse(starlette_response)
-   result = validate_response(openapi_request, openapi_response, spec=spec)
+   result = unmarshal_response(openapi_request, openapi_response, spec=spec)
 
 
 Tornado
@@ -298,18 +300,18 @@ You can use ``WerkzeugOpenAPIRequest`` as a Werkzeug request factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_request
+   from openapi_core import unmarshal_request
    from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest
 
    openapi_request = WerkzeugOpenAPIRequest(werkzeug_request)
-   result = validate_request(openapi_request, spec=spec)
+   result = unmarshal_request(openapi_request, spec=spec)
 
 You can use ``WerkzeugOpenAPIResponse`` as a Werkzeug response factory:
 
 .. code-block:: python
 
-   from openapi_core import validate_response
+   from openapi_core import unmarshal_response
    from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
 
    openapi_response = WerkzeugOpenAPIResponse(werkzeug_response)
-   result = validate_response(openapi_request, openapi_response, spec=spec)
+   result = unmarshal_response(openapi_request, openapi_response, spec=spec)

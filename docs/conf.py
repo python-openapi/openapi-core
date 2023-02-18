@@ -66,13 +66,10 @@ html_title = "openapi-core"
 
 # Material theme options (see theme.conf for more information)
 html_theme_options = {
-    # Set you GA account ID to enable tracking
-    # 'google_analytics_account': 'UA-XXXXX',
-    # Specify a base_url used to generate sitemap.xml. If not
-    # specified, then no sitemap will be built.
-    #'base_url': 'https://project.github.io/project',
-    # Set the color and the accent color
-    # Set the repo location to get a badge with stats
+    "analytics": {
+        "provider": "google",
+        "property": "G-J6T05Z51NY",
+    },
     "repo_url": "https://github.com/p1c2u/openapi-core/",
     "repo_name": "openapi-core",
     "repo_type": "github",
