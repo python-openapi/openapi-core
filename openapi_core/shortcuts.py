@@ -1,4 +1,4 @@
-"""OpenAPI core validation shortcuts module"""
+"""OpenAPI core shortcuts module"""
 import warnings
 from typing import Any
 from typing import Dict
@@ -29,12 +29,6 @@ from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
 from openapi_core.unmarshalling.request.types import (
     WebhookRequestUnmarshallerType,
 )
-from openapi_core.unmarshalling.request.unmarshallers import (
-    BaseAPICallRequestUnmarshaller,
-)
-from openapi_core.unmarshalling.request.unmarshallers import (
-    BaseWebhookRequestUnmarshaller,
-)
 from openapi_core.unmarshalling.response import V30ResponseUnmarshaller
 from openapi_core.unmarshalling.response import V31ResponseUnmarshaller
 from openapi_core.unmarshalling.response import V31WebhookResponseUnmarshaller
@@ -58,9 +52,19 @@ from openapi_core.unmarshalling.response.types import (
 from openapi_core.validation.request import V30RequestValidator
 from openapi_core.validation.request import V31RequestValidator
 from openapi_core.validation.request import V31WebhookRequestValidator
+from openapi_core.validation.request.protocols import RequestValidator
+from openapi_core.validation.request.protocols import WebhookRequestValidator
+from openapi_core.validation.request.types import AnyRequestValidatorType
+from openapi_core.validation.request.types import RequestValidatorType
+from openapi_core.validation.request.types import WebhookRequestValidatorType
 from openapi_core.validation.response import V30ResponseValidator
 from openapi_core.validation.response import V31ResponseValidator
 from openapi_core.validation.response import V31WebhookResponseValidator
+from openapi_core.validation.response.protocols import ResponseValidator
+from openapi_core.validation.response.protocols import WebhookResponseValidator
+from openapi_core.validation.response.types import AnyResponseValidatorType
+from openapi_core.validation.response.types import ResponseValidatorType
+from openapi_core.validation.response.types import WebhookResponseValidatorType
 
 AnyRequest = Union[Request, WebhookRequest]
 
@@ -92,7 +96,7 @@ def get_classes(spec: Spec) -> SpecClasses:
     return SpecFinder(SPECS).get_classes(spec)
 
 
-def unmarshal_request(
+def unmarshal_apicall_request(
     request: Request,
     spec: Spec,
     base_url: Optional[str] = None,
@@ -140,7 +144,46 @@ def unmarshal_webhook_request(
     return result
 
 
-def unmarshal_response(
+def unmarshal_request(
+    request: AnyRequest,
+    spec: Spec,
+    base_url: Optional[str] = None,
+    cls: Optional[AnyRequestUnmarshallerType] = None,
+    **unmarshaller_kwargs: Any,
+) -> RequestUnmarshalResult:
+    if not isinstance(request, (Request, WebhookRequest)):
+        raise TypeError("'request' argument is not type of (Webhook)Request")
+    if not isinstance(spec, Spec):
+        raise TypeError("'spec' argument is not type of Spec")
+    if isinstance(request, WebhookRequest):
+        if cls is None or issubclass(cls, WebhookRequestUnmarshaller):
+            return unmarshal_webhook_request(
+                request,
+                spec,
+                base_url=base_url,
+                cls=cls,
+                **unmarshaller_kwargs,
+            )
+        else:
+            raise TypeError(
+                "'cls' argument is not type of WebhookRequestUnmarshaller"
+            )
+    else:
+        if cls is None or issubclass(cls, RequestUnmarshaller):
+            return unmarshal_apicall_request(
+                request,
+                spec,
+                base_url=base_url,
+                cls=cls,
+                **unmarshaller_kwargs,
+            )
+        else:
+            raise TypeError(
+                "'cls' argument is not type of RequestUnmarshaller"
+            )
+
+
+def unmarshal_apicall_response(
     request: Request,
     response: Response,
     spec: Spec,
@@ -194,14 +237,58 @@ def unmarshal_webhook_response(
     return result
 
 
+def unmarshal_response(
+    request: AnyRequest,
+    response: Response,
+    spec: Spec,
+    base_url: Optional[str] = None,
+    cls: Optional[AnyResponseUnmarshallerType] = None,
+    **unmarshaller_kwargs: Any,
+) -> ResponseUnmarshalResult:
+    if not isinstance(request, (Request, WebhookRequest)):
+        raise TypeError("'request' argument is not type of (Webhook)Request")
+    if not isinstance(response, Response):
+        raise TypeError("'response' argument is not type of Response")
+    if not isinstance(spec, Spec):
+        raise TypeError("'spec' argument is not type of Spec")
+    if isinstance(request, WebhookRequest):
+        if cls is None or issubclass(cls, WebhookResponseUnmarshaller):
+            return unmarshal_webhook_response(
+                request,
+                response,
+                spec,
+                base_url=base_url,
+                cls=cls,
+                **unmarshaller_kwargs,
+            )
+        else:
+            raise TypeError(
+                "'cls' argument is not type of WebhookResponseUnmarshaller"
+            )
+    else:
+        if cls is None or issubclass(cls, ResponseUnmarshaller):
+            return unmarshal_apicall_response(
+                request,
+                response,
+                spec,
+                base_url=base_url,
+                cls=cls,
+                **unmarshaller_kwargs,
+            )
+        else:
+            raise TypeError(
+                "'cls' argument is not type of ResponseUnmarshaller"
+            )
+
+
 def validate_request(
     request: AnyRequest,
     spec: Spec,
     base_url: Optional[str] = None,
     validator: Optional[SpecRequestValidatorProxy] = None,
-    cls: Optional[AnyRequestUnmarshallerType] = None,
+    cls: Optional[AnyRequestValidatorType] = None,
     **validator_kwargs: Any,
-) -> RequestUnmarshalResult:
+) -> Optional[RequestUnmarshalResult]:
     if isinstance(spec, (Request, WebhookRequest)) and isinstance(
         request, Spec
     ):
@@ -226,24 +313,49 @@ def validate_request(
         result.raise_for_errors()
         return result
 
+    # redirect to unmarshaller for backward compatibility
+    if cls is None or issubclass(
+        cls, (RequestUnmarshaller, WebhookRequestUnmarshaller)
+    ):
+        warnings.warn(
+            "validate_request is deprecated for unmarshalling data "
+            "and it will not return any result in the future. "
+            "Use unmarshal_request function instead.",
+            DeprecationWarning,
+        )
+        return unmarshal_request(
+            request,
+            spec=spec,
+            base_url=base_url,
+            cls=cls,
+            **validator_kwargs,
+        )
     if isinstance(request, WebhookRequest):
-        if cls is None or issubclass(cls, WebhookRequestUnmarshaller):
-            return unmarshal_webhook_request(
-                request, spec, base_url=base_url, cls=cls, **validator_kwargs
+        if cls is None or issubclass(cls, WebhookRequestValidator):
+            validate_webhook_request(
+                request,
+                spec,
+                base_url=base_url,
+                cls=cls,
+                **validator_kwargs,
             )
+            return None
         else:
             raise TypeError(
-                "'cls' argument is not type of WebhookRequestUnmarshaller"
+                "'cls' argument is not type of WebhookRequestValidator"
             )
-    elif isinstance(request, Request):
-        if cls is None or issubclass(cls, RequestUnmarshaller):
-            return unmarshal_request(
-                request, spec, base_url=base_url, cls=cls, **validator_kwargs
+    else:
+        if cls is None or issubclass(cls, RequestValidator):
+            validate_apicall_request(
+                request,
+                spec,
+                base_url=base_url,
+                cls=cls,
+                **validator_kwargs,
             )
+            return None
         else:
-            raise TypeError(
-                "'cls' argument is not type of RequestUnmarshaller"
-            )
+            raise TypeError("'cls' argument is not type of RequestValidator")
 
 
 def validate_response(
@@ -252,9 +364,9 @@ def validate_response(
     spec: Union[Spec, Response],
     base_url: Optional[str] = None,
     validator: Optional[SpecResponseValidatorProxy] = None,
-    cls: Optional[AnyResponseUnmarshallerType] = None,
+    cls: Optional[AnyResponseValidatorType] = None,
     **validator_kwargs: Any,
-) -> ResponseUnmarshalResult:
+) -> Optional[ResponseUnmarshalResult]:
     if (
         isinstance(request, Spec)
         and isinstance(response, (Request, WebhookRequest))
@@ -284,9 +396,27 @@ def validate_response(
         result.raise_for_errors()
         return result
 
+    # redirect to unmarshaller for backward compatibility
+    if cls is None or issubclass(
+        cls, (ResponseUnmarshaller, WebhookResponseUnmarshaller)
+    ):
+        warnings.warn(
+            "validate_response is deprecated for unmarshalling data "
+            "and it will not return any result in the future. "
+            "Use unmarshal_response function instead.",
+            DeprecationWarning,
+        )
+        return unmarshal_response(
+            request,
+            response,
+            spec=spec,
+            base_url=base_url,
+            cls=cls,
+            **validator_kwargs,
+        )
     if isinstance(request, WebhookRequest):
-        if cls is None or issubclass(cls, WebhookResponseUnmarshaller):
-            return unmarshal_webhook_response(
+        if cls is None or issubclass(cls, WebhookResponseValidator):
+            validate_webhook_response(
                 request,
                 response,
                 spec,
@@ -294,13 +424,14 @@ def validate_response(
                 cls=cls,
                 **validator_kwargs,
             )
+            return None
         else:
             raise TypeError(
-                "'cls' argument is not type of WebhookResponseUnmarshaller"
+                "'cls' argument is not type of WebhookResponseValidator"
             )
-    elif isinstance(request, Request):
-        if cls is None or issubclass(cls, ResponseUnmarshaller):
-            return unmarshal_response(
+    else:
+        if cls is None or issubclass(cls, ResponseValidator):
+            validate_apicall_response(
                 request,
                 response,
                 spec,
@@ -308,7 +439,100 @@ def validate_response(
                 cls=cls,
                 **validator_kwargs,
             )
+            return None
         else:
-            raise TypeError(
-                "'cls' argument is not type of ResponseUnmarshaller"
-            )
+            raise TypeError("'cls' argument is not type of ResponseValidator")
+
+
+def validate_apicall_request(
+    request: Request,
+    spec: Spec,
+    base_url: Optional[str] = None,
+    cls: Optional[RequestValidatorType] = None,
+    **validator_kwargs: Any,
+) -> None:
+    if not isinstance(request, Request):
+        raise TypeError("'request' argument is not type of Request")
+    if not isinstance(spec, Spec):
+        raise TypeError("'spec' argument is not type of Spec")
+    if cls is None:
+        classes = get_classes(spec)
+        cls = classes.request_validator_cls
+    if not issubclass(cls, RequestValidator):
+        raise TypeError("'cls' argument is not type of RequestValidator")
+    v = cls(spec, base_url=base_url, **validator_kwargs)
+    return v.validate(request)
+
+
+def validate_webhook_request(
+    request: WebhookRequest,
+    spec: Spec,
+    base_url: Optional[str] = None,
+    cls: Optional[WebhookRequestValidatorType] = None,
+    **validator_kwargs: Any,
+) -> None:
+    if not isinstance(request, WebhookRequest):
+        raise TypeError("'request' argument is not type of WebhookRequest")
+    if not isinstance(spec, Spec):
+        raise TypeError("'spec' argument is not type of Spec")
+    if cls is None:
+        classes = get_classes(spec)
+        cls = classes.webhook_request_validator_cls
+        if cls is None:
+            raise SpecError("Validator class not found")
+    if not issubclass(cls, WebhookRequestValidator):
+        raise TypeError(
+            "'cls' argument is not type of WebhookRequestValidator"
+        )
+    v = cls(spec, base_url=base_url, **validator_kwargs)
+    return v.validate(request)
+
+
+def validate_apicall_response(
+    request: Request,
+    response: Response,
+    spec: Spec,
+    base_url: Optional[str] = None,
+    cls: Optional[ResponseValidatorType] = None,
+    **validator_kwargs: Any,
+) -> None:
+    if not isinstance(request, Request):
+        raise TypeError("'request' argument is not type of Request")
+    if not isinstance(response, Response):
+        raise TypeError("'response' argument is not type of Response")
+    if not isinstance(spec, Spec):
+        raise TypeError("'spec' argument is not type of Spec")
+    if cls is None:
+        classes = get_classes(spec)
+        cls = classes.response_validator_cls
+    if not issubclass(cls, ResponseValidator):
+        raise TypeError("'cls' argument is not type of ResponseValidator")
+    v = cls(spec, base_url=base_url, **validator_kwargs)
+    return v.validate(request, response)
+
+
+def validate_webhook_response(
+    request: WebhookRequest,
+    response: Response,
+    spec: Spec,
+    base_url: Optional[str] = None,
+    cls: Optional[WebhookResponseValidatorType] = None,
+    **validator_kwargs: Any,
+) -> None:
+    if not isinstance(request, WebhookRequest):
+        raise TypeError("'request' argument is not type of WebhookRequest")
+    if not isinstance(response, Response):
+        raise TypeError("'response' argument is not type of Response")
+    if not isinstance(spec, Spec):
+        raise TypeError("'spec' argument is not type of Spec")
+    if cls is None:
+        classes = get_classes(spec)
+        cls = classes.webhook_response_validator_cls
+        if cls is None:
+            raise SpecError("Validator class not found")
+    if not issubclass(cls, WebhookResponseValidator):
+        raise TypeError(
+            "'cls' argument is not type of WebhookResponseValidator"
+        )
+    v = cls(spec, base_url=base_url, **validator_kwargs)
+    return v.validate(request, response)
