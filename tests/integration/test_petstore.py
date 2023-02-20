@@ -1,13 +1,14 @@
 import json
 from base64 import b64encode
 from dataclasses import is_dataclass
-from dataclasses import make_dataclass
 from datetime import datetime
 from uuid import UUID
 
 import pytest
 from isodate.tzinfo import UTC
 
+from openapi_core import unmarshal_request
+from openapi_core import unmarshal_response
 from openapi_core import validate_request
 from openapi_core import validate_response
 from openapi_core.casting.schemas.exceptions import CastError
@@ -16,7 +17,6 @@ from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.exceptions import (
     EmptyQueryParameterValue,
 )
-from openapi_core.spec import Spec
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.templating.security.exceptions import SecurityNotFound
@@ -44,8 +44,18 @@ from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import ParameterError
 from openapi_core.validation.request.exceptions import RequestBodyError
 from openapi_core.validation.request.exceptions import SecurityError
+from openapi_core.validation.request.validators import V30RequestBodyValidator
+from openapi_core.validation.request.validators import (
+    V30RequestParametersValidator,
+)
+from openapi_core.validation.request.validators import (
+    V30RequestSecurityValidator,
+)
 from openapi_core.validation.response.exceptions import InvalidData
 from openapi_core.validation.response.exceptions import MissingRequiredHeader
+from openapi_core.validation.response.validators import (
+    V30ResponseDataValidator,
+)
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 
@@ -100,7 +110,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestBodyUnmarshaller,
@@ -118,7 +128,8 @@ class TestPetstore:
         }
         response = MockResponse(data, headers=headers)
 
-        response_result = validate_response(request, response, spec=spec)
+        with pytest.warns(DeprecationWarning):
+            response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -157,7 +168,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -177,7 +188,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -215,7 +226,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -225,7 +236,7 @@ class TestPetstore:
         response = MockResponse(data, status_code=404, mimetype="text/html")
 
         with pytest.warns(UserWarning):
-            response_result = validate_response(request, response, spec=spec)
+            response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data
@@ -260,7 +271,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -284,7 +295,7 @@ class TestPetstore:
                 request,
                 response,
                 spec=spec,
-                cls=V30ResponseDataUnmarshaller,
+                cls=V30ResponseDataValidator,
             )
         assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
@@ -331,7 +342,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -343,7 +354,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -381,7 +392,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -393,7 +404,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -424,7 +435,7 @@ class TestPetstore:
                 )
         assert type(exc_info.value.__cause__) is DeserializeError
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -450,11 +461,11 @@ class TestPetstore:
                 validate_request(
                     request,
                     spec=spec,
-                    cls=V30RequestParametersUnmarshaller,
+                    cls=V30RequestParametersValidator,
                 )
         assert type(exc_info.value.__cause__) is CastError
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -475,10 +486,10 @@ class TestPetstore:
                 validate_request(
                     request,
                     spec=spec,
-                    cls=V30RequestParametersUnmarshaller,
+                    cls=V30RequestParametersValidator,
                 )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -504,11 +515,11 @@ class TestPetstore:
                 validate_request(
                     request,
                     spec=spec,
-                    cls=V30RequestParametersUnmarshaller,
+                    cls=V30RequestParametersValidator,
                 )
         assert type(exc_info.value.__cause__) is EmptyQueryParameterValue
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -545,7 +556,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -581,7 +592,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -619,7 +630,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -660,7 +671,7 @@ class TestPetstore:
         assert result.parameters.query["coordinates"].lat == coordinates["lat"]
         assert result.parameters.query["coordinates"].lon == coordinates["lon"]
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -710,7 +721,7 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -723,7 +734,7 @@ class TestPetstore:
         )
         assert result.parameters.cookie["userdata"].name == "user1"
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -739,7 +750,7 @@ class TestPetstore:
         assert result.body.address.city == pet_city
         assert result.body.healthy == pet_healthy
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestSecurityUnmarshaller,
@@ -787,7 +798,7 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -802,7 +813,7 @@ class TestPetstore:
             },
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -858,7 +869,7 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -873,9 +884,10 @@ class TestPetstore:
             },
         )
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
@@ -916,11 +928,12 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        result = validate_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             header={
@@ -935,7 +948,7 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestBodyUnmarshaller,
+                cls=V30RequestBodyValidator,
             )
         assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
@@ -968,11 +981,12 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        result = validate_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             header={
@@ -983,9 +997,10 @@ class TestPetstore:
             },
         )
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
@@ -1020,11 +1035,12 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        result = validate_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             header={
@@ -1039,7 +1055,7 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestBodyUnmarshaller,
+                cls=V30RequestBodyValidator,
             )
         assert type(exc_info.value.__cause__) is MediaTypeNotFound
 
@@ -1072,12 +1088,13 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestParametersUnmarshaller,
+                cls=V30RequestParametersValidator,
             )
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
@@ -1115,12 +1132,13 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestParametersUnmarshaller,
+                cls=V30RequestParametersValidator,
             )
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
@@ -1159,14 +1177,14 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestParametersUnmarshaller,
+                cls=V30RequestParametersValidator,
             )
 
         with pytest.raises(ServerNotFound):
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestBodyUnmarshaller,
+                cls=V30RequestBodyValidator,
             )
 
         data_id = 1
@@ -1188,7 +1206,7 @@ class TestPetstore:
                 request,
                 response,
                 spec=spec,
-                cls=V30ResponseDataUnmarshaller,
+                cls=V30ResponseDataValidator,
             )
 
     def test_get_pet_invalid_security(self, spec):
@@ -1210,7 +1228,7 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestSecurityUnmarshaller,
+                cls=V30RequestSecurityValidator,
             )
 
         assert exc_info.value.__cause__ == SecurityNotFound(
@@ -1236,11 +1254,12 @@ class TestPetstore:
             headers=headers,
         )
 
-        result = validate_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             path={
@@ -1248,17 +1267,19 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         assert result.body is None
 
-        result = validate_request(
-            request,
-            spec=spec,
-            cls=V30RequestSecurityUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestSecurityUnmarshaller,
+            )
 
         assert result.security == {
             "petstore_auth": auth,
@@ -1278,7 +1299,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1300,11 +1321,12 @@ class TestPetstore:
             view_args=view_args,
         )
 
-        result = validate_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             path={
@@ -1312,9 +1334,10 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         assert result.body is None
 
@@ -1329,7 +1352,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1351,11 +1374,12 @@ class TestPetstore:
             view_args=view_args,
         )
 
-        result = validate_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             path={
@@ -1363,7 +1387,7 @@ class TestPetstore:
             }
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestBodyUnmarshaller,
@@ -1375,7 +1399,7 @@ class TestPetstore:
         response = MockResponse(data, mimetype="image/png")
 
         with pytest.warns(UserWarning):
-            response_result = validate_response(request, response, spec=spec)
+            response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data
@@ -1391,7 +1415,7 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1399,9 +1423,10 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         assert result.body is None
 
@@ -1409,7 +1434,8 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        response_result = validate_response(request, response, spec=spec)
+        with pytest.warns(DeprecationWarning):
+            response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data_json
@@ -1433,7 +1459,7 @@ class TestPetstore:
             data=data,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1445,7 +1471,7 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestBodyUnmarshaller,
+                cls=V30RequestBodyValidator,
             )
         assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
@@ -1463,7 +1489,7 @@ class TestPetstore:
             data=data,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1475,7 +1501,7 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestBodyUnmarshaller,
+                cls=V30RequestBodyValidator,
             )
         assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
@@ -1493,7 +1519,7 @@ class TestPetstore:
             data=data,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1505,7 +1531,7 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestBodyUnmarshaller,
+                cls=V30RequestBodyValidator,
             )
         assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
@@ -1526,17 +1552,19 @@ class TestPetstore:
             data=data,
         )
 
-        result = validate_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters()
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         assert is_dataclass(result.body)
         assert result.body.name == pet_name
@@ -1554,7 +1582,8 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = validate_response(request, response, spec=spec)
+        with pytest.warns(DeprecationWarning):
+            response_result = validate_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1582,7 +1611,7 @@ class TestPetstore:
             data=data,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1590,7 +1619,7 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -1611,7 +1640,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1639,7 +1668,7 @@ class TestPetstore:
             data=data,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1647,9 +1676,10 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        result = validate_request(
-            request, spec=spec, cls=V30RequestBodyUnmarshaller
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec, cls=V30RequestBodyUnmarshaller
+            )
 
         assert is_dataclass(result.body)
         assert result.body.created == datetime(
@@ -1670,12 +1700,13 @@ class TestPetstore:
         response_data = json.dumps(response_data_json)
         response = MockResponse(response_data, status_code=404)
 
-        result = validate_response(
-            request,
-            response,
-            spec=spec,
-            cls=V30ResponseDataUnmarshaller,
-        )
+        with pytest.warns(DeprecationWarning):
+            result = validate_response(
+                request,
+                response,
+                spec=spec,
+                cls=V30ResponseDataUnmarshaller,
+            )
 
         assert is_dataclass(result.data)
         assert result.data.code == code
@@ -1683,7 +1714,7 @@ class TestPetstore:
         assert result.data.rootCause == rootCause
         assert result.data.additionalinfo == additionalinfo
 
-        response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1711,7 +1742,7 @@ class TestPetstore:
             data=data,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1723,7 +1754,7 @@ class TestPetstore:
             validate_request(
                 request,
                 spec=spec,
-                cls=V30RequestBodyUnmarshaller,
+                cls=V30RequestBodyValidator,
             )
         assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
@@ -1741,7 +1772,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1767,7 +1798,7 @@ class TestPetstore:
             data=data,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1775,7 +1806,7 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -1815,7 +1846,7 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1823,7 +1854,7 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 
@@ -1841,7 +1872,7 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        result = validate_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             cls=V30RequestParametersUnmarshaller,
@@ -1849,7 +1880,7 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        result = validate_request(
+        result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
         )
 

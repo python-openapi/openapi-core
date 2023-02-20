@@ -4,12 +4,18 @@ import pytest
 
 from openapi_core import RequestValidator
 from openapi_core import ResponseValidator
+from openapi_core import unmarshal_apicall_request
+from openapi_core import unmarshal_apicall_response
 from openapi_core import unmarshal_request
 from openapi_core import unmarshal_response
 from openapi_core import unmarshal_webhook_request
 from openapi_core import unmarshal_webhook_response
+from openapi_core import validate_apicall_request
+from openapi_core import validate_apicall_response
 from openapi_core import validate_request
 from openapi_core import validate_response
+from openapi_core import validate_webhook_request
+from openapi_core import validate_webhook_response
 from openapi_core.exceptions import SpecError
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
@@ -22,8 +28,22 @@ from openapi_core.unmarshalling.request.unmarshallers import (
 from openapi_core.unmarshalling.request.unmarshallers import (
     WebhookRequestUnmarshaller,
 )
+from openapi_core.unmarshalling.response.datatypes import (
+    ResponseUnmarshalResult,
+)
 from openapi_core.unmarshalling.response.unmarshallers import (
     APICallResponseUnmarshaller,
+)
+from openapi_core.unmarshalling.response.unmarshallers import (
+    WebhookResponseUnmarshaller,
+)
+from openapi_core.validation.request.validators import APICallRequestValidator
+from openapi_core.validation.request.validators import WebhookRequestValidator
+from openapi_core.validation.response.validators import (
+    APICallResponseValidator,
+)
+from openapi_core.validation.response.validators import (
+    WebhookResponseValidator,
 )
 
 
@@ -32,82 +52,69 @@ class MockClass:
     schema_unmarshallers_factory = None
 
     unmarshal_calls = []
+    validate_calls = []
     return_unmarshal = None
 
     @classmethod
-    def setUp(cls, return_unmarshal):
+    def setUp(cls, return_unmarshal=None):
         cls.unmarshal_calls = []
+        cls.validate_calls = []
         cls.return_unmarshal = return_unmarshal
 
 
-class MockReqClass(MockClass):
-    assert_request = None
+class MockReqValidator(MockClass):
+    def validate(self, req):
+        self.validate_calls.append((req,))
 
-    @classmethod
-    def setUp(cls, return_unmarshal, assert_request):
-        super().setUp(return_unmarshal)
-        cls.assert_request = assert_request
 
+class MockReqUnmarshaller(MockClass):
     def unmarshal(self, req):
-        self.unmarshal_calls.append([req])
-        assert req == self.assert_request
+        self.unmarshal_calls.append((req,))
         return self.return_unmarshal
 
 
-class MockRespClass(MockClass):
-    assert_request = None
-    assert_response = None
+class MockRespValidator(MockClass):
+    def validate(self, req, resp):
+        self.validate_calls.append((req, resp))
 
-    @classmethod
-    def setUp(cls, return_unmarshal, assert_request, assert_response):
-        super().setUp(return_unmarshal)
-        cls.assert_request = assert_request
-        cls.assert_response = assert_response
 
+class MockRespUnmarshaller(MockClass):
     def unmarshal(self, req, resp):
-        self.unmarshal_calls.append([req, resp])
-        assert req == self.assert_request
-        assert resp == self.assert_response
+        self.unmarshal_calls.append((req, resp))
         return self.return_unmarshal
 
 
-class TestUnmarshalRequest:
+@pytest.fixture(autouse=True)
+def setup():
+    MockClass.setUp()
+    yield
+
+
+class TestUnmarshalAPICallRequest:
     def test_spec_not_detected(self, spec_invalid):
         request = mock.Mock(spec=Request)
 
         with pytest.raises(SpecError):
-            unmarshal_request(request, spec=spec_invalid)
+            unmarshal_apicall_request(request, spec=spec_invalid)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
 
         with pytest.raises(TypeError):
-            unmarshal_request(request, spec=spec_v31)
+            unmarshal_apicall_request(request, spec=spec_v31)
 
     def test_spec_type_invalid(self):
         request = mock.Mock(spec=Request)
         spec = mock.sentinel.spec
 
         with pytest.raises(TypeError):
-            unmarshal_request(request, spec=spec)
+            unmarshal_apicall_request(request, spec=spec)
 
     def test_cls_type_invalid(self, spec_v31):
         request = mock.Mock(spec=Request)
 
         with pytest.raises(TypeError):
-            unmarshal_request(request, spec=spec_v31, cls=Exception)
-
-    @mock.patch(
-        "openapi_core.unmarshalling.request.unmarshallers.APICallRequestUnmarshaller."
-        "unmarshal",
-    )
-    def test_request(self, mock_unmarshal, spec_v31):
-        request = mock.Mock(spec=Request)
-
-        result = unmarshal_request(request, spec=spec_v31)
-
-        assert result == mock_unmarshal.return_value
-        mock_unmarshal.assert_called_once_with(request)
+            unmarshal_apicall_request(request, spec=spec_v31, cls=Exception)
 
 
 class TestUnmarshalWebhookRequest:
@@ -136,6 +143,12 @@ class TestUnmarshalWebhookRequest:
         with pytest.raises(TypeError):
             unmarshal_webhook_request(request, spec=spec_v31, cls=Exception)
 
+    def test_spec_oas30_validator_not_found(self, spec_v30):
+        request = mock.Mock(spec=WebhookRequest)
+
+        with pytest.raises(SpecError):
+            unmarshal_webhook_request(request, spec=spec_v30)
+
     @mock.patch(
         "openapi_core.unmarshalling.request.unmarshallers.WebhookRequestUnmarshaller."
         "unmarshal",
@@ -147,6 +160,86 @@ class TestUnmarshalWebhookRequest:
 
         assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request)
+
+
+class TestUnmarshalRequest:
+    def test_spec_not_detected(self, spec_invalid):
+        request = mock.Mock(spec=Request)
+
+        with pytest.raises(SpecError):
+            unmarshal_request(request, spec=spec_invalid)
+
+    def test_request_type_invalid(self, spec_v31):
+        request = mock.sentinel.request
+
+        with pytest.raises(TypeError):
+            unmarshal_request(request, spec=spec_v31)
+
+    def test_spec_type_invalid(self):
+        request = mock.Mock(spec=Request)
+        spec = mock.sentinel.spec
+
+        with pytest.raises(TypeError):
+            unmarshal_request(request, spec=spec)
+
+    @pytest.mark.parametrize("req", [Request, WebhookRequest])
+    def test_cls_type_invalid(self, spec_v31, req):
+        request = mock.Mock(spec=req)
+
+        with pytest.raises(TypeError):
+            unmarshal_request(request, spec=spec_v31, cls=Exception)
+
+    @mock.patch(
+        "openapi_core.unmarshalling.request.unmarshallers.APICallRequestUnmarshaller."
+        "unmarshal",
+    )
+    def test_request(self, mock_unmarshal, spec_v31):
+        request = mock.Mock(spec=Request)
+
+        result = unmarshal_request(request, spec=spec_v31)
+
+        assert result == mock_unmarshal.return_value
+        mock_unmarshal.assert_called_once_with(request)
+
+
+class TestUnmarshalAPICallResponse:
+    def test_spec_not_detected(self, spec_invalid):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            unmarshal_apicall_response(request, response, spec=spec_invalid)
+
+    def test_request_type_invalid(self, spec_v31):
+        request = mock.sentinel.request
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(TypeError):
+            unmarshal_apicall_response(request, response, spec=spec_v31)
+
+    def test_response_type_invalid(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        response = mock.sentinel.response
+
+        with pytest.raises(TypeError):
+            unmarshal_apicall_response(request, response, spec=spec_v31)
+
+    def test_spec_type_invalid(self):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+        spec = mock.sentinel.spec
+
+        with pytest.raises(TypeError):
+            unmarshal_apicall_response(request, response, spec=spec)
+
+    def test_cls_type_invalid(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(TypeError):
+            unmarshal_apicall_response(
+                request, response, spec=spec_v31, cls=Exception
+            )
 
 
 class TestUnmarshalResponse:
@@ -179,8 +272,9 @@ class TestUnmarshalResponse:
         with pytest.raises(TypeError):
             unmarshal_response(request, response, spec=spec)
 
-    def test_cls_type_invalid(self, spec_v31):
-        request = mock.Mock(spec=Request)
+    @pytest.mark.parametrize("req", [Request, WebhookRequest])
+    def test_cls_type_invalid(self, spec_v31, req):
+        request = mock.Mock(spec=req)
         response = mock.Mock(spec=Response)
 
         with pytest.raises(TypeError):
@@ -239,6 +333,13 @@ class TestUnmarshalWebhookResponse:
                 request, response, spec=spec_v31, cls=Exception
             )
 
+    def test_spec_oas30_validator_not_found(self, spec_v30):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            unmarshal_webhook_response(request, response, spec=spec_v30)
+
     @mock.patch(
         "openapi_core.unmarshalling.response.unmarshallers.WebhookResponseUnmarshaller."
         "unmarshal",
@@ -253,12 +354,97 @@ class TestUnmarshalWebhookResponse:
         mock_unmarshal.assert_called_once_with(request, response)
 
 
+class TestValidateAPICallRequest:
+    def test_spec_not_detected(self, spec_invalid):
+        request = mock.Mock(spec=Request)
+
+        with pytest.raises(SpecError):
+            validate_apicall_request(request, spec=spec_invalid)
+
+    def test_request_type_invalid(self, spec_v31):
+        request = mock.sentinel.request
+
+        with pytest.raises(TypeError):
+            validate_apicall_request(request, spec=spec_v31)
+
+    def test_spec_type_invalid(self):
+        request = mock.Mock(spec=Request)
+        spec = mock.sentinel.spec
+
+        with pytest.raises(TypeError):
+            validate_apicall_request(request, spec=spec)
+
+    def test_cls_type_invalid(self, spec_v31):
+        request = mock.Mock(spec=Request)
+
+        with pytest.raises(TypeError):
+            validate_apicall_request(request, spec=spec_v31, cls=Exception)
+
+    @mock.patch(
+        "openapi_core.validation.request.validators.APICallRequestValidator."
+        "validate",
+    )
+    def test_request(self, mock_validate, spec_v31):
+        request = mock.Mock(spec=Request)
+
+        result = validate_apicall_request(request, spec=spec_v31)
+
+        assert result == mock_validate.return_value
+        mock_validate.assert_called_once_with(request)
+
+
+class TestValidateWebhookRequest:
+    def test_spec_not_detected(self, spec_invalid):
+        request = mock.Mock(spec=WebhookRequest)
+
+        with pytest.raises(SpecError):
+            validate_webhook_request(request, spec=spec_invalid)
+
+    def test_request_type_invalid(self, spec_v31):
+        request = mock.sentinel.request
+
+        with pytest.raises(TypeError):
+            validate_webhook_request(request, spec=spec_v31)
+
+    def test_spec_type_invalid(self):
+        request = mock.Mock(spec=WebhookRequest)
+        spec = mock.sentinel.spec
+
+        with pytest.raises(TypeError):
+            validate_webhook_request(request, spec=spec)
+
+    def test_cls_type_invalid(self, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+
+        with pytest.raises(TypeError):
+            validate_webhook_request(request, spec=spec_v31, cls=Exception)
+
+    def test_spec_oas30_validator_not_found(self, spec_v30):
+        request = mock.Mock(spec=WebhookRequest)
+
+        with pytest.raises(SpecError):
+            validate_webhook_request(request, spec=spec_v30)
+
+    @mock.patch(
+        "openapi_core.validation.request.validators.WebhookRequestValidator."
+        "validate",
+    )
+    def test_request(self, mock_validate, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+
+        result = validate_webhook_request(request, spec=spec_v31)
+
+        assert result == mock_validate.return_value
+        mock_validate.assert_called_once_with(request)
+
+
 class TestValidateRequest:
     def test_spec_not_detected(self, spec_invalid):
         request = mock.Mock(spec=Request)
 
         with pytest.raises(SpecError):
-            validate_request(request, spec=spec_invalid)
+            with pytest.warns(DeprecationWarning):
+                validate_request(request, spec=spec_invalid)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
@@ -280,7 +466,8 @@ class TestValidateRequest:
     def test_request(self, mock_unmarshal, spec_v31):
         request = mock.Mock(spec=Request)
 
-        result = validate_request(request, spec=spec_v31)
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(request, spec=spec_v31)
 
         assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request)
@@ -307,7 +494,8 @@ class TestValidateRequest:
         mock_unmarshal.return_value = ResultMock(error_to_raise=ValueError)
 
         with pytest.raises(ValueError):
-            validate_request(request, spec=spec_v31)
+            with pytest.warns(DeprecationWarning):
+                validate_request(request, spec=spec_v31)
 
         mock_unmarshal.assert_called_once_with(request)
 
@@ -325,20 +513,90 @@ class TestValidateRequest:
             spec_v31, request, base_url=None
         )
 
-    def test_cls(self, spec_v31):
+    def test_cls_apicall(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        TestAPICallReq = type(
+            "TestAPICallReq",
+            (MockReqValidator, APICallRequestValidator),
+            {},
+        )
+
+        result = validate_request(request, spec=spec_v31, cls=TestAPICallReq)
+
+        assert result is None
+        assert TestAPICallReq.validate_calls == [
+            (request,),
+        ]
+
+    def test_cls_apicall_unmarshaller(self, spec_v31):
         request = mock.Mock(spec=Request)
         unmarshal = mock.Mock(spec=RequestUnmarshalResult)
         TestAPICallReq = type(
             "TestAPICallReq",
-            (MockReqClass, APICallRequestUnmarshaller),
+            (MockReqUnmarshaller, APICallRequestUnmarshaller),
             {},
         )
-        TestAPICallReq.setUp(unmarshal, request)
+        TestAPICallReq.setUp(unmarshal)
 
-        result = validate_request(request, spec=spec_v31, cls=TestAPICallReq)
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec_v31, cls=TestAPICallReq
+            )
 
         assert result == unmarshal
-        assert len(TestAPICallReq.unmarshal_calls) == 1
+        assert TestAPICallReq.unmarshal_calls == [
+            (request,),
+        ]
+
+    def test_cls_webhook(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        TestWebhookReq = type(
+            "TestWebhookReq",
+            (MockReqValidator, WebhookRequestValidator),
+            {},
+        )
+
+        result = validate_request(request, spec=spec_v31, cls=TestWebhookReq)
+
+        assert result is None
+        assert TestWebhookReq.validate_calls == [
+            (request,),
+        ]
+
+    def test_webhook_cls(self, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        TestWebhookReq = type(
+            "TestWebhookReq",
+            (MockReqValidator, WebhookRequestValidator),
+            {},
+        )
+
+        result = validate_request(request, spec=spec_v31, cls=TestWebhookReq)
+
+        assert result is None
+        assert TestWebhookReq.validate_calls == [
+            (request,),
+        ]
+
+    def test_cls_webhook_unmarshaller(self, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        unmarshal = mock.Mock(spec=RequestUnmarshalResult)
+        TestWebhookReq = type(
+            "TestWebhookReq",
+            (MockReqUnmarshaller, WebhookRequestUnmarshaller),
+            {},
+        )
+        TestWebhookReq.setUp(unmarshal)
+
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(
+                request, spec=spec_v31, cls=TestWebhookReq
+            )
+
+        assert result == unmarshal
+        assert TestWebhookReq.unmarshal_calls == [
+            (request,),
+        ]
 
     def test_cls_invalid(self, spec_v31):
         request = mock.Mock(spec=Request)
@@ -353,7 +611,8 @@ class TestValidateRequest:
     def test_webhook_request(self, mock_unmarshal, spec_v31):
         request = mock.Mock(spec=WebhookRequest)
 
-        result = validate_request(request, spec=spec_v31)
+        with pytest.warns(DeprecationWarning):
+            result = validate_request(request, spec=spec_v31)
 
         assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request)
@@ -362,7 +621,8 @@ class TestValidateRequest:
         request = mock.Mock(spec=WebhookRequest)
 
         with pytest.raises(SpecError):
-            validate_request(request, spec=spec_v30)
+            with pytest.warns(DeprecationWarning):
+                validate_request(request, spec=spec_v30)
 
     @mock.patch(
         "openapi_core.unmarshalling.request.unmarshallers.WebhookRequestUnmarshaller."
@@ -373,24 +633,10 @@ class TestValidateRequest:
         mock_unmarshal.return_value = ResultMock(error_to_raise=ValueError)
 
         with pytest.raises(ValueError):
-            validate_request(request, spec=spec_v31)
+            with pytest.warns(DeprecationWarning):
+                validate_request(request, spec=spec_v31)
 
         mock_unmarshal.assert_called_once_with(request)
-
-    def test_webhook_cls(self, spec_v31):
-        request = mock.Mock(spec=WebhookRequest)
-        unmarshal = mock.Mock(spec=RequestUnmarshalResult)
-        TestWebhookReq = type(
-            "TestWebhookReq",
-            (MockReqClass, WebhookRequestUnmarshaller),
-            {},
-        )
-        TestWebhookReq.setUp(unmarshal, request)
-
-        result = validate_request(request, spec=spec_v31, cls=TestWebhookReq)
-
-        assert result == unmarshal
-        assert len(TestWebhookReq.unmarshal_calls) == 1
 
     def test_webhook_cls_invalid(self, spec_v31):
         request = mock.Mock(spec=WebhookRequest)
@@ -399,13 +645,127 @@ class TestValidateRequest:
             validate_request(request, spec=spec_v31, cls=Exception)
 
 
+class TestValidateAPICallResponse:
+    def test_spec_not_detected(self, spec_invalid):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            validate_apicall_response(request, response, spec=spec_invalid)
+
+    def test_request_type_invalid(self, spec_v31):
+        request = mock.sentinel.request
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(TypeError):
+            validate_apicall_response(request, response, spec=spec_v31)
+
+    def test_response_type_invalid(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        response = mock.sentinel.response
+
+        with pytest.raises(TypeError):
+            validate_apicall_response(request, response, spec=spec_v31)
+
+    def test_spec_type_invalid(self):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+        spec = mock.sentinel.spec
+
+        with pytest.raises(TypeError):
+            validate_apicall_response(request, response, spec=spec)
+
+    def test_cls_type_invalid(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(TypeError):
+            validate_apicall_response(
+                request, response, spec=spec_v31, cls=Exception
+            )
+
+    @mock.patch(
+        "openapi_core.validation.response.validators.APICallResponseValidator."
+        "validate",
+    )
+    def test_request_response(self, mock_validate, spec_v31):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        result = validate_apicall_response(request, response, spec=spec_v31)
+
+        assert result == mock_validate.return_value
+        mock_validate.assert_called_once_with(request, response)
+
+
+class TestValidateWebhookResponse:
+    def test_spec_not_detected(self, spec_invalid):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            validate_webhook_response(request, response, spec=spec_invalid)
+
+    def test_request_type_invalid(self, spec_v31):
+        request = mock.sentinel.request
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(TypeError):
+            validate_webhook_response(request, response, spec=spec_v31)
+
+    def test_response_type_invalid(self, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.sentinel.response
+
+        with pytest.raises(TypeError):
+            validate_webhook_response(request, response, spec=spec_v31)
+
+    def test_spec_type_invalid(self):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+        spec = mock.sentinel.spec
+
+        with pytest.raises(TypeError):
+            validate_webhook_response(request, response, spec=spec)
+
+    def test_cls_type_invalid(self, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(TypeError):
+            validate_webhook_response(
+                request, response, spec=spec_v31, cls=Exception
+            )
+
+    def test_spec_oas30_validator_not_found(self, spec_v30):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            validate_webhook_response(request, response, spec=spec_v30)
+
+    @mock.patch(
+        "openapi_core.validation.response.validators.WebhookResponseValidator."
+        "validate",
+    )
+    def test_request_response(self, mock_validate, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+
+        result = validate_webhook_response(request, response, spec=spec_v31)
+
+        assert result == mock_validate.return_value
+        mock_validate.assert_called_once_with(request, response)
+
+
 class TestValidateResponse:
     def test_spec_not_detected(self, spec_invalid):
         request = mock.Mock(spec=Request)
         response = mock.Mock(spec=Response)
 
         with pytest.raises(SpecError):
-            validate_response(request, response, spec=spec_invalid)
+            with pytest.warns(DeprecationWarning):
+                validate_response(request, response, spec=spec_invalid)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
@@ -437,7 +797,8 @@ class TestValidateResponse:
         request = mock.Mock(spec=Request)
         response = mock.Mock(spec=Response)
 
-        result = validate_response(request, response, spec=spec_v31)
+        with pytest.warns(DeprecationWarning):
+            result = validate_response(request, response, spec=spec_v31)
 
         assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request, response)
@@ -466,7 +827,8 @@ class TestValidateResponse:
         mock_unmarshal.return_value = ResultMock(error_to_raise=ValueError)
 
         with pytest.raises(ValueError):
-            validate_response(request, response, spec=spec_v31)
+            with pytest.warns(DeprecationWarning):
+                validate_response(request, response, spec=spec_v31)
 
         mock_unmarshal.assert_called_once_with(request, response)
 
@@ -485,23 +847,65 @@ class TestValidateResponse:
             spec_v31, request, response, base_url=None
         )
 
-    def test_cls(self, spec_v31):
+    def test_cls_apicall(self, spec_v31):
         request = mock.Mock(spec=Request)
         response = mock.Mock(spec=Response)
-        unmarshal = mock.Mock(spec=RequestUnmarshalResult)
         TestAPICallResp = type(
             "TestAPICallResp",
-            (MockRespClass, APICallResponseUnmarshaller),
+            (MockRespValidator, APICallResponseValidator),
             {},
         )
-        TestAPICallResp.setUp(unmarshal, request, response)
 
         result = validate_response(
             request, response, spec=spec_v31, cls=TestAPICallResp
         )
 
+        assert result is None
+        assert TestAPICallResp.validate_calls == [
+            (request, response),
+        ]
+
+    def test_cls_apicall_unmarshaller(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+        unmarshal = mock.Mock(spec=ResponseUnmarshalResult)
+        TestAPICallReq = type(
+            "TestAPICallReq",
+            (MockRespUnmarshaller, APICallResponseUnmarshaller),
+            {},
+        )
+        TestAPICallReq.setUp(unmarshal)
+
+        with pytest.warns(DeprecationWarning):
+            result = validate_response(
+                request, response, spec=spec_v31, cls=TestAPICallReq
+            )
+
         assert result == unmarshal
-        assert len(TestAPICallResp.unmarshal_calls) == 1
+        assert TestAPICallReq.unmarshal_calls == [
+            (request, response),
+        ]
+
+    def test_cls_webhook_unmarshaller(self, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+        unmarshal = mock.Mock(spec=ResponseUnmarshalResult)
+        TestWebhookReq = type(
+            "TestWebhookReq",
+            (MockRespUnmarshaller, WebhookResponseUnmarshaller),
+            {},
+        )
+        TestWebhookReq.setUp(unmarshal)
+
+        with pytest.warns(DeprecationWarning):
+            result = validate_response(
+                request, response, spec=spec_v31, cls=TestWebhookReq
+            )
+
+        assert result == unmarshal
+        assert TestWebhookReq.unmarshal_calls == [
+            (request, response),
+        ]
 
     def test_cls_type_invalid(self, spec_v31):
         request = mock.Mock(spec=Request)
@@ -515,7 +919,8 @@ class TestValidateResponse:
         response = mock.Mock(spec=Response)
 
         with pytest.raises(SpecError):
-            validate_response(request, response, spec=spec_v30)
+            with pytest.warns(DeprecationWarning):
+                validate_response(request, response, spec=spec_v30)
 
     @mock.patch(
         "openapi_core.unmarshalling.response.unmarshallers.WebhookResponseUnmarshaller."
@@ -525,7 +930,8 @@ class TestValidateResponse:
         request = mock.Mock(spec=WebhookRequest)
         response = mock.Mock(spec=Response)
 
-        result = validate_response(request, response, spec=spec_v31)
+        with pytest.warns(DeprecationWarning):
+            result = validate_response(request, response, spec=spec_v31)
 
         assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request, response)
@@ -540,27 +946,28 @@ class TestValidateResponse:
         mock_unmarshal.return_value = ResultMock(error_to_raise=ValueError)
 
         with pytest.raises(ValueError):
-            validate_response(request, response, spec=spec_v31)
+            with pytest.warns(DeprecationWarning):
+                validate_response(request, response, spec=spec_v31)
 
         mock_unmarshal.assert_called_once_with(request, response)
 
     def test_webhook_cls(self, spec_v31):
         request = mock.Mock(spec=WebhookRequest)
         response = mock.Mock(spec=Response)
-        unmarshal = mock.Mock(spec=RequestUnmarshalResult)
         TestWebhookResp = type(
             "TestWebhookResp",
-            (MockRespClass, APICallResponseUnmarshaller),
+            (MockRespValidator, WebhookResponseValidator),
             {},
         )
-        TestWebhookResp.setUp(unmarshal, request, response)
 
         result = validate_response(
             request, response, spec=spec_v31, cls=TestWebhookResp
         )
 
-        assert result == unmarshal
-        assert len(TestWebhookResp.unmarshal_calls) == 1
+        assert result is None
+        assert TestWebhookResp.validate_calls == [
+            (request, response),
+        ]
 
     def test_webhook_cls_type_invalid(self, spec_v31):
         request = mock.Mock(spec=WebhookRequest)

@@ -1,10 +1,16 @@
 """OpenAPI core module"""
+from openapi_core.shortcuts import unmarshal_apicall_request
+from openapi_core.shortcuts import unmarshal_apicall_response
 from openapi_core.shortcuts import unmarshal_request
 from openapi_core.shortcuts import unmarshal_response
 from openapi_core.shortcuts import unmarshal_webhook_request
 from openapi_core.shortcuts import unmarshal_webhook_response
+from openapi_core.shortcuts import validate_apicall_request
+from openapi_core.shortcuts import validate_apicall_response
 from openapi_core.shortcuts import validate_request
 from openapi_core.shortcuts import validate_response
+from openapi_core.shortcuts import validate_webhook_request
+from openapi_core.shortcuts import validate_webhook_response
 from openapi_core.spec import Spec
 from openapi_core.unmarshalling.request import RequestValidator
 from openapi_core.unmarshalling.request import V3RequestUnmarshaller
@@ -47,8 +53,14 @@ __all__ = [
     "Spec",
     "unmarshal_request",
     "unmarshal_response",
+    "unmarshal_apicall_request",
     "unmarshal_webhook_request",
+    "unmarshal_apicall_response",
     "unmarshal_webhook_response",
+    "validate_apicall_request",
+    "validate_webhook_request",
+    "validate_apicall_response",
+    "validate_webhook_response",
     "validate_request",
     "validate_response",
     "V30RequestUnmarshaller",
