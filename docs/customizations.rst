@@ -14,32 +14,26 @@ If you know you have a valid specification already, disabling the validator can 
 
    spec = Spec.from_dict(spec_dict, validator=None)
 
-Deserializers
--------------
+Media type deserializers
+------------------------
 
-Pass custom defined media type deserializers dictionary with supported mimetypes as a key to `MediaTypeDeserializersFactory` and then pass it to `RequestValidator` or `ResponseValidator` constructor:
+Pass custom defined media type deserializers dictionary with supported mimetypes as a key to `unmarshal_response` function:
 
 .. code-block:: python
-
-   from openapi_core.deserializing.media_types.factories import MediaTypeDeserializersFactory
 
    def protobuf_deserializer(message):
        feature = route_guide_pb2.Feature()
        feature.ParseFromString(message)
        return feature
 
-   custom_media_type_deserializers = {
+   extra_media_type_deserializers = {
        'application/protobuf': protobuf_deserializer,
    }
-   media_type_deserializers_factory = MediaTypeDeserializersFactory(
-       custom_deserializers=custom_media_type_deserializers,
-   )
 
-   result = validate_response(
+   result = unmarshal_response(
        request, response,
        spec=spec,
-       cls=V30ResponseValidator,
-       media_type_deserializers_factory=media_type_deserializers_factory,
+       extra_media_type_deserializers=extra_media_type_deserializers,
    )
 
 Format validators

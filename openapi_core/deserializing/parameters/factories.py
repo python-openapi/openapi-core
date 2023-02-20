@@ -6,13 +6,7 @@ from openapi_core.deserializing.parameters.datatypes import (
     DeserializerCallable,
 )
 from openapi_core.deserializing.parameters.deserializers import (
-    BaseParameterDeserializer,
-)
-from openapi_core.deserializing.parameters.deserializers import (
     CallableParameterDeserializer,
-)
-from openapi_core.deserializing.parameters.deserializers import (
-    UnsupportedStyleDeserializer,
 )
 from openapi_core.deserializing.parameters.util import split
 from openapi_core.schema.parameters import get_style
@@ -28,13 +22,10 @@ class ParameterDeserializersFactory:
         "deepObject": partial(re.split, pattern=r"\[|\]"),
     }
 
-    def create(self, param_or_header: Spec) -> BaseParameterDeserializer:
+    def create(self, param_or_header: Spec) -> CallableParameterDeserializer:
         style = get_style(param_or_header)
 
-        if style not in self.PARAMETER_STYLE_DESERIALIZERS:
-            return UnsupportedStyleDeserializer(param_or_header, style)
-
-        deserialize_callable = self.PARAMETER_STYLE_DESERIALIZERS[style]
+        deserialize_callable = self.PARAMETER_STYLE_DESERIALIZERS.get(style)
         return CallableParameterDeserializer(
             param_or_header, style, deserialize_callable
         )

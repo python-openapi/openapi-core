@@ -12,6 +12,9 @@ from openapi_core.datatypes import RequestParameters
 from openapi_core.deserializing.media_types import (
     media_type_deserializers_factory,
 )
+from openapi_core.deserializing.media_types.datatypes import (
+    MediaTypeDeserializersDict,
+)
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
@@ -68,6 +71,9 @@ class BaseRequestValidator(BaseValidator):
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
+        extra_media_type_deserializers: Optional[
+            MediaTypeDeserializersDict
+        ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
     ):
         super().__init__(
@@ -79,6 +85,7 @@ class BaseRequestValidator(BaseValidator):
             schema_validators_factory=schema_validators_factory,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
+            extra_media_type_deserializers=extra_media_type_deserializers,
         )
         self.security_provider_factory = security_provider_factory
 

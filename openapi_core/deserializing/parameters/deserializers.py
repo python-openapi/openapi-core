@@ -2,6 +2,7 @@ import warnings
 from typing import Any
 from typing import Callable
 from typing import List
+from typing import Optional
 
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.parameters.datatypes import (
@@ -15,35 +16,25 @@ from openapi_core.schema.parameters import get_explode
 from openapi_core.spec import Spec
 
 
-class BaseParameterDeserializer:
-    def __init__(self, param_or_header: Spec, style: str):
-        self.param_or_header = param_or_header
-        self.style = style
-
-    def __call__(self, value: Any) -> Any:
-        raise NotImplementedError
-
-
-class UnsupportedStyleDeserializer(BaseParameterDeserializer):
-    def __call__(self, value: Any) -> Any:
-        warnings.warn(f"Unsupported {self.style} style")
-        return value
-
-
-class CallableParameterDeserializer(BaseParameterDeserializer):
+class CallableParameterDeserializer:
     def __init__(
         self,
         param_or_header: Spec,
         style: str,
-        deserializer_callable: DeserializerCallable,
+        deserializer_callable: Optional[DeserializerCallable] = None,
     ):
-        super().__init__(param_or_header, style)
+        self.param_or_header = param_or_header
+        self.style = style
         self.deserializer_callable = deserializer_callable
 
         self.aslist = get_aslist(self.param_or_header)
         self.explode = get_explode(self.param_or_header)
 
-    def __call__(self, value: Any) -> Any:
+    def deserialize(self, value: Any) -> Any:
+        if self.deserializer_callable is None:
+            warnings.warn(f"Unsupported {self.style} style")
+            return value
+
         # if "in" not defined then it's a Header
         if "allowEmptyValue" in self.param_or_header:
             warnings.warn(

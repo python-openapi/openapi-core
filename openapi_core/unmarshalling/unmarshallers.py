@@ -8,6 +8,9 @@ from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (
     media_type_deserializers_factory,
 )
+from openapi_core.deserializing.media_types.datatypes import (
+    MediaTypeDeserializersDict,
+)
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
@@ -42,6 +45,9 @@ class BaseUnmarshaller(BaseValidator):
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
+        extra_media_type_deserializers: Optional[
+            MediaTypeDeserializersDict
+        ] = None,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory
         ] = None,
@@ -61,6 +67,7 @@ class BaseUnmarshaller(BaseValidator):
             schema_validators_factory=schema_validators_factory,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
+            extra_media_type_deserializers=extra_media_type_deserializers,
         )
         self.schema_unmarshallers_factory = (
             schema_unmarshallers_factory or self.schema_unmarshallers_factory
