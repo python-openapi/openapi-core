@@ -15,6 +15,9 @@ from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (
     media_type_deserializers_factory,
 )
+from openapi_core.deserializing.media_types.datatypes import (
+    MediaTypeDeserializersDict,
+)
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
@@ -50,6 +53,9 @@ class BaseValidator:
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
+        extra_media_type_deserializers: Optional[
+            MediaTypeDeserializersDict
+        ] = None,
     ):
         self.spec = spec
         self.base_url = base_url
@@ -68,6 +74,7 @@ class BaseValidator:
             )
         self.format_validators = format_validators
         self.extra_format_validators = extra_format_validators
+        self.extra_media_type_deserializers = extra_media_type_deserializers
 
     def _get_media_type(self, content: Spec, mimetype: str) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder
@@ -76,12 +83,15 @@ class BaseValidator:
         return finder.find(mimetype)
 
     def _deserialise_data(self, mimetype: str, value: Any) -> Any:
-        deserializer = self.media_type_deserializers_factory.create(mimetype)
-        return deserializer(value)
+        deserializer = self.media_type_deserializers_factory.create(
+            mimetype,
+            extra_media_type_deserializers=self.extra_media_type_deserializers,
+        )
+        return deserializer.deserialize(value)
 
     def _deserialise_parameter(self, param: Spec, value: Any) -> Any:
         deserializer = self.parameter_deserializers_factory.create(param)
-        return deserializer(value)
+        return deserializer.deserialize(value)
 
     def _cast(self, schema: Spec, value: Any) -> Any:
         caster = self.schema_casters_factory.create(schema)
