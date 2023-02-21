@@ -82,12 +82,6 @@ For more details read about :doc:`unmarshalling` process.
 
 If you just want to validate your request/response data without unmarshalling, read about :doc:`validation` instead.
 
-License
--------
-
-The project is under the terms of BSD 3-Clause License.
-
-
 Related projects
 ----------------
 
@@ -95,3 +89,8 @@ Related projects
    Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger), OpenAPI 3.0 and OpenAPI 3.1 specification. The validator aims to check for full compliance with the Specification.
 * `openapi-schema-validator <https://github.com/p1c2u/openapi-schema-validator>`__
    Python library that validates schema against the OpenAPI Schema Specification v3.0 and OpenAPI Schema Specification v3.1.
+
+License
+-------
+
+The project is under the terms of BSD 3-Clause License.

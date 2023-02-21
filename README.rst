@@ -95,12 +95,6 @@ For more details read about `Unmarshalling <https://openapi-core.readthedocs.io/
 If you just want to validate your request/response data without unmarshalling, read about `Validation <https://openapi-core.readthedocs.io/en/latest/validation.html>`__ instead.
 
 
-License
-#######
-
-The project is under the terms of BSD 3-Clause License.
-
-
 Related projects
 ################
 * `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__
@@ -113,3 +107,9 @@ Related projects
    Pyramid addon for OpenAPI3 validation of requests and responses.
 * `tornado-openapi3 <https://github.com/correl/tornado-openapi3>`__
    Tornado OpenAPI 3 request and response validation library.
+
+
+License
+#######
+
+The project is under the terms of BSD 3-Clause License.
