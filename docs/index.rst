@@ -28,17 +28,19 @@ Key features
 Installation
 ------------
 
-Recommended way (via pip):
+.. md-tab-set::
 
-.. code-block:: console
+   .. md-tab-item:: Pip + PyPI (recommented)
 
-   pip install openapi-core
+      .. code-block:: console
 
-Alternatively you can download the code and install from the repository:
+         pip install openapi-core
 
-.. code-block:: console
+   .. md-tab-item:: Pip + the source
 
-   pip install -e git+https://github.com/p1c2u/openapi-core.git#egg=openapi_core
+      .. code-block:: console
+
+         pip install -e git+https://github.com/p1c2u/openapi-core.git#egg=openapi_core
 
 First steps
 -----------
