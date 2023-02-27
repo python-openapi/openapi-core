@@ -40,7 +40,7 @@ Installation
 
       .. code-block:: console
 
-         pip install -e git+https://github.com/p1c2u/openapi-core.git#egg=openapi_core
+         pip install -e git+https://github.com/python-openapi/openapi-core.git#egg=openapi_core
 
 First steps
 -----------
@@ -85,9 +85,9 @@ If you just want to validate your request/response data without unmarshalling, r
 Related projects
 ----------------
 
-* `openapi-spec-validator <https://github.com/p1c2u/openapi-spec-validator>`__
+* `openapi-spec-validator <https://github.com/python-openapi/openapi-spec-validator>`__
    Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger), OpenAPI 3.0 and OpenAPI 3.1 specification. The validator aims to check for full compliance with the Specification.
-* `openapi-schema-validator <https://github.com/p1c2u/openapi-schema-validator>`__
+* `openapi-schema-validator <https://github.com/python-openapi/openapi-schema-validator>`__
    Python library that validates schema against the OpenAPI Schema Specification v3.0 and OpenAPI Schema Specification v3.1.
 
 License

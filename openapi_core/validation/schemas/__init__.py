@@ -21,6 +21,6 @@ oas30_read_schema_validators_factory = SchemaValidatorsFactory(
 oas31_schema_validators_factory = SchemaValidatorsFactory(
     OAS31Validator,
     # FIXME: OpenAPI 3.1 schema validator uses OpenAPI 3.0 format checker.
-    # See https://github.com/p1c2u/openapi-core/issues/506
+    # See https://github.com/python-openapi/openapi-core/issues/506
     format_checker=OAS30ReadValidator.FORMAT_CHECKER,
 )
