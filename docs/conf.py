@@ -70,7 +70,7 @@ html_theme_options = {
         "provider": "google",
         "property": "G-J6T05Z51NY",
     },
-    "repo_url": "https://github.com/p1c2u/openapi-core/",
+    "repo_url": "https://github.com/python-openapi/openapi-core/",
     "repo_name": "openapi-core",
     "repo_type": "github",
     "icon": {

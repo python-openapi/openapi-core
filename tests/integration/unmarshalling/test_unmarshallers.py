@@ -401,7 +401,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
     @pytest.mark.xfail(
         reason=(
             "Formats raise error for other types. "
-            "See https://github.com/p1c2u/openapi-schema-validator/issues/66"
+            "See https://github.com/python-openapi/openapi-schema-validator/issues/66"
         )
     )
     @pytest.mark.parametrize(
@@ -1751,7 +1751,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
     @pytest.mark.xfail(
         reason=(
             "OAS 3.0 string type checker allows byte. "
-            "See https://github.com/p1c2u/openapi-schema-validator/issues/64"
+            "See https://github.com/python-openapi/openapi-schema-validator/issues/64"
         )
     )
     def test_string_format_binary_invalid(self, unmarshallers_factory):
@@ -1771,7 +1771,7 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
     @pytest.mark.xfail(
         reason=(
             "Rraises TypeError not SchemaError. "
-            "See ttps://github.com/p1c2u/openapi-schema-validator/issues/65"
+            "See ttps://github.com/python-openapi/openapi-schema-validator/issues/65"
         )
     )
     @pytest.mark.parametrize(
@@ -1951,7 +1951,7 @@ class TestOAS31SchemaUnmarshallersFactory(
     @pytest.mark.xfail(
         reason=(
             "OpenAPI 3.1 schema validator uses OpenAPI 3.0 format checker."
-            "See https://github.com/p1c2u/openapi-core/issues/506"
+            "See https://github.com/python-openapi/openapi-core/issues/506"
         )
     )
     @pytest.mark.parametrize(

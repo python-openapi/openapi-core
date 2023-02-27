@@ -303,7 +303,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
     @pytest.mark.xfail(
         reason=(
             "Not registered format raises FormatterNotFoundError"
-            "See https://github.com/p1c2u/openapi-core/issues/515"
+            "See https://github.com/python-openapi/openapi-core/issues/515"
         )
     )
     def test_schema_format_validator_format_invalid(

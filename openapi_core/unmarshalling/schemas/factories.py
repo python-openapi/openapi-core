@@ -81,7 +81,7 @@ class SchemaUnmarshallersFactory:
         )
 
         # FIXME: don;t raise exception on unknown format
-        # See https://github.com/p1c2u/openapi-core/issues/515
+        # See https://github.com/python-openapi/openapi-core/issues/515
         if (
             schema_format
             and schema_format not in schema_validator
