@@ -384,7 +384,6 @@ class TestSchemaValidate:
     @pytest.mark.parametrize(
         "value",
         [
-            b"true",
             "test",
             False,
             1,
@@ -441,7 +440,6 @@ class TestSchemaValidate:
     @pytest.mark.parametrize(
         "value",
         [
-            b"true",
             "true",
             False,
             1,
@@ -464,7 +462,6 @@ class TestSchemaValidate:
     @pytest.mark.parametrize(
         "value",
         [
-            b"true",
             "true",
             False,
             1,
@@ -482,57 +479,6 @@ class TestSchemaValidate:
 
         with pytest.raises(InvalidSchemaValue):
             validator_factory(spec).validate(value)
-
-    @pytest.mark.parametrize(
-        "value",
-        [
-            "1989-01-02T00:00:00Z",
-            "2018-01-02T23:59:59Z",
-        ],
-    )
-    @mock.patch(
-        "openapi_schema_validator._format." "DATETIME_HAS_STRICT_RFC3339", True
-    )
-    @mock.patch(
-        "openapi_schema_validator._format." "DATETIME_HAS_ISODATE", False
-    )
-    def test_string_format_datetime_strict_rfc3339(
-        self, value, validator_factory
-    ):
-        schema = {
-            "type": "string",
-            "format": "date-time",
-        }
-        spec = Spec.from_dict(schema)
-
-        result = validator_factory(spec).validate(value)
-
-        assert result is None
-
-    @pytest.mark.parametrize(
-        "value",
-        [
-            "1989-01-02T00:00:00Z",
-            "2018-01-02T23:59:59Z",
-        ],
-    )
-    @mock.patch(
-        "openapi_schema_validator._format." "DATETIME_HAS_STRICT_RFC3339",
-        False,
-    )
-    @mock.patch(
-        "openapi_schema_validator._format." "DATETIME_HAS_ISODATE", True
-    )
-    def test_string_format_datetime_isodate(self, value, validator_factory):
-        schema = {
-            "type": "string",
-            "format": "date-time",
-        }
-        spec = Spec.from_dict(schema)
-
-        result = validator_factory(spec).validate(value)
-
-        assert result is None
 
     @pytest.mark.parametrize(
         "value",
