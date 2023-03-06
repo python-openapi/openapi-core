@@ -15,7 +15,7 @@ from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.response.unmarshallers import (
     V30ResponseUnmarshaller,
 )
-from openapi_core.validation.response.exceptions import DataError
+from openapi_core.validation.response.exceptions import DataValidationError
 from openapi_core.validation.response.exceptions import InvalidData
 from openapi_core.validation.response.exceptions import InvalidHeader
 from openapi_core.validation.response.exceptions import MissingData
@@ -76,7 +76,7 @@ class TestResponseUnmarshaller:
 
         result = response_unmarshaller.unmarshal(request, response)
 
-        assert result.errors == [DataError()]
+        assert result.errors == [DataValidationError()]
         assert type(result.errors[0].__cause__) == MediaTypeNotFound
         assert result.data is None
         assert result.headers == {}
@@ -97,7 +97,7 @@ class TestResponseUnmarshaller:
 
         result = response_unmarshaller.unmarshal(request, response)
 
-        assert result.errors == [DataError()]
+        assert result.errors == [DataValidationError()]
         assert result.errors[0].__cause__ == MediaTypeDeserializeError(
             mimetype="application/json", value="abcde"
         )

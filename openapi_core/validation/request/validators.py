@@ -45,10 +45,12 @@ from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import (
     MissingRequiredRequestBody,
 )
-from openapi_core.validation.request.exceptions import ParameterError
 from openapi_core.validation.request.exceptions import ParametersError
-from openapi_core.validation.request.exceptions import RequestBodyError
-from openapi_core.validation.request.exceptions import SecurityError
+from openapi_core.validation.request.exceptions import ParameterValidationError
+from openapi_core.validation.request.exceptions import (
+    RequestBodyValidationError,
+)
+from openapi_core.validation.request.exceptions import SecurityValidationError
 from openapi_core.validation.schemas import (
     oas30_write_schema_validators_factory,
 )
@@ -95,7 +97,7 @@ class BaseRequestValidator(BaseValidator):
         try:
             self._get_security(request.parameters, operation)
         # don't process if security errors
-        except SecurityError as exc:
+        except SecurityValidationError as exc:
             yield exc
             return
 
@@ -106,7 +108,7 @@ class BaseRequestValidator(BaseValidator):
 
         try:
             self._get_body(request.body, request.mimetype, operation)
-        except RequestBodyError as exc:
+        except RequestBodyValidationError as exc:
             yield exc
 
     def _iter_body_errors(
@@ -114,7 +116,7 @@ class BaseRequestValidator(BaseValidator):
     ) -> Iterator[Exception]:
         try:
             self._get_body(request.body, request.mimetype, operation)
-        except RequestBodyError as exc:
+        except RequestBodyValidationError as exc:
             yield exc
 
     def _iter_parameters_errors(
@@ -130,7 +132,7 @@ class BaseRequestValidator(BaseValidator):
     ) -> Iterator[Exception]:
         try:
             self._get_security(request.parameters, operation)
-        except SecurityError as exc:
+        except SecurityValidationError as exc:
             yield exc
 
     def _get_parameters(
@@ -158,7 +160,7 @@ class BaseRequestValidator(BaseValidator):
                 value = self._get_parameter(parameters, param)
             except MissingParameter:
                 continue
-            except ParameterError as exc:
+            except ParameterValidationError as exc:
                 errors.append(exc)
                 continue
             else:
@@ -171,7 +173,7 @@ class BaseRequestValidator(BaseValidator):
         return validated
 
     @ValidationErrorWrapper(
-        ParameterError,
+        ParameterValidationError,
         InvalidParameter,
         "from_spec",
         spec="param",
@@ -197,7 +199,7 @@ class BaseRequestValidator(BaseValidator):
                 raise MissingRequiredParameter(name, param_location)
             raise MissingParameter(name, param_location)
 
-    @ValidationErrorWrapper(SecurityError, InvalidSecurity)
+    @ValidationErrorWrapper(SecurityValidationError, InvalidSecurity)
     def _get_security(
         self, parameters: RequestParameters, operation: Spec
     ) -> Optional[Dict[str, str]]:
@@ -236,7 +238,7 @@ class BaseRequestValidator(BaseValidator):
         security_provider = self.security_provider_factory.create(scheme)
         return security_provider(parameters)
 
-    @ValidationErrorWrapper(RequestBodyError, InvalidRequestBody)
+    @ValidationErrorWrapper(RequestBodyValidationError, InvalidRequestBody)
     def _get_body(
         self, body: Optional[str], mimetype: str, operation: Spec
     ) -> Any:

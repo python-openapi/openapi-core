@@ -18,8 +18,10 @@ from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import (
     MissingRequiredRequestBody,
 )
-from openapi_core.validation.request.exceptions import RequestBodyError
-from openapi_core.validation.request.exceptions import SecurityError
+from openapi_core.validation.request.exceptions import (
+    RequestBodyValidationError,
+)
+from openapi_core.validation.request.exceptions import SecurityValidationError
 
 
 class TestRequestValidator:
@@ -79,7 +81,7 @@ class TestRequestValidator:
             view_args={"petId": "1"},
         )
 
-        with pytest.raises(SecurityError) as exc_info:
+        with pytest.raises(SecurityValidationError) as exc_info:
             request_validator.validate(request)
 
         assert exc_info.value.__cause__ == SecurityNotFound(
@@ -105,7 +107,7 @@ class TestRequestValidator:
             cookies=cookies,
         )
 
-        with pytest.raises(RequestBodyError) as exc_info:
+        with pytest.raises(RequestBodyValidationError) as exc_info:
             request_validator.validate(request)
 
         assert exc_info.value.__cause__ == MediaTypeNotFound(

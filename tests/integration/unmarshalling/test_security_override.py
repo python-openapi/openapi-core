@@ -7,7 +7,7 @@ from openapi_core.testing import MockRequest
 from openapi_core.unmarshalling.request.unmarshallers import (
     V30RequestUnmarshaller,
 )
-from openapi_core.validation.request.exceptions import SecurityError
+from openapi_core.validation.request.exceptions import SecurityValidationError
 
 
 @pytest.fixture(scope="class")
@@ -48,7 +48,7 @@ class TestSecurityOverride:
         result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) is SecurityError
+        assert type(result.errors[0]) is SecurityValidationError
         assert type(result.errors[0].__cause__) is SecurityNotFound
         assert result.security is None
 
@@ -74,7 +74,7 @@ class TestSecurityOverride:
         result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) is SecurityError
+        assert type(result.errors[0]) is SecurityValidationError
         assert type(result.errors[0].__cause__) is SecurityNotFound
         assert result.security is None
 
