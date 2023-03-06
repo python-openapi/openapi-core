@@ -41,9 +41,11 @@ from openapi_core.unmarshalling.response.unmarshallers import (
     V30ResponseUnmarshaller,
 )
 from openapi_core.validation.request.exceptions import MissingRequiredParameter
-from openapi_core.validation.request.exceptions import ParameterError
-from openapi_core.validation.request.exceptions import RequestBodyError
-from openapi_core.validation.request.exceptions import SecurityError
+from openapi_core.validation.request.exceptions import ParameterValidationError
+from openapi_core.validation.request.exceptions import (
+    RequestBodyValidationError,
+)
+from openapi_core.validation.request.exceptions import SecurityValidationError
 from openapi_core.validation.request.validators import V30RequestBodyValidator
 from openapi_core.validation.request.validators import (
     V30RequestParametersValidator,
@@ -427,7 +429,7 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            with pytest.raises(ParameterError) as exc_info:
+            with pytest.raises(ParameterValidationError) as exc_info:
                 validate_request(
                     request,
                     spec=spec,
@@ -457,7 +459,7 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            with pytest.raises(ParameterError) as exc_info:
+            with pytest.raises(ParameterValidationError) as exc_info:
                 validate_request(
                     request,
                     spec=spec,
@@ -511,7 +513,7 @@ class TestPetstore:
         )
 
         with pytest.warns(DeprecationWarning):
-            with pytest.raises(ParameterError) as exc_info:
+            with pytest.raises(ParameterValidationError) as exc_info:
                 validate_request(
                     request,
                     spec=spec,
@@ -944,7 +946,7 @@ class TestPetstore:
             },
         )
 
-        with pytest.raises(RequestBodyError) as exc_info:
+        with pytest.raises(RequestBodyValidationError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
@@ -1051,7 +1053,7 @@ class TestPetstore:
             },
         )
 
-        with pytest.raises(RequestBodyError) as exc_info:
+        with pytest.raises(RequestBodyValidationError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
@@ -1224,7 +1226,7 @@ class TestPetstore:
             view_args=view_args,
         )
 
-        with pytest.raises(SecurityError) as exc_info:
+        with pytest.raises(SecurityValidationError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
@@ -1467,7 +1469,7 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.raises(RequestBodyError) as exc_info:
+        with pytest.raises(RequestBodyValidationError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
@@ -1497,7 +1499,7 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.raises(RequestBodyError) as exc_info:
+        with pytest.raises(RequestBodyValidationError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
@@ -1527,7 +1529,7 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.raises(RequestBodyError) as exc_info:
+        with pytest.raises(RequestBodyValidationError) as exc_info:
             validate_request(
                 request,
                 spec=spec,
@@ -1750,7 +1752,7 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.raises(RequestBodyError) as exc_info:
+        with pytest.raises(RequestBodyValidationError) as exc_info:
             validate_request(
                 request,
                 spec=spec,

@@ -9,7 +9,7 @@ from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.datatypes import Parameters
 from openapi_core.testing import MockRequest
 from openapi_core.validation.request.exceptions import MissingRequiredParameter
-from openapi_core.validation.request.exceptions import ParameterError
+from openapi_core.validation.request.exceptions import ParameterValidationError
 
 
 class TestPathItemParamsValidator:
@@ -71,7 +71,7 @@ class TestPathItemParamsValidator:
         result = request_unmarshaller.unmarshal(request)
 
         assert result.errors == [
-            ParameterError(name="resId", location="query")
+            ParameterValidationError(name="resId", location="query")
         ]
         assert type(result.errors[0].__cause__) is CastError
         assert result.body is None

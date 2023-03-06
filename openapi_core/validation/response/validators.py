@@ -15,9 +15,9 @@ from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.responses.exceptions import ResponseFinderError
 from openapi_core.validation.decorators import ValidationErrorWrapper
 from openapi_core.validation.exceptions import ValidationError
-from openapi_core.validation.response.exceptions import DataError
-from openapi_core.validation.response.exceptions import HeaderError
+from openapi_core.validation.response.exceptions import DataValidationError
 from openapi_core.validation.response.exceptions import HeadersError
+from openapi_core.validation.response.exceptions import HeaderValidationError
 from openapi_core.validation.response.exceptions import InvalidData
 from openapi_core.validation.response.exceptions import InvalidHeader
 from openapi_core.validation.response.exceptions import MissingData
@@ -52,7 +52,7 @@ class BaseResponseValidator(BaseValidator):
 
         try:
             self._get_data(data, mimetype, operation_response)
-        except DataError as exc:
+        except DataValidationError as exc:
             yield exc
 
         try:
@@ -74,7 +74,7 @@ class BaseResponseValidator(BaseValidator):
 
         try:
             self._get_data(data, mimetype, operation_response)
-        except DataError as exc:
+        except DataValidationError as exc:
             yield exc
 
     def _iter_headers_errors(
@@ -104,7 +104,7 @@ class BaseResponseValidator(BaseValidator):
         finder = ResponseFinder(operation / "responses")
         return finder.find(str(status_code))
 
-    @ValidationErrorWrapper(DataError, InvalidData)
+    @ValidationErrorWrapper(DataValidationError, InvalidData)
     def _get_data(
         self, data: str, mimetype: str, operation_response: Spec
     ) -> Any:
@@ -151,7 +151,7 @@ class BaseResponseValidator(BaseValidator):
 
         return validated
 
-    @ValidationErrorWrapper(HeaderError, InvalidHeader, name="name")
+    @ValidationErrorWrapper(HeaderValidationError, InvalidHeader, name="name")
     def _get_header(
         self, headers: Mapping[str, Any], name: str, header: Spec
     ) -> Any:

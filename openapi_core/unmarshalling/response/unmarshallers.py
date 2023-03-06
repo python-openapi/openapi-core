@@ -25,7 +25,7 @@ from openapi_core.unmarshalling.schemas.factories import (
 )
 from openapi_core.unmarshalling.unmarshallers import BaseUnmarshaller
 from openapi_core.util import chainiters
-from openapi_core.validation.response.exceptions import DataError
+from openapi_core.validation.response.exceptions import DataValidationError
 from openapi_core.validation.response.exceptions import HeadersError
 from openapi_core.validation.response.validators import (
     APICallResponseValidator,
@@ -77,7 +77,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
             validated_data = self._get_data(
                 response.data, response.mimetype, operation_response
             )
-        except DataError as exc:
+        except DataValidationError as exc:
             validated_data = None
             data_errors = [exc]
         else:
@@ -117,7 +117,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
             validated = self._get_data(
                 response.data, response.mimetype, operation_response
             )
-        except DataError as exc:
+        except DataValidationError as exc:
             validated = None
             data_errors = [exc]
         else:

@@ -24,20 +24,20 @@ class ParametersError(Exception):
         return self.errors
 
 
-class RequestError(ValidationError):
-    """Request error"""
+class RequestValidationError(ValidationError):
+    """Request validation error"""
 
 
-class RequestBodyError(RequestError):
+class RequestBodyValidationError(RequestValidationError):
     def __str__(self) -> str:
-        return "Request body error"
+        return "Request body validation error"
 
 
-class InvalidRequestBody(RequestBodyError, ValidateError):
+class InvalidRequestBody(RequestBodyValidationError, ValidateError):
     """Invalid request body"""
 
 
-class MissingRequestBodyError(RequestBodyError):
+class MissingRequestBodyError(RequestBodyValidationError):
     """Missing request body error"""
 
 
@@ -52,24 +52,24 @@ class MissingRequiredRequestBody(MissingRequestBodyError):
 
 
 @dataclass
-class ParameterError(RequestError):
+class ParameterValidationError(RequestValidationError):
     name: str
     location: str
 
     @classmethod
-    def from_spec(cls, spec: Spec) -> "ParameterError":
+    def from_spec(cls, spec: Spec) -> "ParameterValidationError":
         return cls(spec["name"], spec["in"])
 
     def __str__(self) -> str:
         return f"{self.location.title()} parameter error: {self.name}"
 
 
-class InvalidParameter(ParameterError, ValidateError):
+class InvalidParameter(ParameterValidationError, ValidateError):
     def __str__(self) -> str:
         return f"Invalid {self.location} parameter: {self.name}"
 
 
-class MissingParameterError(ParameterError):
+class MissingParameterError(ParameterValidationError):
     """Missing parameter error"""
 
 
@@ -83,9 +83,9 @@ class MissingRequiredParameter(MissingParameterError):
         return f"Missing required {self.location} parameter: {self.name}"
 
 
-class SecurityError(RequestError):
+class SecurityValidationError(RequestValidationError):
     pass
 
 
-class InvalidSecurity(SecurityError, ValidateError):
+class InvalidSecurity(SecurityValidationError, ValidateError):
     """Invalid security"""

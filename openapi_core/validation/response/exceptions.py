@@ -14,33 +14,33 @@ class HeadersError(Exception):
     context: Iterable[OpenAPIError]
 
 
-class ResponseError(ValidationError):
+class ResponseValidationError(ValidationError):
     """Response error"""
 
 
-class DataError(ResponseError):
+class DataValidationError(ResponseValidationError):
     """Data error"""
 
 
-class InvalidData(DataError, ValidateError):
+class InvalidData(DataValidationError, ValidateError):
     """Invalid data"""
 
 
-class MissingData(DataError):
+class MissingData(DataValidationError):
     def __str__(self) -> str:
         return "Missing response data"
 
 
 @dataclass
-class HeaderError(ResponseError):
+class HeaderValidationError(ResponseValidationError):
     name: str
 
 
-class InvalidHeader(HeaderError, ValidateError):
+class InvalidHeader(HeaderValidationError, ValidateError):
     """Invalid header"""
 
 
-class MissingHeaderError(HeaderError):
+class MissingHeaderError(HeaderValidationError):
     """Missing header error"""
 
 

@@ -45,8 +45,10 @@ from openapi_core.unmarshalling.unmarshallers import BaseUnmarshaller
 from openapi_core.util import chainiters
 from openapi_core.validation.request.exceptions import MissingRequestBody
 from openapi_core.validation.request.exceptions import ParametersError
-from openapi_core.validation.request.exceptions import RequestBodyError
-from openapi_core.validation.request.exceptions import SecurityError
+from openapi_core.validation.request.exceptions import (
+    RequestBodyValidationError,
+)
+from openapi_core.validation.request.exceptions import SecurityValidationError
 from openapi_core.validation.request.validators import APICallRequestValidator
 from openapi_core.validation.request.validators import BaseRequestValidator
 from openapi_core.validation.request.validators import V30RequestBodyValidator
@@ -137,7 +139,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
     ) -> RequestUnmarshalResult:
         try:
             security = self._get_security(request.parameters, operation)
-        except SecurityError as exc:
+        except SecurityValidationError as exc:
             return RequestUnmarshalResult(errors=[exc])
 
         try:
@@ -153,7 +155,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         except MissingRequestBody:
             body = None
             body_errors = []
-        except RequestBodyError as exc:
+        except RequestBodyValidationError as exc:
             body = None
             body_errors = [exc]
         else:
@@ -175,7 +177,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         except MissingRequestBody:
             body = None
             errors = []
-        except RequestBodyError as exc:
+        except RequestBodyValidationError as exc:
             body = None
             errors = [exc]
         else:
@@ -207,7 +209,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
     ) -> RequestUnmarshalResult:
         try:
             security = self._get_security(request.parameters, operation)
-        except SecurityError as exc:
+        except SecurityValidationError as exc:
             return RequestUnmarshalResult(errors=[exc])
 
         return RequestUnmarshalResult(

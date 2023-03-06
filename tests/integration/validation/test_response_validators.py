@@ -16,7 +16,7 @@ from openapi_core.testing import MockResponse
 from openapi_core.unmarshalling.response.unmarshallers import (
     V30ResponseUnmarshaller,
 )
-from openapi_core.validation.response.exceptions import DataError
+from openapi_core.validation.response.exceptions import DataValidationError
 from openapi_core.validation.response.exceptions import InvalidData
 from openapi_core.validation.response.exceptions import InvalidHeader
 from openapi_core.validation.response.exceptions import MissingData
@@ -63,7 +63,7 @@ class TestResponseValidator:
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("Not Found", mimetype="text/csv")
 
-        with pytest.raises(DataError) as exc_info:
+        with pytest.raises(DataValidationError) as exc_info:
             response_validator.validate(request, response)
 
         assert type(exc_info.value.__cause__) == MediaTypeNotFound
@@ -79,7 +79,7 @@ class TestResponseValidator:
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("abcde")
 
-        with pytest.raises(DataError) as exc_info:
+        with pytest.raises(DataValidationError) as exc_info:
             response_validator.validate(request, response)
 
         assert exc_info.value.__cause__ == MediaTypeDeserializeError(
@@ -90,7 +90,7 @@ class TestResponseValidator:
         request = MockRequest(self.host_url, "get", "/v1/pets")
         response = MockResponse("{}")
 
-        with pytest.raises(DataError) as exc_info:
+        with pytest.raises(DataValidationError) as exc_info:
             response_validator.validate(request, response)
 
         assert type(exc_info.value.__cause__) == InvalidSchemaValue

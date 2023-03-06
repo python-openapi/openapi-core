@@ -15,8 +15,10 @@ from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import (
     MissingRequiredRequestBody,
 )
-from openapi_core.validation.request.exceptions import RequestBodyError
-from openapi_core.validation.request.exceptions import SecurityError
+from openapi_core.validation.request.exceptions import (
+    RequestBodyValidationError,
+)
+from openapi_core.validation.request.exceptions import SecurityValidationError
 
 
 class TestRequestUnmarshaller:
@@ -193,7 +195,7 @@ class TestRequestUnmarshaller:
         result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) == RequestBodyError
+        assert type(result.errors[0]) == RequestBodyValidationError
         assert result.errors[0].__cause__ == MediaTypeNotFound(
             mimetype="text/csv",
             availableMimetypes=["application/json", "text/plain"],
@@ -377,7 +379,7 @@ class TestRequestUnmarshaller:
         result = request_unmarshaller.unmarshal(request)
 
         assert len(result.errors) == 1
-        assert type(result.errors[0]) is SecurityError
+        assert type(result.errors[0]) is SecurityValidationError
         assert result.errors[0].__cause__ == SecurityNotFound(
             [["petstore_auth"]]
         )
