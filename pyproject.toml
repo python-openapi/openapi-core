@@ -92,7 +92,7 @@ responses = "*"
 strict-rfc3339 = "^0.7"
 webob = "*"
 mypy = "^1.0"
-starlette = "^0.25.0"
+starlette = "^0.26.1"
 httpx = "^0.23.3"
 
 [tool.poetry.group.docs.dependencies]
