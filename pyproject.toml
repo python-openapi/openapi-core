@@ -49,6 +49,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries"
 ]
+include = [
+    {path = "tests", format = "sdist"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.7.0"
