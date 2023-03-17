@@ -45,7 +45,7 @@ from openapi_core.validation.response import V31WebhookResponseValidator
 
 __author__ = "Artur Maciag"
 __email__ = "maciag.artur@gmail.com"
-__version__ = "0.17.0"
+__version__ = "0.17.1"
 __url__ = "https://github.com/python-openapi/openapi-core"
 __license__ = "BSD 3-Clause License"
 

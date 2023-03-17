@@ -29,7 +29,7 @@ ignore_missing_imports = true
 
 [tool.poetry]
 name = "openapi-core"
-version = "0.17.0"
+version = "0.17.1"
 description = "client-side and server-side support for the OpenAPI Specification v3"
 authors = ["Artur Maciag <maciag.artur@gmail.com>"]
 license = "BSD-3-Clause"
