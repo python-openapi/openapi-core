@@ -4,6 +4,7 @@ from openapi_core.spec.paths import Spec
 from openapi_core.templating.datatypes import TemplateResult
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
+from openapi_core.templating.paths.exceptions import PathsNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.testing import MockRequest
@@ -272,6 +273,22 @@ class BaseTestPathNotFound:
             finder.find(method, full_url)
 
 
+class BaseTestPathsNotFound:
+    @pytest.fixture
+    def spec(self, info):
+        spec = {
+            "info": info,
+        }
+        return Spec.from_dict(spec, validator=None)
+
+    def test_raises(self, finder):
+        method = "get"
+        full_url = "http://petstore.swagger.io/resource"
+
+        with pytest.raises(PathsNotFound):
+            finder.find(method, full_url)
+
+
 class TestSpecSimpleServerServerNotFound(
     BaseTestServerNotFound,
     BaseTestSpecServer,
@@ -294,6 +311,14 @@ class TestSpecSimpleServerPathNotFound(
     BaseTestPathNotFound,
     BaseTestSpecServer,
     BaseTestSimplePath,
+    BaseTestSimpleServer,
+):
+    pass
+
+
+class TestSpecSimpleServerPathsNotFound(
+    BaseTestPathsNotFound,
+    BaseTestSpecServer,
     BaseTestSimpleServer,
 ):
     pass
@@ -326,6 +351,14 @@ class TestOperationSimpleServerPathNotFound(
     pass
 
 
+class TestOperationSimpleServerPathsNotFound(
+    BaseTestPathsNotFound,
+    BaseTestOperationServer,
+    BaseTestSimpleServer,
+):
+    pass
+
+
 class TestPathSimpleServerServerNotFound(
     BaseTestServerNotFound,
     BaseTestPathServer,
@@ -348,6 +381,14 @@ class TestPathSimpleServerPathNotFound(
     BaseTestPathNotFound,
     BaseTestPathServer,
     BaseTestSimplePath,
+    BaseTestSimpleServer,
+):
+    pass
+
+
+class TestPathSimpleServerPathsNotFound(
+    BaseTestPathsNotFound,
+    BaseTestPathServer,
     BaseTestSimpleServer,
 ):
     pass
@@ -428,6 +469,14 @@ class TestSpecVariableServerPathNotFound(
     pass
 
 
+class TestSpecVariableServerPathsNotFound(
+    BaseTestPathsNotFound,
+    BaseTestSpecServer,
+    BaseTestVariableServer,
+):
+    pass
+
+
 class TestOperationVariableServerServerNotFound(
     BaseTestServerNotFound,
     BaseTestOperationServer,
@@ -455,6 +504,14 @@ class TestOperationVariableServerPathNotFound(
     pass
 
 
+class TestOperationVariableServerPathsNotFound(
+    BaseTestPathsNotFound,
+    BaseTestOperationServer,
+    BaseTestVariableServer,
+):
+    pass
+
+
 class TestPathVariableServerServerNotFound(
     BaseTestServerNotFound,
     BaseTestPathServer,
@@ -477,6 +534,14 @@ class TestPathVariableServerPathNotFound(
     BaseTestPathNotFound,
     BaseTestPathServer,
     BaseTestSimplePath,
+    BaseTestVariableServer,
+):
+    pass
+
+
+class TestPathVariableServerPathsNotFound(
+    BaseTestPathsNotFound,
+    BaseTestPathServer,
     BaseTestVariableServer,
 ):
     pass

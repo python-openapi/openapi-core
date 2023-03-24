@@ -62,3 +62,14 @@ class Spec(JsonschemaSpec):
             ref_resolver_handlers=ref_resolver_handlers,
             separator=separator,
         )
+
+    def exists(self) -> bool:
+        try:
+            self.content()
+        except KeyError:
+            return False
+        else:
+            return True
+
+    def uri(self) -> str:
+        return f"#/{str(self)}"

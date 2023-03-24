@@ -9,12 +9,20 @@ class PathError(OpenAPIError):
 
 @dataclass
 class PathNotFound(PathError):
-    """Find path error"""
+    """Path not found"""
 
     url: str
 
     def __str__(self) -> str:
         return f"Path not found for {self.url}"
+
+
+@dataclass
+class PathsNotFound(PathNotFound):
+    """Paths not found"""
+
+    def __str__(self) -> str:
+        return f"Paths not found in spec: {self.url}"
 
 
 @dataclass

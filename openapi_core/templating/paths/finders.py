@@ -15,6 +15,7 @@ from openapi_core.templating.paths.datatypes import PathOperation
 from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
+from openapi_core.templating.paths.exceptions import PathsNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.templating.paths.util import template_path_len
 from openapi_core.templating.util import parse
@@ -73,8 +74,10 @@ class APICallPathFinder(BasePathFinder):
         self.base_url = base_url
 
     def _get_paths_iter(self, name: str) -> Iterator[Path]:
-        template_paths: List[Path] = []
         paths = self.spec / "paths"
+        if not paths.exists():
+            raise PathsNotFound(paths.uri())
+        template_paths: List[Path] = []
         for path_pattern, path in list(paths.items()):
             # simple path.
             # Return right away since it is always the most concrete
@@ -140,9 +143,9 @@ class APICallPathFinder(BasePathFinder):
 
 class WebhookPathFinder(BasePathFinder):
     def _get_paths_iter(self, name: str) -> Iterator[Path]:
-        if "webhooks" not in self.spec:
-            raise PathNotFound("Webhooks not found")
         webhooks = self.spec / "webhooks"
+        if not webhooks.exists():
+            raise PathsNotFound(webhooks.uri())
         for webhook_name, path in list(webhooks.items()):
             if name == webhook_name:
                 path_result = TemplateResult(webhook_name, {})
