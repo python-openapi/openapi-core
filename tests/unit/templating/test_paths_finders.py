@@ -217,7 +217,7 @@ class BaseTestValid:
 
 
 class BaseTestVariableValid:
-    @pytest.mark.parametrize("version", ["v1", "v2"])
+    @pytest.mark.parametrize("version", ["v1", "v2", ""])
     def test_variable(self, finder, spec, version):
         method = "get"
         full_url = f"http://petstore.swagger.io/{version}/resource"
