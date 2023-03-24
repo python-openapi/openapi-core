@@ -33,6 +33,7 @@ from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.spec.paths import Spec
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.paths.finders import WebhookPathFinder
+from openapi_core.templating.paths.types import PathFinderType
 from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.util import chainiters
 from openapi_core.validation.decorators import ValidationErrorWrapper
@@ -70,6 +71,7 @@ class BaseRequestValidator(BaseValidator):
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        path_finder_cls: Optional[PathFinderType] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
@@ -84,6 +86,7 @@ class BaseRequestValidator(BaseValidator):
             schema_casters_factory=schema_casters_factory,
             parameter_deserializers_factory=parameter_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
+            path_finder_cls=path_finder_cls,
             schema_validators_factory=schema_validators_factory,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
@@ -414,24 +417,19 @@ class V31RequestSecurityValidator(APICallRequestSecurityValidator):
 
 class V31RequestValidator(APICallRequestValidator):
     schema_validators_factory = oas31_schema_validators_factory
-    path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestBodyValidator(WebhookRequestBodyValidator):
     schema_validators_factory = oas31_schema_validators_factory
-    path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestParametersValidator(WebhookRequestParametersValidator):
     schema_validators_factory = oas31_schema_validators_factory
-    path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestSecurityValidator(WebhookRequestSecurityValidator):
     schema_validators_factory = oas31_schema_validators_factory
-    path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestValidator(WebhookRequestValidator):
     schema_validators_factory = oas31_schema_validators_factory
-    path_finder_cls = WebhookPathFinder

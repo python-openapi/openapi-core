@@ -3,6 +3,59 @@ Integrations
 
 Openapi-core integrates with your popular libraries and frameworks. Each integration offers different levels of integration that help validate and unmarshal your request and response data.
 
+Amazon API Gateway
+------------------
+
+This section describes integration with `Amazon API Gateway <https://aws.amazon.com/api-gateway/>`__.
+
+It is useful for:
+ * `AWS Lambda integrations <https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html>`__ where Lambda functions handle events from API Gateway (Amazon API Gateway event format version 1.0 and 2.0).
+ * `AWS Lambda function URLs <https://docs.aws.amazon.com/lambda/latest/dg/lambda-urls.html>`__ where Lambda functions handle events from dedicated HTTP(S) endpoint (Amazon API Gateway event format version 2.0).
+
+Low level
+~~~~~~~~~
+
+You can use ``APIGatewayEventV2OpenAPIRequest`` as an API Gateway event (format version 2.0) request factory:
+
+.. code-block:: python
+
+   from openapi_core import unmarshal_request
+   from openapi_core.contrib.aws import APIGatewayEventV2OpenAPIRequest
+
+   openapi_request = APIGatewayEventV2OpenAPIRequest(event)
+   result = unmarshal_request(openapi_request, spec=spec)
+
+If you use format version 1.0, then import and use ``APIGatewayEventOpenAPIRequest`` as an API Gateway event (format version 1.0) request factory.
+
+You can use ``APIGatewayEventV2ResponseOpenAPIResponse`` as an API Gateway event (format version 2.0) response factory:
+
+.. code-block:: python
+
+   from openapi_core import unmarshal_response
+   from openapi_core.contrib.aws import APIGatewayEventV2ResponseOpenAPIResponse
+
+   openapi_response = APIGatewayEventV2ResponseOpenAPIResponse(response)
+   result = unmarshal_response(openapi_request, openapi_response, spec=spec)
+
+If you use format version 1.0, then import and use ``APIGatewayEventResponseOpenAPIResponse`` as an API Gateway event (format version 1.0) response factory.
+
+ANY method
+~~~~~~~~~~
+
+API Gateway have special ``ANY`` method that catches all HTTP methods. It's specified as `x-amazon-apigateway-any-method <https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions-any-method.html>`__ OpenAPI extension. If you use the extension, you want to define ``path_finder_cls`` to be ``APIGatewayPathFinder``:
+
+.. code-block:: python
+
+   from openapi_core.contrib.aws import APIGatewayPathFinder
+
+   result = unmarshal_response(
+      openapi_request,
+      openapi_response,
+      spec=spec,
+      path_finder_cls=APIGatewayPathFinder,
+   )
+
+
 Bottle
 ------
 

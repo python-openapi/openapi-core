@@ -25,6 +25,7 @@ from openapi_core.security import security_provider_factory
 from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.spec import Spec
 from openapi_core.templating.paths.exceptions import PathError
+from openapi_core.templating.paths.types import PathFinderType
 from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
 from openapi_core.unmarshalling.request.proxies import (
     SpecRequestValidatorProxy,
@@ -92,6 +93,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        path_finder_cls: Optional[PathFinderType] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
@@ -112,6 +114,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             schema_casters_factory=schema_casters_factory,
             parameter_deserializers_factory=parameter_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
+            path_finder_cls=path_finder_cls,
             schema_validators_factory=schema_validators_factory,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
@@ -127,6 +130,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             schema_casters_factory=schema_casters_factory,
             parameter_deserializers_factory=parameter_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
+            path_finder_cls=path_finder_cls,
             schema_validators_factory=schema_validators_factory,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,

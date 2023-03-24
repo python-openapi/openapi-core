@@ -11,6 +11,9 @@ output = "reports/coverage.xml"
 
 [tool.mypy]
 files = "openapi_core"
+plugins = [
+    "pydantic.mypy"
+]
 strict = true
 
 [[tool.mypy.overrides]]
@@ -72,6 +75,7 @@ jsonschema-spec = "^0.1.1"
 backports-cached-property = {version = "^1.0.2", python = "<3.8" }
 sphinx = {version = "^5.3.0", optional = true}
 sphinx-immaterial = {version = "^0.11.0", optional = true}
+pydantic = "^1.10.7"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-immaterial"]
@@ -83,11 +87,13 @@ starlette = ["starlette", "httpx"]
 
 [tool.poetry.dev-dependencies]
 black = "^23.1.0"
+boto3 = "^1.26.96"
 django = ">=3.0"
 djangorestframework = "^3.11.2"
 falcon = ">=3.0"
 flask = "*"
 isort = "^5.11.5"
+moto = "^4.1.5"
 pre-commit = "*"
 pytest = "^7"
 pytest-flake8 = "*"

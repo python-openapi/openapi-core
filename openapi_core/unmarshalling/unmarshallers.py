@@ -21,6 +21,7 @@ from openapi_core.deserializing.parameters.factories import (
     ParameterDeserializersFactory,
 )
 from openapi_core.spec import Spec
+from openapi_core.templating.paths.types import PathFinderType
 from openapi_core.unmarshalling.schemas.datatypes import (
     FormatUnmarshallersDict,
 )
@@ -42,6 +43,7 @@ class BaseUnmarshaller(BaseValidator):
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        path_finder_cls: Optional[PathFinderType] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
@@ -64,6 +66,7 @@ class BaseUnmarshaller(BaseValidator):
             schema_casters_factory=schema_casters_factory,
             parameter_deserializers_factory=parameter_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
+            path_finder_cls=path_finder_cls,
             schema_validators_factory=schema_validators_factory,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,

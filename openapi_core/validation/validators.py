@@ -4,6 +4,7 @@ from typing import Any
 from typing import Mapping
 from typing import Optional
 from typing import Tuple
+from typing import Type
 from urllib.parse import urljoin
 
 if sys.version_info >= (3, 8):
@@ -34,13 +35,15 @@ from openapi_core.spec import Spec
 from openapi_core.templating.media_types.datatypes import MediaType
 from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.finders import APICallPathFinder
-from openapi_core.templating.paths.finders import BasePathFinder
+from openapi_core.templating.paths.finders import PathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
+from openapi_core.templating.paths.types import PathFinderType
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 
 class BaseValidator:
+    path_finder_cls: PathFinderType = NotImplemented
     schema_validators_factory: SchemaValidatorsFactory = NotImplemented
 
     def __init__(
@@ -50,6 +53,7 @@ class BaseValidator:
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        path_finder_cls: Optional[PathFinderType] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
@@ -65,6 +69,9 @@ class BaseValidator:
         self.media_type_deserializers_factory = (
             media_type_deserializers_factory
         )
+        self.path_finder_cls = path_finder_cls or self.path_finder_cls
+        if self.path_finder_cls is NotImplemented:  # type: ignore[comparison-overlap]
+            raise NotImplementedError("path_finder_cls is not assigned")
         self.schema_validators_factory = (
             schema_validators_factory or self.schema_validators_factory
         )
@@ -75,6 +82,10 @@ class BaseValidator:
         self.format_validators = format_validators
         self.extra_format_validators = extra_format_validators
         self.extra_media_type_deserializers = extra_media_type_deserializers
+
+    @cached_property
+    def path_finder(self) -> PathFinder:
+        return self.path_finder_cls(self.spec, base_url=self.base_url)
 
     def _get_media_type(self, content: Spec, mimetype: str) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder
@@ -176,9 +187,7 @@ class BaseValidator:
 
 
 class BaseAPICallValidator(BaseValidator):
-    @cached_property
-    def path_finder(self) -> BasePathFinder:
-        return APICallPathFinder(self.spec, base_url=self.base_url)
+    path_finder_cls = APICallPathFinder
 
     def _find_path(self, request: Request) -> PathOperationServer:
         path_pattern = getattr(request, "path_pattern", None) or request.path
@@ -187,9 +196,7 @@ class BaseAPICallValidator(BaseValidator):
 
 
 class BaseWebhookValidator(BaseValidator):
-    @cached_property
-    def path_finder(self) -> BasePathFinder:
-        return WebhookPathFinder(self.spec, base_url=self.base_url)
+    path_finder_cls = WebhookPathFinder
 
     def _find_path(self, request: WebhookRequest) -> PathOperationServer:
         return self.path_finder.find(request.method, request.name)
