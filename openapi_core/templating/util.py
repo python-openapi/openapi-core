@@ -15,7 +15,7 @@ class ExtendedParser(Parser):  # type: ignore
 
 class PathParameter:
     name = "PathParameter"
-    pattern = r"[^\/]+"
+    pattern = r"[^\/]*"
 
     def __call__(self, text: str) -> str:
         return text
