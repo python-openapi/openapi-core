@@ -1,0 +1,88 @@
+name: "Report a Bug"
+description: "Report a bug about unexpected error, a crash, or otherwise incorrect behavior while using the library."
+title: "[Bug]: "
+labels: ["kind/bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please provide as much info as possible. Not doing so may result in your bug not being addressed in a timely manner.
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Please list the steps required to reproduce the issue. As minimally and precisely as possible.
+    validations:
+      required: true
+
+  - type: input
+    id: openapi_core_version
+    attributes:
+      label: OpenAPI Core Version
+      description: The semantic version of OpenAPI Core used when experiencing the bug. If multiple versions have been tested, a comma separated list.
+      placeholder: "X.Y.Z"
+    validations:
+      required: true
+
+  - type: input
+    id: openapi_core_integration
+    attributes:
+      label: OpenAPI Core Integration
+      description: What integration did you use.
+      placeholder: "django, flask, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected Area(s)
+      description: Please list the affected area(s).
+      placeholder: "casting, dependencies, deserializing, documentation, schema, security, unmarshalling, validation"
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: |
+        Where possible, please supply links to documentations, other GitHub issues (open or closed) or pull requests that give additional context.
+    validations:
+      required: false
+
+  - type: textarea
+    id: other
+    attributes:
+      label: Anything else we need to know?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: will_contribute
+    attributes:
+      label: Would you like to implement a fix?
+      description: |
+        If you plan to implement a fix for this.
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: false
