@@ -61,11 +61,16 @@ In order to explicitly validate and unmarshal a:
 * OpenAPI 3.0 spec, import ``V30RequestUnmarshaller``
 * OpenAPI 3.1 spec, import ``V31RequestUnmarshaller`` or ``V31WebhookRequestUnmarshaller``
 
-.. code:: python
+.. code-block:: python
+  :emphasize-lines: 1,6
 
    from openapi_core import V31RequestUnmarshaller
 
-   result = unmarshal_request(request, response, spec=spec, cls=V31RequestUnmarshaller)
+   result = unmarshal_request(
+       request, response,
+       spec=spec,
+       cls=V31RequestUnmarshaller,
+   )
 
 You can also explicitly import ``V3RequestUnmarshaller`` which is a shortcut to the latest OpenAPI v3 version.
 
@@ -108,10 +113,15 @@ In order to explicitly validate and unmarshal a:
 * OpenAPI 3.0 spec, import ``V30ResponseUnmarshaller`` 
 * OpenAPI 3.1 spec, import ``V31ResponseUnmarshaller`` or ``V31WebhookResponseUnmarshaller`` 
 
-.. code:: python
+.. code-block:: python
+  :emphasize-lines: 1,6
 
    from openapi_core import V31ResponseUnmarshaller
 
-   result = unmarshal_response(request, response, spec=spec, cls=V31ResponseUnmarshaller)
+   result = unmarshal_response(
+       request, response,
+       spec=spec,
+       cls=V31ResponseUnmarshaller,
+   )
 
 You can also explicitly import ``V3ResponseUnmarshaller``  which is a shortcut to the latest OpenAPI v3 version.

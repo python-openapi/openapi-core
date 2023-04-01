@@ -43,11 +43,16 @@ In order to explicitly validate and unmarshal a:
 * OpenAPI 3.0 spec, import ``V30RequestValidator``
 * OpenAPI 3.1 spec, import ``V31RequestValidator`` or ``V31WebhookRequestValidator``
 
-.. code:: python
+.. code-block:: python
+  :emphasize-lines: 1,6
 
    from openapi_core import V31RequestValidator
 
-   validate_request(request, response, spec=spec, cls=V31RequestValidator)
+   validate_request(
+       request, response,
+       spec=spec,
+       cls=V31RequestValidator,
+   )
 
 You can also explicitly import ``V3RequestValidator`` which is a shortcut to the latest OpenAPI v3 version.
 
@@ -81,10 +86,15 @@ In order to explicitly validate a:
 * OpenAPI 3.0 spec, import ``V30ResponseValidator`` 
 * OpenAPI 3.1 spec, import ``V31ResponseValidator`` or ``V31WebhookResponseValidator`` 
 
-.. code:: python
+.. code-block:: python
+  :emphasize-lines: 1,6
 
    from openapi_core import V31ResponseValidator
 
-   validate_response(request, response, spec=spec, cls=V31ResponseValidator)
+   validate_response(
+       request, response,
+       spec=spec,
+       cls=V31ResponseValidator,
+   )
 
 You can also explicitly import ``V3ResponseValidator``  which is a shortcut to the latest OpenAPI v3 version.

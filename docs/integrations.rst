@@ -21,6 +21,7 @@ Middleware
 Django can be integrated by middleware. Add ``DjangoOpenAPIMiddleware`` to your ``MIDDLEWARE`` list and define ``OPENAPI_SPEC``.
 
 .. code-block:: python
+  :emphasize-lines: 6,9
 
    # settings.py
    from openapi_core import Spec
@@ -87,11 +88,16 @@ Middleware
 The Falcon API can be integrated by ``FalconOpenAPIMiddleware`` middleware.
 
 .. code-block:: python
+  :emphasize-lines: 1,3,7
 
    from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
 
    openapi_middleware = FalconOpenAPIMiddleware.from_spec(spec)
-   app = falcon.App(middleware=[openapi_middleware])
+
+   app = falcon.App(
+       # ...
+       middleware=[openapi_middleware],
+   )
 
 After that you will have access to validation result object with all validated request data from Falcon view through request context.
 
@@ -145,6 +151,7 @@ Decorator
 Flask views can be integrated by ``FlaskOpenAPIViewDecorator`` decorator.
 
 .. code-block:: python
+  :emphasize-lines: 1,3,6
 
    from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 
@@ -153,14 +160,20 @@ Flask views can be integrated by ``FlaskOpenAPIViewDecorator`` decorator.
    @app.route('/home')
    @openapi
    def home():
-       pass
+       return "Welcome home"
 
 If you want to decorate class based view you can use the decorators attribute:
 
 .. code-block:: python
+  :emphasize-lines: 2
 
    class MyView(View):
        decorators = [openapi]
+
+       def dispatch_request(self):
+           return "Welcome home"
+
+   app.add_url_rule('/home', view_func=MyView.as_view('home'))
 
 View
 ~~~~
@@ -168,13 +181,18 @@ View
 As an alternative to the decorator-based integration, a Flask method based views can be integrated by inheritance from ``FlaskOpenAPIView`` class.
 
 .. code-block:: python
+  :emphasize-lines: 1,3,8
 
    from openapi_core.contrib.flask.views import FlaskOpenAPIView
 
    class MyView(FlaskOpenAPIView):
-       pass
+       def get(self):
+           return "Welcome home"
 
-   app.add_url_rule('/home', view_func=MyView.as_view('home', spec))
+   app.add_url_rule(
+       '/home',
+       view_func=MyView.as_view('home', spec),
+   )
 
 Request parameters
 ~~~~~~~~~~~~~~~~~~
@@ -182,14 +200,17 @@ Request parameters
 In Flask, all unmarshalled request data are provided as Flask request object's ``openapi.parameters`` attribute
 
 .. code-block:: python
+  :emphasize-lines: 6,7
 
    from flask.globals import request
 
    @app.route('/browse/<id>/')
    @openapi
-   def home():
+   def browse(id):
        browse_id = request.openapi.parameters.path['id']
        page = request.openapi.parameters.query.get('page', 1)
+
+       return f"Browse {browse_id}, page {page}"
 
 Low level
 ~~~~~~~~~

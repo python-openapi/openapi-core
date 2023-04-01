@@ -9,10 +9,14 @@ By default, the provided specification is validated on ``Spec`` object creation 
 If you know you have a valid specification already, disabling the validator can improve the performance.
 
 .. code-block:: python
+  :emphasize-lines: 5
 
    from openapi_core import Spec
 
-   spec = Spec.from_dict(spec_dict, validator=None)
+   spec = Spec.from_dict(
+       spec_dict,
+       validator=None,
+   )
 
 Media type deserializers
 ------------------------
@@ -20,6 +24,7 @@ Media type deserializers
 Pass custom defined media type deserializers dictionary with supported mimetypes as a key to `unmarshal_response` function:
 
 .. code-block:: python
+  :emphasize-lines: 13
 
    def protobuf_deserializer(message):
        feature = route_guide_pb2.Feature()
@@ -46,6 +51,7 @@ OpenAPI comes with a set of built-in format validators, but it's also possible t
 Here's how you could add support for a ``usdate`` format that handles dates of the form MM/DD/YYYY:
 
 .. code-block:: python
+  :emphasize-lines: 13
 
    import re
 
@@ -72,6 +78,7 @@ Openapi-core comes with a set of built-in format unmarshallers, but it's also po
 Here's an example with the ``usdate`` format that converts a value to date object:
 
 .. code-block:: python
+  :emphasize-lines: 13
 
    from datetime import datetime
 
