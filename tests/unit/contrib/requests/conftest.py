@@ -14,12 +14,18 @@ def request_factory():
     schema = "http"
     server_name = "localhost"
 
-    def create_request(method, path, subdomain=None, query_string=""):
+    def create_request(
+        method,
+        path,
+        subdomain=None,
+        query_string="",
+        content_type="application/json",
+    ):
         base_url = "://".join([schema, server_name])
         url = urljoin(base_url, path)
         params = parse_qs(query_string)
         headers = {
-            "Content-Type": "application/json",
+            "Content-Type": content_type,
         }
         return Request(method, url, params=params, headers=headers)
 
