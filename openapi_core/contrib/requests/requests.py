@@ -80,7 +80,7 @@ class RequestsOpenAPIRequest:
         return str(
             self.request.headers.get("Content-Type")
             or self.request.headers.get("Accept")
-        )
+        ).split(";")[0]
 
 
 class RequestsOpenAPIWebhookRequest(RequestsOpenAPIRequest):
