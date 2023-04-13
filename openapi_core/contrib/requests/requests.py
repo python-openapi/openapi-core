@@ -1,4 +1,5 @@
 """OpenAPI core contrib requests requests module"""
+from typing import Mapping
 from typing import Optional
 from typing import Union
 from urllib.parse import parse_qs
@@ -7,6 +8,7 @@ from urllib.parse import urlparse
 from requests import PreparedRequest
 from requests import Request
 from requests.cookies import RequestsCookieJar
+from requests.utils import rewind_body
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -28,7 +30,9 @@ class RequestsOpenAPIRequest:
                 "'request' argument is not type of "
                 f"{Request} or {PreparedRequest}"
             )
+        self._request = None
         if isinstance(request, Request):
+            self._request = request
             request = request.prepare()
 
         self.request = request
@@ -65,13 +69,28 @@ class RequestsOpenAPIRequest:
 
     @property
     def body(self) -> Optional[str]:
-        if self.request.body is None:
+        import ipdb; ipdb.set_trace()
+        body = self.request.body
+        if body is None:
             return None
-        if isinstance(self.request.body, bytes):
-            return self.request.body.decode("utf-8")
-        assert isinstance(self.request.body, str)
+        chunks = None
+        is_stream = all(
+            [
+                hasattr(body, "__iter__"),
+                not isinstance(body, (bytes, str, list, tuple, Mapping)),
+            ]
+        )
+        if is_stream:
+            chunks = list(body)
+            body = b"".join(chunks)
+        if isinstance(body, bytes):
+            body = body.decode("utf-8")
+        assert isinstance(body, str)
+        # recreate request stream from evaluated chunks
+        if chunks is not None:
+            self.request.body = (x for x in chunks)
         # TODO: figure out if request._body_position is relevant
-        return self.request.body
+        return body
 
     @property
     def mimetype(self) -> str:
