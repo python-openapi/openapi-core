@@ -167,18 +167,9 @@ class MultiTypeUnmarshaller(PrimitiveUnmarshaller):
 
 
 class AnyUnmarshaller(MultiTypeUnmarshaller):
-    SCHEMA_TYPES_ORDER = [
-        "object",
-        "array",
-        "boolean",
-        "integer",
-        "number",
-        "string",
-    ]
-
     @property
     def type(self) -> List[str]:
-        return self.SCHEMA_TYPES_ORDER
+        return self.schema_unmarshaller.types_unmarshaller.get_types()
 
 
 class TypesUnmarshaller:
@@ -194,6 +185,9 @@ class TypesUnmarshaller:
         self.unmarshallers = unmarshallers
         self.default = default
         self.multi = multi
+
+    def get_types(self) -> List[str]:
+        return list(self.unmarshallers.keys())
 
     def get_unmarshaller(
         self,

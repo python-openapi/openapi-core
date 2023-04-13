@@ -36,12 +36,12 @@ __all__ = [
 
 oas30_unmarshallers_dict = OrderedDict(
     [
-        ("string", PrimitiveUnmarshaller),
+        ("object", ObjectUnmarshaller),
+        ("array", ArrayUnmarshaller),
+        ("boolean", PrimitiveUnmarshaller),
         ("integer", PrimitiveUnmarshaller),
         ("number", PrimitiveUnmarshaller),
-        ("boolean", PrimitiveUnmarshaller),
-        ("array", ArrayUnmarshaller),
-        ("object", ObjectUnmarshaller),
+        ("string", PrimitiveUnmarshaller),
     ]
 )
 oas31_unmarshallers_dict = oas30_unmarshallers_dict.copy()

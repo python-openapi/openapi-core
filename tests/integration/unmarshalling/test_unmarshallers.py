@@ -2059,3 +2059,12 @@ class TestOAS31SchemaUnmarshallersFactory(
             unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert "is not of type" in exc_info.value.schema_errors[0].message
+
+    def test_any_null(self, unmarshallers_factory):
+        schema = {}
+        spec = Spec.from_dict(schema, validator=None)
+        unmarshaller = unmarshallers_factory.create(spec)
+
+        result = unmarshaller.unmarshal(None)
+
+        assert result is None
