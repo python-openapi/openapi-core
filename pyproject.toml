@@ -97,7 +97,7 @@ strict-rfc3339 = "^0.7"
 webob = "*"
 mypy = "^1.1"
 starlette = "^0.26.1"
-httpx = "^0.23.3"
+httpx = "^0.24.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^5.3.0"
