@@ -95,7 +95,7 @@ pytest-cov = "*"
 responses = "*"
 strict-rfc3339 = "^0.7"
 webob = "*"
-mypy = "^1.1"
+mypy = "^1.2"
 starlette = "^0.26.1"
 httpx = "^0.24.0"
 
