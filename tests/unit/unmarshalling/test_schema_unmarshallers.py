@@ -8,7 +8,6 @@ from openapi_core.unmarshalling.schemas import oas30_types_unmarshaller
 from openapi_core.unmarshalling.schemas.exceptions import (
     FormatterNotFoundError,
 )
-from openapi_core.unmarshalling.schemas.exceptions import FormatUnmarshalError
 from openapi_core.unmarshalling.schemas.factories import (
     SchemaUnmarshallersFactory,
 )
@@ -102,8 +101,9 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
             extra_format_unmarshallers=extra_format_unmarshallers,
         )
 
-        with pytest.raises(FormatUnmarshalError):
-            unmarshaller.unmarshal(value)
+        result = unmarshaller.unmarshal(value)
+
+        assert result == value
 
     def test_schema_extra_format_unmarshaller_format_custom(
         self, schema_unmarshaller_factory
