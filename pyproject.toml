@@ -59,6 +59,8 @@ python = "^3.7.0"
 django = {version = ">=3.0", optional = true}
 falcon = {version = ">=3.0", optional = true}
 flask = {version = "*", optional = true}
+aiohttp = {version = ">=3.0", optional = true}
+starlette = {version = ">=0.26.1,<0.28.0", optional = true}
 isodate = "*"
 more-itertools = "*"
 parse = "*"
@@ -71,16 +73,16 @@ jsonschema-spec = "^0.1.1"
 backports-cached-property = {version = "^1.0.2", python = "<3.8" }
 asgiref = "^3.6.0"
 jsonschema = "^4.17.3"
-starlette = {version = ">=0.26.1,<0.28.0", optional = true}
 
 [tool.poetry.extras]
 django = ["django"]
 falcon = ["falcon"]
 flask = ["flask"]
 requests = ["requests"]
+aiohttp = ["aiohttp"]
 starlette = ["starlette"]
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 django = ">=3.0"
 djangorestframework = "^3.11.2"
@@ -97,7 +99,8 @@ webob = "*"
 mypy = "^1.2"
 httpx = "^0.24.0"
 deptry = { version = "^0.11.0", python = ">=3.8" }
-
+aiohttp = "^3.8.4"
+pytest-aiohttp = "^1.0.4"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^5.3.0"
@@ -113,6 +116,7 @@ addopts = """
 --cov-report=term-missing
 --cov-report=xml
 """
+asyncio_mode = "auto"
 
 [tool.black]
 line-length = 79
