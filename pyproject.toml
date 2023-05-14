@@ -56,7 +56,6 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.7.0"
-pathable = "^0.4.0"
 django = {version = ">=3.0", optional = true}
 falcon = {version = ">=3.0", optional = true}
 flask = {version = "*", optional = true}
@@ -70,16 +69,16 @@ werkzeug = "*"
 typing-extensions = "^4.3.0"
 jsonschema-spec = "^0.1.1"
 backports-cached-property = {version = "^1.0.2", python = "<3.8" }
-sphinx = {version = "^5.3.0", optional = true}
-sphinx-immaterial = {version = "^0.11.0", optional = true}
+asgiref = "^3.6.0"
+jsonschema = "^4.17.3"
+starlette = {version = "^0.26.1", optional = true}
 
 [tool.poetry.extras]
-docs = ["sphinx", "sphinx-immaterial"]
 django = ["django"]
 falcon = ["falcon"]
 flask = ["flask"]
 requests = ["requests"]
-starlette = ["starlette", "httpx"]
+starlette = ["starlette"]
 
 [tool.poetry.dev-dependencies]
 black = "^23.3.0"
@@ -96,8 +95,9 @@ responses = "*"
 strict-rfc3339 = "^0.7"
 webob = "*"
 mypy = "^1.2"
-starlette = "^0.26.1"
 httpx = "^0.24.0"
+deptry = { version = "^0.11.0", python = ">=3.8" }
+
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^5.3.0"
@@ -121,3 +121,8 @@ line-length = 79
 profile = "black"
 line_length = 79
 force_single_line = true
+
+[tool.deptry.package_module_name_map]
+backports-cached-property = [
+    "backports"
+]
