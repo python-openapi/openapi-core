@@ -48,7 +48,7 @@ jobs:
         run: timeout 10s poetry run pip --version || rm -rf .venv
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --all-extras
 
       - name: Test
         env:
