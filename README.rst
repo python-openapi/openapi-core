@@ -88,7 +88,7 @@ Retrieve validated and unmarshalled request data
    # get security data
    security = result.security
 
-Request object should implement OpenAPI Request protocol. Check `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__ to find oficially supported implementations.
+Request object should implement OpenAPI Request protocol. Check `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__ to find officially supported implementations.
 
 For more details read about `Unmarshalling <https://openapi-core.readthedocs.io/en/latest/unmarshalling.html>`__ process.
 
