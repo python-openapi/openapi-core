@@ -1,3 +1,5 @@
+from types import GeneratorType
+
 import pytest
 import requests
 import responses
@@ -9,6 +11,8 @@ from openapi_core import V31WebhookResponseUnmarshaller
 from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
 from openapi_core.contrib.requests import RequestsOpenAPIWebhookRequest
+from openapi_core.datatypes import Parameters
+from openapi_core.datatypes import RequestParameters
 
 
 class TestRequestsOpenAPIValidation:
@@ -71,6 +75,36 @@ class TestRequestsOpenAPIValidation:
         openapi_request = RequestsOpenAPIRequest(request)
         result = request_unmarshaller.unmarshal(openapi_request)
         assert not result.errors
+
+    def test_request_validator_encoded_chunks(self, request_unmarshaller):
+        request_chunks = [
+            b'{',
+            b'"param1": 1',
+            b'}',
+        ]
+        def gen():
+            for chunk in request_chunks:
+                yield chunk
+
+        request = requests.Request(
+            "POST",
+            "http://localhost/browse/12/",
+            params={"q": "string"},
+            headers={"content-type": "application/json"},
+            data=gen(),
+        )
+        openapi_request = RequestsOpenAPIRequest(request)
+        result = request_unmarshaller.unmarshal(openapi_request)
+        assert not result.errors
+        assert result.body == {"param1": 1}
+        assert result.parameters == Parameters(
+            query={"q": "string"},
+            header={},
+            cookie={},
+            path={"id": 12},
+        )
+        assert isinstance(request.data, GeneratorType)
+        assert list(request.data) == request_chunks
 
     def test_request_validator_prepared_request(self, request_unmarshaller):
         request = requests.Request(
