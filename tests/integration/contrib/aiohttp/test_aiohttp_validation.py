@@ -26,6 +26,7 @@ async def test_aiohttp_integration_valid_input(client: TestClient):
         headers=given_headers,
     )
     response_data = await response.json()
+    # Then
     assert response.status == expected_status_code
     assert response_data == expected_response_data
 
@@ -52,5 +53,6 @@ async def test_aiohttp_integration_invalid_input(
         headers=given_headers,
     )
     response_data = await response.json()
+    # Then
     assert response.status == expected_status_code
     assert response_data == expected_response_data

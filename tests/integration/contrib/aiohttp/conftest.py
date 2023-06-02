@@ -22,6 +22,7 @@ def spec(factory):
 
 @pytest.fixture
 def response_getter() -> mock.MagicMock:
+    # Using a mock here allows us to control the return value for different scenarios.
     return mock.MagicMock(return_value={"data": "data"})
 
 
