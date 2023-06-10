@@ -19,7 +19,7 @@ class StarletteOpenAPIRequest:
             cookie=self.request.cookies,
         )
 
-        self._get_body = AsyncToSync(self.request.body, force_new_loop=True)  # type: ignore
+        self._get_body = AsyncToSync(self.request.body, force_new_loop=True)
 
     @property
     def host_url(self) -> str:
