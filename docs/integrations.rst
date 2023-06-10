@@ -3,6 +3,36 @@ Integrations
 
 Openapi-core integrates with your popular libraries and frameworks. Each integration offers different levels of integration that help validate and unmarshal your request and response data.
 
+aiohttp.web
+-----------
+
+This section describes integration with `aiohttp.web <https://docs.aiohttp.org/en/stable/web.html>`__ framework.
+
+Low level
+~~~~~~~~~
+
+You can use ``AIOHTTPOpenAPIWebRequest`` as an aiohttp request factory:
+
+.. code-block:: python
+
+   from openapi_core import unmarshal_request
+   from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebRequest
+
+   request_body = await aiohttp_request.text()
+   openapi_request = AIOHTTPOpenAPIWebRequest(aiohttp_request, body=request_body)
+   result = unmarshal_request(openapi_request, spec=spec)
+
+You can use ``AIOHTTPOpenAPIWebRequest`` as an aiohttp response factory:
+
+.. code-block:: python
+
+   from openapi_core import unmarshal_response
+   from openapi_core.contrib.starlette import AIOHTTPOpenAPIWebRequest
+
+   openapi_response = StarletteOpenAPIResponse(aiohttp_response)
+   result = unmarshal_response(openapi_request, openapi_response, spec=spec)
+
+
 Bottle
 ------
 
@@ -335,34 +365,4 @@ You can use ``WerkzeugOpenAPIResponse`` as a Werkzeug response factory:
    from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
 
    openapi_response = WerkzeugOpenAPIResponse(werkzeug_response)
-   result = unmarshal_response(openapi_request, openapi_response, spec=spec)
-
-
-aiohttp.web
----------
-
-This section describes integration with `aiohttp.web <https://docs.aiohttp.org/en/stable/web.html>`__ framework.
-
-Low level
-~~~~~~~~~
-
-You can use ``AIOHTTPOpenAPIWebRequest`` as an aiohttp request factory:
-
-.. code-block:: python
-
-   from openapi_core import unmarshal_request
-   from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebRequest
-
-   request_body = await aiohttp_request.text()
-   openapi_request = AIOHTTPOpenAPIWebRequest(aiohttp_request, body=request_body)
-   result = unmarshal_request(openapi_request, spec=spec)
-
-You can use ``AIOHTTPOpenAPIWebRequest`` as an aiohttp response factory:
-
-.. code-block:: python
-
-   from openapi_core import unmarshal_response
-   from openapi_core.contrib.starlette import AIOHTTPOpenAPIWebRequest
-
-   openapi_response = StarletteOpenAPIResponse(aiohttp_response)
    result = unmarshal_response(openapi_request, openapi_response, spec=spec)
