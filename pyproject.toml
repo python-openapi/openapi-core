@@ -73,13 +73,14 @@ jsonschema-spec = "^0.1.1"
 backports-cached-property = {version = "^1.0.2", python = "<3.8" }
 asgiref = "^3.6.0"
 jsonschema = "^4.17.3"
+multidict = {version = "^6.0.4", optional = true}
 
 [tool.poetry.extras]
 django = ["django"]
 falcon = ["falcon"]
 flask = ["flask"]
 requests = ["requests"]
-aiohttp = ["aiohttp"]
+aiohttp = ["aiohttp", "multidict"]
 starlette = ["starlette"]
 
 [tool.poetry.group.dev.dependencies]
