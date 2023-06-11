@@ -68,8 +68,8 @@ openapi-schema-validator = "^0.4.2"
 openapi-spec-validator = "^0.5.0"
 requests = {version = "*", optional = true}
 werkzeug = "*"
-typing-extensions = "^4.3.0"
-jsonschema-spec = "^0.1.1"
+typing-extensions = {version = "^4.5.0", python = "<3.8" }
+jsonschema-spec = "^0.1.6"
 backports-cached-property = {version = "^1.0.2", python = "<3.8" }
 asgiref = "^3.6.0"
 jsonschema = "^4.17.3"
