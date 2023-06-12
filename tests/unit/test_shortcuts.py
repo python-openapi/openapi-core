@@ -466,10 +466,10 @@ class TestValidateRequest:
     def test_request(self, mock_unmarshal, spec_v31):
         request = mock.Mock(spec=Request)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(request, spec=spec_v31)
+        result = validate_request(request, spec=spec_v31)
 
-        assert result == mock_unmarshal.return_value
+        with pytest.warns(DeprecationWarning):
+            assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request)
 
     @mock.patch(
@@ -538,12 +538,10 @@ class TestValidateRequest:
         )
         TestAPICallReq.setUp(unmarshal)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec_v31, cls=TestAPICallReq
-            )
+        result = validate_request(request, spec=spec_v31, cls=TestAPICallReq)
 
-        assert result == unmarshal
+        with pytest.warns(DeprecationWarning):
+            assert result == unmarshal
         assert TestAPICallReq.unmarshal_calls == [
             (request,),
         ]
@@ -588,12 +586,10 @@ class TestValidateRequest:
         )
         TestWebhookReq.setUp(unmarshal)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec_v31, cls=TestWebhookReq
-            )
+        result = validate_request(request, spec=spec_v31, cls=TestWebhookReq)
 
-        assert result == unmarshal
+        with pytest.warns(DeprecationWarning):
+            assert result == unmarshal
         assert TestWebhookReq.unmarshal_calls == [
             (request,),
         ]
@@ -611,10 +607,10 @@ class TestValidateRequest:
     def test_webhook_request(self, mock_unmarshal, spec_v31):
         request = mock.Mock(spec=WebhookRequest)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(request, spec=spec_v31)
+        result = validate_request(request, spec=spec_v31)
 
-        assert result == mock_unmarshal.return_value
+        with pytest.warns(DeprecationWarning):
+            assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request)
 
     def test_webhook_request_validator_not_found(self, spec_v30):
@@ -797,10 +793,10 @@ class TestValidateResponse:
         request = mock.Mock(spec=Request)
         response = mock.Mock(spec=Response)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_response(request, response, spec=spec_v31)
+        result = validate_response(request, response, spec=spec_v31)
 
-        assert result == mock_unmarshal.return_value
+        with pytest.warns(DeprecationWarning):
+            assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request, response)
 
     @mock.patch(
@@ -876,12 +872,12 @@ class TestValidateResponse:
         )
         TestAPICallReq.setUp(unmarshal)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_response(
-                request, response, spec=spec_v31, cls=TestAPICallReq
-            )
+        result = validate_response(
+            request, response, spec=spec_v31, cls=TestAPICallReq
+        )
 
-        assert result == unmarshal
+        with pytest.warns(DeprecationWarning):
+            assert result == unmarshal
         assert TestAPICallReq.unmarshal_calls == [
             (request, response),
         ]
@@ -897,12 +893,12 @@ class TestValidateResponse:
         )
         TestWebhookReq.setUp(unmarshal)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_response(
-                request, response, spec=spec_v31, cls=TestWebhookReq
-            )
+        result = validate_response(
+            request, response, spec=spec_v31, cls=TestWebhookReq
+        )
 
-        assert result == unmarshal
+        with pytest.warns(DeprecationWarning):
+            assert result == unmarshal
         assert TestWebhookReq.unmarshal_calls == [
             (request, response),
         ]
@@ -930,10 +926,10 @@ class TestValidateResponse:
         request = mock.Mock(spec=WebhookRequest)
         response = mock.Mock(spec=Response)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_response(request, response, spec=spec_v31)
+        result = validate_response(request, response, spec=spec_v31)
 
-        assert result == mock_unmarshal.return_value
+        with pytest.warns(DeprecationWarning):
+            assert result == mock_unmarshal.return_value
         mock_unmarshal.assert_called_once_with(request, response)
 
     @mock.patch(
