@@ -97,12 +97,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -130,8 +129,7 @@ class TestPetstore:
         }
         response = MockResponse(data, headers=headers)
 
-        with pytest.warns(DeprecationWarning):
-            response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -155,12 +153,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -213,12 +210,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -258,12 +254,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -328,12 +323,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -378,12 +372,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -428,13 +421,12 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            with pytest.raises(ParameterValidationError) as exc_info:
-                validate_request(
-                    request,
-                    spec=spec,
-                    cls=V30RequestParametersUnmarshaller,
-                )
+        with pytest.raises(ParameterValidationError) as exc_info:
+            validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
         assert type(exc_info.value.__cause__) is DeserializeError
 
         result = unmarshal_request(
@@ -458,13 +450,12 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            with pytest.raises(ParameterValidationError) as exc_info:
-                validate_request(
-                    request,
-                    spec=spec,
-                    cls=V30RequestParametersValidator,
-                )
+        with pytest.raises(ParameterValidationError) as exc_info:
+            validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersValidator,
+            )
         assert type(exc_info.value.__cause__) is CastError
 
         result = unmarshal_request(
@@ -483,13 +474,12 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        with pytest.warns(DeprecationWarning):
-            with pytest.raises(MissingRequiredParameter):
-                validate_request(
-                    request,
-                    spec=spec,
-                    cls=V30RequestParametersValidator,
-                )
+        with pytest.raises(MissingRequiredParameter):
+            validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersValidator,
+            )
 
         result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
@@ -512,13 +502,12 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            with pytest.raises(ParameterValidationError) as exc_info:
-                validate_request(
-                    request,
-                    spec=spec,
-                    cls=V30RequestParametersValidator,
-                )
+        with pytest.raises(ParameterValidationError) as exc_info:
+            validate_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersValidator,
+            )
         assert type(exc_info.value.__cause__) is EmptyQueryParameterValue
 
         result = unmarshal_request(
@@ -543,12 +532,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -579,12 +567,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -616,12 +603,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             query={
@@ -658,12 +644,11 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert is_dataclass(result.parameters.query["coordinates"])
         assert (
@@ -886,10 +871,9 @@ class TestPetstore:
             },
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
@@ -930,12 +914,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             header={
@@ -983,12 +966,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             header={
@@ -999,10 +981,9 @@ class TestPetstore:
             },
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
@@ -1037,12 +1018,11 @@ class TestPetstore:
             cookies=cookies,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             header={
@@ -1093,10 +1073,9 @@ class TestPetstore:
                 cls=V30RequestParametersValidator,
             )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
@@ -1137,10 +1116,9 @@ class TestPetstore:
                 cls=V30RequestParametersValidator,
             )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         schemas = spec_dict["components"]["schemas"]
         pet_model = schemas["PetCreate"]["x-model"]
@@ -1256,12 +1234,11 @@ class TestPetstore:
             headers=headers,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             path={
@@ -1269,19 +1246,17 @@ class TestPetstore:
             }
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         assert result.body is None
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestSecurityUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestSecurityUnmarshaller,
+        )
 
         assert result.security == {
             "petstore_auth": auth,
@@ -1323,12 +1298,11 @@ class TestPetstore:
             view_args=view_args,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             path={
@@ -1336,10 +1310,9 @@ class TestPetstore:
             }
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         assert result.body is None
 
@@ -1376,12 +1349,11 @@ class TestPetstore:
             view_args=view_args,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters(
             path={
@@ -1425,10 +1397,9 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         assert result.body is None
 
@@ -1436,8 +1407,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data)
 
-        with pytest.warns(DeprecationWarning):
-            response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data_json
@@ -1554,19 +1524,17 @@ class TestPetstore:
             data=data,
         )
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
 
         assert result.parameters == Parameters()
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         assert is_dataclass(result.body)
         assert result.body.name == pet_name
@@ -1584,8 +1552,7 @@ class TestPetstore:
         data = json.dumps(data_json)
         response = MockResponse(data, status_code=404)
 
-        with pytest.warns(DeprecationWarning):
-            response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert is_dataclass(response_result.data)
@@ -1678,10 +1645,9 @@ class TestPetstore:
 
         assert result.parameters == Parameters()
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_request(
-                request, spec=spec, cls=V30RequestBodyUnmarshaller
-            )
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
 
         assert is_dataclass(result.body)
         assert result.body.created == datetime(
@@ -1702,13 +1668,12 @@ class TestPetstore:
         response_data = json.dumps(response_data_json)
         response = MockResponse(response_data, status_code=404)
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_response(
-                request,
-                response,
-                spec=spec,
-                cls=V30ResponseDataUnmarshaller,
-            )
+        result = unmarshal_response(
+            request,
+            response,
+            spec=spec,
+            cls=V30ResponseDataUnmarshaller,
+        )
 
         assert is_dataclass(result.data)
         assert result.data.code == code
@@ -1821,18 +1786,16 @@ class TestPetstore:
         }
         response = MockResponse(data, status_code=200, headers=headers)
 
-        with pytest.warns(DeprecationWarning):
-            response_result = validate_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
         assert response_result.errors == []
         assert response_result.data is None
 
-        with pytest.warns(DeprecationWarning):
-            result = validate_response(
-                request,
-                response,
-                spec=spec,
-                cls=V30ResponseHeadersUnmarshaller,
-            )
+        result = unmarshal_response(
+            request,
+            response,
+            spec=spec,
+            cls=V30ResponseHeadersUnmarshaller,
+        )
 
         assert result.headers == {
             "x-delete-confirm": True,

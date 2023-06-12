@@ -5,6 +5,8 @@ from typing import Dict
 from typing import Optional
 from typing import Union
 
+from lazy_object_proxy import Proxy
+
 from openapi_core.exceptions import SpecError
 from openapi_core.finders import SpecClasses
 from openapi_core.finders import SpecFinder
@@ -317,19 +319,24 @@ def validate_request(
     if cls is None or issubclass(
         cls, (RequestUnmarshaller, WebhookRequestUnmarshaller)
     ):
-        warnings.warn(
-            "validate_request is deprecated for unmarshalling data "
-            "and it will not return any result in the future. "
-            "Use unmarshal_request function instead.",
-            DeprecationWarning,
-        )
-        return unmarshal_request(
+        result = unmarshal_request(
             request,
             spec=spec,
             base_url=base_url,
             cls=cls,
             **validator_kwargs,
         )
+
+        def return_result() -> RequestUnmarshalResult:
+            warnings.warn(
+                "validate_request is deprecated for unmarshalling data "
+                "and it will not return any result in the future. "
+                "Use unmarshal_request function instead.",
+                DeprecationWarning,
+            )
+            return result
+
+        return Proxy(return_result)  # type: ignore
     if isinstance(request, WebhookRequest):
         if cls is None or issubclass(cls, WebhookRequestValidator):
             validate_webhook_request(
@@ -400,13 +407,7 @@ def validate_response(
     if cls is None or issubclass(
         cls, (ResponseUnmarshaller, WebhookResponseUnmarshaller)
     ):
-        warnings.warn(
-            "validate_response is deprecated for unmarshalling data "
-            "and it will not return any result in the future. "
-            "Use unmarshal_response function instead.",
-            DeprecationWarning,
-        )
-        return unmarshal_response(
+        result = unmarshal_response(
             request,
             response,
             spec=spec,
@@ -414,6 +415,17 @@ def validate_response(
             cls=cls,
             **validator_kwargs,
         )
+
+        def return_result() -> ResponseUnmarshalResult:
+            warnings.warn(
+                "validate_response is deprecated for unmarshalling data "
+                "and it will not return any result in the future. "
+                "Use unmarshal_response function instead.",
+                DeprecationWarning,
+            )
+            return result
+
+        return Proxy(return_result)  # type: ignore
     if isinstance(request, WebhookRequest):
         if cls is None or issubclass(cls, WebhookResponseValidator):
             validate_webhook_response(
