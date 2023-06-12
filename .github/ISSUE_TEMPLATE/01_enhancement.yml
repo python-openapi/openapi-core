@@ -1,0 +1,40 @@
+name: "Request new Feature"
+description: "Provide supporting details for an enhancement for the library."
+title: "[Feature]: "
+labels: ["kind/enhancement"]
+body:
+  - type: textarea
+    id: feature
+    attributes:
+      label: Suggested Behavior
+      description: What would you like to be added?
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why is this needed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: |
+        Where possible, please supply links to documentations that give additional context.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: will_contribute
+    attributes:
+      label: Would you like to implement a feature?
+      description: |
+        If you plan to implement a feature for this.
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: false
