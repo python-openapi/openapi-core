@@ -72,7 +72,6 @@ html_theme_options = {
     },
     "repo_url": "https://github.com/python-openapi/openapi-core/",
     "repo_name": "openapi-core",
-    "repo_type": "github",
     "icon": {
         "repo": "fontawesome/brands/github-alt",
         "edit": "material/file-edit-outline",
