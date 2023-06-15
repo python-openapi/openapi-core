@@ -21,7 +21,7 @@ class TestPetstore:
         return str(api_key_bytes_enc, "utf8")
 
     @pytest.fixture
-    def spec_uri(self):
+    def base_uri(self):
         return "file://tests/integration/data/v3.0/petstore.yaml"
 
     @pytest.fixture
@@ -30,9 +30,9 @@ class TestPetstore:
         return content
 
     @pytest.fixture
-    def spec(self, spec_dict, spec_uri):
+    def spec(self, spec_dict, base_uri):
         return Spec.from_dict(
-            spec_dict, spec_url=spec_uri, validator=openapi_v30_spec_validator
+            spec_dict, base_uri=base_uri, validator=openapi_v30_spec_validator
         )
 
     @pytest.fixture
@@ -312,7 +312,7 @@ class TestWebhook:
         return str(api_key_bytes_enc, "utf8")
 
     @pytest.fixture
-    def spec_uri(self):
+    def base_uri(self):
         return "file://tests/integration/data/v3.1/webhook-example.yaml"
 
     @pytest.fixture
@@ -323,10 +323,10 @@ class TestWebhook:
         return content
 
     @pytest.fixture
-    def spec(self, spec_dict, spec_uri):
+    def spec(self, spec_dict, base_uri):
         return Spec.from_dict(
             spec_dict,
-            spec_url=spec_uri,
+            base_uri=base_uri,
             validator=openapi_v31_spec_validator,
         )
 

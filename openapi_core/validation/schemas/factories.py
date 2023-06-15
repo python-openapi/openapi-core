@@ -63,7 +63,7 @@ class SchemaValidatorsFactory:
         with schema.open() as schema_dict:
             jsonschema_validator = self.schema_validator_class(
                 schema_dict,
-                resolver=resolver,
+                _resolver=resolver,
                 format_checker=format_checker,
             )
 

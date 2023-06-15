@@ -15,14 +15,14 @@ def content_from_file(spec_file):
 
 
 def spec_from_file(spec_file):
-    spec_dict, spec_url = content_from_file(spec_file)
-    return Spec.from_dict(spec_dict, spec_url=spec_url)
+    spec_dict, base_uri = content_from_file(spec_file)
+    return Spec.from_dict(spec_dict, base_uri=base_uri)
 
 
-def spec_from_url(spec_url):
-    content = request.urlopen(spec_url)
+def spec_from_url(base_uri):
+    content = request.urlopen(base_uri)
     spec_dict = safe_load(content)
-    return Spec.from_dict(spec_dict, spec_url=spec_url)
+    return Spec.from_dict(spec_dict, base_uri=base_uri)
 
 
 class Factory(dict):
@@ -47,5 +47,5 @@ def v30_petstore_content(factory):
 
 @pytest.fixture(scope="session")
 def v30_petstore_spec(v30_petstore_content):
-    spec_url = "file://tests/integration/data/v3.0/petstore.yaml"
-    return Spec.from_dict(v30_petstore_content, spec_url=spec_url)
+    base_uri = "file://tests/integration/data/v3.0/petstore.yaml"
+    return Spec.from_dict(v30_petstore_content, base_uri=base_uri)
