@@ -1,15 +1,11 @@
 """OpenAPI core validation validators module"""
-import sys
+from functools import cached_property
 from typing import Any
 from typing import Mapping
 from typing import Optional
 from typing import Tuple
 from urllib.parse import urljoin
 
-if sys.version_info >= (3, 8):
-    from functools import cached_property
-else:
-    from backports.cached_property import cached_property
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (

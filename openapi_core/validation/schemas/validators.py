@@ -1,5 +1,5 @@
 import logging
-import sys
+from functools import cached_property
 from functools import partial
 from typing import Any
 from typing import Iterator
@@ -7,11 +7,6 @@ from typing import Optional
 
 from jsonschema.exceptions import FormatError
 from jsonschema.protocols import Validator
-
-if sys.version_info >= (3, 8):
-    from functools import cached_property
-else:
-    from backports.cached_property import cached_property
 
 from openapi_core.spec import Spec
 from openapi_core.validation.schemas.datatypes import FormatValidator
