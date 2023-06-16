@@ -1,4 +1,3 @@
-from typing import Any
 from typing import Optional
 
 from openapi_core.casting.schemas import schema_casters_factory
@@ -26,9 +25,6 @@ from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.spec import Spec
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
-from openapi_core.unmarshalling.request.proxies import (
-    SpecRequestValidatorProxy,
-)
 from openapi_core.unmarshalling.schemas import (
     oas30_write_schema_unmarshallers_factory,
 )
@@ -428,20 +424,3 @@ class V31WebhookRequestUnmarshaller(
     V31WebhookRequestValidator, WebhookRequestUnmarshaller
 ):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
-
-
-# backward compatibility
-class RequestValidator(SpecRequestValidatorProxy):
-    def __init__(
-        self,
-        schema_unmarshallers_factory: "SchemaUnmarshallersFactory",
-        **kwargs: Any,
-    ):
-        super().__init__(
-            APICallRequestUnmarshaller,
-            schema_validators_factory=(
-                schema_unmarshallers_factory.schema_validators_factory
-            ),
-            schema_unmarshallers_factory=schema_unmarshallers_factory,
-            **kwargs,
-        )

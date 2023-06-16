@@ -64,28 +64,6 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             False,
         ],
     )
-    def test_call_deprecated(self, unmarshallers_factory, value):
-        schema = {}
-        spec = Spec.from_dict(schema, validator=None)
-        unmarshaller = unmarshallers_factory.create(spec)
-
-        with pytest.warns(DeprecationWarning):
-            result = unmarshaller(value)
-
-        assert result == value
-
-    @pytest.mark.parametrize(
-        "value",
-        [
-            "test",
-            10,
-            10,
-            3.12,
-            ["one", "two"],
-            True,
-            False,
-        ],
-    )
     def test_no_type(self, unmarshallers_factory, value):
         schema = {}
         spec = Spec.from_dict(schema, validator=None)

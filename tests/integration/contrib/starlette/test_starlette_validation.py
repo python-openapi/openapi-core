@@ -8,8 +8,8 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from openapi_core import openapi_request_validator
-from openapi_core import openapi_response_validator
+from openapi_core import unmarshal_request
+from openapi_core import unmarshal_response
 from openapi_core.contrib.starlette import StarletteOpenAPIRequest
 from openapi_core.contrib.starlette import StarletteOpenAPIResponse
 
@@ -50,7 +50,7 @@ class TestStarletteOpenAPIValidation:
 
         def test_route(request):
             openapi_request = StarletteOpenAPIRequest(request)
-            result = openapi_request_validator.validate(spec, openapi_request)
+            result = unmarshal_request(openapi_request, spec)
             assert not result.errors
             return JSONResponse(
                 response_data,
@@ -92,8 +92,8 @@ class TestStarletteOpenAPIValidation:
             )
             openapi_request = StarletteOpenAPIRequest(request)
             openapi_response = StarletteOpenAPIResponse(response)
-            result = openapi_response_validator.validate(
-                spec, openapi_request, openapi_response
+            result = unmarshal_response(
+                openapi_request, openapi_response, spec
             )
             assert not result.errors
             return response

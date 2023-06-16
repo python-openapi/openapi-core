@@ -4,7 +4,8 @@ import pytest
 
 from openapi_core import Spec
 from openapi_core import V30RequestUnmarshaller
-from openapi_core import openapi_request_validator
+from openapi_core import unmarshal_request
+from openapi_core import validate_request
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.datatypes import Parameters
 from openapi_core.testing import MockRequest
@@ -105,10 +106,9 @@ class TestPathItemParamsValidator:
             }
         ]
         request = MockRequest("http://example.com", "get", "/resource")
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(
-                spec, request, base_url="http://example.com"
-            )
+        result = unmarshal_request(
+            request, spec, base_url="http://example.com"
+        )
 
         assert len(result.errors) == 0
         assert result.body is None
@@ -129,15 +129,8 @@ class TestPathItemParamsValidator:
             }
         ]
         request = MockRequest("http://example.com", "get", "/resource")
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(
-                spec, request, base_url="http://example.com"
-            )
-
-        assert len(result.errors) == 1
-        assert type(result.errors[0]) == MissingRequiredParameter
-        assert result.body is None
-        assert result.parameters == Parameters()
+        with pytest.raises(MissingRequiredParameter):
+            validate_request(request, spec, base_url="http://example.com")
 
     def test_request_object_deep_object_params(self, spec, spec_dict):
         # override path parameter on operation
@@ -166,10 +159,9 @@ class TestPathItemParamsValidator:
             "/resource",
             args={"paramObj[count]": 2, "paramObj[name]": "John"},
         )
-        with pytest.warns(DeprecationWarning):
-            result = openapi_request_validator.validate(
-                spec, request, base_url="http://example.com"
-            )
+        result = unmarshal_request(
+            request, spec, base_url="http://example.com"
+        )
 
         assert len(result.errors) == 0
         assert result.body is None

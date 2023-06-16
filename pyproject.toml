@@ -75,7 +75,6 @@ jsonschema-spec = "^0.2.2"
 asgiref = "^3.6.0"
 jsonschema = {version = "^4.18.0a1", allow-prereleases = true}
 multidict = {version = "^6.0.4", optional = true}
-lazy-object-proxy = "^1.7.1"
 
 [tool.poetry.extras]
 django = ["django"]

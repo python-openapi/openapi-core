@@ -14,11 +14,9 @@ class TestMediaTypeDeserializer:
             media_type,
             media_type_deserializers=media_type_deserializers,
             extra_media_type_deserializers=None,
-            custom_deserializers=None,
         ):
             return MediaTypeDeserializersFactory(
                 media_type_deserializers,
-                custom_deserializers=custom_deserializers,
             ).create(
                 media_type,
                 extra_media_type_deserializers=extra_media_type_deserializers,
@@ -108,26 +106,6 @@ class TestMediaTypeDeserializer:
         result = deserializer.deserialize(value)
 
         assert result == {"param1": b"test"}
-
-    def test_custom_deserializer(self, deserializer_factory):
-        deserialized = "x-custom"
-
-        def custom_deserializer(value):
-            return deserialized
-
-        custom_mimetype = "application/custom"
-        custom_deserializers = {
-            custom_mimetype: custom_deserializer,
-        }
-        with pytest.warns(DeprecationWarning):
-            deserializer = deserializer_factory(
-                custom_mimetype, custom_deserializers=custom_deserializers
-            )
-        value = "{}"
-
-        result = deserializer.deserialize(value)
-
-        assert result == deserialized
 
     def test_custom_simple(self, deserializer_factory):
         deserialized = "x-custom"
