@@ -1,5 +1,6 @@
 import pytest
 
+from openapi_core import unmarshal_request
 from openapi_core import validate_request
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
@@ -28,7 +29,7 @@ class TestMinimal:
         spec = factory.spec_from_file(spec_path)
         request = MockRequest(server, "get", "/status")
 
-        result = validate_request(request, spec=spec)
+        result = unmarshal_request(request, spec=spec)
 
         assert not result.errors
 

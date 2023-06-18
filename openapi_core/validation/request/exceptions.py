@@ -1,4 +1,3 @@
-import warnings
 from dataclasses import dataclass
 from typing import Iterable
 
@@ -13,15 +12,6 @@ from openapi_core.validation.schemas.exceptions import ValidateError
 class ParametersError(Exception):
     parameters: Parameters
     errors: Iterable[OpenAPIError]
-
-    @property
-    def context(self) -> Iterable[OpenAPIError]:
-        warnings.warn(
-            "context property of ParametersError is deprecated. "
-            "Use errors instead.",
-            DeprecationWarning,
-        )
-        return self.errors
 
 
 class RequestValidationError(ValidationError):

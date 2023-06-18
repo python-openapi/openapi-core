@@ -1,7 +1,3 @@
-from typing import Any
-from typing import Mapping
-
-from openapi_core.protocols import BaseRequest
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
@@ -11,17 +7,11 @@ from openapi_core.templating.responses.exceptions import ResponseFinderError
 from openapi_core.unmarshalling.response.datatypes import (
     ResponseUnmarshalResult,
 )
-from openapi_core.unmarshalling.response.proxies import (
-    SpecResponseValidatorProxy,
-)
 from openapi_core.unmarshalling.schemas import (
     oas30_read_schema_unmarshallers_factory,
 )
 from openapi_core.unmarshalling.schemas import (
     oas31_schema_unmarshallers_factory,
-)
-from openapi_core.unmarshalling.schemas.factories import (
-    SchemaUnmarshallersFactory,
 )
 from openapi_core.unmarshalling.unmarshallers import BaseUnmarshaller
 from openapi_core.util import chainiters
@@ -309,20 +299,3 @@ class V31WebhookResponseUnmarshaller(
     V31WebhookResponseValidator, WebhookResponseUnmarshaller
 ):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
-
-
-# backward compatibility
-class ResponseValidator(SpecResponseValidatorProxy):
-    def __init__(
-        self,
-        schema_unmarshallers_factory: "SchemaUnmarshallersFactory",
-        **kwargs: Any,
-    ):
-        super().__init__(
-            APICallResponseUnmarshaller,
-            schema_validators_factory=(
-                schema_unmarshallers_factory.schema_validators_factory
-            ),
-            schema_unmarshallers_factory=schema_unmarshallers_factory,
-            **kwargs,
-        )

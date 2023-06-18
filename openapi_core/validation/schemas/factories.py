@@ -7,7 +7,6 @@ from jsonschema._format import FormatChecker
 from jsonschema.protocols import Validator
 
 from openapi_core.spec import Spec
-from openapi_core.validation.schemas.datatypes import CustomFormattersDict
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.validators import SchemaValidator
 

@@ -7,8 +7,8 @@ import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient
 
-from openapi_core import openapi_request_validator
-from openapi_core import openapi_response_validator
+from openapi_core import V30RequestUnmarshaller
+from openapi_core import V30ResponseUnmarshaller
 from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebRequest
 from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebResponse
 
@@ -45,7 +45,8 @@ def request_validation(spec, response_getter):
     async def test_route(request: web.Request) -> web.Response:
         request_body = await request.text()
         openapi_request = AIOHTTPOpenAPIWebRequest(request, body=request_body)
-        result = openapi_request_validator.validate(spec, openapi_request)
+        unmarshaller = V30RequestUnmarshaller(spec)
+        result = unmarshaller.unmarshal(openapi_request)
         response: dict[str, Any] = response_getter()
         status = 200
         if result.errors:
@@ -72,9 +73,8 @@ def response_validation(spec, response_getter):
             status=200,
         )
         openapi_response = AIOHTTPOpenAPIWebResponse(response)
-        result = openapi_response_validator.validate(
-            spec, openapi_request, openapi_response
-        )
+        unmarshaller = V30ResponseUnmarshaller(spec)
+        result = unmarshaller.unmarshal(openapi_request, openapi_response)
         if result.errors:
             response = web.json_response(
                 {"errors": [{"message": str(e) for e in result.errors}]},

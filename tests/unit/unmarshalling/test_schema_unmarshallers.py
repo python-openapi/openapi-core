@@ -17,7 +17,6 @@ from openapi_core.validation.schemas import (
 )
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
-from openapi_core.validation.schemas.formatters import Formatter
 
 
 @pytest.fixture
@@ -28,12 +27,10 @@ def schema_unmarshaller_factory():
         format_validators=None,
         extra_format_validators=None,
         extra_format_unmarshallers=None,
-        custom_formatters=None,
     ):
         return SchemaUnmarshallersFactory(
             validators_factory,
             oas30_types_unmarshaller,
-            custom_formatters=custom_formatters,
         ).create(
             schema,
             format_validators=format_validators,
@@ -80,110 +77,6 @@ class TestOAS30SchemaUnmarshallerFactoryCreate:
 
 
 class TestOAS30SchemaUnmarshallerUnmarshal:
-    def test_schema_custom_formatter_format_invalid(
-        self, unmarshaller_factory
-    ):
-        class CustomFormatter(Formatter):
-            def format(self, value):
-                raise ValueError
-
-        formatter = CustomFormatter()
-        custom_format = "custom"
-        custom_formatters = {
-            custom_format: formatter,
-        }
-        schema = {
-            "type": "string",
-            "format": "custom",
-        }
-        spec = Spec.from_dict(schema, validator=None)
-        value = "x"
-        with pytest.warns(DeprecationWarning):
-            unmarshaller = unmarshaller_factory(
-                spec,
-                custom_formatters=custom_formatters,
-            )
-
-        with pytest.raises(FormatUnmarshalError):
-            unmarshaller.unmarshal(value)
-
-    def test_string_format_custom(self, unmarshaller_factory):
-        formatted = "x-custom"
-
-        class CustomFormatter(Formatter):
-            def format(self, value):
-                return formatted
-
-        custom_format = "custom"
-        schema = {
-            "type": "string",
-            "format": custom_format,
-        }
-        spec = Spec.from_dict(schema, validator=None)
-        value = "x"
-        formatter = CustomFormatter()
-        custom_formatters = {
-            custom_format: formatter,
-        }
-        with pytest.warns(DeprecationWarning):
-            unmarshaller = unmarshaller_factory(
-                spec, custom_formatters=custom_formatters
-            )
-
-        result = unmarshaller.unmarshal(value)
-
-        assert result == formatted
-
-    def test_array_format_custom_formatter(self, unmarshaller_factory):
-        class CustomFormatter(Formatter):
-            def unmarshal(self, value):
-                return tuple(value)
-
-        custom_format = "custom"
-        schema = {
-            "type": "array",
-            "format": custom_format,
-        }
-        spec = Spec.from_dict(schema, validator=None)
-        value = ["x"]
-        formatter = CustomFormatter()
-        custom_formatters = {
-            custom_format: formatter,
-        }
-        with pytest.warns(DeprecationWarning):
-            unmarshaller = unmarshaller_factory(
-                spec, custom_formatters=custom_formatters
-            )
-
-        with pytest.warns(DeprecationWarning):
-            result = unmarshaller.unmarshal(value)
-
-        assert result == tuple(value)
-
-    def test_string_format_custom_value_error(self, unmarshaller_factory):
-        class CustomFormatter(Formatter):
-            def format(self, value):
-                raise ValueError
-
-        custom_format = "custom"
-        schema = {
-            "type": "string",
-            "format": custom_format,
-        }
-        spec = Spec.from_dict(schema, validator=None)
-        value = "x"
-        formatter = CustomFormatter()
-        custom_formatters = {
-            custom_format: formatter,
-        }
-        with pytest.warns(DeprecationWarning):
-            unmarshaller = unmarshaller_factory(
-                spec, custom_formatters=custom_formatters
-            )
-
-        with pytest.raises(FormatUnmarshalError):
-            unmarshaller.unmarshal(value)
-
     def test_schema_extra_format_unmarshaller_format_invalid(
         self, schema_unmarshaller_factory, unmarshaller_factory
     ):
