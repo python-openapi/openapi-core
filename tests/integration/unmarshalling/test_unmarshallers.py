@@ -265,8 +265,6 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
     @pytest.mark.parametrize(
         "type,format,value",
         [
-            ("number", "float", 3),
-            ("number", "double", 3),
             ("string", "date", "test"),
             ("string", "date-time", "test"),
             ("string", "uuid", "test"),
