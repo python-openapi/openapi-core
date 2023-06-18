@@ -243,6 +243,30 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
     @pytest.mark.parametrize(
         "type,format,value",
         [
+            ("string", "float", "test"),
+            ("string", "double", "test"),
+            ("number", "date", 3),
+            ("number", "date-time", 3),
+            ("number", "uuid", 3),
+        ],
+    )
+    def test_basic_type_formats_ignored(
+        self, unmarshallers_factory, type, format, value
+    ):
+        schema = {
+            "type": type,
+            "format": format,
+        }
+        spec = Spec.from_dict(schema, validator=None)
+        unmarshaller = unmarshallers_factory.create(spec)
+
+        result = unmarshaller.unmarshal(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize(
+        "type,format,value",
+        [
             ("string", "date", "test"),
             ("string", "date-time", "test"),
             ("string", "uuid", "test"),
@@ -374,23 +398,17 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         assert len(exc_info.value.schema_errors) == 1
         assert f"is not a 'uuid'" in exc_info.value.schema_errors[0].message
 
-    @pytest.mark.xfail(
-        reason=(
-            "Formats raise error for other types. "
-            "See https://github.com/python-openapi/openapi-schema-validator/issues/66"
-        )
-    )
     @pytest.mark.parametrize(
         "type,format,value,expected",
         [
             ("string", "float", "test", "test"),
             ("string", "double", "test", "test"),
-            ("string", "byte", "test", "test"),
-            ("integer", "date", "10", 10),
-            ("integer", "date-time", "10", 10),
+            ("integer", "byte", 10, 10),
+            ("integer", "date", 10, 10),
+            ("integer", "date-time", 10, 10),
             ("string", "int32", "test", "test"),
             ("string", "int64", "test", "test"),
-            ("integer", "password", "10", 10),
+            ("integer", "password", 10, 10),
         ],
     )
     def test_formats_ignored(
@@ -1728,7 +1746,8 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         reason=(
             "OAS 3.0 string type checker allows byte. "
             "See https://github.com/python-openapi/openapi-schema-validator/issues/64"
-        )
+        ),
+        strict=True,
     )
     def test_string_format_binary_invalid(self, unmarshallers_factory):
         schema = {
@@ -1748,7 +1767,8 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         reason=(
             "Rraises TypeError not SchemaError. "
             "See ttps://github.com/python-openapi/openapi-schema-validator/issues/65"
-        )
+        ),
+        strict=True,
     )
     @pytest.mark.parametrize(
         "types,value",
@@ -1928,7 +1948,8 @@ class TestOAS31SchemaUnmarshallersFactory(
         reason=(
             "OpenAPI 3.1 schema validator uses OpenAPI 3.0 format checker."
             "See https://github.com/python-openapi/openapi-core/issues/506"
-        )
+        ),
+        strict=True,
     )
     @pytest.mark.parametrize(
         "type,format",

@@ -173,7 +173,9 @@ class BaseTestServerNotFound:
     def servers(self):
         return []
 
-    @pytest.mark.xfail(reason="returns default server")
+    @pytest.mark.xfail(
+        reason="returns default server",
+    )
     def test_raises(self, finder):
         method = "get"
         full_url = "http://petstore.swagger.io/resource"
