@@ -164,6 +164,29 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
 
+    def test_string_format_password(self, schema_unmarshaller_factory):
+        schema_type = "string"
+        schema = {
+            "type": schema_type,
+            "format": "password",
+            "pattern": "\\d+",
+        }
+        spec = Spec.from_dict(schema, validator=None)
+        value = "passwd"
+        schema_validators_factory = SchemaValidatorsFactory(
+            OAS30WriteValidator
+        )
+        unmarshaller = schema_unmarshaller_factory(
+            schema_validators_factory,
+            spec,
+        )
+
+        with pytest.raises(
+            InvalidSchemaValue,
+            match=f"not valid for schema of type {schema_type}",
+        ):
+            unmarshaller.unmarshal(value)
+
     def test_schema_extra_format_validator_format_custom(
         self, schema_unmarshaller_factory
     ):

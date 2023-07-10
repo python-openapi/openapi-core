@@ -6,6 +6,8 @@ from typing import Any
 from typing import Union
 from uuid import UUID
 
+from pydantic import SecretStr
+
 
 def format_date(value: str) -> date:
     return datetime.strptime(value, "%Y-%m-%d").date()
@@ -26,3 +28,7 @@ def format_number(value: str) -> Union[int, float]:
         return value
 
     return float(value)
+
+
+def format_password(value: str) -> SecretStr:
+    return SecretStr(value)

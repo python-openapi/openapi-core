@@ -17,6 +17,7 @@ from openapi_core.unmarshalling.schemas.unmarshallers import (
 from openapi_core.unmarshalling.schemas.unmarshallers import TypesUnmarshaller
 from openapi_core.unmarshalling.schemas.util import format_byte
 from openapi_core.unmarshalling.schemas.util import format_date
+from openapi_core.unmarshalling.schemas.util import format_password
 from openapi_core.unmarshalling.schemas.util import format_uuid
 from openapi_core.validation.schemas import (
     oas30_read_schema_validators_factory,
@@ -68,6 +69,7 @@ oas30_format_unmarshallers = {
     "binary": bytes,
     "uuid": format_uuid,
     "byte": format_byte,
+    "password": format_password,
 }
 oas31_format_unmarshallers = oas30_format_unmarshallers
 
