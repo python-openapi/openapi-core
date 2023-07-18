@@ -63,7 +63,7 @@ django = {version = ">=3.0", optional = true}
 falcon = {version = ">=3.0", optional = true}
 flask = {version = "*", optional = true}
 aiohttp = {version = ">=3.0", optional = true}
-starlette = {version = ">=0.26.1,<0.29.0", optional = true}
+starlette = {version = ">=0.26.1,<0.31.0", optional = true}
 isodate = "*"
 more-itertools = "*"
 parse = "*"
