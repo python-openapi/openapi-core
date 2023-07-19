@@ -1,3 +1,5 @@
+from xml.etree.ElementTree import Element
+
 import pytest
 
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -46,22 +48,78 @@ class TestMediaTypeDeserializer:
 
         assert result == value
 
-    def test_json_empty(self, deserializer_factory):
-        mimetype = "application/json"
+    @pytest.mark.parametrize(
+        "mimetype",
+        [
+            "text/plain",
+            "text/html",
+        ],
+    )
+    def test_plain_valid(self, deserializer_factory, mimetype):
+        deserializer = deserializer_factory(mimetype)
+        value = "somestr"
+
+        result = deserializer.deserialize(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize(
+        "mimetype",
+        [
+            "application/json",
+            "application/vnd.api+json",
+        ],
+    )
+    def test_json_empty(self, deserializer_factory, mimetype):
         deserializer = deserializer_factory(mimetype)
         value = ""
 
         with pytest.raises(DeserializeError):
             deserializer.deserialize(value)
 
-    def test_json_empty_object(self, deserializer_factory):
-        mimetype = "application/json"
+    @pytest.mark.parametrize(
+        "mimetype",
+        [
+            "application/json",
+            "application/vnd.api+json",
+        ],
+    )
+    def test_json_empty_object(self, deserializer_factory, mimetype):
         deserializer = deserializer_factory(mimetype)
         value = "{}"
 
         result = deserializer.deserialize(value)
 
         assert result == {}
+
+    @pytest.mark.parametrize(
+        "mimetype",
+        [
+            "application/xml",
+            "application/xhtml+xml",
+        ],
+    )
+    def test_xml_empty(self, deserializer_factory, mimetype):
+        deserializer = deserializer_factory(mimetype)
+        value = ""
+
+        with pytest.raises(DeserializeError):
+            deserializer.deserialize(value)
+
+    @pytest.mark.parametrize(
+        "mimetype",
+        [
+            "application/xml",
+            "application/xhtml+xml",
+        ],
+    )
+    def test_xml_valid(self, deserializer_factory, mimetype):
+        deserializer = deserializer_factory(mimetype)
+        value = "<obj>text</obj>"
+
+        result = deserializer.deserialize(value)
+
+        assert type(result) is Element
 
     def test_urlencoded_form_empty(self, deserializer_factory):
         mimetype = "application/x-www-form-urlencoded"

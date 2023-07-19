@@ -233,8 +233,7 @@ class TestPetstore:
         data = "<html></html>"
         response = MockResponse(data, status_code=404, mimetype="text/html")
 
-        with pytest.warns(UserWarning):
-            response_result = unmarshal_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data

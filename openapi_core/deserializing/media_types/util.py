@@ -5,6 +5,12 @@ from typing import Union
 from urllib.parse import parse_qsl
 
 
+def plain_loads(value: Union[str, bytes]) -> str:
+    if isinstance(value, bytes):
+        value = value.decode("ASCII", errors="surrogateescape")
+    return value
+
+
 def urlencoded_form_loads(value: Any) -> Dict[str, Any]:
     return dict(parse_qsl(value))
 

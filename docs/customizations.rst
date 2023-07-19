@@ -21,7 +21,9 @@ If you know you have a valid specification already, disabling the validator can 
 Media type deserializers
 ------------------------
 
-Pass custom defined media type deserializers dictionary with supported mimetypes as a key to `unmarshal_response` function:
+OpenAPI comes with a set of built-in media type deserializers such as: ``application/json``, ``application/xml``, ``application/x-www-form-urlencoded`` or ``multipart/form-data``.
+
+You can also define your own ones. Pass custom defined media type deserializers dictionary with supported mimetypes as a key to `unmarshal_response` function:
 
 .. code-block:: python
   :emphasize-lines: 13

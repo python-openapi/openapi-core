@@ -352,8 +352,7 @@ class TestRequestUnmarshaller:
             mimetype="text/plain",
         )
 
-        with pytest.warns(UserWarning):
-            result = request_unmarshaller.unmarshal(request)
+        result = request_unmarshaller.unmarshal(request)
 
         assert result.errors == []
         assert result.parameters == Parameters(

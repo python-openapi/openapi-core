@@ -1,6 +1,7 @@
 import warnings
 from typing import Any
 from typing import Optional
+from xml.etree.ElementTree import ParseError
 
 from openapi_core.deserializing.media_types.datatypes import (
     DeserializerCallable,
@@ -26,5 +27,5 @@ class CallableMediaTypeDeserializer:
 
         try:
             return self.deserializer_callable(value)
-        except (ValueError, TypeError, AttributeError):
+        except (ParseError, ValueError, TypeError, AttributeError):
             raise MediaTypeDeserializeError(self.mimetype, value)
