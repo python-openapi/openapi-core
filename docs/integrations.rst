@@ -129,6 +129,23 @@ The Falcon API can be integrated by ``FalconOpenAPIMiddleware`` middleware.
        middleware=[openapi_middleware],
    )
 
+Additional customization parameters can be passed to the middleware.
+
+.. code-block:: python
+  :emphasize-lines: 5
+
+   from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
+
+   openapi_middleware = FalconOpenAPIMiddleware.from_spec(
+       spec,
+       extra_format_validators=extra_format_validators,
+   )
+
+   app = falcon.App(
+       # ...
+       middleware=[openapi_middleware],
+   )
+
 After that you will have access to validation result object with all validated request data from Falcon view through request context.
 
 .. code-block:: python
@@ -192,6 +209,18 @@ Flask views can be integrated by ``FlaskOpenAPIViewDecorator`` decorator.
    def home():
        return "Welcome home"
 
+Additional customization parameters can be passed to the decorator.
+
+.. code-block:: python
+  :emphasize-lines: 5
+
+   from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
+
+   openapi = FlaskOpenAPIViewDecorator.from_spec(
+       spec,
+       extra_format_validators=extra_format_validators,
+   )
+
 If you want to decorate class based view you can use the decorators attribute:
 
 .. code-block:: python
@@ -222,6 +251,25 @@ As an alternative to the decorator-based integration, a Flask method based views
    app.add_url_rule(
        '/home',
        view_func=MyView.as_view('home', spec),
+   )
+
+Additional customization parameters can be passed to the view.
+
+.. code-block:: python
+  :emphasize-lines: 10
+
+   from openapi_core.contrib.flask.views import FlaskOpenAPIView
+
+   class MyView(FlaskOpenAPIView):
+       def get(self):
+           return "Welcome home"
+
+   app.add_url_rule(
+       '/home',
+       view_func=MyView.as_view(
+           'home', spec,
+           extra_format_validators=extra_format_validators,
+       ),
    )
 
 Request parameters

@@ -1,4 +1,5 @@
 """OpenAPI core unmarshalling processors module"""
+from typing import Any
 from typing import Optional
 from typing import Type
 
@@ -20,6 +21,7 @@ class UnmarshallingProcessor:
         spec: Spec,
         request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
         response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
+        **unmarshaller_kwargs: Any,
     ):
         self.spec = spec
         if (
@@ -31,8 +33,12 @@ class UnmarshallingProcessor:
                 request_unmarshaller_cls = classes.request_unmarshaller_cls
             if response_unmarshaller_cls is None:
                 response_unmarshaller_cls = classes.response_unmarshaller_cls
-        self.request_unmarshaller = request_unmarshaller_cls(self.spec)
-        self.response_unmarshaller = response_unmarshaller_cls(self.spec)
+        self.request_unmarshaller = request_unmarshaller_cls(
+            self.spec, **unmarshaller_kwargs
+        )
+        self.response_unmarshaller = response_unmarshaller_cls(
+            self.spec, **unmarshaller_kwargs
+        )
 
     def process_request(self, request: Request) -> RequestUnmarshalResult:
         return self.request_unmarshaller.unmarshal(request)

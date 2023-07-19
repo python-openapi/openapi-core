@@ -32,11 +32,13 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor):
         request_class: Type[FalconOpenAPIRequest] = FalconOpenAPIRequest,
         response_class: Type[FalconOpenAPIResponse] = FalconOpenAPIResponse,
         errors_handler: Optional[FalconOpenAPIErrorsHandler] = None,
+        **unmarshaller_kwargs: Any,
     ):
         super().__init__(
             spec,
             request_unmarshaller_cls=request_unmarshaller_cls,
             response_unmarshaller_cls=response_unmarshaller_cls,
+            **unmarshaller_kwargs,
         )
         self.request_class = request_class or self.request_class
         self.response_class = response_class or self.response_class
@@ -51,6 +53,7 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor):
         request_class: Type[FalconOpenAPIRequest] = FalconOpenAPIRequest,
         response_class: Type[FalconOpenAPIResponse] = FalconOpenAPIResponse,
         errors_handler: Optional[FalconOpenAPIErrorsHandler] = None,
+        **unmarshaller_kwargs: Any,
     ) -> "FalconOpenAPIMiddleware":
         return cls(
             spec,
@@ -59,6 +62,7 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor):
             request_class=request_class,
             response_class=response_class,
             errors_handler=errors_handler,
+            **unmarshaller_kwargs,
         )
 
     def process_request(self, req: Request, resp: Response) -> None:  # type: ignore

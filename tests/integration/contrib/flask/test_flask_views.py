@@ -38,7 +38,9 @@ class TestFlaskOpenAPIView:
             def post(self, id):
                 return outer.view_response
 
-        return MyDetailsView.as_view("browse_details", spec)
+        return MyDetailsView.as_view(
+            "browse_details", spec, extra_media_type_deserializers={}
+        )
 
     @pytest.fixture
     def list_view_func(self, spec):
@@ -48,7 +50,9 @@ class TestFlaskOpenAPIView:
             def get(self):
                 return outer.view_response
 
-        return MyListView.as_view("browse_list", spec)
+        return MyListView.as_view(
+            "browse_list", spec, extra_format_validators={}
+        )
 
     @pytest.fixture(autouse=True)
     def view(self, app, details_view_func, list_view_func):
