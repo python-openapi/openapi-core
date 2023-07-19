@@ -173,7 +173,7 @@ class TestFlaskOpenAPIDecorator:
         }
         assert result.json == expected_data
 
-    def test_valid_response_object(self, client):
+    def test_response_object_valid(self, client):
         def view_response_callable(*args, **kwargs):
             from flask.globals import request
 
@@ -197,7 +197,28 @@ class TestFlaskOpenAPIDecorator:
             "data": "data",
         }
 
-    def test_valid_tuple_str(self, client):
+    @pytest.mark.parametrize(
+        "response,expected_status,expected_headers",
+        [
+            # ((body, status, headers)) response tuple
+            (
+                ("Not found", 404, {"X-Rate-Limit": "12"}),
+                404,
+                {"X-Rate-Limit": "12"},
+            ),
+            # (body, status) response tuple
+            (("Not found", 404), 404, {}),
+            # (body, headers) response tuple
+            (
+                ({"data": "data"}, {"X-Rate-Limit": "12"}),
+                200,
+                {"X-Rate-Limit": "12"},
+            ),
+        ],
+    )
+    def test_tuple_valid(
+        self, client, response, expected_status, expected_headers
+    ):
         def view_response_callable(*args, **kwargs):
             from flask.globals import request
 
@@ -208,35 +229,16 @@ class TestFlaskOpenAPIDecorator:
                     "id": 12,
                 }
             )
-            return ("Not found", 404)
+            return response
 
         self.view_response_callable = view_response_callable
 
         result = client.get("/browse/12/")
 
-        assert result.status_code == 404
-        assert result.text == "Not found"
-
-    def test_valid_tuple_dict(self, client):
-        def view_response_callable(*args, **kwargs):
-            from flask.globals import request
-
-            assert request.openapi
-            assert not request.openapi.errors
-            assert request.openapi.parameters == Parameters(
-                path={
-                    "id": 12,
-                }
-            )
-            body = dict(data="data")
-            headers = {"X-Rate-Limit": "12"}
-            return (body, headers)
-
-        self.view_response_callable = view_response_callable
-
-        result = client.get("/browse/12/")
-
-        assert result.status_code == 200
-        assert result.json == {
-            "data": "data",
-        }
+        assert result.status_code == expected_status
+        expected_body = response[0]
+        if isinstance(expected_body, str):
+            assert result.text == expected_body
+        else:
+            assert result.json == expected_body
+        assert dict(result.headers).items() >= expected_headers.items()

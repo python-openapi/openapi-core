@@ -36,11 +36,13 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         openapi_errors_handler: Type[
             FlaskOpenAPIErrorsHandler
         ] = FlaskOpenAPIErrorsHandler,
+        **unmarshaller_kwargs: Any,
     ):
         super().__init__(
             spec,
             request_unmarshaller_cls=request_unmarshaller_cls,
             response_unmarshaller_cls=response_unmarshaller_cls,
+            **unmarshaller_kwargs,
         )
         self.request_class = request_class
         self.response_class = response_class
@@ -73,7 +75,7 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         request_result: RequestUnmarshalResult,
         view: Callable[[Any], Response],
         *args: Any,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> Response:
         request = self._get_request()
         request.openapi = request_result  # type: ignore
@@ -113,6 +115,7 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         openapi_errors_handler: Type[
             FlaskOpenAPIErrorsHandler
         ] = FlaskOpenAPIErrorsHandler,
+        **unmarshaller_kwargs: Any,
     ) -> "FlaskOpenAPIViewDecorator":
         return cls(
             spec,
@@ -122,4 +125,5 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
             response_class=response_class,
             request_provider=request_provider,
             openapi_errors_handler=openapi_errors_handler,
+            **unmarshaller_kwargs,
         )

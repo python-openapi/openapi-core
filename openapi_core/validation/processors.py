@@ -1,4 +1,5 @@
 """OpenAPI core validation processors module"""
+from typing import Any
 from typing import Optional
 
 from openapi_core.protocols import Request
@@ -15,6 +16,7 @@ class ValidationProcessor:
         spec: Spec,
         request_validator_cls: Optional[RequestValidatorType] = None,
         response_validator_cls: Optional[ResponseValidatorType] = None,
+        **unmarshaller_kwargs: Any,
     ):
         self.spec = spec
         if request_validator_cls is None or response_validator_cls is None:
@@ -23,8 +25,12 @@ class ValidationProcessor:
                 request_validator_cls = classes.request_validator_cls
             if response_validator_cls is None:
                 response_validator_cls = classes.response_validator_cls
-        self.request_validator = request_validator_cls(self.spec)
-        self.response_validator = response_validator_cls(self.spec)
+        self.request_validator = request_validator_cls(
+            self.spec, **unmarshaller_kwargs
+        )
+        self.response_validator = response_validator_cls(
+            self.spec, **unmarshaller_kwargs
+        )
 
     def process_request(self, request: Request) -> None:
         self.request_validator.validate(request)
