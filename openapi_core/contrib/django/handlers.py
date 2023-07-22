@@ -1,5 +1,6 @@
 """OpenAPI core contrib django handlers module"""
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import Iterable
 from typing import Optional
@@ -14,6 +15,7 @@ from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.templating.security.exceptions import SecurityNotFound
+from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
 
 
 class DjangoOpenAPIErrorsHandler:
@@ -25,18 +27,15 @@ class DjangoOpenAPIErrorsHandler:
         MediaTypeNotFound: 415,
     }
 
-    @classmethod
-    def handle(
-        cls,
+    def __call__(
+        self,
         errors: Iterable[Exception],
-        req: HttpRequest,
-        resp: Optional[HttpResponse] = None,
     ) -> JsonResponse:
-        data_errors = [cls.format_openapi_error(err) for err in errors]
+        data_errors = [self.format_openapi_error(err) for err in errors]
         data = {
             "errors": data_errors,
         }
-        data_error_max = max(data_errors, key=cls.get_error_status)
+        data_error_max = max(data_errors, key=self.get_error_status)
         return JsonResponse(data, status=data_error_max["status"])
 
     @classmethod
@@ -52,3 +51,15 @@ class DjangoOpenAPIErrorsHandler:
     @classmethod
     def get_error_status(cls, error: Dict[str, Any]) -> str:
         return str(error["status"])
+
+
+class DjangoOpenAPIValidRequestHandler:
+    def __init__(self, req: HttpRequest, view: Callable[[Any], HttpResponse]):
+        self.req = req
+        self.view = view
+
+    def __call__(
+        self, request_unmarshal_result: RequestUnmarshalResult
+    ) -> HttpResponse:
+        self.req.openapi = request_unmarshal_result
+        return self.view(self.req)

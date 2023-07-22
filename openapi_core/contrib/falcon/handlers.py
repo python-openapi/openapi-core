@@ -15,6 +15,7 @@ from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.templating.security.exceptions import SecurityNotFound
+from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
 
 
 class FalconOpenAPIErrorsHandler:
@@ -26,24 +27,26 @@ class FalconOpenAPIErrorsHandler:
         MediaTypeNotFound: 415,
     }
 
-    @classmethod
-    def handle(
-        cls, req: Request, resp: Response, errors: Iterable[Exception]
-    ) -> None:
-        data_errors = [cls.format_openapi_error(err) for err in errors]
+    def __init__(self, req: Request, resp: Response):
+        self.req = req
+        self.resp = resp
+
+    def __call__(self, errors: Iterable[Exception]) -> Response:
+        data_errors = [self.format_openapi_error(err) for err in errors]
         data = {
             "errors": data_errors,
         }
         data_str = dumps(data)
-        data_error_max = max(data_errors, key=cls.get_error_status)
-        resp.content_type = MEDIA_JSON
-        resp.status = getattr(
+        data_error_max = max(data_errors, key=self.get_error_status)
+        self.resp.content_type = MEDIA_JSON
+        self.resp.status = getattr(
             status_codes,
             f"HTTP_{data_error_max['status']}",
             status_codes.HTTP_400,
         )
-        resp.text = data_str
-        resp.complete = True
+        self.resp.text = data_str
+        self.resp.complete = True
+        return self.resp
 
     @classmethod
     def format_openapi_error(cls, error: BaseException) -> Dict[str, Any]:
@@ -58,3 +61,15 @@ class FalconOpenAPIErrorsHandler:
     @classmethod
     def get_error_status(cls, error: Dict[str, Any]) -> int:
         return int(error["status"])
+
+
+class FalconOpenAPIValidRequestHandler:
+    def __init__(self, req: Request, resp: Response):
+        self.req = req
+        self.resp = resp
+
+    def __call__(
+        self, request_unmarshal_result: RequestUnmarshalResult
+    ) -> Response:
+        self.req.context.openapi = request_unmarshal_result
+        return self.resp
