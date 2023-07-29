@@ -12,10 +12,10 @@ Here's an example with scheme ``BasicAuth`` and ``ApiKeyAuth`` security schemes:
 
 .. code-block:: yaml
 
-   security:
+    security:
      - BasicAuth: []
      - ApiKeyAuth: []
-   components:
+    components:
      securitySchemes:
        BasicAuth:
          type: http
@@ -29,8 +29,8 @@ Security schemes data are accessible from `security` attribute of `RequestUnmars
 
 .. code-block:: python
 
-   # get basic auth decoded credentials
-   result.security['BasicAuth']
+    # get basic auth decoded credentials
+    result.security['BasicAuth']
 
-   # get api key
-   result.security['ApiKeyAuth']
+    # get api key
+    result.security['ApiKeyAuth']

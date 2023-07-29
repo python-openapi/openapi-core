@@ -11,9 +11,9 @@ from openapi_core.datatypes import RequestParameters
 # https://docs.djangoproject.com/en/stable/topics/http/urls/
 #
 # Currently unsupported are :
-#   - nested arguments, e.g.: ^comments/(?:page-(?P<page_number>\d+)/)?$
-#   - unnamed regex groups, e.g.: ^articles/([0-9]{4})/$
-#   - multiple named parameters between a single pair of slashes
+#    - nested arguments, e.g.: ^comments/(?:page-(?P<page_number>\d+)/)?$
+#    - unnamed regex groups, e.g.: ^articles/([0-9]{4})/$
+#    - multiple named parameters between a single pair of slashes
 #     e.g.: <page_slug>-<page_id>/edit/
 #
 # The regex matches everything, except a "/" until "<". Then only the name

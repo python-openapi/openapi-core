@@ -2,16 +2,16 @@ openapi-core
 ============
 
 .. toctree::
-   :hidden:
-   :maxdepth: 2
+    :hidden:
+    :maxdepth: 2
 
-   unmarshalling
-   validation
-   integrations
-   customizations
-   security
-   extensions
-   contributing
+    unmarshalling
+    validation
+    integrations
+    customizations
+    security
+    extensions
+    contributing
 
 Openapi-core is a Python library that adds client-side and server-side support
 for the `OpenAPI v3.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md>`__
@@ -30,13 +30,13 @@ Installation
 
 .. md-tab-set::
 
-   .. md-tab-item:: Pip + PyPI (recommented)
+    .. md-tab-item:: Pip + PyPI (recommented)
 
       .. code-block:: console
 
          pip install openapi-core
 
-   .. md-tab-item:: Pip + the source
+    .. md-tab-item:: Pip + the source
 
       .. code-block:: console
 
@@ -49,32 +49,32 @@ Firstly create your specification object.
 
 .. code-block:: python
 
-   from openapi_core import Spec
+    from openapi_core import Spec
 
-   spec = Spec.from_file_path('openapi.json')
+    spec = Spec.from_file_path('openapi.json')
 
 Now you can use it to validate and unmarshal your requests and/or responses. 
 
 .. code-block:: python
 
-   from openapi_core import unmarshal_request
+    from openapi_core import unmarshal_request
 
-   # raises error if request is invalid
-   result = unmarshal_request(request, spec=spec)
+    # raises error if request is invalid
+    result = unmarshal_request(request, spec=spec)
 
 Retrieve validated and unmarshalled request data
 
 .. code-block:: python
 
-   # get parameters
-   path_params = result.parameters.path
-   query_params = result.parameters.query
-   cookies_params = result.parameters.cookies
-   headers_params = result.parameters.headers
-   # get body
-   body = result.body
-   # get security data
-   security = result.security
+    # get parameters
+    path_params = result.parameters.path
+    query_params = result.parameters.query
+    cookies_params = result.parameters.cookies
+    headers_params = result.parameters.headers
+    # get body
+    body = result.body
+    # get security data
+    security = result.security
 
 Request object should implement OpenAPI Request protocol. Check :doc:`integrations` to find oficially supported implementations.
 
@@ -86,9 +86,9 @@ Related projects
 ----------------
 
 * `openapi-spec-validator <https://github.com/python-openapi/openapi-spec-validator>`__
-   Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger), OpenAPI 3.0 and OpenAPI 3.1 specification. The validator aims to check for full compliance with the Specification.
+    Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger), OpenAPI 3.0 and OpenAPI 3.1 specification. The validator aims to check for full compliance with the Specification.
 * `openapi-schema-validator <https://github.com/python-openapi/openapi-schema-validator>`__
-   Python library that validates schema against the OpenAPI Schema Specification v3.0 and OpenAPI Schema Specification v3.1.
+    Python library that validates schema against the OpenAPI Schema Specification v3.0 and OpenAPI Schema Specification v3.1.
 
 License
 -------
