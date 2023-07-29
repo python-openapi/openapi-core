@@ -45,13 +45,13 @@ Recommended way (via pip):
 
 .. code-block:: console
 
-   pip install openapi-core
+    pip install openapi-core
 
 Alternatively you can download the code and install from the repository:
 
 .. code-block:: console
 
-   pip install -e git+https://github.com/python-openapi/openapi-core.git#egg=openapi_core
+    pip install -e git+https://github.com/python-openapi/openapi-core.git#egg=openapi_core
 
 
 First steps
@@ -61,32 +61,32 @@ Firstly create your specification object.
 
 .. code-block:: python
 
-   from openapi_core import Spec
+    from openapi_core import Spec
 
-   spec = Spec.from_file_path('openapi.json')
+    spec = Spec.from_file_path('openapi.json')
 
 Now you can use it to validate and unmarshal against requests and/or responses. 
 
 .. code-block:: python
 
-   from openapi_core import unmarshal_request
+    from openapi_core import unmarshal_request
 
-   # raises error if request is invalid
-   result = unmarshal_request(request, spec=spec)
+    # raises error if request is invalid
+    result = unmarshal_request(request, spec=spec)
 
 Retrieve validated and unmarshalled request data
 
 .. code-block:: python
 
-   # get parameters
-   path_params = result.parameters.path
-   query_params = result.parameters.query
-   cookies_params = result.parameters.cookies
-   headers_params = result.parameters.headers
-   # get body
-   body = result.body
-   # get security data
-   security = result.security
+    # get parameters
+    path_params = result.parameters.path
+    query_params = result.parameters.query
+    cookies_params = result.parameters.cookies
+    headers_params = result.parameters.headers
+    # get body
+    body = result.body
+    # get security data
+    security = result.security
 
 Request object should implement OpenAPI Request protocol. Check `Integrations <https://openapi-core.readthedocs.io/en/latest/integrations.html>`__ to find officially supported implementations.
 
@@ -98,15 +98,15 @@ If you just want to validate your request/response data without unmarshalling, r
 Related projects
 ################
 * `openapi-spec-validator <https://github.com/python-openapi/openapi-spec-validator>`__
-   Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger), OpenAPI 3.0 and OpenAPI 3.1 specification. The validator aims to check for full compliance with the Specification.
+    Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger), OpenAPI 3.0 and OpenAPI 3.1 specification. The validator aims to check for full compliance with the Specification.
 * `openapi-schema-validator <https://github.com/python-openapi/openapi-schema-validator>`__
-   Python library that validates schema against the OpenAPI Schema Specification v3.0 and OpenAPI Schema Specification v3.1.
+    Python library that validates schema against the OpenAPI Schema Specification v3.0 and OpenAPI Schema Specification v3.1.
 * `bottle-openapi-3 <https://github.com/cope-systems/bottle-openapi-3>`__
-   OpenAPI 3.0 Support for the Bottle Web Framework
+    OpenAPI 3.0 Support for the Bottle Web Framework
 * `pyramid_openapi3 <https://github.com/niteoweb/pyramid_openapi3>`__
-   Pyramid addon for OpenAPI3 validation of requests and responses.
+    Pyramid addon for OpenAPI3 validation of requests and responses.
 * `tornado-openapi3 <https://github.com/correl/tornado-openapi3>`__
-   Tornado OpenAPI 3 request and response validation library.
+    Tornado OpenAPI 3 request and response validation library.
 
 
 License

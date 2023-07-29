@@ -11,12 +11,12 @@ If you know you have a valid specification already, disabling the validator can 
 .. code-block:: python
   :emphasize-lines: 5
 
-   from openapi_core import Spec
+    from openapi_core import Spec
 
-   spec = Spec.from_dict(
+    spec = Spec.from_dict(
        spec_dict,
        validator=None,
-   )
+    )
 
 Media type deserializers
 ------------------------
@@ -28,20 +28,20 @@ You can also define your own ones. Pass custom defined media type deserializers 
 .. code-block:: python
   :emphasize-lines: 13
 
-   def protobuf_deserializer(message):
+    def protobuf_deserializer(message):
        feature = route_guide_pb2.Feature()
        feature.ParseFromString(message)
        return feature
 
-   extra_media_type_deserializers = {
+    extra_media_type_deserializers = {
        'application/protobuf': protobuf_deserializer,
-   }
+    }
 
-   result = unmarshal_response(
+    result = unmarshal_response(
        request, response,
        spec=spec,
        extra_media_type_deserializers=extra_media_type_deserializers,
-   )
+    )
 
 Format validators
 -----------------
@@ -55,20 +55,20 @@ Here's how you could add support for a ``usdate`` format that handles dates of t
 .. code-block:: python
   :emphasize-lines: 13
 
-   import re
+    import re
 
-   def validate_usdate(value):
+    def validate_usdate(value):
        return bool(re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", value))
 
-   extra_format_validators = {
+    extra_format_validators = {
        'usdate': validate_usdate,
-   }
+    }
 
-   validate_response(
+    validate_response(
        request, response,
        spec=spec,
        extra_format_validators=extra_format_validators,
-   )
+    )
 
 Format unmarshallers
 --------------------
@@ -82,17 +82,17 @@ Here's an example with the ``usdate`` format that converts a value to date objec
 .. code-block:: python
   :emphasize-lines: 13
 
-   from datetime import datetime
+    from datetime import datetime
 
-   def unmarshal_usdate(value):
+    def unmarshal_usdate(value):
        return datetime.strptime(value, "%m/%d/%y").date
 
-   extra_format_unmarshallers = {
+    extra_format_unmarshallers = {
        'usdate': unmarshal_usdate,
-   }
+    }
 
-   result = unmarshal_response(
+    result = unmarshal_response(
        request, response,
        spec=spec,
        extra_format_unmarshallers=extra_format_unmarshallers,
-   )
+    )

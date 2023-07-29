@@ -33,7 +33,7 @@ Install `Poetry <https://python-poetry.org>`__ by following the `official instal
 
 .. code-block:: console
 
-   poetry config virtualenvs.in-project true
+    poetry config virtualenvs.in-project true
 
 Setup
 ^^^^^
@@ -42,13 +42,13 @@ To create a development environment and install the runtime and development depe
 
 .. code-block:: console
 
-   poetry install
+    poetry install
 
 Then enter the virtual environment created by Poetry:
 
 .. code-block:: console
 
-   poetry shell
+    poetry shell
 
 Static checks
 ^^^^^^^^^^^^^
@@ -59,18 +59,18 @@ To turn on pre-commit checks for commit operations in git, enter:
 
 .. code-block:: console
 
-   pre-commit install
+    pre-commit install
 
 To run all checks on your staged files, enter:
 
 .. code-block:: console
 
-   pre-commit run
+    pre-commit run
 
 To run all checks on all files, enter:
 
 .. code-block:: console
 
-   pre-commit run --all-files
+    pre-commit run --all-files
 
 Pre-commit check results are also attached to your PR through integration with Github Action.
