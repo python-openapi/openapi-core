@@ -305,17 +305,7 @@ class SchemaUnmarshaller:
         )
 
     def find_format(self, value: Any) -> Optional[str]:
-        for schema in self.iter_valid_schemas(value):
+        for schema in self.schema_validator.iter_valid_schemas(value):
             if "format" in schema:
                 return str(schema.getkey("format"))
         return None
-
-    def iter_valid_schemas(self, value: Any) -> Iterator[Spec]:
-        yield self.schema
-
-        one_of_schema = self.schema_validator.get_one_of_schema(value)
-        if one_of_schema is not None:
-            yield one_of_schema
-
-        yield from self.schema_validator.iter_any_of_schemas(value)
-        yield from self.schema_validator.iter_all_of_schemas(value)

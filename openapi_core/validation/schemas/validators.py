@@ -78,6 +78,16 @@ class SchemaValidator:
 
         return lambda x: True
 
+    def iter_valid_schemas(self, value: Any) -> Iterator[Spec]:
+        yield self.schema
+
+        one_of_schema = self.get_one_of_schema(value)
+        if one_of_schema is not None:
+            yield one_of_schema
+
+        yield from self.iter_any_of_schemas(value)
+        yield from self.iter_all_of_schemas(value)
+
     def get_one_of_schema(
         self,
         value: Any,
