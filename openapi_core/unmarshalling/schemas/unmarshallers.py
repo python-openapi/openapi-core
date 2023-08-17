@@ -273,6 +273,14 @@ class SchemaUnmarshaller:
         schema_format = self.find_format(value)
         if schema_format is None:
             return typed
+        # ignore incompatible formats
+        if not (
+            isinstance(value, str)
+            or
+            # Workaround allows bytes for binary and byte formats
+            (isinstance(value, bytes) and schema_format in ["binary", "byte"])
+        ):
+            return typed
         return self.formats_unmarshaller.unmarshal(schema_format, typed)
 
     def get_type_unmarshaller(

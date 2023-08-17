@@ -197,7 +197,8 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
         reason=(
             "Not registered format raises FormatterNotFoundError"
             "See https://github.com/python-openapi/openapi-core/issues/515"
-        )
+        ),
+        strict=True,
     )
     def test_schema_format_validator_format_invalid(
         self, schema_unmarshaller_factory, unmarshaller_factory
