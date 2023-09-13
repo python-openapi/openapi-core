@@ -8,6 +8,7 @@ from isodate.tzinfo import UTC
 from isodate.tzinfo import FixedOffset
 from jsonschema.exceptions import SchemaError
 from jsonschema.exceptions import UnknownType
+from pydantic import SecretStr
 
 from openapi_core import Spec
 from openapi_core.unmarshalling.schemas import (
@@ -165,7 +166,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ("int64", 13, 13),
             ("float", 3.14, 3.14),
             ("double", 3.14, 3.14),
-            ("password", "passwd", "passwd"),
+            ("password", "passwd", SecretStr("passwd")),
             ("date", "2018-12-13", date(2018, 12, 13)),
             (
                 "date-time",
@@ -204,7 +205,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ("integer", "int64", 13, 13),
             ("number", "float", 3.14, 3.14),
             ("number", "double", 3.14, 3.14),
-            ("string", "password", "passwd", "passwd"),
+            ("string", "password", "passwd", SecretStr("passwd")),
             ("string", "date", "2018-12-13", date(2018, 12, 13)),
             (
                 "string",
@@ -369,7 +370,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
 
         result = unmarshaller.unmarshal(value)
 
-        assert result == value
+        assert result == SecretStr(value)
 
     def test_string_uuid(self, unmarshallers_factory):
         schema = {
