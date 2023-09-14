@@ -100,6 +100,7 @@ ENV/
 
 # asdf versions
 .tool-versions
+.default-python-packages
 
 # mypy
 .mypy_cache/
