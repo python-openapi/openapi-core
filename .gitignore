@@ -98,6 +98,9 @@ ENV/
 # mkdocs documentation
 /site
 
+# asdf versions
+.tool-versions
+
 # mypy
 .mypy_cache/
 
