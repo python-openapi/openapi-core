@@ -9,22 +9,9 @@ from openapi_core import V30RequestUnmarshaller
 from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
 
-class TestWerkzeugOpenAPIValidation:
-    @pytest.fixture
-    def spec(self, factory):
-        specfile = "contrib/requests/data/v3.0/requests_factory.yaml"
-        return factory.spec_from_file(specfile)
-
-    @pytest.fixture
-    def app(self):
-        app = Flask("__main__", root_path="/browse")
-        app.config["DEBUG"] = True
-        app.config["TESTING"] = True
-        return app
-
-    @pytest.fixture
-    def details_view_func(self, spec):
-        def datails_browse(id):
+class TestFlaskOpenAPIValidation:
+    def test_request_validator_root_path(self, spec, app_factory):
+        def details_view_func(id):
             from flask import request
 
             openapi_request = FlaskOpenAPIRequest(request)
@@ -42,26 +29,18 @@ class TestWerkzeugOpenAPIValidation:
             else:
                 return Response("Not Found", status=404)
 
-        return datails_browse
-
-    @pytest.fixture(autouse=True)
-    def view(self, app, details_view_func):
+        app = app_factory(root_path="/browse")
         app.add_url_rule(
             "/<id>/",
             view_func=details_view_func,
             methods=["POST"],
         )
-
-    @pytest.fixture
-    def client(self, app):
-        return FlaskClient(app)
-
-    def test_request_validator_root_path(self, client):
         query_string = {
             "q": "string",
         }
         headers = {"content-type": "application/json"}
         data = {"param1": 1}
+        client = FlaskClient(app)
         result = client.post(
             "/12/",
             base_url="http://localhost/browse",

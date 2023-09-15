@@ -30,8 +30,10 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         spec: Spec,
         request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
         response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
-        request_class: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
-        response_class: Type[FlaskOpenAPIResponse] = FlaskOpenAPIResponse,
+        request_cls: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
+        response_cls: Optional[
+            Type[FlaskOpenAPIResponse]
+        ] = FlaskOpenAPIResponse,
         request_provider: Type[FlaskRequestProvider] = FlaskRequestProvider,
         openapi_errors_handler: Type[
             FlaskOpenAPIErrorsHandler
@@ -44,8 +46,8 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
             response_unmarshaller_cls=response_unmarshaller_cls,
             **unmarshaller_kwargs,
         )
-        self.request_class = request_class
-        self.response_class = response_class
+        self.request_cls = request_cls
+        self.response_cls = response_cls
         self.request_provider = request_provider
         self.openapi_errors_handler = openapi_errors_handler
 
@@ -60,6 +62,8 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
             response = self._handle_request_view(
                 request_result, view, *args, **kwargs
             )
+            if self.response_cls is None:
+                return response
             openapi_response = self._get_openapi_response(response)
             response_result = self.process_response(
                 openapi_request, openapi_response
@@ -96,12 +100,13 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         return request
 
     def _get_openapi_request(self, request: Request) -> FlaskOpenAPIRequest:
-        return self.request_class(request)
+        return self.request_cls(request)
 
     def _get_openapi_response(
         self, response: Response
     ) -> FlaskOpenAPIResponse:
-        return self.response_class(response)
+        assert self.response_cls is not None
+        return self.response_cls(response)
 
     @classmethod
     def from_spec(
@@ -109,8 +114,8 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         spec: Spec,
         request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
         response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
-        request_class: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
-        response_class: Type[FlaskOpenAPIResponse] = FlaskOpenAPIResponse,
+        request_cls: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
+        response_cls: Type[FlaskOpenAPIResponse] = FlaskOpenAPIResponse,
         request_provider: Type[FlaskRequestProvider] = FlaskRequestProvider,
         openapi_errors_handler: Type[
             FlaskOpenAPIErrorsHandler
@@ -121,8 +126,8 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
             spec,
             request_unmarshaller_cls=request_unmarshaller_cls,
             response_unmarshaller_cls=response_unmarshaller_cls,
-            request_class=request_class,
-            response_class=response_class,
+            request_cls=request_cls,
+            response_cls=response_cls,
             request_provider=request_provider,
             openapi_errors_handler=openapi_errors_handler,
             **unmarshaller_kwargs,

@@ -63,6 +63,22 @@ Django can be integrated by middleware. Add ``DjangoOpenAPIMiddleware`` to your 
 
     OPENAPI_SPEC = Spec.from_dict(spec_dict)
 
+You can skip response validation process: by setting ``OPENAPI_RESPONSE_CLS`` to ``None``
+
+.. code-block:: python
+  :emphasize-lines: 10
+
+    # settings.py
+    from openapi_core import Spec
+
+    MIDDLEWARE = [
+       # ...
+       'openapi_core.contrib.django.middlewares.DjangoOpenAPIMiddleware',
+    ]
+
+    OPENAPI_SPEC = Spec.from_dict(spec_dict)
+    OPENAPI_RESPONSE_CLS = None
+
 After that you have access to unmarshal result object with all validated request data from Django view through request object.
 
 .. code-block:: python
@@ -146,6 +162,23 @@ Additional customization parameters can be passed to the middleware.
        middleware=[openapi_middleware],
     )
 
+You can skip response validation process: by setting ``response_cls`` to ``None``
+
+.. code-block:: python
+  :emphasize-lines: 5
+
+    from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
+
+    openapi_middleware = FalconOpenAPIMiddleware.from_spec(
+       spec,
+       response_cls=None,
+    )
+
+    app = falcon.App(
+       # ...
+       middleware=[openapi_middleware],
+    )
+
 After that you will have access to validation result object with all validated request data from Falcon view through request context.
 
 .. code-block:: python
@@ -219,6 +252,18 @@ Additional customization parameters can be passed to the decorator.
     openapi = FlaskOpenAPIViewDecorator.from_spec(
        spec,
        extra_format_validators=extra_format_validators,
+    )
+
+You can skip response validation process: by setting ``response_cls`` to ``None``
+
+.. code-block:: python
+  :emphasize-lines: 5
+
+    from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
+
+    openapi = FlaskOpenAPIViewDecorator.from_spec(
+       spec,
+       response_cls=None,
     )
 
 If you want to decorate class based view you can use the decorators attribute:

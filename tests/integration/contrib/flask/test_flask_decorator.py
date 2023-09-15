@@ -7,57 +7,37 @@ from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 from openapi_core.datatypes import Parameters
 
 
+@pytest.fixture(scope="session")
+def decorator_factory(spec):
+    def create(**kwargs):
+        return FlaskOpenAPIViewDecorator.from_spec(spec, **kwargs)
+
+    return create
+
+
+@pytest.fixture(scope="session")
+def view_factory(decorator_factory):
+    def create(
+        app, path, methods=None, view_response_callable=None, decorator=None
+    ):
+        decorator = decorator or decorator_factory()
+
+        @app.route(path, methods=methods)
+        @decorator
+        def view(*args, **kwargs):
+            return view_response_callable(*args, **kwargs)
+
+        return view
+
+    return create
+
+
 class TestFlaskOpenAPIDecorator:
-    view_response_callable = None
-
     @pytest.fixture
-    def spec(self, factory):
-        specfile = "contrib/flask/data/v3.0/flask_factory.yaml"
-        return factory.spec_from_file(specfile)
+    def decorator(self, decorator_factory):
+        return decorator_factory()
 
-    @pytest.fixture
-    def decorator(self, spec):
-        return FlaskOpenAPIViewDecorator.from_spec(spec)
-
-    @pytest.fixture
-    def app(self):
-        app = Flask("__main__")
-        app.config["DEBUG"] = True
-        app.config["TESTING"] = True
-        return app
-
-    @pytest.fixture
-    def client(self, app):
-        with app.test_client() as client:
-            with app.app_context():
-                yield client
-
-    @pytest.fixture
-    def view_response(self):
-        def view_response(*args, **kwargs):
-            return self.view_response_callable(*args, **kwargs)
-
-        return view_response
-
-    @pytest.fixture(autouse=True)
-    def details_view(self, app, decorator, view_response):
-        @app.route("/browse/<id>/", methods=["GET", "POST"])
-        @decorator
-        def browse_details(*args, **kwargs):
-            return view_response(*args, **kwargs)
-
-        return browse_details
-
-    @pytest.fixture(autouse=True)
-    def list_view(self, app, decorator, view_response):
-        @app.route("/browse/")
-        @decorator
-        def browse_list(*args, **kwargs):
-            return view_response(*args, **kwargs)
-
-        return browse_list
-
-    def test_invalid_content_type(self, client):
+    def test_invalid_content_type(self, client, view_factory, app, decorator):
         def view_response_callable(*args, **kwargs):
             from flask.globals import request
 
@@ -72,7 +52,13 @@ class TestFlaskOpenAPIDecorator:
             resp.headers["X-Rate-Limit"] = "12"
             return resp
 
-        self.view_response_callable = view_response_callable
+        view_factory(
+            app,
+            "/browse/<id>/",
+            ["GET", "PUT"],
+            view_response_callable=view_response_callable,
+            decorator=decorator,
+        )
         result = client.get("/browse/12/")
 
         assert result.json == {
@@ -91,7 +77,14 @@ class TestFlaskOpenAPIDecorator:
             ]
         }
 
-    def test_server_error(self, client):
+    def test_server_error(self, client, view_factory, app, decorator):
+        view_factory(
+            app,
+            "/browse/<id>/",
+            ["GET", "PUT"],
+            view_response_callable=None,
+            decorator=decorator,
+        )
         result = client.get("/browse/12/", base_url="https://localhost")
 
         expected_data = {
@@ -112,8 +105,15 @@ class TestFlaskOpenAPIDecorator:
         assert result.status_code == 400
         assert result.json == expected_data
 
-    def test_operation_error(self, client):
-        result = client.post("/browse/12/")
+    def test_operation_error(self, client, view_factory, app, decorator):
+        view_factory(
+            app,
+            "/browse/<id>/",
+            ["GET", "PUT"],
+            view_response_callable=None,
+            decorator=decorator,
+        )
+        result = client.put("/browse/12/")
 
         expected_data = {
             "errors": [
@@ -124,7 +124,7 @@ class TestFlaskOpenAPIDecorator:
                     ),
                     "status": 405,
                     "title": (
-                        "Operation post not found for "
+                        "Operation put not found for "
                         "http://localhost/browse/{id}/"
                     ),
                 }
@@ -133,7 +133,13 @@ class TestFlaskOpenAPIDecorator:
         assert result.status_code == 405
         assert result.json == expected_data
 
-    def test_path_error(self, client):
+    def test_path_error(self, client, view_factory, app, decorator):
+        view_factory(
+            app,
+            "/browse/",
+            view_response_callable=None,
+            decorator=decorator,
+        )
         result = client.get("/browse/")
 
         expected_data = {
@@ -153,7 +159,14 @@ class TestFlaskOpenAPIDecorator:
         assert result.status_code == 404
         assert result.json == expected_data
 
-    def test_endpoint_error(self, client):
+    def test_endpoint_error(self, client, view_factory, app, decorator):
+        view_factory(
+            app,
+            "/browse/<id>/",
+            ["GET", "PUT"],
+            view_response_callable=None,
+            decorator=decorator,
+        )
         result = client.get("/browse/invalidparameter/")
 
         expected_data = {
@@ -173,7 +186,7 @@ class TestFlaskOpenAPIDecorator:
         }
         assert result.json == expected_data
 
-    def test_response_object_valid(self, client):
+    def test_response_object_valid(self, client, view_factory, app, decorator):
         def view_response_callable(*args, **kwargs):
             from flask.globals import request
 
@@ -188,7 +201,13 @@ class TestFlaskOpenAPIDecorator:
             resp.headers["X-Rate-Limit"] = "12"
             return resp
 
-        self.view_response_callable = view_response_callable
+        view_factory(
+            app,
+            "/browse/<id>/",
+            ["GET", "PUT"],
+            view_response_callable=view_response_callable,
+            decorator=decorator,
+        )
 
         result = client.get("/browse/12/")
 
@@ -196,6 +215,35 @@ class TestFlaskOpenAPIDecorator:
         assert result.json == {
             "data": "data",
         }
+
+    def test_response_skip_validation(
+        self, client, view_factory, app, decorator_factory
+    ):
+        def view_response_callable(*args, **kwargs):
+            from flask.globals import request
+
+            assert request.openapi
+            assert not request.openapi.errors
+            assert request.openapi.parameters == Parameters(
+                path={
+                    "id": 12,
+                }
+            )
+            return make_response("success", 200)
+
+        decorator = decorator_factory(response_cls=None)
+        view_factory(
+            app,
+            "/browse/<id>/",
+            ["GET", "PUT"],
+            view_response_callable=view_response_callable,
+            decorator=decorator,
+        )
+
+        result = client.get("/browse/12/")
+
+        assert result.status_code == 200
+        assert result.text == "success"
 
     @pytest.mark.parametrize(
         "response,expected_status,expected_headers",
@@ -217,7 +265,14 @@ class TestFlaskOpenAPIDecorator:
         ],
     )
     def test_tuple_valid(
-        self, client, response, expected_status, expected_headers
+        self,
+        client,
+        view_factory,
+        app,
+        decorator,
+        response,
+        expected_status,
+        expected_headers,
     ):
         def view_response_callable(*args, **kwargs):
             from flask.globals import request
@@ -231,7 +286,13 @@ class TestFlaskOpenAPIDecorator:
             )
             return response
 
-        self.view_response_callable = view_response_callable
+        view_factory(
+            app,
+            "/browse/<id>/",
+            ["GET", "PUT"],
+            view_response_callable=view_response_callable,
+            decorator=decorator,
+        )
 
         result = client.get("/browse/12/")
 

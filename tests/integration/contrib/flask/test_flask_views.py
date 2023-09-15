@@ -6,62 +6,50 @@ from flask import make_response
 from openapi_core.contrib.flask.views import FlaskOpenAPIView
 
 
+@pytest.fixture(scope="session")
+def view_factory():
+    def create(
+        spec,
+        methods=None,
+        extra_media_type_deserializers=None,
+        extra_format_validators=None,
+    ):
+        if methods is None:
+
+            def get(view, id):
+                return make_response("success", 200)
+
+            methods = {
+                "get": get,
+            }
+        MyView = type("MyView", (FlaskOpenAPIView,), methods)
+        extra_media_type_deserializers = extra_media_type_deserializers or {}
+        extra_format_validators = extra_format_validators or {}
+        return MyView.as_view(
+            "myview",
+            spec,
+            extra_media_type_deserializers=extra_media_type_deserializers,
+            extra_format_validators=extra_format_validators,
+        )
+
+    return create
+
+
 class TestFlaskOpenAPIView:
-    view_response = None
-
     @pytest.fixture
-    def spec(self, factory):
-        specfile = "contrib/flask/data/v3.0/flask_factory.yaml"
-        return factory.spec_from_file(specfile)
+    def client(self, client_factory, app):
+        client = client_factory(app)
+        with app.app_context():
+            yield client
 
-    @pytest.fixture
-    def app(self):
-        app = Flask("__main__")
-        app.config["DEBUG"] = True
-        app.config["TESTING"] = True
-        return app
+    def test_invalid_content_type(self, client, app, spec, view_factory):
+        def get(view, id):
+            view_response = make_response("success", 200)
+            view_response.headers["X-Rate-Limit"] = "12"
+            return view_response
 
-    @pytest.fixture
-    def client(self, app):
-        with app.test_client() as client:
-            with app.app_context():
-                yield client
-
-    @pytest.fixture
-    def details_view_func(self, spec):
-        outer = self
-
-        class MyDetailsView(FlaskOpenAPIView):
-            def get(self, id):
-                return outer.view_response
-
-            def post(self, id):
-                return outer.view_response
-
-        return MyDetailsView.as_view(
-            "browse_details", spec, extra_media_type_deserializers={}
-        )
-
-    @pytest.fixture
-    def list_view_func(self, spec):
-        outer = self
-
-        class MyListView(FlaskOpenAPIView):
-            def get(self):
-                return outer.view_response
-
-        return MyListView.as_view(
-            "browse_list", spec, extra_format_validators={}
-        )
-
-    @pytest.fixture(autouse=True)
-    def view(self, app, details_view_func, list_view_func):
-        app.add_url_rule("/browse/<id>/", view_func=details_view_func)
-        app.add_url_rule("/browse/", view_func=list_view_func)
-
-    def test_invalid_content_type(self, client):
-        self.view_response = make_response("success", 200)
-        self.view_response.headers["X-Rate-Limit"] = "12"
+        view_func = view_factory(spec, {"get": get})
+        app.add_url_rule("/browse/<id>/", view_func=view_func)
 
         result = client.get("/browse/12/")
 
@@ -82,7 +70,10 @@ class TestFlaskOpenAPIView:
             ]
         }
 
-    def test_server_error(self, client):
+    def test_server_error(self, client, app, spec, view_factory):
+        view_func = view_factory(spec)
+        app.add_url_rule("/browse/<id>/", view_func=view_func)
+
         result = client.get("/browse/12/", base_url="https://localhost")
 
         expected_data = {
@@ -103,8 +94,14 @@ class TestFlaskOpenAPIView:
         assert result.status_code == 400
         assert result.json == expected_data
 
-    def test_operation_error(self, client):
-        result = client.post("/browse/12/")
+    def test_operation_error(self, client, app, spec, view_factory):
+        def put(view, id):
+            return make_response("success", 200)
+
+        view_func = view_factory(spec, {"put": put})
+        app.add_url_rule("/browse/<id>/", view_func=view_func)
+
+        result = client.put("/browse/12/")
 
         expected_data = {
             "errors": [
@@ -115,7 +112,7 @@ class TestFlaskOpenAPIView:
                     ),
                     "status": 405,
                     "title": (
-                        "Operation post not found for "
+                        "Operation put not found for "
                         "http://localhost/browse/{id}/"
                     ),
                 }
@@ -124,7 +121,10 @@ class TestFlaskOpenAPIView:
         assert result.status_code == 405
         assert result.json == expected_data
 
-    def test_path_error(self, client):
+    def test_path_error(self, client, app, spec, view_factory):
+        view_func = view_factory(spec)
+        app.add_url_rule("/browse/", view_func=view_func)
+
         result = client.get("/browse/")
 
         expected_data = {
@@ -144,7 +144,10 @@ class TestFlaskOpenAPIView:
         assert result.status_code == 404
         assert result.json == expected_data
 
-    def test_endpoint_error(self, client):
+    def test_endpoint_error(self, client, app, spec, view_factory):
+        view_func = view_factory(spec)
+        app.add_url_rule("/browse/<id>/", view_func=view_func)
+
         result = client.get("/browse/invalidparameter/")
 
         expected_data = {
@@ -165,8 +168,12 @@ class TestFlaskOpenAPIView:
         assert result.status_code == 400
         assert result.json == expected_data
 
-    def test_missing_required_header(self, client):
-        self.view_response = jsonify(data="data")
+    def test_missing_required_header(self, client, app, spec, view_factory):
+        def get(view, id):
+            return jsonify(data="data")
+
+        view_func = view_factory(spec, {"get": get})
+        app.add_url_rule("/browse/<id>/", view_func=view_func)
 
         result = client.get("/browse/12/")
 
@@ -185,9 +192,14 @@ class TestFlaskOpenAPIView:
         assert result.status_code == 400
         assert result.json == expected_data
 
-    def test_valid(self, client):
-        self.view_response = jsonify(data="data")
-        self.view_response.headers["X-Rate-Limit"] = "12"
+    def test_valid(self, client, app, spec, view_factory):
+        def get(view, id):
+            resp = jsonify(data="data")
+            resp.headers["X-Rate-Limit"] = "12"
+            return resp
+
+        view_func = view_factory(spec, {"get": get})
+        app.add_url_rule("/browse/<id>/", view_func=view_func)
 
         result = client.get("/browse/12/")
 

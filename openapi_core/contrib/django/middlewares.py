@@ -18,8 +18,8 @@ from openapi_core.unmarshalling.response.datatypes import (
 
 
 class DjangoOpenAPIMiddleware:
-    request_class = DjangoOpenAPIRequest
-    response_class = DjangoOpenAPIResponse
+    request_cls = DjangoOpenAPIRequest
+    response_cls = DjangoOpenAPIResponse
     errors_handler = DjangoOpenAPIErrorsHandler()
 
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
@@ -27,6 +27,9 @@ class DjangoOpenAPIMiddleware:
 
         if not hasattr(settings, "OPENAPI_SPEC"):
             raise ImproperlyConfigured("OPENAPI_SPEC not defined in settings")
+
+        if hasattr(settings, "OPENAPI_RESPONSE_CLS"):
+            self.response_cls = settings.OPENAPI_RESPONSE_CLS
 
         self.processor = UnmarshallingProcessor(settings.OPENAPI_SPEC)
 
@@ -39,6 +42,8 @@ class DjangoOpenAPIMiddleware:
             request.openapi = req_result
             response = self.get_response(request)
 
+        if self.response_cls is None:
+            return response
         openapi_response = self._get_openapi_response(response)
         resp_result = self.processor.process_response(
             openapi_request, openapi_response
@@ -64,9 +69,10 @@ class DjangoOpenAPIMiddleware:
     def _get_openapi_request(
         self, request: HttpRequest
     ) -> DjangoOpenAPIRequest:
-        return self.request_class(request)
+        return self.request_cls(request)
 
     def _get_openapi_response(
         self, response: HttpResponse
     ) -> DjangoOpenAPIResponse:
-        return self.response_class(response)
+        assert self.response_cls is not None
+        return self.response_cls(response)
