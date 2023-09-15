@@ -3,23 +3,24 @@ from typing import Callable
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.http import JsonResponse
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 
 from openapi_core.contrib.django.handlers import DjangoOpenAPIErrorsHandler
+from openapi_core.contrib.django.handlers import (
+    DjangoOpenAPIValidRequestHandler,
+)
 from openapi_core.contrib.django.requests import DjangoOpenAPIRequest
 from openapi_core.contrib.django.responses import DjangoOpenAPIResponse
 from openapi_core.unmarshalling.processors import UnmarshallingProcessor
-from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
-from openapi_core.unmarshalling.response.datatypes import (
-    ResponseUnmarshalResult,
-)
 
 
-class DjangoOpenAPIMiddleware:
+class DjangoOpenAPIMiddleware(
+    UnmarshallingProcessor[HttpRequest, HttpResponse]
+):
     request_cls = DjangoOpenAPIRequest
     response_cls = DjangoOpenAPIResponse
+    valid_request_handler_cls = DjangoOpenAPIValidRequestHandler
     errors_handler = DjangoOpenAPIErrorsHandler()
 
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
@@ -31,40 +32,17 @@ class DjangoOpenAPIMiddleware:
         if hasattr(settings, "OPENAPI_RESPONSE_CLS"):
             self.response_cls = settings.OPENAPI_RESPONSE_CLS
 
-        self.processor = UnmarshallingProcessor(settings.OPENAPI_SPEC)
+        super().__init__(settings.OPENAPI_SPEC)
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
-        openapi_request = self._get_openapi_request(request)
-        req_result = self.processor.process_request(openapi_request)
-        if req_result.errors:
-            response = self._handle_request_errors(req_result, request)
-        else:
-            request.openapi = req_result
-            response = self.get_response(request)
-
-        if self.response_cls is None:
-            return response
-        openapi_response = self._get_openapi_response(response)
-        resp_result = self.processor.process_response(
-            openapi_request, openapi_response
+        valid_request_handler = self.valid_request_handler_cls(
+            request, self.get_response
         )
-        if resp_result.errors:
-            return self._handle_response_errors(resp_result, request, response)
+        response = self.handle_request(
+            request, valid_request_handler, self.errors_handler
+        )
 
-        return response
-
-    def _handle_request_errors(
-        self, request_result: RequestUnmarshalResult, req: HttpRequest
-    ) -> JsonResponse:
-        return self.errors_handler.handle(request_result.errors, req, None)
-
-    def _handle_response_errors(
-        self,
-        response_result: ResponseUnmarshalResult,
-        req: HttpRequest,
-        resp: HttpResponse,
-    ) -> JsonResponse:
-        return self.errors_handler.handle(response_result.errors, req, resp)
+        return self.handle_response(request, response, self.errors_handler)
 
     def _get_openapi_request(
         self, request: HttpRequest
@@ -76,3 +54,6 @@ class DjangoOpenAPIMiddleware:
     ) -> DjangoOpenAPIResponse:
         assert self.response_cls is not None
         return self.response_cls(response)
+
+    def _validate_response(self) -> bool:
+        return self.response_cls is not None

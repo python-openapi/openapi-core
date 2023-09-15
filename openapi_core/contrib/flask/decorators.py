@@ -6,25 +6,26 @@ from typing import Optional
 from typing import Type
 
 from flask.globals import request
-from flask.helpers import make_response
 from flask.wrappers import Request
 from flask.wrappers import Response
 
 from openapi_core.contrib.flask.handlers import FlaskOpenAPIErrorsHandler
+from openapi_core.contrib.flask.handlers import FlaskOpenAPIValidRequestHandler
 from openapi_core.contrib.flask.providers import FlaskRequestProvider
 from openapi_core.contrib.flask.requests import FlaskOpenAPIRequest
 from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
 from openapi_core.spec import Spec
 from openapi_core.unmarshalling.processors import UnmarshallingProcessor
-from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
 from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
-from openapi_core.unmarshalling.response.datatypes import (
-    ResponseUnmarshalResult,
-)
 from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 
 
-class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
+class FlaskOpenAPIViewDecorator(UnmarshallingProcessor[Request, Response]):
+    valid_request_handler_cls = FlaskOpenAPIValidRequestHandler
+    errors_handler_cls: Type[
+        FlaskOpenAPIErrorsHandler
+    ] = FlaskOpenAPIErrorsHandler
+
     def __init__(
         self,
         spec: Spec,
@@ -35,7 +36,7 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
             Type[FlaskOpenAPIResponse]
         ] = FlaskOpenAPIResponse,
         request_provider: Type[FlaskRequestProvider] = FlaskRequestProvider,
-        openapi_errors_handler: Type[
+        errors_handler_cls: Type[
             FlaskOpenAPIErrorsHandler
         ] = FlaskOpenAPIErrorsHandler,
         **unmarshaller_kwargs: Any,
@@ -49,52 +50,22 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         self.request_cls = request_cls
         self.response_cls = response_cls
         self.request_provider = request_provider
-        self.openapi_errors_handler = openapi_errors_handler
+        self.errors_handler_cls = errors_handler_cls
 
     def __call__(self, view: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(view)
         def decorated(*args: Any, **kwargs: Any) -> Response:
             request = self._get_request()
-            openapi_request = self._get_openapi_request(request)
-            request_result = self.process_request(openapi_request)
-            if request_result.errors:
-                return self._handle_request_errors(request_result)
-            response = self._handle_request_view(
-                request_result, view, *args, **kwargs
+            valid_request_handler = self.valid_request_handler_cls(
+                request, view, *args, **kwargs
             )
-            if self.response_cls is None:
-                return response
-            openapi_response = self._get_openapi_response(response)
-            response_result = self.process_response(
-                openapi_request, openapi_response
+            errors_handler = self.errors_handler_cls()
+            response = self.handle_request(
+                request, valid_request_handler, errors_handler
             )
-            if response_result.errors:
-                return self._handle_response_errors(response_result)
-            return response
+            return self.handle_response(request, response, errors_handler)
 
         return decorated
-
-    def _handle_request_view(
-        self,
-        request_result: RequestUnmarshalResult,
-        view: Callable[[Any], Response],
-        *args: Any,
-        **kwargs: Any,
-    ) -> Response:
-        request = self._get_request()
-        request.openapi = request_result  # type: ignore
-        rv = view(*args, **kwargs)
-        return make_response(rv)
-
-    def _handle_request_errors(
-        self, request_result: RequestUnmarshalResult
-    ) -> Response:
-        return self.openapi_errors_handler.handle(request_result.errors)
-
-    def _handle_response_errors(
-        self, response_result: ResponseUnmarshalResult
-    ) -> Response:
-        return self.openapi_errors_handler.handle(response_result.errors)
 
     def _get_request(self) -> Request:
         return request
@@ -108,6 +79,9 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         assert self.response_cls is not None
         return self.response_cls(response)
 
+    def _validate_response(self) -> bool:
+        return self.response_cls is not None
+
     @classmethod
     def from_spec(
         cls,
@@ -117,7 +91,7 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
         request_cls: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
         response_cls: Type[FlaskOpenAPIResponse] = FlaskOpenAPIResponse,
         request_provider: Type[FlaskRequestProvider] = FlaskRequestProvider,
-        openapi_errors_handler: Type[
+        errors_handler_cls: Type[
             FlaskOpenAPIErrorsHandler
         ] = FlaskOpenAPIErrorsHandler,
         **unmarshaller_kwargs: Any,
@@ -129,6 +103,6 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor):
             request_cls=request_cls,
             response_cls=response_cls,
             request_provider=request_provider,
-            openapi_errors_handler=openapi_errors_handler,
+            errors_handler_cls=errors_handler_cls,
             **unmarshaller_kwargs,
         )

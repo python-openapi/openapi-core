@@ -15,13 +15,14 @@ class FlaskOpenAPIView(MethodView):
 
     def __init__(self, spec: Spec, **unmarshaller_kwargs: Any):
         super().__init__()
-        self.spec = spec
 
         self.decorator = FlaskOpenAPIViewDecorator(
-            self.spec,
-            openapi_errors_handler=self.openapi_errors_handler,
+            spec,
+            errors_handler_cls=self.openapi_errors_handler,
             **unmarshaller_kwargs,
         )
 
     def dispatch_request(self, *args: Any, **kwargs: Any) -> Any:
-        return self.decorator(super().dispatch_request)(*args, **kwargs)
+        response = self.decorator(super().dispatch_request)(*args, **kwargs)
+
+        return response
