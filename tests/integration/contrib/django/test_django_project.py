@@ -5,6 +5,7 @@ from json import dumps
 from unittest import mock
 
 import pytest
+from django.test.utils import override_settings
 
 
 class BaseTestDjangoProject:
@@ -372,3 +373,25 @@ class TestDRFPetListView(BaseTestDRF):
 
         assert response.status_code == 201
         assert not response.content
+
+
+class TestDRFTagListView(BaseTestDRF):
+    def test_get_response_invalid(self, client):
+        headers = {
+            "HTTP_AUTHORIZATION": "Basic testuser",
+            "HTTP_HOST": "petstore.swagger.io",
+        }
+        response = client.get("/v1/tags", **headers)
+
+        assert response.status_code == 415
+
+    def test_get_skip_response_validation(self, client):
+        headers = {
+            "HTTP_AUTHORIZATION": "Basic testuser",
+            "HTTP_HOST": "petstore.swagger.io",
+        }
+        with override_settings(OPENAPI_RESPONSE_CLS=None):
+            response = client.get("/v1/tags", **headers)
+
+        assert response.status_code == 200
+        assert response.content == b"success"

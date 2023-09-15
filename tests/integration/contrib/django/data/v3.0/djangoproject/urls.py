@@ -16,7 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include
 from django.urls import path
-from djangoproject.pets import views
+from djangoproject.pets.views import PetDetailView
+from djangoproject.pets.views import PetListView
+from djangoproject.tags.views import TagListView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -26,12 +28,17 @@ urlpatterns = [
     ),
     path(
         "v1/pets",
-        views.PetListView.as_view(),
+        PetListView.as_view(),
         name="pet_list_view",
     ),
     path(
         "v1/pets/<int:petId>",
-        views.PetDetailView.as_view(),
+        PetDetailView.as_view(),
         name="pet_detail_view",
+    ),
+    path(
+        "v1/tags",
+        TagListView.as_view(),
+        name="tag_list_view",
     ),
 ]
