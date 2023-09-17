@@ -1,18 +1,26 @@
 """OpenAPI core contrib django responses module"""
+from itertools import tee
+
 from django.http.response import HttpResponse
+from django.http.response import StreamingHttpResponse
 from werkzeug.datastructures import Headers
 
 
 class DjangoOpenAPIResponse:
     def __init__(self, response: HttpResponse):
-        if not isinstance(response, HttpResponse):
+        if not isinstance(response, (HttpResponse, StreamingHttpResponse)):
             raise TypeError(
-                f"'response' argument is not type of {HttpResponse}"
+                f"'response' argument is not type of {HttpResponse} or {StreamingHttpResponse}"
             )
         self.response = response
 
     @property
     def data(self) -> str:
+        if isinstance(self.response, StreamingHttpResponse):
+            resp_iter1, resp_iter2 = tee(self.response._iterator)
+            self.response.streaming_content = resp_iter1
+            content = b"".join(map(self.response.make_bytes, resp_iter2))
+            return content
         assert isinstance(self.response.content, bytes)
         return self.response.content.decode("utf-8")
 
