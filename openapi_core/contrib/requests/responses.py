@@ -12,7 +12,10 @@ class RequestsOpenAPIResponse:
     @property
     def data(self) -> str:
         assert isinstance(self.response.content, bytes)
-        return self.response.content.decode("utf-8")
+        try:
+            return self.response.content.decode("utf-8")
+        except UnicodeDecodeError:
+            return self.response.content
 
     @property
     def status_code(self) -> int:
