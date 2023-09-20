@@ -365,3 +365,51 @@ class TestPetDetailResource:
         }
         assert response.status_code == 405
         assert response.json == expected_data
+
+
+class TestPetPhotoResource(BaseTestFalconProject):
+    @pytest.mark.xfail(
+        reason="response binary format not supported",
+        strict=True,
+    )
+    def test_get_valid(self, client, data_gif):
+        cookies = {"user": 1}
+        headers = {
+            "Authorization": "Basic testuser",
+            "Api-Key": self.api_key_encoded,
+        }
+
+        response = client.simulate_get(
+            "/v1/pets/1/photo",
+            host="petstore.swagger.io",
+            headers=headers,
+            cookies=cookies,
+        )
+
+        assert response.content == data_gif
+        assert response.status_code == 200
+
+    @pytest.mark.xfail(
+        reason="request binary format not supported",
+        strict=True,
+    )
+    def test_post_valid(self, client, data_json):
+        cookies = {"user": 1}
+        content_type = "image/gif"
+        headers = {
+            "Authorization": "Basic testuser",
+            "Api-Key": self.api_key_encoded,
+            "Content-Type": content_type,
+        }
+        body = dumps(data_json)
+
+        response = client.simulate_post(
+            "/v1/pets/1/photo",
+            host="petstore.swagger.io",
+            headers=headers,
+            body=body,
+            cookies=cookies,
+        )
+
+        assert not response.content
+        assert response.status_code == 201

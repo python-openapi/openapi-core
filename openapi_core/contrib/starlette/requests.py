@@ -45,7 +45,7 @@ class StarletteOpenAPIRequest:
 
     @property
     def mimetype(self) -> str:
-        content_type = self.request.headers["Content-Type"]
+        content_type = self.request.headers.get("Content-Type")
         if content_type:
             return content_type.partition(";")[0]
 

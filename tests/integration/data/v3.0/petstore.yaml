@@ -173,6 +173,56 @@ paths:
                 format: binary
         default:
           $ref: "#/components/responses/ErrorResponse"
+  /pets/{petId}/photo:
+    get:
+      summary: Photo for a specific pet
+      operationId: showPetPhotoById
+      tags:
+        - pets
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          description: The id of the pet to retrieve
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      summary: Create a pet photo
+      description: Creates new pet photo entry
+      operationId: createPetPhotoById
+      tags:
+        - pets
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          description: The id of the pet to retrieve
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: Null response
+        default:
+          $ref: "#/components/responses/ErrorResponse"
   /tags:
     get:
       summary: List all tags

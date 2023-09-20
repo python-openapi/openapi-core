@@ -282,13 +282,13 @@ class TestPetstore:
                     if "$ref" in schema_spec:
                         continue
 
-                    schema = content.get("schema")
+                    schema = media_type.get("schema")
                     assert bool(schema_spec) == bool(schema)
 
-                    assert schema.type.value == schema_spec["type"]
-                    assert schema.format == schema_spec.get("format")
-                    assert schema.required == schema_spec.get(
-                        "required", False
+                    assert schema["type"] == schema_spec["type"]
+                    assert schema.getkey("format") == schema_spec.get("format")
+                    assert schema.getkey("required") == schema_spec.get(
+                        "required"
                     )
 
         components = spec.get("components")

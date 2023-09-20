@@ -14,7 +14,7 @@ from openapi_core.contrib.starlette import StarletteOpenAPIRequest
 from openapi_core.contrib.starlette import StarletteOpenAPIResponse
 
 
-class TestStarletteOpenAPIValidation:
+class TestV30StarletteFactory:
     @pytest.fixture
     def spec(self, factory):
         specfile = "contrib/starlette/data/v3.0/starlette_factory.yaml"

@@ -18,6 +18,7 @@ from django.urls import include
 from django.urls import path
 from djangoproject.pets.views import PetDetailView
 from djangoproject.pets.views import PetListView
+from djangoproject.pets.views import PetPhotoView
 from djangoproject.tags.views import TagListView
 
 urlpatterns = [
@@ -35,6 +36,11 @@ urlpatterns = [
         "v1/pets/<int:petId>",
         PetDetailView.as_view(),
         name="pet_detail_view",
+    ),
+    path(
+        "v1/pets/<int:petId>/photo",
+        PetPhotoView.as_view(),
+        name="pet_photo_view",
     ),
     path(
         "v1/tags",

@@ -15,7 +15,7 @@ from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
 class TestWerkzeugOpenAPIValidation:
     @pytest.fixture
     def spec(self, factory):
-        specfile = "contrib/requests/data/v3.0/requests_factory.yaml"
+        specfile = "contrib/requests/data/v3.1/requests_factory.yaml"
         return factory.spec_from_file(specfile)
 
     @pytest.fixture

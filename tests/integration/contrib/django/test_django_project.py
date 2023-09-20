@@ -395,3 +395,38 @@ class TestDRFTagListView(BaseTestDRF):
 
         assert response.status_code == 200
         assert response.content == b"success"
+
+
+class TestPetPhotoView(BaseTestDjangoProject):
+    @pytest.mark.xfail(
+        reason="response binary format not supported",
+        strict=True,
+    )
+    def test_get_valid(self, client, data_gif):
+        headers = {
+            "HTTP_AUTHORIZATION": "Basic testuser",
+            "HTTP_HOST": "petstore.swagger.io",
+        }
+        response = client.get("/v1/pets/12/photo", **headers)
+
+        assert response.status_code == 200
+        assert b"".join(list(response.streaming_content)) == data_gif
+
+    @pytest.mark.xfail(
+        reason="request binary format not supported",
+        strict=True,
+    )
+    def test_post_valid(self, client, data_gif):
+        client.cookies.load({"user": 1})
+        content_type = "image/gif"
+        headers = {
+            "HTTP_AUTHORIZATION": "Basic testuser",
+            "HTTP_HOST": "petstore.swagger.io",
+            "HTTP_API_KEY": self.api_key_encoded,
+        }
+        response = client.post(
+            "/v1/pets/12/photo", data_gif, content_type, secure=True, **headers
+        )
+
+        assert response.status_code == 201
+        assert not response.content

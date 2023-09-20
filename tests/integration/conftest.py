@@ -1,3 +1,4 @@
+from base64 import b64decode
 from os import path
 from urllib import request
 
@@ -23,6 +24,19 @@ def spec_from_url(base_uri):
     content = request.urlopen(base_uri)
     spec_dict = safe_load(content)
     return Spec.from_dict(spec_dict, base_uri=base_uri)
+
+
+@pytest.fixture(scope="session")
+def data_gif():
+    return b64decode(
+        """
+R0lGODlhEAAQAMQAAO3t7eHh4srKyvz8/P5pDP9rENLS0v/28P/17tXV1dHEvPDw8M3Nzfn5+d3d
+3f5jA97Syvnv6MfLzcfHx/1mCPx4Kc/S1Pf189C+tP+xgv/k1N3OxfHy9NLV1/39/f///yH5BAAA
+AAAALAAAAAAQABAAAAVq4CeOZGme6KhlSDoexdO6H0IUR+otwUYRkMDCUwIYJhLFTyGZJACAwQcg
+EAQ4kVuEE2AIGAOPQQAQwXCfS8KQGAwMjIYIUSi03B7iJ+AcnmclHg4TAh0QDzIpCw4WGBUZeikD
+Fzk0lpcjIQA7
+"""
+    )
 
 
 class Factory(dict):

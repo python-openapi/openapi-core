@@ -1,3 +1,7 @@
+from base64 import b64decode
+
+from django.conf import settings
+from django.http import FileResponse
 from django.http import HttpResponse
 from django.http import JsonResponse
 from rest_framework.views import APIView
@@ -76,6 +80,43 @@ class PetDetailView(APIView):
         }
         django_response = JsonResponse(response_dict)
         django_response["X-Rate-Limit"] = "12"
+        return django_response
+
+    @staticmethod
+    def get_extra_actions():
+        return []
+
+
+class PetPhotoView(APIView):
+    OPENID_LOGO = b64decode(
+        """
+R0lGODlhEAAQAMQAAO3t7eHh4srKyvz8/P5pDP9rENLS0v/28P/17tXV1dHEvPDw8M3Nzfn5+d3d
+3f5jA97Syvnv6MfLzcfHx/1mCPx4Kc/S1Pf189C+tP+xgv/k1N3OxfHy9NLV1/39/f///yH5BAAA
+AAAALAAAAAAQABAAAAVq4CeOZGme6KhlSDoexdO6H0IUR+otwUYRkMDCUwIYJhLFTyGZJACAwQcg
+EAQ4kVuEE2AIGAOPQQAQwXCfS8KQGAwMjIYIUSi03B7iJ+AcnmclHg4TAh0QDzIpCw4WGBUZeikD
+Fzk0lpcjIQA7
+"""
+    )
+
+    def get(self, request, petId):
+        assert request.openapi
+        assert not request.openapi.errors
+        assert request.openapi.parameters.path == {
+            "petId": 12,
+        }
+        django_response = FileResponse(
+            [self.OPENID_LOGO],
+            content_type="image/gif",
+        )
+        return django_response
+
+    def post(self, request):
+        assert request.openapi
+        assert not request.openapi.errors
+
+        # implement file upload here
+
+        django_response = HttpResponse(status=201)
 
         return django_response
 
