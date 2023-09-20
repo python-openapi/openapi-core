@@ -17,7 +17,10 @@ class AIOHTTPOpenAPIWebResponse:
         if self.response.body is None:
             return ""
         if isinstance(self.response.body, bytes):
-            return self.response.body.decode("utf-8")
+            try:
+                return self.response.body.decode("utf-8")
+            except UnicodeDecodeError:
+                return self.response.body
         assert isinstance(self.response.body, str)
         return self.response.body
 
