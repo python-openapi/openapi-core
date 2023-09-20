@@ -34,7 +34,7 @@ class AIOHTTPOpenAPIWebRequest:
 
     @property
     def host_url(self) -> str:
-        return self.request.url.host or ""
+        return f"{self.request.url.scheme}://{self.request.url.host}"
 
     @property
     def path(self) -> str:

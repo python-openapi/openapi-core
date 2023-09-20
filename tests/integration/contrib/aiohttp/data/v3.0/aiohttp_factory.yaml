@@ -3,7 +3,7 @@ info:
   title: Basic OpenAPI specification used with starlette integration tests
   version: "0.1"
 servers:
-  - url: '/'
+  - url: 'http://localhost'
     description: 'testing'
 paths:
   '/browse/{id}/':
