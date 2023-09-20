@@ -14,6 +14,8 @@ class AIOHTTPOpenAPIWebResponse:
 
     @property
     def data(self) -> str:
+        if self.response.body is None:
+            return ""
         if isinstance(self.response.body, bytes):
             return self.response.body.decode("utf-8")
         assert isinstance(self.response.body, str)
