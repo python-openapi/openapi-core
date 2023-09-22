@@ -189,8 +189,9 @@ class BaseRequestValidator(BaseValidator):
 
         param_location = param["in"]
         location = parameters[param_location]
+
         try:
-            return self._get_param_or_header_value(param, location)
+            return self._get_param_or_header(param, location, name=name)
         except KeyError:
             required = param.getkey("required", False)
             if required:
@@ -248,7 +249,7 @@ class BaseRequestValidator(BaseValidator):
         content = request_body / "content"
 
         raw_body = self._get_body_value(body, request_body)
-        return self._get_content_value(raw_body, mimetype, content)
+        return self._convert_content_schema_value(raw_body, content, mimetype)
 
     def _get_body_value(self, body: Optional[str], request_body: Spec) -> Any:
         if not body:

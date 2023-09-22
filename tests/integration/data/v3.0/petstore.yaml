@@ -82,6 +82,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Coordinates"
+        - name: color
+          in: query
+          description: RGB color
+          style: deepObject
+          required: false
+          explode: true
+          schema:
+            type: object
+            properties:
+              R:
+                type: integer
+              G:
+                type: integer
+              B:
+                type: integer
       responses:
         '200':
           $ref: "#/components/responses/PetsResponse"

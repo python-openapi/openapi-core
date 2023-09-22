@@ -56,7 +56,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
         operation: Spec,
     ) -> ResponseUnmarshalResult:
         try:
-            operation_response = self._get_operation_response(
+            operation_response = self._find_operation_response(
                 response.status_code, operation
             )
         # don't process if operation errors
@@ -96,7 +96,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
         operation: Spec,
     ) -> ResponseUnmarshalResult:
         try:
-            operation_response = self._get_operation_response(
+            operation_response = self._find_operation_response(
                 response.status_code, operation
             )
         # don't process if operation errors
@@ -124,7 +124,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
         operation: Spec,
     ) -> ResponseUnmarshalResult:
         try:
-            operation_response = self._get_operation_response(
+            operation_response = self._find_operation_response(
                 response.status_code, operation
             )
         # don't process if operation errors

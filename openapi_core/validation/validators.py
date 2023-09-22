@@ -1,4 +1,5 @@
 """OpenAPI core validation validators module"""
+import re
 from functools import cached_property
 from typing import Any
 from typing import Mapping
@@ -23,7 +24,12 @@ from openapi_core.deserializing.styles.factories import (
 )
 from openapi_core.protocols import Request
 from openapi_core.protocols import WebhookRequest
-from openapi_core.schema.parameters import get_value
+from openapi_core.schema.parameters import get_aslist
+from openapi_core.schema.parameters import get_deep_object_value
+from openapi_core.schema.parameters import get_explode
+from openapi_core.schema.parameters import get_style
+from openapi_core.schema.protocols import SuportsGetAll
+from openapi_core.schema.protocols import SuportsGetList
 from openapi_core.spec import Spec
 from openapi_core.templating.media_types.datatypes import MediaType
 from openapi_core.templating.paths.datatypes import PathOperationServer
@@ -70,10 +76,14 @@ class BaseValidator:
         self.extra_format_validators = extra_format_validators
         self.extra_media_type_deserializers = extra_media_type_deserializers
 
-    def _get_media_type(self, content: Spec, mimetype: str) -> MediaType:
+    def _find_media_type(
+        self, content: Spec, mimetype: Optional[str] = None
+    ) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder
 
         finder = MediaTypeFinder(content)
+        if mimetype is None:
+            return finder.get_first()
         return finder.find(mimetype)
 
     def _deserialise_media_type(self, mimetype: str, value: Any) -> Any:
@@ -99,69 +109,93 @@ class BaseValidator:
         )
         validator.validate(value)
 
-    def _get_param_or_header_value(
+    def _get_param_or_header(
         self,
         param_or_header: Spec,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
-        casted, schema = self._get_param_or_header_value_and_schema(
-            param_or_header, location, name
-        )
-        if schema is None:
-            return casted
-        self._validate_schema(schema, casted)
-        return casted
+        # Simple scenario
+        if "content" not in param_or_header:
+            return self._get_simple_param_or_header(
+                param_or_header, location, name=name
+            )
 
-    def _get_content_value(
-        self, raw: Any, mimetype: str, content: Spec
-    ) -> Any:
-        casted, schema = self._get_content_value_and_schema(
-            raw, mimetype, content
+        # Complex scenario
+        return self._get_complex_param_or_header(
+            param_or_header, location, name=name
         )
-        if schema is None:
-            return casted
-        self._validate_schema(schema, casted)
-        return casted
 
-    def _get_param_or_header_value_and_schema(
+    def _get_simple_param_or_header(
         self,
         param_or_header: Spec,
         location: Mapping[str, Any],
         name: Optional[str] = None,
-    ) -> Tuple[Any, Spec]:
+    ) -> Any:
         try:
-            raw_value = get_value(param_or_header, location, name=name)
+            raw = self._get_style_value(param_or_header, location, name=name)
         except KeyError:
-            if "schema" not in param_or_header:
-                raise
+            # in simple scenrios schema always exist
             schema = param_or_header / "schema"
             if "default" not in schema:
                 raise
-            casted = schema["default"]
-        else:
-            # Simple scenario
-            if "content" not in param_or_header:
-                deserialised = self._deserialise_style(
-                    param_or_header, raw_value
-                )
-                schema = param_or_header / "schema"
-            # Complex scenario
-            else:
-                content = param_or_header / "content"
-                mimetype, media_type = next(content.items())
-                deserialised = self._deserialise_media_type(
-                    mimetype, raw_value
-                )
-                schema = media_type / "schema"
-            casted = self._cast(schema, deserialised)
+            raw = schema["default"]
+        return self._convert_schema_style_value(raw, param_or_header)
+
+    def _get_complex_param_or_header(
+        self,
+        param_or_header: Spec,
+        location: Mapping[str, Any],
+        name: Optional[str] = None,
+    ) -> Any:
+        content = param_or_header / "content"
+        # no point to catch KetError
+        # in complex scenrios schema doesn't exist
+        raw = self._get_media_type_value(param_or_header, location, name=name)
+        return self._convert_content_schema_value(raw, content)
+
+    def _convert_schema_style_value(
+        self,
+        raw: Any,
+        param_or_header: Spec,
+    ) -> Any:
+        casted, schema = self._convert_schema_style_value_and_schema(
+            raw, param_or_header
+        )
+        if schema is None:
+            return casted
+        self._validate_schema(schema, casted)
+        return casted
+
+    def _convert_content_schema_value(
+        self, raw: Any, content: Spec, mimetype: Optional[str] = None
+    ) -> Any:
+        casted, schema = self._convert_content_schema_value_and_schema(
+            raw, content, mimetype
+        )
+        if schema is None:
+            return casted
+        self._validate_schema(schema, casted)
+        return casted
+
+    def _convert_schema_style_value_and_schema(
+        self,
+        raw: Any,
+        param_or_header: Spec,
+    ) -> Tuple[Any, Spec]:
+        deserialised = self._deserialise_style(param_or_header, raw)
+        schema = param_or_header / "schema"
+        casted = self._cast(schema, deserialised)
         return casted, schema
 
-    def _get_content_value_and_schema(
-        self, raw: Any, mimetype: str, content: Spec
+    def _convert_content_schema_value_and_schema(
+        self,
+        raw: Any,
+        content: Spec,
+        mimetype: Optional[str] = None,
     ) -> Tuple[Any, Optional[Spec]]:
-        media_type, mimetype = self._get_media_type(content, mimetype)
-        deserialised = self._deserialise_media_type(mimetype, raw)
+        media_type, mime_type = self._find_media_type(content, mimetype)
+        deserialised = self._deserialise_media_type(mime_type, raw)
         casted = self._cast(media_type, deserialised)
 
         if "schema" not in media_type:
@@ -169,6 +203,45 @@ class BaseValidator:
 
         schema = media_type / "schema"
         return casted, schema
+
+    def _get_style_value(
+        self,
+        param_or_header: Spec,
+        location: Mapping[str, Any],
+        name: Optional[str] = None,
+    ) -> Any:
+        name = name or param_or_header["name"]
+        style = get_style(param_or_header)
+        if name not in location:
+            # Only check if the name is not in the location if the style of
+            # the param is deepObject,this is because deepObjects will never be found
+            # as their key also includes the properties of the object already.
+            if style != "deepObject":
+                raise KeyError
+            keys_str = " ".join(location.keys())
+            if not re.search(rf"{name}\[\w+\]", keys_str):
+                raise KeyError
+
+        aslist = get_aslist(param_or_header)
+        explode = get_explode(param_or_header)
+        if aslist and explode:
+            if style == "deepObject":
+                return get_deep_object_value(location, name)
+            if isinstance(location, SuportsGetAll):
+                return location.getall(name)
+            if isinstance(location, SuportsGetList):
+                return location.getlist(name)
+
+        return location[name]
+
+    def _get_media_type_value(
+        self,
+        param_or_header: Spec,
+        location: Mapping[str, Any],
+        name: Optional[str] = None,
+    ) -> Any:
+        name = name or param_or_header["name"]
+        return location[name]
 
 
 class BaseAPICallValidator(BaseValidator):
