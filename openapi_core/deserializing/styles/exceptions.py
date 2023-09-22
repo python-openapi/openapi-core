@@ -4,14 +4,14 @@ from openapi_core.deserializing.exceptions import DeserializeError
 
 
 @dataclass
-class BaseParameterDeserializeError(DeserializeError):
-    """Base parameter deserialize operation error"""
+class BaseStyleDeserializeError(DeserializeError):
+    """Base style deserialize operation error"""
 
     location: str
 
 
 @dataclass
-class ParameterDeserializeError(BaseParameterDeserializeError):
+class ParameterDeserializeError(BaseStyleDeserializeError):
     """Parameter deserialize operation error"""
 
     style: str
@@ -25,7 +25,7 @@ class ParameterDeserializeError(BaseParameterDeserializeError):
 
 
 @dataclass(init=False)
-class EmptyQueryParameterValue(BaseParameterDeserializeError):
+class EmptyQueryParameterValue(BaseStyleDeserializeError):
     name: str
 
     def __init__(self, name: str):

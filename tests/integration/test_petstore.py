@@ -14,7 +14,7 @@ from openapi_core import validate_response
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.datatypes import Parameters
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.deserializing.parameters.exceptions import (
+from openapi_core.deserializing.styles.exceptions import (
     EmptyQueryParameterValue,
 )
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound

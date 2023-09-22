@@ -17,11 +17,9 @@ from openapi_core.deserializing.media_types.datatypes import (
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
-from openapi_core.deserializing.parameters import (
-    parameter_deserializers_factory,
-)
-from openapi_core.deserializing.parameters.factories import (
-    ParameterDeserializersFactory,
+from openapi_core.deserializing.styles import style_deserializers_factory
+from openapi_core.deserializing.styles.factories import (
+    StyleDeserializersFactory,
 )
 from openapi_core.protocols import Request
 from openapi_core.protocols import WebhookRequest
@@ -44,7 +42,7 @@ class BaseValidator:
         spec: Spec,
         base_url: Optional[str] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
-        parameter_deserializers_factory: ParameterDeserializersFactory = parameter_deserializers_factory,
+        style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
@@ -57,7 +55,7 @@ class BaseValidator:
         self.base_url = base_url
 
         self.schema_casters_factory = schema_casters_factory
-        self.parameter_deserializers_factory = parameter_deserializers_factory
+        self.style_deserializers_factory = style_deserializers_factory
         self.media_type_deserializers_factory = (
             media_type_deserializers_factory
         )
@@ -78,15 +76,15 @@ class BaseValidator:
         finder = MediaTypeFinder(content)
         return finder.find(mimetype)
 
-    def _deserialise_data(self, mimetype: str, value: Any) -> Any:
+    def _deserialise_media_type(self, mimetype: str, value: Any) -> Any:
         deserializer = self.media_type_deserializers_factory.create(
             mimetype,
             extra_media_type_deserializers=self.extra_media_type_deserializers,
         )
         return deserializer.deserialize(value)
 
-    def _deserialise_parameter(self, param: Spec, value: Any) -> Any:
-        deserializer = self.parameter_deserializers_factory.create(param)
+    def _deserialise_style(self, param_or_header: Spec, value: Any) -> Any:
+        deserializer = self.style_deserializers_factory.create(param_or_header)
         return deserializer.deserialize(value)
 
     def _cast(self, schema: Spec, value: Any) -> Any:
@@ -144,7 +142,7 @@ class BaseValidator:
         else:
             # Simple scenario
             if "content" not in param_or_header:
-                deserialised = self._deserialise_parameter(
+                deserialised = self._deserialise_style(
                     param_or_header, raw_value
                 )
                 schema = param_or_header / "schema"
@@ -152,7 +150,9 @@ class BaseValidator:
             else:
                 content = param_or_header / "content"
                 mimetype, media_type = next(content.items())
-                deserialised = self._deserialise_data(mimetype, raw_value)
+                deserialised = self._deserialise_media_type(
+                    mimetype, raw_value
+                )
                 schema = media_type / "schema"
             casted = self._cast(schema, deserialised)
         return casted, schema
@@ -161,7 +161,7 @@ class BaseValidator:
         self, raw: Any, mimetype: str, content: Spec
     ) -> Tuple[Any, Optional[Spec]]:
         media_type, mimetype = self._get_media_type(content, mimetype)
-        deserialised = self._deserialise_data(mimetype, raw)
+        deserialised = self._deserialise_media_type(mimetype, raw)
         casted = self._cast(media_type, deserialised)
 
         if "schema" not in media_type:
