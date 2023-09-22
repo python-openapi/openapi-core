@@ -5,10 +5,8 @@ from typing import List
 from typing import Optional
 
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.deserializing.parameters.datatypes import (
-    DeserializerCallable,
-)
-from openapi_core.deserializing.parameters.exceptions import (
+from openapi_core.deserializing.styles.datatypes import DeserializerCallable
+from openapi_core.deserializing.styles.exceptions import (
     EmptyQueryParameterValue,
 )
 from openapi_core.schema.parameters import get_aslist
@@ -16,7 +14,7 @@ from openapi_core.schema.parameters import get_explode
 from openapi_core.spec import Spec
 
 
-class CallableParameterDeserializer:
+class CallableStyleDeserializer:
     def __init__(
         self,
         param_or_header: Spec,

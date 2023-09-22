@@ -1,19 +1,19 @@
 import pytest
 
-from openapi_core.deserializing.parameters.exceptions import (
+from openapi_core.deserializing.styles.exceptions import (
     EmptyQueryParameterValue,
 )
-from openapi_core.deserializing.parameters.factories import (
-    ParameterDeserializersFactory,
+from openapi_core.deserializing.styles.factories import (
+    StyleDeserializersFactory,
 )
 from openapi_core.spec.paths import Spec
 
 
-class TestParameterDeserializer:
+class TestStyleDeserializer:
     @pytest.fixture
     def deserializer_factory(self):
         def create_deserializer(param):
-            return ParameterDeserializersFactory().create(param)
+            return StyleDeserializersFactory().create(param)
 
         return create_deserializer
 
