@@ -10,6 +10,10 @@ class MediaTypeFinder:
     def __init__(self, content: Spec):
         self.content = content
 
+    def get_first(self) -> MediaType:
+        mimetype, media_type = next(self.content.items())
+        return MediaType(media_type, mimetype)
+
     def find(self, mimetype: str) -> MediaType:
         if mimetype in self.content:
             return MediaType(self.content / mimetype, mimetype)

@@ -42,7 +42,7 @@ class BaseResponseValidator(BaseValidator):
         operation: Spec,
     ) -> Iterator[Exception]:
         try:
-            operation_response = self._get_operation_response(
+            operation_response = self._find_operation_response(
                 status_code, operation
             )
         # don't process if operation errors
@@ -64,7 +64,7 @@ class BaseResponseValidator(BaseValidator):
         self, status_code: int, data: str, mimetype: str, operation: Spec
     ) -> Iterator[Exception]:
         try:
-            operation_response = self._get_operation_response(
+            operation_response = self._find_operation_response(
                 status_code, operation
             )
         # don't process if operation errors
@@ -81,7 +81,7 @@ class BaseResponseValidator(BaseValidator):
         self, status_code: int, headers: Mapping[str, Any], operation: Spec
     ) -> Iterator[Exception]:
         try:
-            operation_response = self._get_operation_response(
+            operation_response = self._find_operation_response(
                 status_code, operation
             )
         # don't process if operation errors
@@ -94,7 +94,7 @@ class BaseResponseValidator(BaseValidator):
         except HeadersError as exc:
             yield from exc.context
 
-    def _get_operation_response(
+    def _find_operation_response(
         self,
         status_code: int,
         operation: Spec,
@@ -114,7 +114,7 @@ class BaseResponseValidator(BaseValidator):
         content = operation_response / "content"
 
         raw_data = self._get_data_value(data)
-        return self._get_content_value(raw_data, mimetype, content)
+        return self._convert_content_schema_value(raw_data, content, mimetype)
 
     def _get_data_value(self, data: str) -> Any:
         if not data:
@@ -163,7 +163,7 @@ class BaseResponseValidator(BaseValidator):
             )
 
         try:
-            return self._get_param_or_header_value(header, headers, name=name)
+            return self._get_param_or_header(header, headers, name=name)
         except KeyError:
             required = header.getkey("required", False)
             if required:
