@@ -16,9 +16,11 @@ class CallableMediaTypeDeserializer:
         self,
         mimetype: str,
         deserializer_callable: Optional[DeserializerCallable] = None,
+        **parameters: str,
     ):
         self.mimetype = mimetype
         self.deserializer_callable = deserializer_callable
+        self.parameters = parameters
 
     def deserialize(self, value: Any) -> Any:
         if self.deserializer_callable is None:
@@ -26,6 +28,6 @@ class CallableMediaTypeDeserializer:
             return value
 
         try:
-            return self.deserializer_callable(value)
+            return self.deserializer_callable(value, **self.parameters)
         except (ParseError, ValueError, TypeError, AttributeError):
             raise MediaTypeDeserializeError(self.mimetype, value)

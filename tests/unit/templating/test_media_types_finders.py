@@ -22,17 +22,26 @@ class TestMediaTypes:
     def finder(self, content):
         return MediaTypeFinder(content)
 
+    def test_charset(self, finder, content):
+        mimetype = "text/html; charset=utf-8"
+
+        mimetype, parameters, _ = finder.find(mimetype)
+        assert mimetype == "text/*"
+        assert parameters == {"charset": "utf-8"}
+
     def test_exact(self, finder, content):
         mimetype = "application/json"
 
-        _, mimetype = finder.find(mimetype)
+        mimetype, parameters, _ = finder.find(mimetype)
         assert mimetype == "application/json"
+        assert parameters == {}
 
     def test_match(self, finder, content):
         mimetype = "text/html"
 
-        _, mimetype = finder.find(mimetype)
+        mimetype, parameters, _ = finder.find(mimetype)
         assert mimetype == "text/*"
+        assert parameters == {}
 
     def test_not_found(self, finder, content):
         mimetype = "unknown"
