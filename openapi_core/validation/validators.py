@@ -86,10 +86,13 @@ class BaseValidator:
             return finder.get_first()
         return finder.find(mimetype)
 
-    def _deserialise_media_type(self, mimetype: str, value: Any) -> Any:
+    def _deserialise_media_type(
+        self, mimetype: str, parameters: Mapping[str, str], value: Any
+    ) -> Any:
         deserializer = self.media_type_deserializers_factory.create(
             mimetype,
             extra_media_type_deserializers=self.extra_media_type_deserializers,
+            parameters=parameters,
         )
         return deserializer.deserialize(value)
 
@@ -194,8 +197,10 @@ class BaseValidator:
         content: Spec,
         mimetype: Optional[str] = None,
     ) -> Tuple[Any, Optional[Spec]]:
-        media_type, mime_type = self._find_media_type(content, mimetype)
-        deserialised = self._deserialise_media_type(mime_type, raw)
+        mime_type, parameters, media_type = self._find_media_type(
+            content, mimetype
+        )
+        deserialised = self._deserialise_media_type(mime_type, parameters, raw)
         casted = self._cast(media_type, deserialised)
 
         if "schema" not in media_type:

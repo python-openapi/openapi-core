@@ -230,13 +230,15 @@ class TestPetstore:
 
         assert result.body is None
 
-        data = "<html></html>"
-        response = MockResponse(data, status_code=404, mimetype="text/html")
+        data = b"<html></html>"
+        response = MockResponse(
+            data, status_code=404, mimetype="text/html; charset=utf-8"
+        )
 
         response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
-        assert response_result.data == data
+        assert response_result.data == data.decode("utf-8")
 
     def test_get_pets_invalid_response(self, spec, response_unmarshaller):
         host_url = "http://petstore.swagger.io/v1"

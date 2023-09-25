@@ -14,6 +14,7 @@ class TestMediaTypeDeserializer:
     def deserializer_factory(self):
         def create_deserializer(
             media_type,
+            parameters=None,
             media_type_deserializers=media_type_deserializers,
             extra_media_type_deserializers=None,
         ):
@@ -21,6 +22,7 @@ class TestMediaTypeDeserializer:
                 media_type_deserializers,
             ).create(
                 media_type,
+                parameters=parameters,
                 extra_media_type_deserializers=extra_media_type_deserializers,
             )
 
@@ -49,19 +51,33 @@ class TestMediaTypeDeserializer:
         assert result == value
 
     @pytest.mark.parametrize(
-        "mimetype",
+        "mimetype,parameters,value,expected",
         [
-            "text/plain",
-            "text/html",
+            (
+                "text/plain",
+                {"charset": "iso-8859-2"},
+                b"\xb1\xb6\xbc\xe6",
+                "ąśźć",
+            ),
+            (
+                "text/plain",
+                {"charset": "utf-8"},
+                b"\xc4\x85\xc5\x9b\xc5\xba\xc4\x87",
+                "ąśźć",
+            ),
+            ("text/plain", {}, b"\xc4\x85\xc5\x9b\xc5\xba\xc4\x87", "ąśźć"),
+            ("text/plain", {}, "somestr", "somestr"),
+            ("text/html", {}, "somestr", "somestr"),
         ],
     )
-    def test_plain_valid(self, deserializer_factory, mimetype):
-        deserializer = deserializer_factory(mimetype)
-        value = "somestr"
+    def test_plain_valid(
+        self, deserializer_factory, mimetype, parameters, value, expected
+    ):
+        deserializer = deserializer_factory(mimetype, parameters=parameters)
 
         result = deserializer.deserialize(value)
 
-        assert result == value
+        assert result == expected
 
     @pytest.mark.parametrize(
         "mimetype",

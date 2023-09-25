@@ -1,3 +1,4 @@
+from typing import Mapping
 from typing import Optional
 
 from openapi_core.deserializing.media_types.datatypes import (
@@ -23,10 +24,13 @@ class MediaTypeDeserializersFactory:
     def create(
         self,
         mimetype: str,
+        parameters: Optional[Mapping[str, str]] = None,
         extra_media_type_deserializers: Optional[
             MediaTypeDeserializersDict
         ] = None,
     ) -> CallableMediaTypeDeserializer:
+        if parameters is None:
+            parameters = {}
         if extra_media_type_deserializers is None:
             extra_media_type_deserializers = {}
         deserialize_callable = self.get_deserializer_callable(
@@ -34,7 +38,9 @@ class MediaTypeDeserializersFactory:
             extra_media_type_deserializers=extra_media_type_deserializers,
         )
 
-        return CallableMediaTypeDeserializer(mimetype, deserialize_callable)
+        return CallableMediaTypeDeserializer(
+            mimetype, deserialize_callable, **parameters
+        )
 
     def get_deserializer_callable(
         self,
