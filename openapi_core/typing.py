@@ -1,3 +1,4 @@
+from typing import Awaitable
 from typing import Callable
 from typing import Iterable
 from typing import TypeVar
@@ -11,3 +12,6 @@ ResponseType = TypeVar("ResponseType")
 
 ErrorsHandlerCallable = Callable[[Iterable[Exception]], ResponseType]
 ValidRequestHandlerCallable = Callable[[RequestUnmarshalResult], ResponseType]
+AsyncValidRequestHandlerCallable = Callable[
+    [RequestUnmarshalResult], Awaitable[ResponseType]
+]
