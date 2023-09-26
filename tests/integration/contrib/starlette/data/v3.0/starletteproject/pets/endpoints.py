@@ -26,10 +26,8 @@ def pet_photo_endpoint(request):
     if request.method == "GET":
         response = StreamingResponse([OPENID_LOGO], media_type="image/gif")
     elif request.method == "POST":
-        with request.form() as form:
-            filename = form["file"].filename
-            contents = form["file"].read()
-            response = Response(status_code=201)
+        contents = request.body()
+        response = Response(status_code=201)
     openapi_response = StarletteOpenAPIResponse(response)
     response_unmarshalled = unmarshal_response(
         openapi_request, openapi_response, spec=spec

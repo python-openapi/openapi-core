@@ -69,15 +69,12 @@ class TestPetPhotoView(BaseTestPetstore):
             "Api-Key": self.api_key_encoded,
             "Content-Type": content_type,
         }
-        data = {
-            "file": data_gif,
-        }
 
         cookies = {"user": "1"}
         response = client.post(
             "/v1/pets/1/photo",
             headers=headers,
-            data=data,
+            data=data_gif,
             cookies=cookies,
         )
 
