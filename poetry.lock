@@ -1356,13 +1356,13 @@ rfc3339-validator = "*"
 
 [[package]]
 name = "openapi-spec-validator"
-version = "0.6.0"
+version = "0.7.0"
 description = "OpenAPI 2.0 (aka Swagger) and OpenAPI 3 spec validator"
 optional = false
 python-versions = ">=3.8.0,<4.0.0"
 files = [
-    {file = "openapi_spec_validator-0.6.0-py3-none-any.whl", hash = "sha256:675f1a3c0d0d8eff9116694acde88bcd4613a95bf5240270724d9d78c78f26d6"},
-    {file = "openapi_spec_validator-0.6.0.tar.gz", hash = "sha256:68c4c212c88ef14c6b1a591b895bf742c455783c7ebba2507abd7dbc1365a616"},
+    {file = "openapi_spec_validator-0.7.0-py3-none-any.whl", hash = "sha256:09c1cb83e00537bffdef81a98648869220f7ab03a32981460e0777bc80d63eb8"},
+    {file = "openapi_spec_validator-0.7.0.tar.gz", hash = "sha256:03e8cbff36e1cab573e0e2fb51eff3d677f88aba33985d0fffe8753512595f1c"},
 ]
 
 [package.dependencies]
