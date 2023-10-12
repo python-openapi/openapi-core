@@ -63,9 +63,12 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
         except ResponseFinderError as exc:
             return ResponseUnmarshalResult(errors=[exc])
 
+        # Drop optional "; charset=utf-8"
+        mimetype = response.mimetype.split(';')[0]
+
         try:
             validated_data = self._get_data(
-                response.data, response.mimetype, operation_response
+                response.data, mimetype, operation_response
             )
         except DataValidationError as exc:
             validated_data = None
@@ -103,9 +106,12 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
         except ResponseFinderError as exc:
             return ResponseUnmarshalResult(errors=[exc])
 
+        # Drop optional "; charset=utf-8"
+        mimetype = response.mimetype.split(';')[0]
+
         try:
             validated = self._get_data(
-                response.data, response.mimetype, operation_response
+                response.data, mimetype, operation_response
             )
         except DataValidationError as exc:
             validated = None
