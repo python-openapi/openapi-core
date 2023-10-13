@@ -7,6 +7,8 @@ from typing import List
 from typing import Mapping
 
 from jsonschema_path import SchemaPath
+from openapi_spec_validator import OpenAPIV30SpecValidator
+from openapi_spec_validator import OpenAPIV31SpecValidator
 
 from openapi_core.exceptions import OpenAPIError
 from openapi_core.protocols import Request
@@ -330,36 +332,45 @@ class WebhookResponseValidator(BaseWebhookResponseValidator):
 
 
 class V30ResponseDataValidator(APICallResponseDataValidator):
+    spec_validator_cls = OpenAPIV30SpecValidator
     schema_validators_factory = oas30_read_schema_validators_factory
 
 
 class V30ResponseHeadersValidator(APICallResponseHeadersValidator):
+    spec_validator_cls = OpenAPIV30SpecValidator
     schema_validators_factory = oas30_read_schema_validators_factory
 
 
 class V30ResponseValidator(APICallResponseValidator):
+    spec_validator_cls = OpenAPIV30SpecValidator
     schema_validators_factory = oas30_read_schema_validators_factory
 
 
 class V31ResponseDataValidator(APICallResponseDataValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31ResponseHeadersValidator(APICallResponseHeadersValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31ResponseValidator(APICallResponseValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31WebhookResponseDataValidator(WebhookResponseDataValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31WebhookResponseHeadersValidator(WebhookResponseHeadersValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31WebhookResponseValidator(WebhookResponseValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory

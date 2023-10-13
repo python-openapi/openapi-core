@@ -1,6 +1,7 @@
 from unittest import mock
 
 import pytest
+from openapi_spec_validator import OpenAPIV31SpecValidator
 
 from openapi_core import unmarshal_apicall_request
 from openapi_core import unmarshal_apicall_response
@@ -46,6 +47,7 @@ from openapi_core.validation.response.validators import (
 
 
 class MockClass:
+    spec_validator_cls = None
     schema_validators_factory = None
     schema_unmarshallers_factory = None
 
@@ -586,12 +588,46 @@ class TestValidateRequest:
             (request,),
         ]
 
+    def test_cls_apicall_with_spec_validator_cls(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        TestAPICallReq = type(
+            "TestAPICallReq",
+            (MockReqValidator, APICallRequestValidator),
+            {
+                "spec_validator_cls": OpenAPIV31SpecValidator,
+            },
+        )
+
+        result = validate_request(request, spec=spec_v31, cls=TestAPICallReq)
+
+        assert result is None
+        assert TestAPICallReq.validate_calls == [
+            (request,),
+        ]
+
     def test_cls_webhook(self, spec_v31):
         request = mock.Mock(spec=Request)
         TestWebhookReq = type(
             "TestWebhookReq",
             (MockReqValidator, WebhookRequestValidator),
             {},
+        )
+
+        result = validate_request(request, spec=spec_v31, cls=TestWebhookReq)
+
+        assert result is None
+        assert TestWebhookReq.validate_calls == [
+            (request,),
+        ]
+
+    def test_cls_webhook_with_spec_validator_cls(self, spec_v31):
+        request = mock.Mock(spec=Request)
+        TestWebhookReq = type(
+            "TestWebhookReq",
+            (MockReqValidator, WebhookRequestValidator),
+            {
+                "spec_validator_cls": OpenAPIV31SpecValidator,
+            },
         )
 
         result = validate_request(request, spec=spec_v31, cls=TestWebhookReq)

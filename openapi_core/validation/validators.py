@@ -8,6 +8,7 @@ from typing import Tuple
 from urllib.parse import urljoin
 
 from jsonschema_path import SchemaPath
+from openapi_spec_validator.validation.types import SpecValidatorType
 
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
@@ -43,6 +44,7 @@ from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 class BaseValidator:
     schema_validators_factory: SchemaValidatorsFactory = NotImplemented
+    spec_validator_cls: Optional[SpecValidatorType] = None
 
     def __init__(
         self,
@@ -52,6 +54,7 @@ class BaseValidator:
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
         extra_media_type_deserializers: Optional[
@@ -73,9 +76,17 @@ class BaseValidator:
             raise NotImplementedError(
                 "schema_validators_factory is not assigned"
             )
+        self.spec_validator_cls = spec_validator_cls or self.spec_validator_cls
         self.format_validators = format_validators
         self.extra_format_validators = extra_format_validators
         self.extra_media_type_deserializers = extra_media_type_deserializers
+
+    def check_spec(self, spec: SchemaPath) -> None:
+        if self.spec_validator_cls is None:
+            return
+
+        validator = self.spec_validator_cls(spec)
+        validator.validate()
 
     def _find_media_type(
         self, content: SchemaPath, mimetype: Optional[str] = None

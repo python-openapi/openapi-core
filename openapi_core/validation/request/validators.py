@@ -6,6 +6,9 @@ from typing import Iterator
 from typing import Optional
 
 from jsonschema_path import SchemaPath
+from openapi_spec_validator import OpenAPIV30SpecValidator
+from openapi_spec_validator import OpenAPIV31SpecValidator
+from openapi_spec_validator.validation.types import SpecValidatorType
 
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
@@ -70,6 +73,7 @@ class BaseRequestValidator(BaseValidator):
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
         extra_media_type_deserializers: Optional[
@@ -84,6 +88,7 @@ class BaseRequestValidator(BaseValidator):
             style_deserializers_factory=style_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
             schema_validators_factory=schema_validators_factory,
+            spec_validator_cls=spec_validator_cls,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
             extra_media_type_deserializers=extra_media_type_deserializers,
@@ -387,53 +392,65 @@ class WebhookRequestSecurityValidator(BaseWebhookRequestValidator):
 
 
 class V30RequestBodyValidator(APICallRequestBodyValidator):
+    spec_validator_cls = OpenAPIV30SpecValidator
     schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestParametersValidator(APICallRequestParametersValidator):
+    spec_validator_cls = OpenAPIV30SpecValidator
     schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestSecurityValidator(APICallRequestSecurityValidator):
+    spec_validator_cls = OpenAPIV30SpecValidator
     schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestValidator(APICallRequestValidator):
+    spec_validator_cls = OpenAPIV30SpecValidator
     schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V31RequestBodyValidator(APICallRequestBodyValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestParametersValidator(APICallRequestParametersValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestSecurityValidator(APICallRequestSecurityValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestValidator(APICallRequestValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestBodyValidator(WebhookRequestBodyValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestParametersValidator(WebhookRequestParametersValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestSecurityValidator(WebhookRequestSecurityValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestValidator(WebhookRequestValidator):
+    spec_validator_cls = OpenAPIV31SpecValidator
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
