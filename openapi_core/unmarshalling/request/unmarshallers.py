@@ -1,6 +1,7 @@
 from typing import Optional
 
 from jsonschema_path import SchemaPath
+from openapi_spec_validator.validation.types import SpecValidatorType
 
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
@@ -88,6 +89,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
         extra_media_type_deserializers: Optional[
@@ -108,6 +110,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             style_deserializers_factory=style_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
             schema_validators_factory=schema_validators_factory,
+            spec_validator_cls=spec_validator_cls,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
             extra_media_type_deserializers=extra_media_type_deserializers,
@@ -123,6 +126,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             style_deserializers_factory=style_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
             schema_validators_factory=schema_validators_factory,
+            spec_validator_cls=spec_validator_cls,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
             extra_media_type_deserializers=extra_media_type_deserializers,

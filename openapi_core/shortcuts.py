@@ -108,6 +108,7 @@ def unmarshal_apicall_request(
     if not issubclass(cls, RequestUnmarshaller):
         raise TypeError("'cls' argument is not type of RequestUnmarshaller")
     v = cls(spec, base_url=base_url, **unmarshaller_kwargs)
+    v.check_spec(spec)
     result = v.unmarshal(request)
     result.raise_for_errors()
     return result
@@ -134,6 +135,7 @@ def unmarshal_webhook_request(
             "'cls' argument is not type of WebhookRequestUnmarshaller"
         )
     v = cls(spec, base_url=base_url, **unmarshaller_kwargs)
+    v.check_spec(spec)
     result = v.unmarshal(request)
     result.raise_for_errors()
     return result
@@ -198,6 +200,7 @@ def unmarshal_apicall_response(
     if not issubclass(cls, ResponseUnmarshaller):
         raise TypeError("'cls' argument is not type of ResponseUnmarshaller")
     v = cls(spec, base_url=base_url, **unmarshaller_kwargs)
+    v.check_spec(spec)
     result = v.unmarshal(request, response)
     result.raise_for_errors()
     return result
@@ -227,6 +230,7 @@ def unmarshal_webhook_response(
             "'cls' argument is not type of WebhookResponseUnmarshaller"
         )
     v = cls(spec, base_url=base_url, **unmarshaller_kwargs)
+    v.check_spec(spec)
     result = v.unmarshal(request, response)
     result.raise_for_errors()
     return result
@@ -378,6 +382,7 @@ def validate_apicall_request(
     if not issubclass(cls, RequestValidator):
         raise TypeError("'cls' argument is not type of RequestValidator")
     v = cls(spec, base_url=base_url, **validator_kwargs)
+    v.check_spec(spec)
     return v.validate(request)
 
 
@@ -402,6 +407,7 @@ def validate_webhook_request(
             "'cls' argument is not type of WebhookRequestValidator"
         )
     v = cls(spec, base_url=base_url, **validator_kwargs)
+    v.check_spec(spec)
     return v.validate(request)
 
 
@@ -425,6 +431,7 @@ def validate_apicall_response(
     if not issubclass(cls, ResponseValidator):
         raise TypeError("'cls' argument is not type of ResponseValidator")
     v = cls(spec, base_url=base_url, **validator_kwargs)
+    v.check_spec(spec)
     return v.validate(request, response)
 
 
@@ -452,4 +459,5 @@ def validate_webhook_response(
             "'cls' argument is not type of WebhookResponseValidator"
         )
     v = cls(spec, base_url=base_url, **validator_kwargs)
+    v.check_spec(spec)
     return v.validate(request, response)

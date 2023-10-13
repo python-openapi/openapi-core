@@ -15,6 +15,9 @@ class RequestUnmarshaller(Protocol):
     def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
         ...
 
+    def check_spec(self, spec: SchemaPath) -> None:
+        ...
+
     def unmarshal(
         self,
         request: Request,
@@ -25,6 +28,9 @@ class RequestUnmarshaller(Protocol):
 @runtime_checkable
 class WebhookRequestUnmarshaller(Protocol):
     def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
+        ...
+
+    def check_spec(self, spec: SchemaPath) -> None:
         ...
 
     def unmarshal(

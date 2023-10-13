@@ -4,18 +4,17 @@ Customizations
 Specification validation
 ------------------------
 
-By default, the provided specification is validated on ``Spec`` object creation time.
+By default, the specified specification is also validated.
 
 If you know you have a valid specification already, disabling the validator can improve the performance.
 
 .. code-block:: python
-  :emphasize-lines: 5
+  :emphasize-lines: 4
 
-    from openapi_core import Spec
-
-    spec = Spec.from_dict(
-       spec_dict,
-       validator=None,
+    validate_request(
+       request,
+       spec=spec,
+       spec_validator_cls=None,
     )
 
 Media type deserializers
