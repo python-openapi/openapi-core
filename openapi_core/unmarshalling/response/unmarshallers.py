@@ -1,7 +1,8 @@
+from jsonschema_path import SchemaPath
+
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
-from openapi_core.spec import Spec
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.responses.exceptions import ResponseFinderError
 from openapi_core.unmarshalling.response.datatypes import (
@@ -53,7 +54,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
     def _unmarshal(
         self,
         response: Response,
-        operation: Spec,
+        operation: SchemaPath,
     ) -> ResponseUnmarshalResult:
         try:
             operation_response = self._find_operation_response(
@@ -93,7 +94,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
     def _unmarshal_data(
         self,
         response: Response,
-        operation: Spec,
+        operation: SchemaPath,
     ) -> ResponseUnmarshalResult:
         try:
             operation_response = self._find_operation_response(
@@ -121,7 +122,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
     def _unmarshal_headers(
         self,
         response: Response,
-        operation: Spec,
+        operation: SchemaPath,
     ) -> ResponseUnmarshalResult:
         try:
             operation_response = self._find_operation_response(

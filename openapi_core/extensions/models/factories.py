@@ -8,15 +8,16 @@ from typing import Iterable
 from typing import Optional
 from typing import Type
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.extensions.models.types import Field
-from openapi_core.spec import Spec
 
 
 class DictFactory:
     base_class = dict
 
     def create(
-        self, schema: Spec, fields: Iterable[Field]
+        self, schema: SchemaPath, fields: Iterable[Field]
     ) -> Type[Dict[Any, Any]]:
         return self.base_class
 
@@ -24,7 +25,7 @@ class DictFactory:
 class ModelFactory(DictFactory):
     def create(
         self,
-        schema: Spec,
+        schema: SchemaPath,
         fields: Iterable[Field],
     ) -> Type[Any]:
         name = schema.getkey("x-model")
@@ -37,7 +38,7 @@ class ModelFactory(DictFactory):
 class ModelPathFactory(ModelFactory):
     def create(
         self,
-        schema: Spec,
+        schema: SchemaPath,
         fields: Iterable[Field],
     ) -> Any:
         model_class_path = schema.getkey("x-model-path")

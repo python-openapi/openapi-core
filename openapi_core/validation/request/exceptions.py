@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Iterable
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.datatypes import Parameters
 from openapi_core.exceptions import OpenAPIError
-from openapi_core.spec import Spec
 from openapi_core.validation.exceptions import ValidationError
 from openapi_core.validation.schemas.exceptions import ValidateError
 
@@ -47,7 +48,7 @@ class ParameterValidationError(RequestValidationError):
     location: str
 
     @classmethod
-    def from_spec(cls, spec: Spec) -> "ParameterValidationError":
+    def from_spec(cls, spec: SchemaPath) -> "ParameterValidationError":
         return cls(spec["name"], spec["in"])
 
     def __str__(self) -> str:

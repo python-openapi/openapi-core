@@ -3,10 +3,11 @@ from typing import Any
 from typing import Generic
 from typing import Optional
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.shortcuts import get_classes
-from openapi_core.spec import Spec
 from openapi_core.typing import ErrorsHandlerCallable
 from openapi_core.typing import RequestType
 from openapi_core.typing import ResponseType
@@ -24,7 +25,7 @@ from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 class UnmarshallingProcessor(Generic[RequestType, ResponseType]):
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
         response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         **unmarshaller_kwargs: Any,

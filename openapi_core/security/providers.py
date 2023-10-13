@@ -1,13 +1,14 @@
 import warnings
 from typing import Any
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.datatypes import RequestParameters
 from openapi_core.security.exceptions import SecurityProviderError
-from openapi_core.spec import Spec
 
 
 class BaseProvider:
-    def __init__(self, scheme: Spec):
+    def __init__(self, scheme: SchemaPath):
         self.scheme = scheme
 
     def __call__(self, parameters: RequestParameters) -> Any:

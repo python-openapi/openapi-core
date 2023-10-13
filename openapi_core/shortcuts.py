@@ -4,6 +4,8 @@ from typing import Dict
 from typing import Optional
 from typing import Union
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.exceptions import SpecError
 from openapi_core.finders import SpecClasses
 from openapi_core.finders import SpecFinder
@@ -85,21 +87,21 @@ SPECS: Dict[SpecVersion, SpecClasses] = {
 }
 
 
-def get_classes(spec: Spec) -> SpecClasses:
+def get_classes(spec: SchemaPath) -> SpecClasses:
     return SpecFinder(SPECS).get_classes(spec)
 
 
 def unmarshal_apicall_request(
     request: Request,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[RequestUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> RequestUnmarshalResult:
     if not isinstance(request, Request):
         raise TypeError("'request' argument is not type of Request")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if cls is None:
         classes = get_classes(spec)
         cls = classes.request_unmarshaller_cls
@@ -113,15 +115,15 @@ def unmarshal_apicall_request(
 
 def unmarshal_webhook_request(
     request: WebhookRequest,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[WebhookRequestUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> RequestUnmarshalResult:
     if not isinstance(request, WebhookRequest):
         raise TypeError("'request' argument is not type of WebhookRequest")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if cls is None:
         classes = get_classes(spec)
         cls = classes.webhook_request_unmarshaller_cls
@@ -139,15 +141,15 @@ def unmarshal_webhook_request(
 
 def unmarshal_request(
     request: AnyRequest,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[AnyRequestUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> RequestUnmarshalResult:
     if not isinstance(request, (Request, WebhookRequest)):
         raise TypeError("'request' argument is not type of (Webhook)Request")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if isinstance(request, WebhookRequest):
         if cls is None or issubclass(cls, WebhookRequestUnmarshaller):
             return unmarshal_webhook_request(
@@ -179,7 +181,7 @@ def unmarshal_request(
 def unmarshal_apicall_response(
     request: Request,
     response: Response,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[ResponseUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
@@ -188,8 +190,8 @@ def unmarshal_apicall_response(
         raise TypeError("'request' argument is not type of Request")
     if not isinstance(response, Response):
         raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if cls is None:
         classes = get_classes(spec)
         cls = classes.response_unmarshaller_cls
@@ -204,7 +206,7 @@ def unmarshal_apicall_response(
 def unmarshal_webhook_response(
     request: WebhookRequest,
     response: Response,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[WebhookResponseUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
@@ -213,8 +215,8 @@ def unmarshal_webhook_response(
         raise TypeError("'request' argument is not type of WebhookRequest")
     if not isinstance(response, Response):
         raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if cls is None:
         classes = get_classes(spec)
         cls = classes.webhook_response_unmarshaller_cls
@@ -233,7 +235,7 @@ def unmarshal_webhook_response(
 def unmarshal_response(
     request: AnyRequest,
     response: Response,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[AnyResponseUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
@@ -242,8 +244,8 @@ def unmarshal_response(
         raise TypeError("'request' argument is not type of (Webhook)Request")
     if not isinstance(response, Response):
         raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if isinstance(request, WebhookRequest):
         if cls is None or issubclass(cls, WebhookResponseUnmarshaller):
             return unmarshal_webhook_response(
@@ -276,15 +278,15 @@ def unmarshal_response(
 
 def validate_request(
     request: AnyRequest,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[AnyRequestValidatorType] = None,
     **validator_kwargs: Any,
 ) -> Optional[RequestUnmarshalResult]:
     if not isinstance(request, (Request, WebhookRequest)):
         raise TypeError("'request' argument is not type of (Webhook)Request")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
 
     if isinstance(request, WebhookRequest):
         if cls is None or issubclass(cls, WebhookRequestValidator):
@@ -317,7 +319,7 @@ def validate_request(
 def validate_response(
     request: Union[Request, WebhookRequest, Spec],
     response: Union[Response, Request, WebhookRequest],
-    spec: Union[Spec, Response],
+    spec: Union[SchemaPath, Response],
     base_url: Optional[str] = None,
     cls: Optional[AnyResponseValidatorType] = None,
     **validator_kwargs: Any,
@@ -326,8 +328,8 @@ def validate_response(
         raise TypeError("'request' argument is not type of (Webhook)Request")
     if not isinstance(response, Response):
         raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
 
     if isinstance(request, WebhookRequest):
         if cls is None or issubclass(cls, WebhookResponseValidator):
@@ -361,15 +363,15 @@ def validate_response(
 
 def validate_apicall_request(
     request: Request,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[RequestValidatorType] = None,
     **validator_kwargs: Any,
 ) -> None:
     if not isinstance(request, Request):
         raise TypeError("'request' argument is not type of Request")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if cls is None:
         classes = get_classes(spec)
         cls = classes.request_validator_cls
@@ -381,15 +383,15 @@ def validate_apicall_request(
 
 def validate_webhook_request(
     request: WebhookRequest,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[WebhookRequestValidatorType] = None,
     **validator_kwargs: Any,
 ) -> None:
     if not isinstance(request, WebhookRequest):
         raise TypeError("'request' argument is not type of WebhookRequest")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if cls is None:
         classes = get_classes(spec)
         cls = classes.webhook_request_validator_cls
@@ -406,7 +408,7 @@ def validate_webhook_request(
 def validate_apicall_response(
     request: Request,
     response: Response,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[ResponseValidatorType] = None,
     **validator_kwargs: Any,
@@ -415,8 +417,8 @@ def validate_apicall_response(
         raise TypeError("'request' argument is not type of Request")
     if not isinstance(response, Response):
         raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if cls is None:
         classes = get_classes(spec)
         cls = classes.response_validator_cls
@@ -429,7 +431,7 @@ def validate_apicall_response(
 def validate_webhook_response(
     request: WebhookRequest,
     response: Response,
-    spec: Spec,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[WebhookResponseValidatorType] = None,
     **validator_kwargs: Any,
@@ -438,8 +440,8 @@ def validate_webhook_response(
         raise TypeError("'request' argument is not type of WebhookRequest")
     if not isinstance(response, Response):
         raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, Spec):
-        raise TypeError("'spec' argument is not type of Spec")
+    if not isinstance(spec, SchemaPath):
+        raise TypeError("'spec' argument is not type of SchemaPath")
     if cls is None:
         classes = get_classes(spec)
         cls = classes.webhook_response_validator_cls

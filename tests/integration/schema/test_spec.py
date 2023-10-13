@@ -1,10 +1,8 @@
 from base64 import b64encode
 
 import pytest
-from openapi_spec_validator import openapi_v30_spec_validator
-from openapi_spec_validator import openapi_v31_spec_validator
+from jsonschema_path import SchemaPath
 
-from openapi_core import Spec
 from openapi_core import V30RequestValidator
 from openapi_core import V30ResponseValidator
 from openapi_core.schema.servers import get_server_url
@@ -31,9 +29,7 @@ class TestPetstore:
 
     @pytest.fixture
     def spec(self, spec_dict, base_uri):
-        return Spec.from_dict(
-            spec_dict, base_uri=base_uri, validator=openapi_v30_spec_validator
-        )
+        return SchemaPath.from_dict(spec_dict, base_uri=base_uri)
 
     @pytest.fixture
     def request_validator(self, spec):
@@ -324,10 +320,9 @@ class TestWebhook:
 
     @pytest.fixture
     def spec(self, spec_dict, base_uri):
-        return Spec.from_dict(
+        return SchemaPath.from_dict(
             spec_dict,
             base_uri=base_uri,
-            validator=openapi_v31_spec_validator,
         )
 
     @pytest.fixture

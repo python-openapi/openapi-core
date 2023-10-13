@@ -8,9 +8,10 @@ from typing import Optional
 from typing import Type
 from typing import Union
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.extensions.models.factories import ModelPathFactory
 from openapi_core.schema.schemas import get_properties
-from openapi_core.spec import Spec
 from openapi_core.unmarshalling.schemas.datatypes import FormatUnmarshaller
 from openapi_core.unmarshalling.schemas.datatypes import (
     FormatUnmarshallersDict,
@@ -25,7 +26,7 @@ log = logging.getLogger(__name__)
 class PrimitiveUnmarshaller:
     def __init__(
         self,
-        schema: Spec,
+        schema: SchemaPath,
         schema_validator: SchemaValidator,
         schema_unmarshaller: "SchemaUnmarshaller",
     ) -> None:
@@ -44,9 +45,7 @@ class ArrayUnmarshaller(PrimitiveUnmarshaller):
     @property
     def items_unmarshaller(self) -> "SchemaUnmarshaller":
         # sometimes we don't have any schema i.e. free-form objects
-        items_schema = self.schema.get(
-            "items", Spec.from_dict({}, validator=None)
-        )
+        items_schema = self.schema.get("items", SchemaPath.from_dict({}))
         return self.schema_unmarshaller.evolve(items_schema)
 
 
@@ -63,7 +62,7 @@ class ObjectUnmarshaller(PrimitiveUnmarshaller):
     def object_class_factory(self) -> ModelPathFactory:
         return ModelPathFactory()
 
-    def evolve(self, schema: Spec) -> "ObjectUnmarshaller":
+    def evolve(self, schema: SchemaPath) -> "ObjectUnmarshaller":
         cls = self.__class__
 
         return cls(
@@ -119,8 +118,8 @@ class ObjectUnmarshaller(PrimitiveUnmarshaller):
         if additional_properties is not False:
             # free-form object
             if additional_properties is True:
-                additional_prop_schema = Spec.from_dict(
-                    {"nullable": True}, validator=None
+                additional_prop_schema = SchemaPath.from_dict(
+                    {"nullable": True}
                 )
             # defined schema
             else:
@@ -249,7 +248,7 @@ class FormatsUnmarshaller:
 class SchemaUnmarshaller:
     def __init__(
         self,
-        schema: Spec,
+        schema: SchemaPath,
         schema_validator: SchemaValidator,
         types_unmarshaller: TypesUnmarshaller,
         formats_unmarshaller: FormatsUnmarshaller,
@@ -294,7 +293,7 @@ class SchemaUnmarshaller:
             self,
         )
 
-    def evolve(self, schema: Spec) -> "SchemaUnmarshaller":
+    def evolve(self, schema: SchemaPath) -> "SchemaUnmarshaller":
         cls = self.__class__
 
         return cls(

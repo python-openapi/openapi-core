@@ -1,7 +1,7 @@
 import pytest
+from jsonschema_path import SchemaPath
 
 from openapi_core.security.providers import HttpProvider
-from openapi_core.spec.paths import Spec
 from openapi_core.testing import MockRequest
 
 
@@ -32,7 +32,7 @@ class TestHttpProvider:
             "/pets",
             headers=headers,
         )
-        scheme = Spec.from_dict(spec, validator=None)
+        scheme = SchemaPath.from_dict(spec)
         provider = HttpProvider(scheme)
 
         result = provider(request.parameters)

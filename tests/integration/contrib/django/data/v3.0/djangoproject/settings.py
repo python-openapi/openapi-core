@@ -14,8 +14,7 @@ import os
 from pathlib import Path
 
 import yaml
-
-from openapi_core import Spec
+from jsonschema_path import SchemaPath
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -123,4 +122,4 @@ OPENAPI_SPEC_PATH = Path("tests/integration/data/v3.0/petstore.yaml")
 
 OPENAPI_SPEC_DICT = yaml.load(OPENAPI_SPEC_PATH.read_text(), yaml.Loader)
 
-OPENAPI_SPEC = Spec.from_dict(OPENAPI_SPEC_DICT)
+OPENAPI_SPEC = SchemaPath.from_dict(OPENAPI_SPEC_DICT)

@@ -1,8 +1,8 @@
 from unittest import mock
 
 import pytest
+from jsonschema_path import SchemaPath
 
-from openapi_core.spec.paths import Spec
 from openapi_core.templating.responses.finders import ResponseFinder
 
 
@@ -18,7 +18,7 @@ class TestResponses:
 
     @pytest.fixture(scope="class")
     def responses(self, spec):
-        return Spec.from_dict(spec, validator=None)
+        return SchemaPath.from_dict(spec)
 
     @pytest.fixture(scope="class")
     def finder(self, responses):

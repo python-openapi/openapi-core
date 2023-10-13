@@ -1,9 +1,10 @@
 from typing import Any
 from typing import Optional
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
-from openapi_core.spec import Spec
 from openapi_core.unmarshalling.response.datatypes import (
     ResponseUnmarshalResult,
 )
@@ -14,7 +15,7 @@ from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 class ResponseUnmarshallingProcessor:
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         response_unmarshaller_cls: ResponseUnmarshallerType,
         **unmarshaller_kwargs: Any
     ) -> None:

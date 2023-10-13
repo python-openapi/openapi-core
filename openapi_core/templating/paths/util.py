@@ -1,6 +1,5 @@
 from typing import Tuple
 
-from openapi_core.spec.paths import Spec
 from openapi_core.templating.paths.datatypes import Path
 
 

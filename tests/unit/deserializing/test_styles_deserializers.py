@@ -1,4 +1,5 @@
 import pytest
+from jsonschema_path import SchemaPath
 
 from openapi_core.deserializing.styles.exceptions import (
     EmptyQueryParameterValue,
@@ -6,7 +7,6 @@ from openapi_core.deserializing.styles.exceptions import (
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
-from openapi_core.spec.paths import Spec
 
 
 class TestStyleDeserializer:
@@ -19,7 +19,7 @@ class TestStyleDeserializer:
 
     def test_unsupported(self, deserializer_factory):
         spec = {"name": "param", "in": "header", "style": "unsupported"}
-        param = Spec.from_dict(spec, validator=None)
+        param = SchemaPath.from_dict(spec)
         deserializer = deserializer_factory(param)
         value = ""
 
@@ -33,7 +33,7 @@ class TestStyleDeserializer:
             "name": "param",
             "in": "query",
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = SchemaPath.from_dict(spec)
         deserializer = deserializer_factory(param)
         value = ""
 
@@ -45,7 +45,7 @@ class TestStyleDeserializer:
             "name": "param",
             "in": "query",
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = SchemaPath.from_dict(spec)
         deserializer = deserializer_factory(param)
         value = "test"
 

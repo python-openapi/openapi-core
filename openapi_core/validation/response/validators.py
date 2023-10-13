@@ -6,11 +6,12 @@ from typing import Iterator
 from typing import List
 from typing import Mapping
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.exceptions import OpenAPIError
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
-from openapi_core.spec import Spec
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.responses.exceptions import ResponseFinderError
 from openapi_core.validation.decorators import ValidationErrorWrapper
@@ -39,7 +40,7 @@ class BaseResponseValidator(BaseValidator):
         data: str,
         headers: Mapping[str, Any],
         mimetype: str,
-        operation: Spec,
+        operation: SchemaPath,
     ) -> Iterator[Exception]:
         try:
             operation_response = self._find_operation_response(
@@ -61,7 +62,7 @@ class BaseResponseValidator(BaseValidator):
             yield from exc.context
 
     def _iter_data_errors(
-        self, status_code: int, data: str, mimetype: str, operation: Spec
+        self, status_code: int, data: str, mimetype: str, operation: SchemaPath
     ) -> Iterator[Exception]:
         try:
             operation_response = self._find_operation_response(
@@ -78,7 +79,10 @@ class BaseResponseValidator(BaseValidator):
             yield exc
 
     def _iter_headers_errors(
-        self, status_code: int, headers: Mapping[str, Any], operation: Spec
+        self,
+        status_code: int,
+        headers: Mapping[str, Any],
+        operation: SchemaPath,
     ) -> Iterator[Exception]:
         try:
             operation_response = self._find_operation_response(
@@ -97,8 +101,8 @@ class BaseResponseValidator(BaseValidator):
     def _find_operation_response(
         self,
         status_code: int,
-        operation: Spec,
-    ) -> Spec:
+        operation: SchemaPath,
+    ) -> SchemaPath:
         from openapi_core.templating.responses.finders import ResponseFinder
 
         finder = ResponseFinder(operation / "responses")
@@ -106,7 +110,7 @@ class BaseResponseValidator(BaseValidator):
 
     @ValidationErrorWrapper(DataValidationError, InvalidData)
     def _get_data(
-        self, data: str, mimetype: str, operation_response: Spec
+        self, data: str, mimetype: str, operation_response: SchemaPath
     ) -> Any:
         if "content" not in operation_response:
             return None
@@ -123,7 +127,7 @@ class BaseResponseValidator(BaseValidator):
         return data
 
     def _get_headers(
-        self, headers: Mapping[str, Any], operation_response: Spec
+        self, headers: Mapping[str, Any], operation_response: SchemaPath
     ) -> Dict[str, Any]:
         if "headers" not in operation_response:
             return {}
@@ -153,7 +157,7 @@ class BaseResponseValidator(BaseValidator):
 
     @ValidationErrorWrapper(HeaderValidationError, InvalidHeader, name="name")
     def _get_header(
-        self, headers: Mapping[str, Any], name: str, header: Spec
+        self, headers: Mapping[str, Any], name: str, header: SchemaPath
     ) -> Any:
         deprecated = header.getkey("deprecated", False)
         if deprecated:

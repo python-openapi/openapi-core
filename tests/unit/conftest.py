@@ -1,18 +1,17 @@
 import pytest
-
-from openapi_core import Spec
+from jsonschema_path import SchemaPath
 
 
 @pytest.fixture
 def spec_v30():
-    return Spec.from_dict({"openapi": "3.0"}, validator=None)
+    return SchemaPath.from_dict({"openapi": "3.0"})
 
 
 @pytest.fixture
 def spec_v31():
-    return Spec.from_dict({"openapi": "3.1"}, validator=None)
+    return SchemaPath.from_dict({"openapi": "3.1"})
 
 
 @pytest.fixture
 def spec_invalid():
-    return Spec.from_dict({}, validator=None)
+    return SchemaPath.from_dict({})

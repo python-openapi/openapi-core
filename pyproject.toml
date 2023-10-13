@@ -72,7 +72,7 @@ openapi-schema-validator = "^0.6.0"
 openapi-spec-validator = ">=0.6.0,<0.8.0"
 requests = {version = "*", optional = true}
 werkzeug = "*"
-jsonschema-spec = "^0.2.3"
+jsonschema-path = "^0.3.1"
 asgiref = "^3.6.0"
 jsonschema = "^4.18.0"
 multidict = {version = "^6.0.4", optional = true}

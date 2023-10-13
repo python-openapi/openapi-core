@@ -1017,6 +1017,23 @@ format = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validat
 format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "uri-template", "webcolors (>=1.11)"]
 
 [[package]]
+name = "jsonschema-path"
+version = "0.3.1"
+description = "JSONSchema Spec with object-oriented paths"
+optional = false
+python-versions = ">=3.8.0,<4.0.0"
+files = [
+    {file = "jsonschema_path-0.3.1-py3-none-any.whl", hash = "sha256:06f01b1848a28963f49a17730e11204d252aa6ff5db4ef84ec77e5ac93cfa831"},
+    {file = "jsonschema_path-0.3.1.tar.gz", hash = "sha256:07ea584b5c9b41a614b4d011c5575955676f48d0abbfd93d9ea8e933018d716d"},
+]
+
+[package.dependencies]
+pathable = ">=0.4.1,<0.5.0"
+PyYAML = ">=5.1"
+referencing = ">=0.28.0,<0.31.0"
+requests = ">=2.31.0,<3.0.0"
+
+[[package]]
 name = "jsonschema-spec"
 version = "0.2.4"
 description = "JSONSchema Spec with object-oriented paths"
@@ -2468,4 +2485,4 @@ starlette = ["starlette"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.0"
-content-hash = "639a78f65aa5cf9b6f54c1eef10bd159cda3b76b49d85660978c9be4f7f3d5c3"
+content-hash = "c4e8bc0763a0b3f061e7e42a49a0f43cbc4666ef6b31fe748ca83d88e55d9b3c"

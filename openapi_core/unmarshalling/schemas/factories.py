@@ -2,7 +2,8 @@ import sys
 import warnings
 from typing import Optional
 
-from openapi_core.spec import Spec
+from jsonschema_path import SchemaPath
+
 from openapi_core.unmarshalling.schemas.datatypes import (
     FormatUnmarshallersDict,
 )
@@ -33,7 +34,7 @@ class SchemaUnmarshallersFactory:
 
     def create(
         self,
-        schema: Spec,
+        schema: SchemaPath,
         format_validators: Optional[FormatValidatorsDict] = None,
         format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,

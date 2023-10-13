@@ -1,5 +1,7 @@
 from typing import Optional
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (
@@ -20,7 +22,6 @@ from openapi_core.protocols import Request
 from openapi_core.protocols import WebhookRequest
 from openapi_core.security import security_provider_factory
 from openapi_core.security.factories import SecurityProviderFactory
-from openapi_core.spec import Spec
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
 from openapi_core.unmarshalling.schemas import (
@@ -81,7 +82,7 @@ from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         base_url: Optional[str] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
@@ -129,7 +130,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         )
 
     def _unmarshal(
-        self, request: BaseRequest, operation: Spec, path: Spec
+        self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> RequestUnmarshalResult:
         try:
             security = self._get_security(request.parameters, operation)
@@ -164,7 +165,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         )
 
     def _unmarshal_body(
-        self, request: BaseRequest, operation: Spec, path: Spec
+        self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> RequestUnmarshalResult:
         try:
             body = self._get_body(request.body, request.mimetype, operation)
@@ -183,7 +184,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         )
 
     def _unmarshal_parameters(
-        self, request: BaseRequest, operation: Spec, path: Spec
+        self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> RequestUnmarshalResult:
         try:
             params = self._get_parameters(request.parameters, path, operation)
@@ -199,7 +200,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         )
 
     def _unmarshal_security(
-        self, request: BaseRequest, operation: Spec, path: Spec
+        self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> RequestUnmarshalResult:
         try:
             security = self._get_security(request.parameters, operation)

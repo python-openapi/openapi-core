@@ -1,6 +1,6 @@
 import pytest
+from jsonschema_path import SchemaPath
 
-from openapi_core.spec.paths import Spec
 from openapi_core.templating.datatypes import TemplateResult
 from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
@@ -124,7 +124,7 @@ class BaseTestSpecServer:
             "servers": servers,
             "paths": paths,
         }
-        return Spec.from_dict(spec, validator=None)
+        return SchemaPath.from_dict(spec)
 
     @pytest.fixture
     def finder(self, spec):
@@ -146,7 +146,7 @@ class BaseTestPathServer(BaseTestSpecServer):
             "info": info,
             "paths": paths,
         }
-        return Spec.from_dict(spec, validator=None)
+        return SchemaPath.from_dict(spec)
 
 
 class BaseTestOperationServer(BaseTestSpecServer):
@@ -165,7 +165,7 @@ class BaseTestOperationServer(BaseTestSpecServer):
             "info": info,
             "paths": paths,
         }
-        return Spec.from_dict(spec, validator=None)
+        return SchemaPath.from_dict(spec)
 
 
 class BaseTestServerNotFound:
@@ -281,7 +281,7 @@ class BaseTestPathsNotFound:
         spec = {
             "info": info,
         }
-        return Spec.from_dict(spec, validator=None)
+        return SchemaPath.from_dict(spec)
 
     def test_raises(self, finder):
         method = "get"
