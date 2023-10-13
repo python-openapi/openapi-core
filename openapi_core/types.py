@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
@@ -21,12 +22,8 @@ from openapi_core.validation.response.types import WebhookResponseValidatorType
 from openapi_core.validation.validators import BaseValidator
 
 
-class SpecVersion(NamedTuple):
-    name: str
-    version: str
-
-
-class SpecClasses(NamedTuple):
+@dataclass
+class SpecClasses:
     request_validator_cls: RequestValidatorType
     response_validator_cls: ResponseValidatorType
     webhook_request_validator_cls: Optional[WebhookRequestValidatorType]
@@ -37,14 +34,3 @@ class SpecClasses(NamedTuple):
     webhook_response_unmarshaller_cls: Optional[
         WebhookResponseUnmarshallerType
     ]
-
-
-class SpecFinder:
-    def __init__(self, specs: Mapping[SpecVersion, SpecClasses]) -> None:
-        self.specs = specs
-
-    def get_classes(self, spec: SchemaPath) -> SpecClasses:
-        for v, classes in self.specs.items():
-            if v.name in spec and spec[v.name].startswith(v.version):
-                return classes
-        raise SpecError("Spec schema version not detected")

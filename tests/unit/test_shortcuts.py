@@ -97,6 +97,12 @@ class TestUnmarshalAPICallRequest:
         with pytest.raises(SpecError):
             unmarshal_apicall_request(request, spec=spec_invalid)
 
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=Request)
+
+        with pytest.raises(SpecError):
+            unmarshal_apicall_request(request, spec=spec_v20)
+
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
 
@@ -123,6 +129,12 @@ class TestUnmarshalWebhookRequest:
 
         with pytest.raises(SpecError):
             unmarshal_webhook_request(request, spec=spec_invalid)
+
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=WebhookRequest)
+
+        with pytest.raises(SpecError):
+            unmarshal_webhook_request(request, spec=spec_v20)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
@@ -168,6 +180,12 @@ class TestUnmarshalRequest:
 
         with pytest.raises(SpecError):
             unmarshal_request(request, spec=spec_invalid)
+
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=Request)
+
+        with pytest.raises(SpecError):
+            unmarshal_request(request, spec=spec_v20)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
@@ -257,6 +275,13 @@ class TestUnmarshalAPICallResponse:
         with pytest.raises(SpecError):
             unmarshal_apicall_response(request, response, spec=spec_invalid)
 
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            unmarshal_apicall_response(request, response, spec=spec_v20)
+
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
         response = mock.Mock(spec=Response)
@@ -296,6 +321,13 @@ class TestUnmarshalResponse:
 
         with pytest.raises(SpecError):
             unmarshal_response(request, response, spec=spec_invalid)
+
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            unmarshal_response(request, response, spec=spec_v20)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
@@ -404,6 +436,13 @@ class TestUnmarshalWebhookResponse:
         with pytest.raises(SpecError):
             unmarshal_webhook_response(request, response, spec=spec_invalid)
 
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            unmarshal_webhook_response(request, response, spec=spec_v20)
+
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
         response = mock.Mock(spec=Response)
@@ -463,6 +502,12 @@ class TestValidateAPICallRequest:
         with pytest.raises(SpecError):
             validate_apicall_request(request, spec=spec_invalid)
 
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=Request)
+
+        with pytest.raises(SpecError):
+            validate_apicall_request(request, spec=spec_v20)
+
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
 
@@ -501,6 +546,12 @@ class TestValidateWebhookRequest:
 
         with pytest.raises(SpecError):
             validate_webhook_request(request, spec=spec_invalid)
+
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=WebhookRequest)
+
+        with pytest.raises(SpecError):
+            validate_webhook_request(request, spec=spec_v20)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
@@ -547,6 +598,13 @@ class TestValidateRequest:
         with pytest.raises(SpecError):
             with pytest.warns(DeprecationWarning):
                 validate_request(request, spec=spec_invalid)
+
+    def test_spec_not_detected(self, spec_v20):
+        request = mock.Mock(spec=Request)
+
+        with pytest.raises(SpecError):
+            with pytest.warns(DeprecationWarning):
+                validate_request(request, spec=spec_v20)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
@@ -705,6 +763,13 @@ class TestValidateAPICallResponse:
         with pytest.raises(SpecError):
             validate_apicall_response(request, response, spec=spec_invalid)
 
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            validate_apicall_response(request, response, spec=spec_v20)
+
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
         response = mock.Mock(spec=Response)
@@ -757,6 +822,13 @@ class TestValidateWebhookResponse:
 
         with pytest.raises(SpecError):
             validate_webhook_response(request, response, spec=spec_invalid)
+
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            validate_webhook_response(request, response, spec=spec_v20)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
@@ -818,6 +890,14 @@ class TestValidateResponse:
         with pytest.raises(SpecError):
             with pytest.warns(DeprecationWarning):
                 validate_response(request, response, spec=spec_invalid)
+
+    def test_spec_not_supported(self, spec_v20):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+
+        with pytest.raises(SpecError):
+            with pytest.warns(DeprecationWarning):
+                validate_response(request, response, spec=spec_v20)
 
     def test_request_type_invalid(self, spec_v31):
         request = mock.sentinel.request
