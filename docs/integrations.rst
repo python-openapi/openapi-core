@@ -54,14 +54,14 @@ Django can be integrated by middleware. Add ``DjangoOpenAPIMiddleware`` to your 
   :emphasize-lines: 6,9
 
     # settings.py
-    from openapi_core import Spec
+    from jsonschema_path import SchemaPath
 
     MIDDLEWARE = [
        # ...
        'openapi_core.contrib.django.middlewares.DjangoOpenAPIMiddleware',
     ]
 
-    OPENAPI_SPEC = Spec.from_dict(spec_dict)
+    OPENAPI_SPEC = SchemaPath.from_dict(spec_dict)
 
 You can skip response validation process: by setting ``OPENAPI_RESPONSE_CLS`` to ``None``
 
@@ -69,14 +69,14 @@ You can skip response validation process: by setting ``OPENAPI_RESPONSE_CLS`` to
   :emphasize-lines: 10
 
     # settings.py
-    from openapi_core import Spec
+    from jsonschema_path import SchemaPath
 
     MIDDLEWARE = [
        # ...
        'openapi_core.contrib.django.middlewares.DjangoOpenAPIMiddleware',
     ]
 
-    OPENAPI_SPEC = Spec.from_dict(spec_dict)
+    OPENAPI_SPEC = SchemaPath.from_dict(spec_dict)
     OPENAPI_RESPONSE_CLS = None
 
 After that you have access to unmarshal result object with all validated request data from Django view through request object.

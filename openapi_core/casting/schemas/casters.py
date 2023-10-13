@@ -3,16 +3,17 @@ from typing import Any
 from typing import Callable
 from typing import List
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.casting.schemas.datatypes import CasterCallable
 from openapi_core.casting.schemas.exceptions import CastError
-from openapi_core.spec import Spec
 
 if TYPE_CHECKING:
     from openapi_core.casting.schemas.factories import SchemaCastersFactory
 
 
 class BaseSchemaCaster:
-    def __init__(self, schema: Spec):
+    def __init__(self, schema: SchemaPath):
         self.schema = schema
 
     def __call__(self, value: Any) -> Any:
@@ -26,7 +27,7 @@ class BaseSchemaCaster:
 
 
 class CallableSchemaCaster(BaseSchemaCaster):
-    def __init__(self, schema: Spec, caster_callable: CasterCallable):
+    def __init__(self, schema: SchemaPath, caster_callable: CasterCallable):
         super().__init__(schema)
         self.caster_callable = caster_callable
 
@@ -43,7 +44,9 @@ class DummyCaster(BaseSchemaCaster):
 
 
 class ComplexCaster(BaseSchemaCaster):
-    def __init__(self, schema: Spec, casters_factory: "SchemaCastersFactory"):
+    def __init__(
+        self, schema: SchemaPath, casters_factory: "SchemaCastersFactory"
+    ):
         super().__init__(schema)
         self.casters_factory = casters_factory
 

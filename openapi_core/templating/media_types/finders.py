@@ -3,13 +3,14 @@ import fnmatch
 from typing import Mapping
 from typing import Tuple
 
-from openapi_core.spec import Spec
+from jsonschema_path import SchemaPath
+
 from openapi_core.templating.media_types.datatypes import MediaType
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 
 
 class MediaTypeFinder:
-    def __init__(self, content: Spec):
+    def __init__(self, content: SchemaPath):
         self.content = content
 
     def get_first(self) -> MediaType:

@@ -5,9 +5,9 @@ from types import ModuleType
 from typing import Any
 
 import pytest
+from jsonschema_path import SchemaPath
 
 from openapi_core.extensions.models.factories import ModelPathFactory
-from openapi_core.spec import Spec
 
 
 class TestImportModelCreate:
@@ -27,7 +27,7 @@ class TestImportModelCreate:
     def test_dynamic_model(self):
         factory = ModelPathFactory()
 
-        schema = Spec.from_dict({"x-model": "TestModel"}, validator=None)
+        schema = SchemaPath.from_dict({"x-model": "TestModel"})
         test_model_class = factory.create(schema, ["name"])
 
         assert is_dataclass(test_model_class)
@@ -38,9 +38,7 @@ class TestImportModelCreate:
     def test_model_path(self, loaded_model_class):
         factory = ModelPathFactory()
 
-        schema = Spec.from_dict(
-            {"x-model-path": "foo.BarModel"}, validator=None
-        )
+        schema = SchemaPath.from_dict({"x-model-path": "foo.BarModel"})
         test_model_class = factory.create(schema, ["a", "b"])
 
         assert test_model_class == loaded_model_class

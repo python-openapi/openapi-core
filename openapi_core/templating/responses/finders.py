@@ -1,12 +1,13 @@
-from openapi_core.spec import Spec
+from jsonschema_path import SchemaPath
+
 from openapi_core.templating.responses.exceptions import ResponseNotFound
 
 
 class ResponseFinder:
-    def __init__(self, responses: Spec):
+    def __init__(self, responses: SchemaPath):
         self.responses = responses
 
-    def find(self, http_status: str = "default") -> Spec:
+    def find(self, http_status: str = "default") -> SchemaPath:
         if http_status in self.responses:
             return self.responses / http_status
 

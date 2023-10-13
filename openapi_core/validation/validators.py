@@ -7,6 +7,8 @@ from typing import Optional
 from typing import Tuple
 from urllib.parse import urljoin
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (
@@ -30,7 +32,6 @@ from openapi_core.schema.parameters import get_explode
 from openapi_core.schema.parameters import get_style
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList
-from openapi_core.spec import Spec
 from openapi_core.templating.media_types.datatypes import MediaType
 from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.finders import APICallPathFinder
@@ -45,7 +46,7 @@ class BaseValidator:
 
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         base_url: Optional[str] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
@@ -77,7 +78,7 @@ class BaseValidator:
         self.extra_media_type_deserializers = extra_media_type_deserializers
 
     def _find_media_type(
-        self, content: Spec, mimetype: Optional[str] = None
+        self, content: SchemaPath, mimetype: Optional[str] = None
     ) -> MediaType:
         from openapi_core.templating.media_types.finders import MediaTypeFinder
 
@@ -96,15 +97,17 @@ class BaseValidator:
         )
         return deserializer.deserialize(value)
 
-    def _deserialise_style(self, param_or_header: Spec, value: Any) -> Any:
+    def _deserialise_style(
+        self, param_or_header: SchemaPath, value: Any
+    ) -> Any:
         deserializer = self.style_deserializers_factory.create(param_or_header)
         return deserializer.deserialize(value)
 
-    def _cast(self, schema: Spec, value: Any) -> Any:
+    def _cast(self, schema: SchemaPath, value: Any) -> Any:
         caster = self.schema_casters_factory.create(schema)
         return caster(value)
 
-    def _validate_schema(self, schema: Spec, value: Any) -> None:
+    def _validate_schema(self, schema: SchemaPath, value: Any) -> None:
         validator = self.schema_validators_factory.create(
             schema,
             format_validators=self.format_validators,
@@ -114,7 +117,7 @@ class BaseValidator:
 
     def _get_param_or_header(
         self,
-        param_or_header: Spec,
+        param_or_header: SchemaPath,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
@@ -131,7 +134,7 @@ class BaseValidator:
 
     def _get_simple_param_or_header(
         self,
-        param_or_header: Spec,
+        param_or_header: SchemaPath,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
@@ -147,7 +150,7 @@ class BaseValidator:
 
     def _get_complex_param_or_header(
         self,
-        param_or_header: Spec,
+        param_or_header: SchemaPath,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
@@ -160,7 +163,7 @@ class BaseValidator:
     def _convert_schema_style_value(
         self,
         raw: Any,
-        param_or_header: Spec,
+        param_or_header: SchemaPath,
     ) -> Any:
         casted, schema = self._convert_schema_style_value_and_schema(
             raw, param_or_header
@@ -171,7 +174,7 @@ class BaseValidator:
         return casted
 
     def _convert_content_schema_value(
-        self, raw: Any, content: Spec, mimetype: Optional[str] = None
+        self, raw: Any, content: SchemaPath, mimetype: Optional[str] = None
     ) -> Any:
         casted, schema = self._convert_content_schema_value_and_schema(
             raw, content, mimetype
@@ -184,8 +187,8 @@ class BaseValidator:
     def _convert_schema_style_value_and_schema(
         self,
         raw: Any,
-        param_or_header: Spec,
-    ) -> Tuple[Any, Spec]:
+        param_or_header: SchemaPath,
+    ) -> Tuple[Any, SchemaPath]:
         deserialised = self._deserialise_style(param_or_header, raw)
         schema = param_or_header / "schema"
         casted = self._cast(schema, deserialised)
@@ -194,9 +197,9 @@ class BaseValidator:
     def _convert_content_schema_value_and_schema(
         self,
         raw: Any,
-        content: Spec,
+        content: SchemaPath,
         mimetype: Optional[str] = None,
-    ) -> Tuple[Any, Optional[Spec]]:
+    ) -> Tuple[Any, Optional[SchemaPath]]:
         mime_type, parameters, media_type = self._find_media_type(
             content, mimetype
         )
@@ -211,7 +214,7 @@ class BaseValidator:
 
     def _get_style_value(
         self,
-        param_or_header: Spec,
+        param_or_header: SchemaPath,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
@@ -241,7 +244,7 @@ class BaseValidator:
 
     def _get_media_type_value(
         self,
-        param_or_header: Spec,
+        param_or_header: SchemaPath,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:

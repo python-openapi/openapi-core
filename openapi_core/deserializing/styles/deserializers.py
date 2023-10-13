@@ -4,6 +4,8 @@ from typing import Callable
 from typing import List
 from typing import Optional
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.styles.datatypes import DeserializerCallable
 from openapi_core.deserializing.styles.exceptions import (
@@ -11,13 +13,12 @@ from openapi_core.deserializing.styles.exceptions import (
 )
 from openapi_core.schema.parameters import get_aslist
 from openapi_core.schema.parameters import get_explode
-from openapi_core.spec import Spec
 
 
 class CallableStyleDeserializer:
     def __init__(
         self,
-        param_or_header: Spec,
+        param_or_header: SchemaPath,
         style: str,
         deserializer_callable: Optional[DeserializerCallable] = None,
     ):

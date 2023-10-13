@@ -5,8 +5,8 @@ from typing import Type
 
 from jsonschema._format import FormatChecker
 from jsonschema.protocols import Validator
+from jsonschema_path import SchemaPath
 
-from openapi_core.spec import Spec
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.validators import SchemaValidator
 
@@ -51,7 +51,7 @@ class SchemaValidatorsFactory:
 
     def create(
         self,
-        schema: Spec,
+        schema: SchemaPath,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
     ) -> Validator:

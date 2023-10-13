@@ -5,6 +5,7 @@ from typing import Type
 
 from falcon.request import Request
 from falcon.response import Response
+from jsonschema_path import SchemaPath
 
 from openapi_core.contrib.falcon.handlers import FalconOpenAPIErrorsHandler
 from openapi_core.contrib.falcon.handlers import (
@@ -12,7 +13,6 @@ from openapi_core.contrib.falcon.handlers import (
 )
 from openapi_core.contrib.falcon.requests import FalconOpenAPIRequest
 from openapi_core.contrib.falcon.responses import FalconOpenAPIResponse
-from openapi_core.spec import Spec
 from openapi_core.unmarshalling.processors import UnmarshallingProcessor
 from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
 from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
@@ -28,7 +28,7 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor[Request, Response]):
 
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
         response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         request_cls: Type[FalconOpenAPIRequest] = FalconOpenAPIRequest,
@@ -51,7 +51,7 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor[Request, Response]):
     @classmethod
     def from_spec(
         cls,
-        spec: Spec,
+        spec: SchemaPath,
         request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
         response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         request_cls: Type[FalconOpenAPIRequest] = FalconOpenAPIRequest,

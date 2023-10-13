@@ -1,10 +1,11 @@
+import warnings
 from typing import Any
 from typing import Hashable
 from typing import Mapping
 from typing import Type
 from typing import TypeVar
 
-from jsonschema_spec import SchemaPath
+from jsonschema_path import SchemaPath
 from openapi_spec_validator.validation import openapi_spec_validator_proxy
 
 TSpec = TypeVar("TSpec", bound="Spec")
@@ -20,6 +21,10 @@ class Spec(SchemaPath):
         *args: Any,
         **kwargs: Any,
     ) -> TSpec:
+        warnings.warn(
+            "Spec is deprecated. Use SchemaPath from jsonschema-path package.",
+            DeprecationWarning,
+        )
         validator = kwargs.pop("validator", openapi_spec_validator_proxy)
         if validator is not None:
             base_uri = kwargs.get("base_uri", "")
@@ -27,14 +32,3 @@ class Spec(SchemaPath):
             validator.validate(data, base_uri=base_uri, spec_url=spec_url)
 
         return super().from_dict(data, *args, **kwargs)
-
-    def exists(self) -> bool:
-        try:
-            self.content()
-        except KeyError:
-            return False
-        else:
-            return True
-
-    def uri(self) -> str:
-        return f"#/{str(self)}"

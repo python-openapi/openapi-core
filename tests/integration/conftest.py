@@ -3,10 +3,9 @@ from os import path
 from urllib import request
 
 import pytest
+from jsonschema_path import SchemaPath
 from openapi_spec_validator.readers import read_from_filename
 from yaml import safe_load
-
-from openapi_core.spec import Spec
 
 
 def content_from_file(spec_file):
@@ -17,13 +16,13 @@ def content_from_file(spec_file):
 
 def spec_from_file(spec_file):
     spec_dict, base_uri = content_from_file(spec_file)
-    return Spec.from_dict(spec_dict, base_uri=base_uri)
+    return SchemaPath.from_dict(spec_dict, base_uri=base_uri)
 
 
 def spec_from_url(base_uri):
     content = request.urlopen(base_uri)
     spec_dict = safe_load(content)
-    return Spec.from_dict(spec_dict, base_uri=base_uri)
+    return SchemaPath.from_dict(spec_dict, base_uri=base_uri)
 
 
 @pytest.fixture(scope="session")
@@ -62,4 +61,4 @@ def v30_petstore_content(factory):
 @pytest.fixture(scope="session")
 def v30_petstore_spec(v30_petstore_content):
     base_uri = "file://tests/integration/data/v3.0/petstore.yaml"
-    return Spec.from_dict(v30_petstore_content, base_uri=base_uri)
+    return SchemaPath.from_dict(v30_petstore_content, base_uri=base_uri)

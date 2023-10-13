@@ -2,11 +2,12 @@ from typing import Any
 from typing import Dict
 from typing import Type
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.security.providers import ApiKeyProvider
 from openapi_core.security.providers import BaseProvider
 from openapi_core.security.providers import HttpProvider
 from openapi_core.security.providers import UnsupportedProvider
-from openapi_core.spec import Spec
 
 
 class SecurityProviderFactory:
@@ -17,7 +18,7 @@ class SecurityProviderFactory:
         "openIdConnect": UnsupportedProvider,
     }
 
-    def create(self, scheme: Spec) -> Any:
+    def create(self, scheme: SchemaPath) -> Any:
         scheme_type = scheme["type"]
         provider_class = self.PROVIDERS[scheme_type]
         return provider_class(scheme)

@@ -2,13 +2,14 @@ import re
 from functools import partial
 from typing import Dict
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.deserializing.styles.datatypes import DeserializerCallable
 from openapi_core.deserializing.styles.deserializers import (
     CallableStyleDeserializer,
 )
 from openapi_core.deserializing.styles.util import split
 from openapi_core.schema.parameters import get_style
-from openapi_core.spec import Spec
 
 
 class StyleDeserializersFactory:
@@ -20,7 +21,7 @@ class StyleDeserializersFactory:
         "deepObject": partial(re.split, pattern=r"\[|\]"),
     }
 
-    def create(self, param_or_header: Spec) -> CallableStyleDeserializer:
+    def create(self, param_or_header: SchemaPath) -> CallableStyleDeserializer:
         style = get_style(param_or_header)
 
         deserialize_callable = self.STYLE_DESERIALIZERS.get(style)

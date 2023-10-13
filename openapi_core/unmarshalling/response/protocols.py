@@ -5,10 +5,11 @@ from typing import Optional
 from typing import Protocol
 from typing import runtime_checkable
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
-from openapi_core.spec import Spec
 from openapi_core.unmarshalling.response.datatypes import (
     ResponseUnmarshalResult,
 )
@@ -16,7 +17,7 @@ from openapi_core.unmarshalling.response.datatypes import (
 
 @runtime_checkable
 class ResponseUnmarshaller(Protocol):
-    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+    def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
         ...
 
     def unmarshal(
@@ -29,7 +30,7 @@ class ResponseUnmarshaller(Protocol):
 
 @runtime_checkable
 class WebhookResponseUnmarshaller(Protocol):
-    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+    def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
         ...
 
     def unmarshal(

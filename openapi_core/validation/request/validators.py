@@ -5,6 +5,8 @@ from typing import Dict
 from typing import Iterator
 from typing import Optional
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.datatypes import Parameters
@@ -28,7 +30,6 @@ from openapi_core.protocols import WebhookRequest
 from openapi_core.security import security_provider_factory
 from openapi_core.security.exceptions import SecurityProviderError
 from openapi_core.security.factories import SecurityProviderFactory
-from openapi_core.spec.paths import Spec
 from openapi_core.templating.paths.exceptions import PathError
 from openapi_core.templating.paths.finders import WebhookPathFinder
 from openapi_core.templating.security.exceptions import SecurityNotFound
@@ -63,7 +64,7 @@ from openapi_core.validation.validators import BaseWebhookValidator
 class BaseRequestValidator(BaseValidator):
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         base_url: Optional[str] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
@@ -90,7 +91,7 @@ class BaseRequestValidator(BaseValidator):
         self.security_provider_factory = security_provider_factory
 
     def _iter_errors(
-        self, request: BaseRequest, operation: Spec, path: Spec
+        self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> Iterator[Exception]:
         try:
             self._get_security(request.parameters, operation)
@@ -110,7 +111,7 @@ class BaseRequestValidator(BaseValidator):
             yield exc
 
     def _iter_body_errors(
-        self, request: BaseRequest, operation: Spec
+        self, request: BaseRequest, operation: SchemaPath
     ) -> Iterator[Exception]:
         try:
             self._get_body(request.body, request.mimetype, operation)
@@ -118,7 +119,7 @@ class BaseRequestValidator(BaseValidator):
             yield exc
 
     def _iter_parameters_errors(
-        self, request: BaseRequest, operation: Spec, path: Spec
+        self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> Iterator[Exception]:
         try:
             self._get_parameters(request.parameters, path, operation)
@@ -126,7 +127,7 @@ class BaseRequestValidator(BaseValidator):
             yield from exc.errors
 
     def _iter_security_errors(
-        self, request: BaseRequest, operation: Spec
+        self, request: BaseRequest, operation: SchemaPath
     ) -> Iterator[Exception]:
         try:
             self._get_security(request.parameters, operation)
@@ -136,8 +137,8 @@ class BaseRequestValidator(BaseValidator):
     def _get_parameters(
         self,
         parameters: RequestParameters,
-        operation: Spec,
-        path: Spec,
+        operation: SchemaPath,
+        path: SchemaPath,
     ) -> Parameters:
         operation_params = operation.get("parameters", [])
         path_params = path.get("parameters", [])
@@ -177,7 +178,7 @@ class BaseRequestValidator(BaseValidator):
         spec="param",
     )
     def _get_parameter(
-        self, parameters: RequestParameters, param: Spec
+        self, parameters: RequestParameters, param: SchemaPath
     ) -> Any:
         name = param["name"]
         deprecated = param.getkey("deprecated", False)
@@ -200,7 +201,7 @@ class BaseRequestValidator(BaseValidator):
 
     @ValidationErrorWrapper(SecurityValidationError, InvalidSecurity)
     def _get_security(
-        self, parameters: RequestParameters, operation: Spec
+        self, parameters: RequestParameters, operation: SchemaPath
     ) -> Optional[Dict[str, str]]:
         security = None
         if "security" in self.spec:
@@ -239,7 +240,7 @@ class BaseRequestValidator(BaseValidator):
 
     @ValidationErrorWrapper(RequestBodyValidationError, InvalidRequestBody)
     def _get_body(
-        self, body: Optional[str], mimetype: str, operation: Spec
+        self, body: Optional[str], mimetype: str, operation: SchemaPath
     ) -> Any:
         if "requestBody" not in operation:
             return None
@@ -251,7 +252,9 @@ class BaseRequestValidator(BaseValidator):
         raw_body = self._get_body_value(body, request_body)
         return self._convert_content_schema_value(raw_body, content, mimetype)
 
-    def _get_body_value(self, body: Optional[str], request_body: Spec) -> Any:
+    def _get_body_value(
+        self, body: Optional[str], request_body: SchemaPath
+    ) -> Any:
         if not body:
             if request_body.getkey("required", False):
                 raise MissingRequiredRequestBody

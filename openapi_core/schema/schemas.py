@@ -1,10 +1,10 @@
 from typing import Any
 from typing import Dict
 
-from openapi_core.spec import Spec
+from jsonschema_path import SchemaPath
 
 
-def get_properties(schema: Spec) -> Dict[str, Any]:
+def get_properties(schema: SchemaPath) -> Dict[str, Any]:
     properties = schema.get("properties", {})
     properties_dict = dict(list(properties.items()))
     return properties_dict

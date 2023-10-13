@@ -3,8 +3,9 @@ from typing import NamedTuple
 from typing import Optional
 from typing import Type
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.exceptions import SpecError
-from openapi_core.spec import Spec
 from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
 from openapi_core.unmarshalling.request.types import (
     WebhookRequestUnmarshallerType,
@@ -42,7 +43,7 @@ class SpecFinder:
     def __init__(self, specs: Mapping[SpecVersion, SpecClasses]) -> None:
         self.specs = specs
 
-    def get_classes(self, spec: Spec) -> SpecClasses:
+    def get_classes(self, spec: SchemaPath) -> SpecClasses:
         for v, classes in self.specs.items():
             if v.name in spec and spec[v.name].startswith(v.version):
                 return classes

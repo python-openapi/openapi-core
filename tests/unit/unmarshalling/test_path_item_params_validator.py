@@ -1,8 +1,8 @@
 from dataclasses import is_dataclass
 
 import pytest
+from jsonschema_path import SchemaPath
 
-from openapi_core import Spec
 from openapi_core import V30RequestUnmarshaller
 from openapi_core import unmarshal_request
 from openapi_core import validate_request
@@ -45,7 +45,7 @@ class TestPathItemParamsValidator:
 
     @pytest.fixture(scope="session")
     def spec(self, spec_dict):
-        return Spec.from_dict(spec_dict)
+        return SchemaPath.from_dict(spec_dict)
 
     @pytest.fixture(scope="session")
     def request_unmarshaller(self, spec):

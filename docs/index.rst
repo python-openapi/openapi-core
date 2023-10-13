@@ -49,9 +49,9 @@ Firstly create your specification object.
 
 .. code-block:: python
 
-    from openapi_core import Spec
+    from jsonschema_path import SchemaPath
 
-    spec = Spec.from_file_path('openapi.json')
+    spec = SchemaPath.from_file_path('openapi.json')
 
 Now you can use it to validate and unmarshal your requests and/or responses. 
 

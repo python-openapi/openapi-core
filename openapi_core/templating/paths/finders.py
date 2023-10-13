@@ -5,10 +5,10 @@ from typing import Optional
 from urllib.parse import urljoin
 from urllib.parse import urlparse
 
+from jsonschema_path import SchemaPath
 from more_itertools import peekable
 
 from openapi_core.schema.servers import is_absolute
-from openapi_core.spec import Spec
 from openapi_core.templating.datatypes import TemplateResult
 from openapi_core.templating.paths.datatypes import Path
 from openapi_core.templating.paths.datatypes import PathOperation
@@ -23,7 +23,7 @@ from openapi_core.templating.util import search
 
 
 class BasePathFinder:
-    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+    def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
         self.spec = spec
         self.base_url = base_url
 
@@ -69,14 +69,14 @@ class BasePathFinder:
 
 
 class APICallPathFinder(BasePathFinder):
-    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+    def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
         self.spec = spec
         self.base_url = base_url
 
     def _get_paths_iter(self, name: str) -> Iterator[Path]:
         paths = self.spec / "paths"
         if not paths.exists():
-            raise PathsNotFound(paths.uri())
+            raise PathsNotFound(paths.as_uri())
         template_paths: List[Path] = []
         for path_pattern, path in list(paths.items()):
             # simple path.
@@ -145,7 +145,7 @@ class WebhookPathFinder(BasePathFinder):
     def _get_paths_iter(self, name: str) -> Iterator[Path]:
         webhooks = self.spec / "webhooks"
         if not webhooks.exists():
-            raise PathsNotFound(webhooks.uri())
+            raise PathsNotFound(webhooks.as_uri())
         for webhook_name, path in list(webhooks.items()):
             if name == webhook_name:
                 path_result = TemplateResult(webhook_name, {})

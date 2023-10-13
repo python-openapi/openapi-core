@@ -1,8 +1,8 @@
 import pytest
+from jsonschema_path import SchemaPath
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
-from openapi_core.spec.paths import Spec
 
 
 class TestSchemaCaster:
@@ -20,7 +20,7 @@ class TestSchemaCaster:
                 "type": "number",
             },
         }
-        schema = Spec.from_dict(spec, validator=None)
+        schema = SchemaPath.from_dict(spec)
         value = ["test", "test2"]
 
         with pytest.raises(CastError):
@@ -34,7 +34,7 @@ class TestSchemaCaster:
                 "oneOf": [{"type": "number"}, {"type": "string"}],
             },
         }
-        schema = Spec.from_dict(spec, validator=None)
+        schema = SchemaPath.from_dict(spec)
 
         with pytest.raises(
             CastError, match=f"Failed to cast value to array type: {value}"

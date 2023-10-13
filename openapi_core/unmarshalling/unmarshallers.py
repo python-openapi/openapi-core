@@ -3,6 +3,8 @@ from typing import Mapping
 from typing import Optional
 from typing import Tuple
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (
@@ -18,7 +20,6 @@ from openapi_core.deserializing.styles import style_deserializers_factory
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
-from openapi_core.spec import Spec
 from openapi_core.unmarshalling.schemas.datatypes import (
     FormatUnmarshallersDict,
 )
@@ -35,7 +36,7 @@ class BaseUnmarshaller(BaseValidator):
 
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         base_url: Optional[str] = None,
         schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
@@ -77,7 +78,7 @@ class BaseUnmarshaller(BaseValidator):
         self.format_unmarshallers = format_unmarshallers
         self.extra_format_unmarshallers = extra_format_unmarshallers
 
-    def _unmarshal_schema(self, schema: Spec, value: Any) -> Any:
+    def _unmarshal_schema(self, schema: SchemaPath, value: Any) -> Any:
         unmarshaller = self.schema_unmarshallers_factory.create(
             schema,
             format_validators=self.format_validators,
@@ -90,7 +91,7 @@ class BaseUnmarshaller(BaseValidator):
     def _convert_schema_style_value(
         self,
         raw: Any,
-        param_or_header: Spec,
+        param_or_header: SchemaPath,
     ) -> Any:
         casted, schema = self._convert_schema_style_value_and_schema(
             raw, param_or_header
@@ -100,7 +101,7 @@ class BaseUnmarshaller(BaseValidator):
         return self._unmarshal_schema(schema, casted)
 
     def _convert_content_schema_value(
-        self, raw: Any, content: Spec, mimetype: Optional[str] = None
+        self, raw: Any, content: SchemaPath, mimetype: Optional[str] = None
     ) -> Any:
         casted, schema = self._convert_content_schema_value_and_schema(
             raw, content, mimetype

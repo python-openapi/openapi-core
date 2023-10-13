@@ -4,14 +4,15 @@ from typing import Optional
 from typing import Protocol
 from typing import runtime_checkable
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.protocols import Request
 from openapi_core.protocols import WebhookRequest
-from openapi_core.spec import Spec
 
 
 @runtime_checkable
 class RequestValidator(Protocol):
-    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+    def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
         ...
 
     def iter_errors(
@@ -29,7 +30,7 @@ class RequestValidator(Protocol):
 
 @runtime_checkable
 class WebhookRequestValidator(Protocol):
-    def __init__(self, spec: Spec, base_url: Optional[str] = None):
+    def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
         ...
 
     def iter_errors(

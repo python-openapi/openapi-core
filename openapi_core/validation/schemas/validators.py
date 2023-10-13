@@ -7,8 +7,8 @@ from typing import Optional
 
 from jsonschema.exceptions import FormatError
 from jsonschema.protocols import Validator
+from jsonschema_path import SchemaPath
 
-from openapi_core.spec import Spec
 from openapi_core.validation.schemas.datatypes import FormatValidator
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.schemas.exceptions import ValidateError
@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 class SchemaValidator:
     def __init__(
         self,
-        schema: Spec,
+        schema: SchemaPath,
         validator: Validator,
     ):
         self.schema = schema
@@ -35,7 +35,7 @@ class SchemaValidator:
             schema_type = self.schema.getkey("type", "any")
             raise InvalidSchemaValue(value, schema_type, schema_errors=errors)
 
-    def evolve(self, schema: Spec) -> "SchemaValidator":
+    def evolve(self, schema: SchemaPath) -> "SchemaValidator":
         cls = self.__class__
 
         with schema.open() as schema_dict:
@@ -78,7 +78,7 @@ class SchemaValidator:
 
         return lambda x: True
 
-    def iter_valid_schemas(self, value: Any) -> Iterator[Spec]:
+    def iter_valid_schemas(self, value: Any) -> Iterator[SchemaPath]:
         yield self.schema
 
         one_of_schema = self.get_one_of_schema(value)
@@ -91,7 +91,7 @@ class SchemaValidator:
     def get_one_of_schema(
         self,
         value: Any,
-    ) -> Optional[Spec]:
+    ) -> Optional[SchemaPath]:
         if "oneOf" not in self.schema:
             return None
 
@@ -111,7 +111,7 @@ class SchemaValidator:
     def iter_any_of_schemas(
         self,
         value: Any,
-    ) -> Iterator[Spec]:
+    ) -> Iterator[SchemaPath]:
         if "anyOf" not in self.schema:
             return
 
@@ -128,7 +128,7 @@ class SchemaValidator:
     def iter_all_of_schemas(
         self,
         value: Any,
-    ) -> Iterator[Spec]:
+    ) -> Iterator[SchemaPath]:
         if "allOf" not in self.schema:
             return
 

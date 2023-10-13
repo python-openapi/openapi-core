@@ -8,13 +8,13 @@ from typing import Type
 from flask.globals import request
 from flask.wrappers import Request
 from flask.wrappers import Response
+from jsonschema_path import SchemaPath
 
 from openapi_core.contrib.flask.handlers import FlaskOpenAPIErrorsHandler
 from openapi_core.contrib.flask.handlers import FlaskOpenAPIValidRequestHandler
 from openapi_core.contrib.flask.providers import FlaskRequestProvider
 from openapi_core.contrib.flask.requests import FlaskOpenAPIRequest
 from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
-from openapi_core.spec import Spec
 from openapi_core.unmarshalling.processors import UnmarshallingProcessor
 from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
 from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
@@ -28,7 +28,7 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor[Request, Response]):
 
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
         response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         request_cls: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,
@@ -85,7 +85,7 @@ class FlaskOpenAPIViewDecorator(UnmarshallingProcessor[Request, Response]):
     @classmethod
     def from_spec(
         cls,
-        spec: Spec,
+        spec: SchemaPath,
         request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
         response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
         request_cls: Type[FlaskOpenAPIRequest] = FlaskOpenAPIRequest,

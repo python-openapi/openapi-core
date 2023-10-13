@@ -2,10 +2,11 @@
 from typing import Any
 from typing import Optional
 
+from jsonschema_path import SchemaPath
+
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.shortcuts import get_classes
-from openapi_core.spec import Spec
 from openapi_core.validation.request.types import RequestValidatorType
 from openapi_core.validation.response.types import ResponseValidatorType
 
@@ -13,7 +14,7 @@ from openapi_core.validation.response.types import ResponseValidatorType
 class ValidationProcessor:
     def __init__(
         self,
-        spec: Spec,
+        spec: SchemaPath,
         request_validator_cls: Optional[RequestValidatorType] = None,
         response_validator_cls: Optional[ResponseValidatorType] = None,
         **unmarshaller_kwargs: Any,
