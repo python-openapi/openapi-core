@@ -3,6 +3,11 @@ from jsonschema_path import SchemaPath
 
 
 @pytest.fixture
+def spec_v20():
+    return SchemaPath.from_dict({"swagger": "2.0"})
+
+
+@pytest.fixture
 def spec_v30():
     return SchemaPath.from_dict({"openapi": "3.0.0"})
 

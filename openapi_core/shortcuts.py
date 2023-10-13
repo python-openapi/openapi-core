@@ -5,15 +5,17 @@ from typing import Optional
 from typing import Union
 
 from jsonschema_path import SchemaPath
+from openapi_spec_validator.versions import consts as versions
+from openapi_spec_validator.versions.datatypes import SpecVersion
+from openapi_spec_validator.versions.exceptions import OpenAPIVersionNotFound
+from openapi_spec_validator.versions.shortcuts import get_spec_version
 
 from openapi_core.exceptions import SpecError
-from openapi_core.finders import SpecClasses
-from openapi_core.finders import SpecFinder
-from openapi_core.finders import SpecVersion
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
 from openapi_core.spec import Spec
+from openapi_core.types import SpecClasses
 from openapi_core.unmarshalling.request import V30RequestUnmarshaller
 from openapi_core.unmarshalling.request import V31RequestUnmarshaller
 from openapi_core.unmarshalling.request import V31WebhookRequestUnmarshaller
@@ -63,8 +65,8 @@ from openapi_core.validation.response.types import WebhookResponseValidatorType
 
 AnyRequest = Union[Request, WebhookRequest]
 
-SPECS: Dict[SpecVersion, SpecClasses] = {
-    SpecVersion("openapi", "3.0"): SpecClasses(
+SPEC2CLASSES: Dict[SpecVersion, SpecClasses] = {
+    versions.OPENAPIV30: SpecClasses(
         V30RequestValidator,
         V30ResponseValidator,
         None,
@@ -74,7 +76,7 @@ SPECS: Dict[SpecVersion, SpecClasses] = {
         None,
         None,
     ),
-    SpecVersion("openapi", "3.1"): SpecClasses(
+    versions.OPENAPIV31: SpecClasses(
         V31RequestValidator,
         V31ResponseValidator,
         V31WebhookRequestValidator,
@@ -88,7 +90,15 @@ SPECS: Dict[SpecVersion, SpecClasses] = {
 
 
 def get_classes(spec: SchemaPath) -> SpecClasses:
-    return SpecFinder(SPECS).get_classes(spec)
+    try:
+        spec_version = get_spec_version(spec.contents())
+    # backward compatibility
+    except OpenAPIVersionNotFound:
+        raise SpecError("Spec schema version not detected")
+    try:
+        return SPEC2CLASSES[spec_version]
+    except KeyError:
+        raise SpecError("Spec schema version not supported")
 
 
 def unmarshal_apicall_request(
