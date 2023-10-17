@@ -120,7 +120,8 @@ class BaseResponseValidator(BaseValidator):
         content = operation_response / "content"
 
         raw_data = self._get_data_value(data)
-        return self._convert_content_schema_value(raw_data, content, mimetype)
+        value, _ = self._get_content_and_schema(raw_data, content, mimetype)
+        return value
 
     def _get_data_value(self, data: str) -> Any:
         if not data:
@@ -169,12 +170,16 @@ class BaseResponseValidator(BaseValidator):
             )
 
         try:
-            return self._get_param_or_header(header, headers, name=name)
+            value, _ = self._get_param_or_header_and_schema(
+                header, headers, name=name
+            )
         except KeyError:
             required = header.getkey("required", False)
             if required:
                 raise MissingRequiredHeader(name)
             raise MissingHeader(name)
+        else:
+            return value
 
 
 class BaseAPICallResponseValidator(

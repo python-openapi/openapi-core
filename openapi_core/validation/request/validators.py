@@ -197,12 +197,14 @@ class BaseRequestValidator(BaseValidator):
         location = parameters[param_location]
 
         try:
-            return self._get_param_or_header(param, location, name=name)
+            value, _ = self._get_param_or_header_and_schema(param, location)
         except KeyError:
             required = param.getkey("required", False)
             if required:
                 raise MissingRequiredParameter(name, param_location)
             raise MissingParameter(name, param_location)
+        else:
+            return value
 
     @ValidationErrorWrapper(SecurityValidationError, InvalidSecurity)
     def _get_security(
@@ -255,7 +257,8 @@ class BaseRequestValidator(BaseValidator):
         content = request_body / "content"
 
         raw_body = self._get_body_value(body, request_body)
-        return self._convert_content_schema_value(raw_body, content, mimetype)
+        value, _ = self._get_content_and_schema(raw_body, content, mimetype)
+        return value
 
     def _get_body_value(
         self, body: Optional[str], request_body: SchemaPath

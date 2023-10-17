@@ -406,12 +406,12 @@ class TestPetstore:
         assert is_dataclass(response_result.data)
         assert response_result.data.data == []
 
-    def test_get_pets_parameter_deserialization_error(self, spec):
+    def test_get_pets_parameter_schema_error(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
-            "limit": 1,
-            "tags": 12,
+            "limit": "1",
+            "tags": ",,",
         }
 
         request = MockRequest(
@@ -428,7 +428,7 @@ class TestPetstore:
                 spec=spec,
                 cls=V30RequestParametersUnmarshaller,
             )
-        assert type(exc_info.value.__cause__) is DeserializeError
+        assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
         result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
@@ -492,7 +492,8 @@ class TestPetstore:
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
-            "limit": "",
+            "limit": "1",
+            "order": "",
         }
 
         request = MockRequest(

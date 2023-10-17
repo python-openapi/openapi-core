@@ -1,4 +1,3 @@
-import re
 from typing import Any
 from typing import Dict
 from typing import Mapping
@@ -8,18 +7,6 @@ from jsonschema_path import SchemaPath
 
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList
-
-
-def get_aslist(param_or_header: SchemaPath) -> bool:
-    """Checks if parameter/header is described as list for simpler scenarios"""
-    # if schema is not defined it's a complex scenario
-    if "schema" not in param_or_header:
-        return False
-
-    schema = param_or_header / "schema"
-    schema_type = schema.getkey("type", "any")
-    # TODO: resolve for 'any' schema type
-    return schema_type in ["array", "object"]
 
 
 def get_style(param_or_header: SchemaPath) -> str:
@@ -44,16 +31,3 @@ def get_explode(param_or_header: SchemaPath) -> bool:
     # determine default
     style = get_style(param_or_header)
     return style == "form"
-
-
-def get_deep_object_value(
-    location: Mapping[str, Any],
-    name: Optional[str] = None,
-) -> Dict[str, Any]:
-    values = {}
-    for key, value in location.items():
-        # Split the key from the brackets.
-        key_split = re.split(pattern=r"\[|\]", string=key)
-        if key_split[0] == name:
-            values[key_split[1]] = value
-    return values
