@@ -7,13 +7,19 @@ from openapi_core.deserializing.styles import style_deserializers_factory
 from openapi_core.deserializing.styles.exceptions import (
     EmptyQueryParameterValue,
 )
+from openapi_core.schema.parameters import get_style_and_explode
 
 
 class TestParameterStyleDeserializer:
     @pytest.fixture
     def deserializer_factory(self):
         def create_deserializer(param, name=None):
-            return style_deserializers_factory.create(param, name=name)
+            name = name or param["name"]
+            style, explode = get_style_and_explode(param)
+            schema = param / "schema"
+            return style_deserializers_factory.create(
+                style, explode, schema, name=name
+            )
 
         return create_deserializer
 
