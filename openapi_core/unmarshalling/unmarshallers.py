@@ -91,24 +91,25 @@ class BaseUnmarshaller(BaseValidator):
         )
         return unmarshaller.unmarshal(value)
 
-    def _convert_schema_style_value(
+    def _get_param_or_header_and_schema(
         self,
-        raw: Any,
         param_or_header: SchemaPath,
-    ) -> Any:
-        casted, schema = self._convert_schema_style_value_and_schema(
-            raw, param_or_header
+        location: Mapping[str, Any],
+        name: Optional[str] = None,
+    ) -> Tuple[Any, Optional[SchemaPath]]:
+        casted, schema = super()._get_param_or_header_and_schema(
+            param_or_header, location, name=name
         )
         if schema is None:
-            return casted
-        return self._unmarshal_schema(schema, casted)
+            return casted, None
+        return self._unmarshal_schema(schema, casted), schema
 
-    def _convert_content_schema_value(
+    def _get_content_and_schema(
         self, raw: Any, content: SchemaPath, mimetype: Optional[str] = None
-    ) -> Any:
-        casted, schema = self._convert_content_schema_value_and_schema(
+    ) -> Tuple[Any, Optional[SchemaPath]]:
+        casted, schema = super()._get_content_and_schema(
             raw, content, mimetype
         )
         if schema is None:
-            return casted
-        return self._unmarshal_schema(schema, casted)
+            return casted, None
+        return self._unmarshal_schema(schema, casted), schema

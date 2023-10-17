@@ -2,6 +2,7 @@ import warnings
 from typing import Any
 from typing import Callable
 from typing import List
+from typing import Mapping
 from typing import Optional
 
 from jsonschema_path import SchemaPath
@@ -11,46 +12,31 @@ from openapi_core.deserializing.styles.datatypes import DeserializerCallable
 from openapi_core.deserializing.styles.exceptions import (
     EmptyQueryParameterValue,
 )
-from openapi_core.schema.parameters import get_aslist
-from openapi_core.schema.parameters import get_explode
 
 
-class CallableStyleDeserializer:
+class StyleDeserializer:
     def __init__(
         self,
-        param_or_header: SchemaPath,
         style: str,
+        explode: bool,
+        name: str,
+        schema_type: str,
         deserializer_callable: Optional[DeserializerCallable] = None,
     ):
-        self.param_or_header = param_or_header
         self.style = style
+        self.explode = explode
+        self.name = name
+        self.schema_type = schema_type
         self.deserializer_callable = deserializer_callable
 
-        self.aslist = get_aslist(self.param_or_header)
-        self.explode = get_explode(self.param_or_header)
-
-    def deserialize(self, value: Any) -> Any:
+    def deserialize(self, location: Mapping[str, Any]) -> Any:
         if self.deserializer_callable is None:
             warnings.warn(f"Unsupported {self.style} style")
-            return value
+            return location[self.name]
 
-        # if "in" not defined then it's a Header
-        if "allowEmptyValue" in self.param_or_header:
-            warnings.warn(
-                "Use of allowEmptyValue property is deprecated",
-                DeprecationWarning,
-            )
-        allow_empty_values = self.param_or_header.getkey(
-            "allowEmptyValue", False
-        )
-        location_name = self.param_or_header.getkey("in", "header")
-        if location_name == "query" and value == "" and not allow_empty_values:
-            name = self.param_or_header["name"]
-            raise EmptyQueryParameterValue(name)
-
-        if not self.aslist or self.explode:
-            return value
         try:
-            return self.deserializer_callable(value)
+            return self.deserializer_callable(
+                self.explode, self.name, self.schema_type, location
+            )
         except (ValueError, TypeError, AttributeError):
-            raise DeserializeError(location_name, self.style, value)
+            raise DeserializeError(self.style, self.name)
