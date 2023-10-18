@@ -1374,8 +1374,7 @@ class TestPetstore:
         data = b"imagedata"
         response = MockResponse(data, mimetype="image/png")
 
-        with pytest.warns(UserWarning):
-            response_result = unmarshal_response(request, response, spec=spec)
+        response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
         assert response_result.data == data

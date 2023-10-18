@@ -31,6 +31,7 @@ from openapi_core.deserializing.styles.factories import (
 )
 from openapi_core.protocols import Request
 from openapi_core.protocols import WebhookRequest
+from openapi_core.schema.parameters import get_style_and_explode
 from openapi_core.templating.media_types.datatypes import MediaType
 from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.finders import APICallPathFinder
@@ -97,12 +98,22 @@ class BaseValidator:
         return finder.find(mimetype)
 
     def _deserialise_media_type(
-        self, mimetype: str, parameters: Mapping[str, str], value: Any
+        self,
+        media_type: SchemaPath,
+        mimetype: str,
+        parameters: Mapping[str, str],
+        value: Any,
     ) -> Any:
+        schema = media_type.get("schema")
+        encoding = None
+        if "encoding" in media_type:
+            encoding = media_type.get("encoding")
         deserializer = self.media_type_deserializers_factory.create(
             mimetype,
-            extra_media_type_deserializers=self.extra_media_type_deserializers,
+            schema=schema,
             parameters=parameters,
+            encoding=encoding,
+            extra_media_type_deserializers=self.extra_media_type_deserializers,
         )
         return deserializer.deserialize(value)
 
@@ -112,8 +123,11 @@ class BaseValidator:
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Any:
+        name = name or param_or_header["name"]
+        style, explode = get_style_and_explode(param_or_header)
+        schema = param_or_header / "schema"
         deserializer = self.style_deserializers_factory.create(
-            param_or_header, name=name
+            style, explode, schema, name=name
         )
         return deserializer.deserialize(location)
 
@@ -213,7 +227,9 @@ class BaseValidator:
         )
         # no point to catch KetError
         # in complex scenrios schema doesn't exist
-        deserialised = self._deserialise_media_type(mime_type, parameters, raw)
+        deserialised = self._deserialise_media_type(
+            media_type, mime_type, parameters, raw
+        )
         casted = self._cast(media_type, deserialised)
 
         if "schema" not in media_type:
