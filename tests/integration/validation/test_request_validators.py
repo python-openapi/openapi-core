@@ -101,7 +101,7 @@ class TestRequestValidator:
             "post",
             "/v1/pets",
             path_pattern="/v1/pets",
-            mimetype="text/csv",
+            content_type="text/csv",
             data=data,
             headers=headers,
             cookies=cookies,

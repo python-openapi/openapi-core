@@ -21,7 +21,7 @@ class BaseRequest(Protocol):
         ...
 
     @property
-    def mimetype(self) -> str:
+    def content_type(self) -> str:
         ...
 
 
@@ -48,11 +48,9 @@ class Request(BaseRequest, Protocol):
             to write resolved path parameters.
         body
             The request body, as string.
-        mimetype
-            Like content type, but without parameters (eg, without charset,
-            type etc.) and always lowercase.
-            For example if the content type is "text/HTML; charset=utf-8"
-            the mimetype would be "text/html".
+        content_type
+            The content type with parameters (eg, charset, boundary etc.)
+            and always lowercase.
     """
 
     @property
@@ -78,11 +76,9 @@ class WebhookRequest(BaseRequest, Protocol):
             to write resolved path parameters.
         body
             The request body, as string.
-        mimetype
-            Like content type, but without parameters (eg, without charset,
-            type etc.) and always lowercase.
-            For example if the content type is "text/HTML; charset=utf-8"
-            the mimetype would be "text/html".
+        content_type
+            The content type with parameters (eg, charset, boundary etc.)
+            and always lowercase.
     """
 
     @property

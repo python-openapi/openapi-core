@@ -56,10 +56,10 @@ class FalconOpenAPIRequest:
         return dumps(getattr(self.request, "json", media))
 
     @property
-    def mimetype(self) -> str:
+    def content_type(self) -> str:
         if self.request.content_type:
             assert isinstance(self.request.content_type, str)
-            return self.request.content_type.partition(";")[0]
+            return self.request.content_type
 
         assert isinstance(self.request.options, RequestOptions)
         assert isinstance(self.request.options.default_media_type, str)

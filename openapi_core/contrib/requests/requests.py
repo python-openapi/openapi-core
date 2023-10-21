@@ -74,13 +74,13 @@ class RequestsOpenAPIRequest:
         return self.request.body
 
     @property
-    def mimetype(self) -> str:
+    def content_type(self) -> str:
         # Order matters because all python requests issued from a session
         # include Accept */* which does not necessarily match the content type
         return str(
             self.request.headers.get("Content-Type")
             or self.request.headers.get("Accept")
-        ).split(";")[0]
+        )
 
 
 class RequestsOpenAPIWebhookRequest(RequestsOpenAPIRequest):

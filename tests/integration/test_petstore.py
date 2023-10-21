@@ -1015,7 +1015,7 @@ class TestPetstore:
             "/pets",
             path_pattern=path_pattern,
             data=data,
-            mimetype="text/html",
+            content_type="text/html",
             headers=headers,
             cookies=cookies,
         )
@@ -1150,7 +1150,7 @@ class TestPetstore:
             "/pets",
             path_pattern=path_pattern,
             data=data,
-            mimetype="text/html",
+            content_type="text/html",
             headers=headers,
             cookies=cookies,
         )

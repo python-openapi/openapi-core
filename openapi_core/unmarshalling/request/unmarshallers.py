@@ -150,7 +150,9 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             params_errors = []
 
         try:
-            body = self._get_body(request.body, request.mimetype, operation)
+            body = self._get_body(
+                request.body, request.content_type, operation
+            )
         except MissingRequestBody:
             body = None
             body_errors = []
@@ -172,7 +174,9 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> RequestUnmarshalResult:
         try:
-            body = self._get_body(request.body, request.mimetype, operation)
+            body = self._get_body(
+                request.body, request.content_type, operation
+            )
         except MissingRequestBody:
             body = None
             errors = []

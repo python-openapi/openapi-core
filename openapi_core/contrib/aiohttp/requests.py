@@ -49,5 +49,5 @@ class AIOHTTPOpenAPIWebRequest:
         return self._body
 
     @property
-    def mimetype(self) -> str:
+    def content_type(self) -> str:
         return self.request.content_type

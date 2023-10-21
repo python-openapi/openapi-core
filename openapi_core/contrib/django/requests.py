@@ -81,5 +81,7 @@ class DjangoOpenAPIRequest:
         return self.request.body.decode("utf-8")
 
     @property
-    def mimetype(self) -> str:
-        return self.request.content_type or ""
+    def content_type(self) -> str:
+        content_type = self.request.META.get("CONTENT_TYPE", "")
+        assert isinstance(content_type, str)
+        return content_type

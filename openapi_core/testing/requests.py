@@ -21,7 +21,7 @@ class MockRequest:
         headers: Optional[Dict[str, Any]] = None,
         cookies: Optional[Dict[str, Any]] = None,
         data: Optional[str] = None,
-        mimetype: str = "application/json",
+        content_type: str = "application/json",
     ):
         self.host_url = host_url
         self.method = method.lower()
@@ -32,7 +32,7 @@ class MockRequest:
         self.headers = headers
         self.cookies = cookies
         self.body = data or ""
-        self.mimetype = mimetype
+        self.content_type = content_type
 
         self.parameters = RequestParameters(
             path=self.view_args or {},
