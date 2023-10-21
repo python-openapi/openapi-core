@@ -186,7 +186,7 @@ class TestRequestUnmarshaller:
             "post",
             "/v1/pets",
             path_pattern="/v1/pets",
-            mimetype="text/csv",
+            content_type="text/csv",
             data=data,
             headers=headers,
             cookies=cookies,
@@ -349,7 +349,7 @@ class TestRequestUnmarshaller:
             data=data,
             headers=headers,
             cookies=cookies,
-            mimetype="text/plain",
+            content_type="text/plain",
         )
 
         result = request_unmarshaller.unmarshal(request)

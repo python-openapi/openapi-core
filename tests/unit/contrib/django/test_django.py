@@ -84,7 +84,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern is None
         assert openapi_request.body == ""
-        assert openapi_request.mimetype == request.content_type
+        assert openapi_request.content_type == request.content_type
 
     def test_simple(self, request_factory):
         from django.urls import resolve
@@ -105,7 +105,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == request.path
         assert openapi_request.body == ""
-        assert openapi_request.mimetype == request.content_type
+        assert openapi_request.content_type == request.content_type
 
     def test_url_rule(self, request_factory):
         from django.urls import resolve
@@ -126,7 +126,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == "/admin/auth/group/{object_id}/"
         assert openapi_request.body == ""
-        assert openapi_request.mimetype == request.content_type
+        assert openapi_request.content_type == request.content_type
 
     def test_url_regexp_pattern(self, request_factory):
         from django.urls import resolve
@@ -147,7 +147,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == request.path
         assert openapi_request.body == ""
-        assert openapi_request.mimetype == request.content_type
+        assert openapi_request.content_type == request.content_type
 
     def test_drf_default_value_pattern(self, request_factory):
         from django.urls import resolve
@@ -168,7 +168,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == "/object/{pk}/action/"
         assert openapi_request.body == ""
-        assert openapi_request.mimetype == request.content_type
+        assert openapi_request.content_type == request.content_type
 
 
 class TestDjangoOpenAPIResponse(BaseTestDjango):
@@ -184,7 +184,7 @@ class TestDjangoOpenAPIResponse(BaseTestDjango):
 
         assert openapi_response.data == "foo\nbar\nbaz\n"
         assert openapi_response.status_code == response.status_code
-        assert openapi_response.mimetype == response["Content-Type"]
+        assert openapi_response.content_type == response["Content-Type"]
 
     def test_redirect_response(self, response_factory):
         data = "/redirected/"
@@ -194,4 +194,4 @@ class TestDjangoOpenAPIResponse(BaseTestDjango):
 
         assert openapi_response.data == data
         assert openapi_response.status_code == response.status_code
-        assert openapi_response.mimetype == response["Content-Type"]
+        assert openapi_response.content_type == response["Content-Type"]

@@ -21,8 +21,8 @@ class StarletteOpenAPIResponse:
         return self.response.status_code
 
     @property
-    def mimetype(self) -> str:
-        return self.response.media_type or ""
+    def content_type(self) -> str:
+        return self.response.headers.get("Content-Type") or ""
 
     @property
     def headers(self) -> Headers:

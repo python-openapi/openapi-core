@@ -66,7 +66,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
 
         try:
             validated_data = self._get_data(
-                response.data, response.mimetype, operation_response
+                response.data, response.content_type, operation_response
             )
         except DataValidationError as exc:
             validated_data = None
@@ -106,7 +106,7 @@ class BaseResponseUnmarshaller(BaseResponseValidator, BaseUnmarshaller):
 
         try:
             validated = self._get_data(
-                response.data, response.mimetype, operation_response
+                response.data, response.content_type, operation_response
             )
         except DataValidationError as exc:
             validated = None

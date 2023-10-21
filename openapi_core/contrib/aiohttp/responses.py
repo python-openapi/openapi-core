@@ -26,7 +26,7 @@ class AIOHTTPOpenAPIWebResponse:
         return self.response.status
 
     @property
-    def mimetype(self) -> str:
+    def content_type(self) -> str:
         return self.response.content_type or ""
 
     @property

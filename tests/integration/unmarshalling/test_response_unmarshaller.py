@@ -72,7 +72,7 @@ class TestResponseUnmarshaller:
 
     def test_invalid_content_type(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("Not Found", mimetype="text/csv")
+        response = MockResponse("Not Found", content_type="text/csv")
 
         result = response_unmarshaller.unmarshal(request, response)
 

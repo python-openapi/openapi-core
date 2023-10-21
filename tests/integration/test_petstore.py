@@ -195,7 +195,7 @@ class TestPetstore:
         assert response_result.data.data[0].id == 1
         assert response_result.data.data[0].name == "Cat"
 
-    def test_get_pets_response_no_schema(self, spec):
+    def test_get_pets_response_media_type(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
@@ -230,15 +230,15 @@ class TestPetstore:
 
         assert result.body is None
 
-        data = b"<html></html>"
+        data = b"<html>\xb1\xbc</html>"
         response = MockResponse(
-            data, status_code=404, mimetype="text/html; charset=utf-8"
+            data, status_code=404, content_type="text/html; charset=iso-8859-2"
         )
 
         response_result = unmarshal_response(request, response, spec=spec)
 
         assert response_result.errors == []
-        assert response_result.data == data.decode("utf-8")
+        assert response_result.data == data.decode("iso-8859-2")
 
     def test_get_pets_invalid_response(self, spec, response_unmarshaller):
         host_url = "http://petstore.swagger.io/v1"
@@ -1015,7 +1015,7 @@ class TestPetstore:
             "/pets",
             path_pattern=path_pattern,
             data=data,
-            mimetype="text/html",
+            content_type="text/html",
             headers=headers,
             cookies=cookies,
         )
@@ -1150,7 +1150,7 @@ class TestPetstore:
             "/pets",
             path_pattern=path_pattern,
             data=data,
-            mimetype="text/html",
+            content_type="text/html",
             headers=headers,
             cookies=cookies,
         )
@@ -1372,7 +1372,7 @@ class TestPetstore:
         assert result.body is None
 
         data = b"imagedata"
-        response = MockResponse(data, mimetype="image/png")
+        response = MockResponse(data, content_type="image/png")
 
         response_result = unmarshal_response(request, response, spec=spec)
 

@@ -44,9 +44,9 @@ class StarletteOpenAPIRequest:
         return body
 
     @property
-    def mimetype(self) -> str:
-        content_type = self.request.headers.get("Content-Type")
-        if content_type:
-            return content_type.partition(";")[0]
-
-        return ""
+    def content_type(self) -> str:
+        # default value according to RFC 2616
+        return (
+            self.request.headers.get("Content-Type")
+            or "application/octet-stream"
+        )

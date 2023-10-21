@@ -111,7 +111,7 @@ class BaseRequestValidator(BaseValidator):
             yield from exc.errors
 
         try:
-            self._get_body(request.body, request.mimetype, operation)
+            self._get_body(request.body, request.content_type, operation)
         except RequestBodyValidationError as exc:
             yield exc
 
@@ -119,7 +119,7 @@ class BaseRequestValidator(BaseValidator):
         self, request: BaseRequest, operation: SchemaPath
     ) -> Iterator[Exception]:
         try:
-            self._get_body(request.body, request.mimetype, operation)
+            self._get_body(request.body, request.content_type, operation)
         except RequestBodyValidationError as exc:
             yield exc
 

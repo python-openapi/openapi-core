@@ -31,7 +31,7 @@ class TestRequestsOpenAPIRequest:
         assert openapi_request.host_url == "http://localhost"
         assert openapi_request.path == "/"
         assert openapi_request.body == prepared.body
-        assert openapi_request.mimetype == "application/json"
+        assert openapi_request.content_type == "application/json"
 
     def test_multiple_values(self, request_factory, request):
         request = request_factory(
@@ -60,7 +60,7 @@ class TestRequestsOpenAPIRequest:
         assert openapi_request.host_url == "http://localhost"
         assert openapi_request.path == "/"
         assert openapi_request.body == prepared.body
-        assert openapi_request.mimetype == "application/json"
+        assert openapi_request.content_type == "application/json"
 
     def test_url_rule(self, request_factory, request):
         request = request_factory("GET", "/browse/12/", subdomain="kb")
@@ -87,7 +87,7 @@ class TestRequestsOpenAPIRequest:
         assert openapi_request.host_url == "http://localhost"
         assert openapi_request.path == "/browse/12/"
         assert openapi_request.body == prepared.body
-        assert openapi_request.mimetype == "application/json"
+        assert openapi_request.content_type == "application/json"
 
     def test_hash_param(self, request_factory, request):
         request = request_factory("GET", "/browse/#12", subdomain="kb")
@@ -114,7 +114,7 @@ class TestRequestsOpenAPIRequest:
         assert openapi_request.host_url == "http://localhost"
         assert openapi_request.path == "/browse/#12"
         assert openapi_request.body == prepared.body
-        assert openapi_request.mimetype == "application/json"
+        assert openapi_request.content_type == "application/json"
 
     def test_content_type_with_charset(self, request_factory, request):
         request = request_factory(
@@ -141,4 +141,6 @@ class TestRequestsOpenAPIRequest:
         assert openapi_request.host_url == "http://localhost"
         assert openapi_request.path == "/"
         assert openapi_request.body == prepared.body
-        assert openapi_request.mimetype == "application/json"
+        assert (
+            openapi_request.content_type == "application/json; charset=utf-8"
+        )

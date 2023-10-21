@@ -43,8 +43,9 @@ class WerkzeugOpenAPIRequest:
         return self.request.get_data(as_text=True)
 
     @property
-    def mimetype(self) -> str:
-        return self.request.mimetype
+    def content_type(self) -> str:
+        # default value according to RFC 2616
+        return self.request.content_type or "application/octet-stream"
 
     def get_path(self, path: str) -> str:
         return "".join([self.request.root_path, path])

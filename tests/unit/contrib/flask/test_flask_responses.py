@@ -17,4 +17,4 @@ class TestFlaskOpenAPIResponse:
 
         assert openapi_response.data == data
         assert openapi_response.status_code == status_code
-        assert openapi_response.mimetype == response.mimetype
+        assert openapi_response.content_type == response.mimetype
