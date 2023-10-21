@@ -21,13 +21,13 @@ class FalconOpenAPIResponse:
         return int(self.response.status[:3])
 
     @property
-    def mimetype(self) -> str:
-        mimetype = ""
+    def content_type(self) -> str:
+        content_type = ""
         if self.response.content_type:
-            mimetype = self.response.content_type.partition(";")[0]
+            content_type = self.response.content_type
         else:
-            mimetype = self.response.options.default_media_type
-        return mimetype
+            content_type = self.response.options.default_media_type
+        return content_type
 
     @property
     def headers(self) -> Headers:

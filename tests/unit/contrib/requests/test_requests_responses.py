@@ -18,4 +18,4 @@ class TestRequestsOpenAPIResponse:
         assert openapi_response.data == data
         assert openapi_response.status_code == status_code
         mimetype = response.headers.get("Content-Type")
-        assert openapi_response.mimetype == mimetype
+        assert openapi_response.content_type == mimetype

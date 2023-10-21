@@ -234,7 +234,10 @@ class APICallResponseDataValidator(BaseAPICallResponseValidator):
             return
 
         yield from self._iter_data_errors(
-            response.status_code, response.data, response.mimetype, operation
+            response.status_code,
+            response.data,
+            response.content_type,
+            operation,
         )
 
 
@@ -273,7 +276,7 @@ class APICallResponseValidator(BaseAPICallResponseValidator):
             response.status_code,
             response.data,
             response.headers,
-            response.mimetype,
+            response.content_type,
             operation,
         )
 
@@ -292,7 +295,10 @@ class WebhookResponseDataValidator(BaseWebhookResponseValidator):
             return
 
         yield from self._iter_data_errors(
-            response.status_code, response.data, response.mimetype, operation
+            response.status_code,
+            response.data,
+            response.content_type,
+            operation,
         )
 
 
@@ -331,7 +337,7 @@ class WebhookResponseValidator(BaseWebhookResponseValidator):
             response.status_code,
             response.data,
             response.headers,
-            response.mimetype,
+            response.content_type,
             operation,
         )
 

@@ -115,8 +115,8 @@ class Response(Protocol):
             The status code as integer.
         headers
             Response headers as Headers.
-        mimetype
-            Lowercase content type without charset.
+        content_type
+            The content type with parameters and always lowercase.
     """
 
     @property
@@ -128,7 +128,7 @@ class Response(Protocol):
         ...
 
     @property
-    def mimetype(self) -> str:
+    def content_type(self) -> str:
         ...
 
     @property

@@ -184,7 +184,7 @@ class TestDjangoOpenAPIResponse(BaseTestDjango):
 
         assert openapi_response.data == "foo\nbar\nbaz\n"
         assert openapi_response.status_code == response.status_code
-        assert openapi_response.mimetype == response["Content-Type"]
+        assert openapi_response.content_type == response["Content-Type"]
 
     def test_redirect_response(self, response_factory):
         data = "/redirected/"
@@ -194,4 +194,4 @@ class TestDjangoOpenAPIResponse(BaseTestDjango):
 
         assert openapi_response.data == data
         assert openapi_response.status_code == response.status_code
-        assert openapi_response.mimetype == response["Content-Type"]
+        assert openapi_response.content_type == response["Content-Type"]

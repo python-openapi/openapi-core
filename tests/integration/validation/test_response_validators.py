@@ -61,7 +61,7 @@ class TestResponseValidator:
 
     def test_invalid_content_type(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("Not Found", mimetype="text/csv")
+        response = MockResponse("Not Found", content_type="text/csv")
 
         with pytest.raises(DataValidationError) as exc_info:
             response_validator.validate(request, response)

@@ -26,7 +26,7 @@ class DjangoOpenAPIResponse:
         return Headers(self.response.headers.items())
 
     @property
-    def mimetype(self) -> str:
+    def content_type(self) -> str:
         content_type = self.response.get("Content-Type", "")
         assert isinstance(content_type, str)
         return content_type

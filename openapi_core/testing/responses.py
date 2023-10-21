@@ -12,9 +12,9 @@ class MockResponse:
         data: str,
         status_code: int = 200,
         headers: Optional[Dict[str, Any]] = None,
-        mimetype: str = "application/json",
+        content_type: str = "application/json",
     ):
         self.data = data
         self.status_code = status_code
         self.headers = Headers(headers or {})
-        self.mimetype = mimetype
+        self.content_type = content_type

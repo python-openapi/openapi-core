@@ -18,7 +18,7 @@ class WerkzeugOpenAPIResponse:
         return self.response._status_code
 
     @property
-    def mimetype(self) -> str:
+    def content_type(self) -> str:
         return str(self.response.mimetype)
 
     @property
