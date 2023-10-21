@@ -41,7 +41,7 @@ def xml_loads(value: Union[str, bytes], **parameters: str) -> Element:
 
 
 def urlencoded_form_loads(value: Any, **parameters: str) -> Mapping[str, Any]:
-    return dict(parse_qsl(value))
+    return ImmutableMultiDict(parse_qsl(value))
 
 
 def data_form_loads(

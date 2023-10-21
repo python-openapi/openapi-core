@@ -214,6 +214,60 @@ class TestMediaTypeDeserializer:
             "name": "foo bar",
         }
 
+    def test_urlencoded_complex(self, deserializer_factory):
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "type": "object",
+            "properties": {
+                "prop": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                    },
+                },
+            },
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        deserializer = deserializer_factory(mimetype, schema=schema)
+        value = "prop=a&prop=b&prop=c"
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "prop": ["a", "b", "c"],
+        }
+
+    def test_urlencoded_content_type(self, deserializer_factory):
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "type": "object",
+            "properties": {
+                "prop": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                    },
+                },
+            },
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        encoding_dict = {
+            "prop": {
+                "contentType": "application/json",
+            },
+        }
+        encoding = SchemaPath.from_dict(encoding_dict)
+        deserializer = deserializer_factory(
+            mimetype, schema=schema, encoding=encoding
+        )
+        value = 'prop=["a","b","c"]'
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "prop": ["a", "b", "c"],
+        }
+
     def test_urlencoded_deepobject(self, deserializer_factory):
         mimetype = "application/x-www-form-urlencoded"
         schema_dict = {

@@ -125,6 +125,19 @@ class MediaTypeDeserializer:
         location: Mapping[str, Any],
     ) -> Any:
         if self.encoding is None or prop_name not in self.encoding:
+            prop_schema_type = prop_schema.getkey("type", "")
+            if (
+                self.mimetype == "application/x-www-form-urlencoded"
+                and prop_schema_type in ["array", "object"]
+            ):
+                # default serialization strategy for complex objects
+                # in the application/x-www-form-urlencoded
+                return self.decode_property_style(
+                    prop_name,
+                    prop_schema,
+                    location,
+                    SchemaPath.from_dict({"style": "form"}),
+                )
             return self.decode_property_content_type(
                 prop_name, prop_schema, location
             )
@@ -163,20 +176,24 @@ class MediaTypeDeserializer:
         prop_name: str,
         prop_schema: SchemaPath,
         location: Mapping[str, Any],
-        prep_encoding: Optional[SchemaPath] = None,
+        prop_encoding: Optional[SchemaPath] = None,
     ) -> Any:
-        prop_content_type = get_content_type(prop_schema, prep_encoding)
+        prop_content_type = get_content_type(prop_schema, prop_encoding)
         prop_deserializer = self.evolve(
             prop_content_type,
             prop_schema,
         )
         prop_schema_type = prop_schema.getkey("type", "")
-        if prop_schema_type == "array":
+        if (
+            self.mimetype.startswith("multipart")
+            and prop_schema_type == "array"
+        ):
             if isinstance(location, SuportsGetAll):
                 value = location.getall(prop_name)
+                return list(map(prop_deserializer.deserialize, value))
             if isinstance(location, SuportsGetList):
                 value = location.getlist(prop_name)
-            return list(map(prop_deserializer.deserialize, value))
-        else:
-            value = location[prop_name]
-            return prop_deserializer.deserialize(value)
+                return list(map(prop_deserializer.deserialize, value))
+
+        value = location[prop_name]
+        return prop_deserializer.deserialize(value)
