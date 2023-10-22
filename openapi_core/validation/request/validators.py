@@ -10,7 +10,8 @@ from openapi_spec_validator import OpenAPIV30SpecValidator
 from openapi_spec_validator import OpenAPIV31SpecValidator
 from openapi_spec_validator.validation.types import SpecValidatorType
 
-from openapi_core.casting.schemas import schema_casters_factory
+from openapi_core.casting.schemas import oas30_write_schema_casters_factory
+from openapi_core.casting.schemas import oas31_schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.datatypes import Parameters
 from openapi_core.datatypes import RequestParameters
@@ -69,9 +70,9 @@ class BaseRequestValidator(BaseValidator):
         self,
         spec: SchemaPath,
         base_url: Optional[str] = None,
-        schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
@@ -84,9 +85,9 @@ class BaseRequestValidator(BaseValidator):
         super().__init__(
             spec,
             base_url=base_url,
-            schema_casters_factory=schema_casters_factory,
             style_deserializers_factory=style_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
+            schema_casters_factory=schema_casters_factory,
             schema_validators_factory=schema_validators_factory,
             spec_validator_cls=spec_validator_cls,
             format_validators=format_validators,
@@ -396,64 +397,76 @@ class WebhookRequestSecurityValidator(BaseWebhookRequestValidator):
 
 class V30RequestBodyValidator(APICallRequestBodyValidator):
     spec_validator_cls = OpenAPIV30SpecValidator
+    schema_casters_factory = oas30_write_schema_casters_factory
     schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestParametersValidator(APICallRequestParametersValidator):
     spec_validator_cls = OpenAPIV30SpecValidator
+    schema_casters_factory = oas30_write_schema_casters_factory
     schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestSecurityValidator(APICallRequestSecurityValidator):
     spec_validator_cls = OpenAPIV30SpecValidator
+    schema_casters_factory = oas30_write_schema_casters_factory
     schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V30RequestValidator(APICallRequestValidator):
     spec_validator_cls = OpenAPIV30SpecValidator
+    schema_casters_factory = oas30_write_schema_casters_factory
     schema_validators_factory = oas30_write_schema_validators_factory
 
 
 class V31RequestBodyValidator(APICallRequestBodyValidator):
     spec_validator_cls = OpenAPIV31SpecValidator
+    schema_casters_factory = oas31_schema_casters_factory
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestParametersValidator(APICallRequestParametersValidator):
     spec_validator_cls = OpenAPIV31SpecValidator
+    schema_casters_factory = oas31_schema_casters_factory
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestSecurityValidator(APICallRequestSecurityValidator):
     spec_validator_cls = OpenAPIV31SpecValidator
+    schema_casters_factory = oas31_schema_casters_factory
     schema_validators_factory = oas31_schema_validators_factory
 
 
 class V31RequestValidator(APICallRequestValidator):
     spec_validator_cls = OpenAPIV31SpecValidator
+    schema_casters_factory = oas31_schema_casters_factory
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestBodyValidator(WebhookRequestBodyValidator):
     spec_validator_cls = OpenAPIV31SpecValidator
+    schema_casters_factory = oas31_schema_casters_factory
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestParametersValidator(WebhookRequestParametersValidator):
     spec_validator_cls = OpenAPIV31SpecValidator
+    schema_casters_factory = oas31_schema_casters_factory
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestSecurityValidator(WebhookRequestSecurityValidator):
     spec_validator_cls = OpenAPIV31SpecValidator
+    schema_casters_factory = oas31_schema_casters_factory
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder
 
 
 class V31WebhookRequestValidator(WebhookRequestValidator):
     spec_validator_cls = OpenAPIV31SpecValidator
+    schema_casters_factory = oas31_schema_casters_factory
     schema_validators_factory = oas31_schema_validators_factory
     path_finder_cls = WebhookPathFinder

@@ -11,7 +11,6 @@ from urllib.parse import urljoin
 from jsonschema_path import SchemaPath
 from openapi_spec_validator.validation.types import SpecValidatorType
 
-from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (
     media_type_deserializers_factory,
@@ -42,6 +41,7 @@ from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 
 class BaseValidator:
+    schema_casters_factory: SchemaCastersFactory = NotImplemented
     schema_validators_factory: SchemaValidatorsFactory = NotImplemented
     spec_validator_cls: Optional[SpecValidatorType] = None
 
@@ -49,9 +49,9 @@ class BaseValidator:
         self,
         spec: SchemaPath,
         base_url: Optional[str] = None,
-        schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
@@ -63,7 +63,11 @@ class BaseValidator:
         self.spec = spec
         self.base_url = base_url
 
-        self.schema_casters_factory = schema_casters_factory
+        self.schema_casters_factory = (
+            schema_casters_factory or self.schema_casters_factory
+        )
+        if self.schema_casters_factory is NotImplemented:
+            raise NotImplementedError("schema_casters_factory is not assigned")
         self.style_deserializers_factory = style_deserializers_factory
         self.media_type_deserializers_factory = (
             media_type_deserializers_factory
@@ -133,7 +137,7 @@ class BaseValidator:
 
     def _cast(self, schema: SchemaPath, value: Any) -> Any:
         caster = self.schema_casters_factory.create(schema)
-        return caster(value)
+        return caster.cast(value)
 
     def _validate_schema(self, schema: SchemaPath, value: Any) -> None:
         validator = self.schema_validators_factory.create(
@@ -230,12 +234,15 @@ class BaseValidator:
         deserialised = self._deserialise_media_type(
             media_type, mime_type, parameters, raw
         )
-        casted = self._cast(media_type, deserialised)
 
         if "schema" not in media_type:
-            return casted, None
+            return deserialised, None
 
         schema = media_type / "schema"
+        # cast for urlencoded content
+        # FIXME: don't cast data from media type deserializer
+        # See https://github.com/python-openapi/openapi-core/issues/706
+        casted = self._cast(schema, deserialised)
         return casted, schema
 
     def _get_content_and_schema(

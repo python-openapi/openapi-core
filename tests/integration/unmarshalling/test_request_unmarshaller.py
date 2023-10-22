@@ -198,7 +198,11 @@ class TestRequestUnmarshaller:
         assert type(result.errors[0]) == RequestBodyValidationError
         assert result.errors[0].__cause__ == MediaTypeNotFound(
             mimetype="text/csv",
-            availableMimetypes=["application/json", "text/plain"],
+            availableMimetypes=[
+                "application/json",
+                "application/x-www-form-urlencoded",
+                "text/plain",
+            ],
         )
         assert result.body is None
         assert result.parameters == Parameters(

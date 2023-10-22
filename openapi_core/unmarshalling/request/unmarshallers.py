@@ -3,7 +3,6 @@ from typing import Optional
 from jsonschema_path import SchemaPath
 from openapi_spec_validator.validation.types import SpecValidatorType
 
-from openapi_core.casting.schemas import schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types import (
     media_type_deserializers_factory,
@@ -85,9 +84,9 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         self,
         spec: SchemaPath,
         base_url: Optional[str] = None,
-        schema_casters_factory: SchemaCastersFactory = schema_casters_factory,
         style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
@@ -106,9 +105,9 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             self,
             spec,
             base_url=base_url,
-            schema_casters_factory=schema_casters_factory,
             style_deserializers_factory=style_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
+            schema_casters_factory=schema_casters_factory,
             schema_validators_factory=schema_validators_factory,
             spec_validator_cls=spec_validator_cls,
             format_validators=format_validators,
@@ -122,9 +121,9 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             self,
             spec,
             base_url=base_url,
-            schema_casters_factory=schema_casters_factory,
             style_deserializers_factory=style_deserializers_factory,
             media_type_deserializers_factory=media_type_deserializers_factory,
+            schema_casters_factory=schema_casters_factory,
             schema_validators_factory=schema_validators_factory,
             spec_validator_cls=spec_validator_cls,
             format_validators=format_validators,

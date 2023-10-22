@@ -48,6 +48,7 @@ from openapi_core.validation.response.validators import (
 
 class MockClass:
     spec_validator_cls = None
+    schema_casters_factory = None
     schema_validators_factory = None
     schema_unmarshallers_factory = None
 
