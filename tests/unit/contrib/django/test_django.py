@@ -83,7 +83,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern is None
-        assert openapi_request.body == ""
+        assert openapi_request.body == b""
         assert openapi_request.content_type == request.content_type
 
     def test_simple(self, request_factory):
@@ -104,7 +104,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == request.path
-        assert openapi_request.body == ""
+        assert openapi_request.body == b""
         assert openapi_request.content_type == request.content_type
 
     def test_url_rule(self, request_factory):
@@ -125,7 +125,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == "/admin/auth/group/{object_id}/"
-        assert openapi_request.body == ""
+        assert openapi_request.body == b""
         assert openapi_request.content_type == request.content_type
 
     def test_url_regexp_pattern(self, request_factory):
@@ -146,7 +146,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == request.path
-        assert openapi_request.body == ""
+        assert openapi_request.body == b""
         assert openapi_request.content_type == request.content_type
 
     def test_drf_default_value_pattern(self, request_factory):
@@ -167,7 +167,7 @@ class TestDjangoOpenAPIRequest(BaseTestDjango):
         assert openapi_request.host_url == request._current_scheme_host
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == "/object/{pk}/action/"
-        assert openapi_request.body == ""
+        assert openapi_request.body == b""
         assert openapi_request.content_type == request.content_type
 
 

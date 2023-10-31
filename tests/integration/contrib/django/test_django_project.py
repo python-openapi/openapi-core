@@ -412,10 +412,6 @@ class TestPetPhotoView(BaseTestDjangoProject):
         assert response.status_code == 200
         assert b"".join(list(response.streaming_content)) == data_gif
 
-    @pytest.mark.xfail(
-        reason="request binary format not supported",
-        strict=True,
-    )
     def test_post_valid(self, client, data_gif):
         client.cookies.load({"user": 1})
         content_type = "image/gif"
@@ -425,7 +421,7 @@ class TestPetPhotoView(BaseTestDjangoProject):
             "HTTP_API_KEY": self.api_key_encoded,
         }
         response = client.post(
-            "/v1/pets/12/photo", data_gif, content_type, secure=True, **headers
+            "/v1/pets/12/photo", data_gif, content_type, **headers
         )
 
         assert response.status_code == 201

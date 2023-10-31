@@ -64,14 +64,14 @@ class RequestsOpenAPIRequest:
         return method and method.lower() or ""
 
     @property
-    def body(self) -> Optional[str]:
+    def body(self) -> Optional[bytes]:
         if self.request.body is None:
             return None
         if isinstance(self.request.body, bytes):
-            return self.request.body.decode("utf-8")
+            return self.request.body
         assert isinstance(self.request.body, str)
         # TODO: figure out if request._body_position is relevant
-        return self.request.body
+        return self.request.body.encode("utf-8")
 
     @property
     def content_type(self) -> str:

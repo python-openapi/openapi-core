@@ -174,7 +174,7 @@ class TestRequestUnmarshaller:
         )
 
     def test_invalid_content_type(self, request_unmarshaller):
-        data = "csv,data"
+        data = b"csv,data"
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -231,7 +231,7 @@ class TestRequestUnmarshaller:
                 "healthy": True,
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -296,7 +296,7 @@ class TestRequestUnmarshaller:
                 "healthy": True,
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -338,7 +338,7 @@ class TestRequestUnmarshaller:
         assert result.body.address.city == pet_city
 
     def test_post_pets_plain_no_schema(self, request_unmarshaller):
-        data = "plain text"
+        data = b"plain text"
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -368,7 +368,7 @@ class TestRequestUnmarshaller:
             },
         )
         assert result.security == {}
-        assert result.body == data
+        assert result.body == data.decode()
 
     def test_get_pet_unauthorized(self, request_unmarshaller):
         request = MockRequest(

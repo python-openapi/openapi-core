@@ -49,13 +49,14 @@ class FalconOpenAPIRequest:
         return self.request.method.lower()
 
     @property
-    def body(self) -> Optional[str]:
+    def body(self) -> Optional[bytes]:
+        # Falcon doesn't store raw request stream.
+        # That's why we need to revert deserialized data
+
         # Support falcon-jsonify.
         if hasattr(self.request, "json"):
-            return dumps(self.request.json)
+            return dumps(self.request.json).encode("utf-8")
 
-        # Falcon doesn't store raw request stream.
-        # That's why we need to revert serialized data
         media = self.request.get_media(
             default_when_empty=self.default_when_empty,
         )
@@ -74,7 +75,7 @@ class FalconOpenAPIRequest:
             return None
         else:
             assert isinstance(body, bytes)
-            return body.decode("utf-8")
+            return body
 
     @property
     def content_type(self) -> str:

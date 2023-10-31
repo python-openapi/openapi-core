@@ -58,10 +58,6 @@ class TestPetPhotoView(BaseTestPetstore):
         assert response.get_data() == data_gif
         assert response.status_code == 200
 
-    @pytest.mark.xfail(
-        reason="request binary format not supported",
-        strict=True,
-    )
     def test_post_valid(self, client, data_gif):
         content_type = "image/gif"
         headers = {

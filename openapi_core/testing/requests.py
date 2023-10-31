@@ -20,7 +20,7 @@ class MockRequest:
         view_args: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
         cookies: Optional[Dict[str, Any]] = None,
-        data: Optional[str] = None,
+        data: Optional[bytes] = None,
         content_type: str = "application/json",
     ):
         self.host_url = host_url

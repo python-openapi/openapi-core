@@ -34,14 +34,14 @@ class StarletteOpenAPIRequest:
         return self.request.method.lower()
 
     @property
-    def body(self) -> Optional[str]:
+    def body(self) -> Optional[bytes]:
         body = self._get_body()
         if body is None:
             return None
         if isinstance(body, bytes):
-            return body.decode("utf-8")
+            return body
         assert isinstance(body, str)
-        return body
+        return body.encode("utf-8")
 
     @property
     def content_type(self) -> str:

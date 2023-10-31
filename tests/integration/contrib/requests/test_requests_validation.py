@@ -198,10 +198,6 @@ class TestPetstore(BaseTestPetstore):
         assert not result.errors
         assert result.data == data_gif
 
-    @pytest.mark.xfail(
-        reason="request binary format not supported",
-        strict=True,
-    )
     @responses.activate
     def test_request_binary_valid(self, request_unmarshaller, data_gif):
         headers = {

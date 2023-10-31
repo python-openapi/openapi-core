@@ -1,6 +1,8 @@
 from base64 import b64decode
 from io import BytesIO
 
+from flask import Response
+from flask import request
 from flask.helpers import send_file
 
 from openapi_core.contrib.flask.views import FlaskOpenAPIView
@@ -23,4 +25,4 @@ Fzk0lpcjIQA7
 
     def post(self, petId):
         data = request.stream.read()
-        response.status = HTTP_201
+        return Response(status=201)

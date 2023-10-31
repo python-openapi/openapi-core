@@ -39,8 +39,8 @@ class WerkzeugOpenAPIRequest:
         return self.request.method.lower()
 
     @property
-    def body(self) -> Optional[str]:
-        return self.request.get_data(as_text=True)
+    def body(self) -> Optional[bytes]:
+        return self.request.get_data(as_text=False)
 
     @property
     def content_type(self) -> str:
