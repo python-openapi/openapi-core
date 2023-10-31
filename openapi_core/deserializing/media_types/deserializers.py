@@ -126,10 +126,7 @@ class MediaTypeDeserializer:
     ) -> Any:
         if self.encoding is None or prop_name not in self.encoding:
             prop_schema_type = prop_schema.getkey("type", "")
-            if (
-                self.mimetype == "application/x-www-form-urlencoded"
-                and prop_schema_type in ["array", "object"]
-            ):
+            if self.mimetype == "application/x-www-form-urlencoded":
                 # default serialization strategy for complex objects
                 # in the application/x-www-form-urlencoded
                 return self.decode_property_style(
