@@ -1778,6 +1778,80 @@ class TestPetstore:
         assert response_result.data.rootCause == rootCause
         assert response_result.data.additionalinfo == additionalinfo
 
+    def test_post_tags_urlencoded(self, spec):
+        host_url = "http://petstore.swagger.io/v1"
+        path_pattern = "/v1/tags"
+        created = "2016-04-16T16:06:05Z"
+        pet_name = "Dog"
+        data_json = {
+            "created": created,
+            "name": pet_name,
+        }
+        data = urlencode(data_json)
+        content_type = "application/x-www-form-urlencoded"
+
+        request = MockRequest(
+            host_url,
+            "POST",
+            "/tags",
+            path_pattern=path_pattern,
+            data=data,
+            content_type=content_type,
+        )
+
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
+
+        assert result.parameters == Parameters()
+
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
+
+        assert is_dataclass(result.body)
+        assert result.body.created == datetime(
+            2016, 4, 16, 16, 6, 5, tzinfo=UTC
+        )
+        assert result.body.name == pet_name
+
+        code = 400
+        message = "Bad request"
+        rootCause = "Tag already exist"
+        additionalinfo = "Tag Dog already exist"
+        response_data_json = {
+            "code": code,
+            "message": message,
+            "rootCause": rootCause,
+            "additionalinfo": additionalinfo,
+        }
+        response_data = json.dumps(response_data_json)
+        response = MockResponse(response_data, status_code=404)
+
+        result = unmarshal_response(
+            request,
+            response,
+            spec=spec,
+            cls=V30ResponseDataUnmarshaller,
+        )
+
+        assert is_dataclass(result.data)
+        assert result.data.code == code
+        assert result.data.message == message
+        assert result.data.rootCause == rootCause
+        assert result.data.additionalinfo == additionalinfo
+
+        response_result = unmarshal_response(request, response, spec=spec)
+
+        assert response_result.errors == []
+        assert is_dataclass(response_result.data)
+        assert response_result.data.code == code
+        assert response_result.data.message == message
+        assert response_result.data.rootCause == rootCause
+        assert response_result.data.additionalinfo == additionalinfo
+
     def test_post_tags_created_invalid_type(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
