@@ -184,7 +184,7 @@ class TestPetListView(BaseTestDjangoProject):
                     "title": (
                         "Content for the following mimetype not found: "
                         "text/html. "
-                        "Valid mimetypes: ['application/json', 'text/plain']"
+                        "Valid mimetypes: ['application/json', 'application/x-www-form-urlencoded', 'text/plain']"
                     ),
                 }
             ]

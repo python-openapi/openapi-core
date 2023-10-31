@@ -2,6 +2,7 @@ import json
 from base64 import b64encode
 from dataclasses import is_dataclass
 from datetime import datetime
+from urllib.parse import urlencode
 from uuid import UUID
 
 import pytest
@@ -522,7 +523,7 @@ class TestPetstore:
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
-            "limit": 20,
+            "limit": "20",
             "search": "",
         }
 
@@ -888,6 +889,92 @@ class TestPetstore:
         assert result.body.address.street == pet_street
         assert result.body.address.city == pet_city
         assert result.body.healthy is False
+
+    @pytest.mark.xfail(
+        reason="urlencoded object with oneof not supported",
+        strict=True,
+    )
+    def test_post_urlencoded(self, spec, spec_dict):
+        host_url = "https://staging.gigantic-server.com/v1"
+        path_pattern = "/v1/pets"
+        pet_name = "Cat"
+        pet_tag = "cats"
+        pet_street = "Piekna"
+        pet_city = "Warsaw"
+        pet_healthy = False
+        data_json = {
+            "name": pet_name,
+            "tag": pet_tag,
+            "position": 2,
+            "address": {
+                "street": pet_street,
+                "city": pet_city,
+            },
+            "healthy": pet_healthy,
+            "wings": {
+                "healthy": pet_healthy,
+            },
+        }
+        data = urlencode(data_json)
+        headers = {
+            "api-key": self.api_key_encoded,
+        }
+        userdata = {
+            "name": "user1",
+        }
+        userdata_json = json.dumps(userdata)
+        cookies = {
+            "user": "123",
+            "userdata": userdata_json,
+        }
+
+        request = MockRequest(
+            host_url,
+            "POST",
+            "/pets",
+            path_pattern=path_pattern,
+            data=data,
+            headers=headers,
+            cookies=cookies,
+            content_type="application/x-www-form-urlencoded",
+        )
+
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestParametersUnmarshaller,
+        )
+
+        assert is_dataclass(result.parameters.cookie["userdata"])
+        assert (
+            result.parameters.cookie["userdata"].__class__.__name__
+            == "Userdata"
+        )
+        assert result.parameters.cookie["userdata"].name == "user1"
+
+        result = unmarshal_request(
+            request, spec=spec, cls=V30RequestBodyUnmarshaller
+        )
+
+        schemas = spec_dict["components"]["schemas"]
+        pet_model = schemas["PetCreate"]["x-model"]
+        address_model = schemas["Address"]["x-model"]
+        assert result.body.__class__.__name__ == pet_model
+        assert result.body.name == pet_name
+        assert result.body.tag == pet_tag
+        assert result.body.position == 2
+        assert result.body.address.__class__.__name__ == address_model
+        assert result.body.address.street == pet_street
+        assert result.body.address.city == pet_city
+        assert result.body.healthy == pet_healthy
+
+        result = unmarshal_request(
+            request,
+            spec=spec,
+            cls=V30RequestSecurityUnmarshaller,
+        )
+
+        assert result.security == {}
 
     def test_post_no_one_of_schema(self, spec):
         host_url = "https://staging.gigantic-server.com/v1"
@@ -1506,7 +1593,7 @@ class TestPetstore:
                 spec=spec,
                 cls=V30RequestBodyValidator,
             )
-        assert type(exc_info.value.__cause__) is InvalidSchemaValue
+        assert type(exc_info.value.__cause__) is CastError
 
     def test_post_tags_additional_properties(self, spec):
         host_url = "http://petstore.swagger.io/v1"

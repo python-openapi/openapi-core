@@ -145,21 +145,24 @@ class TestPetListResource(BaseTestFalconProject):
 
     def test_post_media_type_invalid(self, client):
         cookies = {"user": 1}
-        data = "data"
+        data_json = {
+            "data": "",
+        }
         # noly 3 media types are supported by falcon by default:
         # json, multipart and urlencoded
-        content_type = MEDIA_URLENCODED
+        content_type = "application/vnd.api+json"
         headers = {
             "Authorization": "Basic testuser",
             "Api-Key": self.api_key_encoded,
             "Content-Type": content_type,
         }
+        body = dumps(data_json)
 
         response = client.simulate_post(
             "/v1/pets",
             host="staging.gigantic-server.com",
             headers=headers,
-            body=data,
+            body=body,
             cookies=cookies,
             protocol="https",
         )
@@ -175,7 +178,7 @@ class TestPetListResource(BaseTestFalconProject):
                     "title": (
                         "Content for the following mimetype not found: "
                         f"{content_type}. "
-                        "Valid mimetypes: ['application/json', 'text/plain']"
+                        "Valid mimetypes: ['application/json', 'application/x-www-form-urlencoded', 'text/plain']"
                     ),
                 }
             ]

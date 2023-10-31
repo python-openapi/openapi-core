@@ -147,6 +147,9 @@ paths:
             example:
               name: "Pet"
               wings: []
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PetCreate'
           text/plain: {}
       responses:
         '201':
@@ -265,6 +268,9 @@ paths:
         required: true
         content:
           application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreate'
+          application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/TagCreate'
       responses:

@@ -1,38 +1,35 @@
 from typing import Dict
+from typing import Optional
 
 from jsonschema_path import SchemaPath
 
-from openapi_core.casting.schemas.casters import ArrayCaster
-from openapi_core.casting.schemas.casters import BaseSchemaCaster
-from openapi_core.casting.schemas.casters import CallableSchemaCaster
-from openapi_core.casting.schemas.casters import DummyCaster
+from openapi_core.casting.schemas.casters import SchemaCaster
+from openapi_core.casting.schemas.casters import TypesCaster
 from openapi_core.casting.schemas.datatypes import CasterCallable
 from openapi_core.util import forcebool
+from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
+from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 
 class SchemaCastersFactory:
-    DUMMY_CASTERS = [
-        "string",
-        "object",
-        "any",
-    ]
-    PRIMITIVE_CASTERS: Dict[str, CasterCallable] = {
-        "integer": int,
-        "number": float,
-        "boolean": forcebool,
-    }
-    COMPLEX_CASTERS = {
-        "array": ArrayCaster,
-    }
+    def __init__(
+        self,
+        schema_validators_factory: SchemaValidatorsFactory,
+        types_caster: TypesCaster,
+    ):
+        self.schema_validators_factory = schema_validators_factory
+        self.types_caster = types_caster
 
-    def create(self, schema: SchemaPath) -> BaseSchemaCaster:
-        schema_type = schema.getkey("type", "any")
+    def create(
+        self,
+        schema: SchemaPath,
+        format_validators: Optional[FormatValidatorsDict] = None,
+        extra_format_validators: Optional[FormatValidatorsDict] = None,
+    ) -> SchemaCaster:
+        schema_validator = self.schema_validators_factory.create(
+            schema,
+            format_validators=format_validators,
+            extra_format_validators=extra_format_validators,
+        )
 
-        if schema_type in self.DUMMY_CASTERS:
-            return DummyCaster(schema)
-
-        if schema_type in self.PRIMITIVE_CASTERS:
-            caster_callable = self.PRIMITIVE_CASTERS[schema_type]
-            return CallableSchemaCaster(schema, caster_callable)
-
-        return ArrayCaster(schema, self)
+        return SchemaCaster(schema, schema_validator, self.types_caster)

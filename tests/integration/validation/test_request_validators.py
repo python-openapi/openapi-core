@@ -112,7 +112,11 @@ class TestRequestValidator:
 
         assert exc_info.value.__cause__ == MediaTypeNotFound(
             mimetype="text/csv",
-            availableMimetypes=["application/json", "text/plain"],
+            availableMimetypes=[
+                "application/json",
+                "application/x-www-form-urlencoded",
+                "text/plain",
+            ],
         )
 
     def test_valid(self, request_validator):

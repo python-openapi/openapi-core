@@ -1,4 +1,5 @@
 """OpenAPI core contrib falcon responses module"""
+import warnings
 from json import dumps
 from typing import Any
 from typing import Dict
@@ -49,11 +50,31 @@ class FalconOpenAPIRequest:
 
     @property
     def body(self) -> Optional[str]:
-        media = self.request.get_media(
-            default_when_empty=self.default_when_empty
-        )
         # Support falcon-jsonify.
-        return dumps(getattr(self.request, "json", media))
+        if hasattr(self.request, "json"):
+            return dumps(self.request.json)
+
+        # Falcon doesn't store raw request stream.
+        # That's why we need to revert serialized data
+        media = self.request.get_media(
+            default_when_empty=self.default_when_empty,
+        )
+        handler, _, _ = self.request.options.media_handlers._resolve(
+            self.request.content_type, self.request.options.default_media_type
+        )
+        try:
+            body = handler.serialize(
+                media, content_type=self.request.content_type
+            )
+        # multipart form serialization is not supported
+        except NotImplementedError:
+            warnings.warn(
+                f"body serialization for {self.request.content_type} not supported"
+            )
+            return None
+        else:
+            assert isinstance(body, bytes)
+            return body.decode("utf-8")
 
     @property
     def content_type(self) -> str:
