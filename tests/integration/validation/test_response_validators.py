@@ -40,28 +40,28 @@ class TestResponseValidator:
 
     def test_invalid_server(self, response_validator):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
-        response = MockResponse("Not Found", status_code=404)
+        response = MockResponse(b"Not Found", status_code=404)
 
         with pytest.raises(PathNotFound):
             response_validator.validate(request, response)
 
     def test_invalid_operation(self, response_validator):
         request = MockRequest(self.host_url, "patch", "/v1/pets")
-        response = MockResponse("Not Found", status_code=404)
+        response = MockResponse(b"Not Found", status_code=404)
 
         with pytest.raises(OperationNotFound):
             response_validator.validate(request, response)
 
     def test_invalid_response(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("Not Found", status_code=409)
+        response = MockResponse(b"Not Found", status_code=409)
 
         with pytest.raises(ResponseNotFound):
             response_validator.validate(request, response)
 
     def test_invalid_content_type(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("Not Found", content_type="text/csv")
+        response = MockResponse(b"Not Found", content_type="text/csv")
 
         with pytest.raises(DataValidationError) as exc_info:
             response_validator.validate(request, response)
@@ -77,18 +77,18 @@ class TestResponseValidator:
 
     def test_invalid_media_type(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("abcde")
+        response = MockResponse(b"abcde")
 
         with pytest.raises(DataValidationError) as exc_info:
             response_validator.validate(request, response)
 
         assert exc_info.value.__cause__ == MediaTypeDeserializeError(
-            mimetype="application/json", value="abcde"
+            mimetype="application/json", value=b"abcde"
         )
 
     def test_invalid_media_type_value(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("{}")
+        response = MockResponse(b"{}")
 
         with pytest.raises(DataValidationError) as exc_info:
             response_validator.validate(request, response)
@@ -102,7 +102,7 @@ class TestResponseValidator:
                 {"id": 1, "name": "Sparky"},
             ],
         }
-        response_data = json.dumps(response_json)
+        response_data = json.dumps(response_json).encode()
         response = MockResponse(response_data)
 
         with pytest.raises(InvalidData) as exc_info:
@@ -128,7 +128,7 @@ class TestResponseValidator:
                 },
             ],
         }
-        response_data = json.dumps(response_json)
+        response_data = json.dumps(response_json).encode()
         headers = {
             "x-delete-confirm": "true",
             "x-delete-date": "today",
@@ -152,7 +152,7 @@ class TestResponseValidator:
                 },
             ],
         }
-        response_data = json.dumps(response_json)
+        response_data = json.dumps(response_json).encode()
         response = MockResponse(response_data)
 
         result = response_validator.validate(request, response)

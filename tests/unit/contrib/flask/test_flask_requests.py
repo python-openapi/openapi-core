@@ -31,7 +31,7 @@ class TestFlaskOpenAPIRequest:
         assert openapi_request.method == "get"
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
-        assert openapi_request.body == ""
+        assert openapi_request.body == b""
         assert openapi_request.content_type == "application/octet-stream"
 
     def test_multiple_values(self, request_factory, request):
@@ -59,7 +59,7 @@ class TestFlaskOpenAPIRequest:
         assert openapi_request.method == "get"
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
-        assert openapi_request.body == ""
+        assert openapi_request.body == b""
         assert openapi_request.content_type == "application/octet-stream"
 
     def test_url_rule(self, request_factory, request):
@@ -81,5 +81,5 @@ class TestFlaskOpenAPIRequest:
         assert openapi_request.host_url == request.host_url
         assert openapi_request.path == request.path
         assert openapi_request.path_pattern == "/browse/{id}/"
-        assert openapi_request.body == ""
+        assert openapi_request.body == b""
         assert openapi_request.content_type == "application/octet-stream"

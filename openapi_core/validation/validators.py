@@ -106,7 +106,7 @@ class BaseValidator:
         media_type: SchemaPath,
         mimetype: str,
         parameters: Mapping[str, str],
-        value: Any,
+        value: bytes,
     ) -> Any:
         schema = media_type.get("schema")
         encoding = None
@@ -222,7 +222,7 @@ class BaseValidator:
 
     def _get_content_schema_value_and_schema(
         self,
-        raw: Any,
+        raw: bytes,
         content: SchemaPath,
         mimetype: Optional[str] = None,
     ) -> Tuple[Any, Optional[SchemaPath]]:
@@ -246,7 +246,7 @@ class BaseValidator:
         return casted, schema
 
     def _get_content_and_schema(
-        self, raw: Any, content: SchemaPath, mimetype: Optional[str] = None
+        self, raw: bytes, content: SchemaPath, mimetype: Optional[str] = None
     ) -> Tuple[Any, Optional[SchemaPath]]:
         casted, schema = self._get_content_schema_value_and_schema(
             raw, content, mimetype

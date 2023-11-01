@@ -89,7 +89,7 @@ class TestRequestValidator:
         )
 
     def test_media_type_not_found(self, request_validator):
-        data = "csv,data"
+        data = b"csv,data"
         headers = {
             "api-key": self.api_key_encoded,
         }

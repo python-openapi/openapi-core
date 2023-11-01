@@ -19,7 +19,7 @@ _empty = Empty()
 class AIOHTTPOpenAPIWebRequest:
     __slots__ = ("request", "parameters", "_get_body", "_body")
 
-    def __init__(self, request: web.Request, *, body: str | None):
+    def __init__(self, request: web.Request, *, body: bytes | None):
         if not isinstance(request, web.Request):
             raise TypeError(
                 f"'request' argument is not type of {web.Request.__qualname__!r}"
@@ -45,7 +45,7 @@ class AIOHTTPOpenAPIWebRequest:
         return self.request.method.lower()
 
     @property
-    def body(self) -> str | None:
+    def body(self) -> bytes | None:
         return self._body
 
     @property

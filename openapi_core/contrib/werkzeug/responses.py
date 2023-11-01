@@ -1,4 +1,6 @@
 """OpenAPI core contrib werkzeug responses module"""
+from itertools import tee
+
 from werkzeug.datastructures import Headers
 from werkzeug.wrappers import Response
 
@@ -10,8 +12,12 @@ class WerkzeugOpenAPIResponse:
         self.response = response
 
     @property
-    def data(self) -> str:
-        return self.response.get_data(as_text=True)
+    def data(self) -> bytes:
+        if not self.response.is_sequence:
+            resp_iter1, resp_iter2 = tee(self.response.iter_encoded())
+            self.response.response = resp_iter1
+            return b"".join(resp_iter2)
+        return self.response.get_data(as_text=False)
 
     @property
     def status_code(self) -> int:

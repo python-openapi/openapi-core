@@ -17,7 +17,7 @@ class BaseRequest(Protocol):
         ...
 
     @property
-    def body(self) -> Optional[str]:
+    def body(self) -> Optional[bytes]:
         ...
 
     @property
@@ -120,7 +120,7 @@ class Response(Protocol):
     """
 
     @property
-    def data(self) -> str:
+    def data(self) -> Optional[bytes]:
         ...
 
     @property

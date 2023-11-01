@@ -123,7 +123,7 @@ class TestPetstore:
         data_json = {
             "data": [],
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "Content-Type": "application/json",
             "x-next": "next-url",
@@ -185,7 +185,7 @@ class TestPetstore:
                 }
             ],
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -286,7 +286,7 @@ class TestPetstore:
                 }
             ],
         }
-        response_data = json.dumps(response_data_json)
+        response_data = json.dumps(response_data_json).encode()
         response = MockResponse(response_data)
 
         with pytest.raises(InvalidData) as exc_info:
@@ -349,7 +349,7 @@ class TestPetstore:
         data_json = {
             "data": [],
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -398,7 +398,7 @@ class TestPetstore:
         data_json = {
             "data": [],
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -688,7 +688,7 @@ class TestPetstore:
                 "healthy": pet_healthy,
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -770,7 +770,7 @@ class TestPetstore:
             },
             "extra": None,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -841,7 +841,7 @@ class TestPetstore:
                 "healthy": pet_healthy,
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -915,7 +915,7 @@ class TestPetstore:
                 "healthy": pet_healthy,
             },
         }
-        data = urlencode(data_json)
+        data = urlencode(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -985,7 +985,7 @@ class TestPetstore:
             "name": pet_name,
             "alias": alias,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -1037,7 +1037,7 @@ class TestPetstore:
                 "healthy": pet_healthy,
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -1088,7 +1088,7 @@ class TestPetstore:
             "name": "Cat",
             "tag": "cats",
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -1141,7 +1141,7 @@ class TestPetstore:
                 "healthy": pet_healthy,
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": self.api_key_encoded,
         }
@@ -1184,7 +1184,7 @@ class TestPetstore:
                 "healthy": pet_healthy,
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         cookies = {
             "user": "123",
         }
@@ -1223,7 +1223,7 @@ class TestPetstore:
             "name": "Cat",
             "tag": "cats",
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "api-key": "12345",
         }
@@ -1267,7 +1267,7 @@ class TestPetstore:
                 },
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         with pytest.raises(ServerNotFound):
@@ -1362,7 +1362,7 @@ class TestPetstore:
                 },
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1413,7 +1413,7 @@ class TestPetstore:
             "message": message,
             "rootCause": rootCause,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data, status_code=404)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1492,7 +1492,7 @@ class TestPetstore:
         assert result.body is None
 
         data_json = ["cats", "birds"]
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1509,7 +1509,7 @@ class TestPetstore:
             "name": pet_name,
             "alias": alias,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
 
         request = MockRequest(
             host_url,
@@ -1539,7 +1539,7 @@ class TestPetstore:
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         data_json = {}
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
 
         request = MockRequest(
             host_url,
@@ -1569,7 +1569,7 @@ class TestPetstore:
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/tags"
         tag_name = 123
-        data = json.dumps(tag_name)
+        data = json.dumps(tag_name).encode()
 
         request = MockRequest(
             host_url,
@@ -1602,7 +1602,7 @@ class TestPetstore:
         data_json = {
             "name": pet_name,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
 
         request = MockRequest(
             host_url,
@@ -1637,7 +1637,7 @@ class TestPetstore:
             "rootCause": rootCause,
             "additionalinfo": additionalinfo,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data, status_code=404)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1658,7 +1658,7 @@ class TestPetstore:
             "created": created,
             "name": pet_name,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
 
         request = MockRequest(
             host_url,
@@ -1694,7 +1694,7 @@ class TestPetstore:
             "rootCause": "Tag already exist",
             "additionalinfo": "Tag Dog already exist",
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data, status_code=404)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1715,7 +1715,7 @@ class TestPetstore:
             "created": created,
             "name": pet_name,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
 
         request = MockRequest(
             host_url,
@@ -1753,7 +1753,7 @@ class TestPetstore:
             "rootCause": rootCause,
             "additionalinfo": additionalinfo,
         }
-        response_data = json.dumps(response_data_json)
+        response_data = json.dumps(response_data_json).encode()
         response = MockResponse(response_data, status_code=404)
 
         result = unmarshal_response(
@@ -1787,7 +1787,7 @@ class TestPetstore:
             "created": created,
             "name": pet_name,
         }
-        data = urlencode(data_json)
+        data = urlencode(data_json).encode()
         content_type = "application/x-www-form-urlencoded"
 
         request = MockRequest(
@@ -1827,7 +1827,7 @@ class TestPetstore:
             "rootCause": rootCause,
             "additionalinfo": additionalinfo,
         }
-        response_data = json.dumps(response_data_json)
+        response_data = json.dumps(response_data_json).encode()
         response = MockResponse(response_data, status_code=404)
 
         result = unmarshal_response(
@@ -1861,7 +1861,7 @@ class TestPetstore:
             "created": created,
             "name": pet_name,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
 
         request = MockRequest(
             host_url,
@@ -1898,7 +1898,7 @@ class TestPetstore:
             "rootCause": rootCause,
             "additionalinfo": additionalinfo,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data, status_code=404)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1918,7 +1918,7 @@ class TestPetstore:
         data_json = {
             "ids": ids,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         request = MockRequest(
             host_url,
             "DELETE",

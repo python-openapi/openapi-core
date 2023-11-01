@@ -10,16 +10,11 @@ from xml.etree.ElementTree import fromstring
 from werkzeug.datastructures import ImmutableMultiDict
 
 
-def binary_loads(value: Union[str, bytes], **parameters: str) -> bytes:
-    charset = "utf-8"
-    if "charset" in parameters:
-        charset = parameters["charset"]
-    if isinstance(value, str):
-        return value.encode(charset)
+def binary_loads(value: bytes, **parameters: str) -> bytes:
     return value
 
 
-def plain_loads(value: Union[str, bytes], **parameters: str) -> str:
+def plain_loads(value: bytes, **parameters: str) -> str:
     charset = "utf-8"
     if "charset" in parameters:
         charset = parameters["charset"]
@@ -32,30 +27,36 @@ def plain_loads(value: Union[str, bytes], **parameters: str) -> str:
     return value
 
 
-def json_loads(value: Union[str, bytes], **parameters: str) -> Any:
+def json_loads(value: bytes, **parameters: str) -> Any:
     return loads(value)
 
 
-def xml_loads(value: Union[str, bytes], **parameters: str) -> Element:
-    return fromstring(value)
+def xml_loads(value: bytes, **parameters: str) -> Element:
+    charset = "utf-8"
+    if "charset" in parameters:
+        charset = parameters["charset"]
+    return fromstring(value.decode(charset))
 
 
-def urlencoded_form_loads(value: Any, **parameters: str) -> Mapping[str, Any]:
-    return ImmutableMultiDict(parse_qsl(value))
-
-
-def data_form_loads(
-    value: Union[str, bytes], **parameters: str
+def urlencoded_form_loads(
+    value: bytes, **parameters: str
 ) -> Mapping[str, Any]:
-    if isinstance(value, bytes):
-        value = value.decode("ASCII", errors="surrogateescape")
+    # only UTF-8 is conforming
+    return ImmutableMultiDict(parse_qsl(value.decode("utf-8")))
+
+
+def data_form_loads(value: bytes, **parameters: str) -> Mapping[str, Any]:
+    charset = "ASCII"
+    if "charset" in parameters:
+        charset = parameters["charset"]
+    decoded = value.decode(charset, errors="surrogateescape")
     boundary = ""
     if "boundary" in parameters:
         boundary = parameters["boundary"]
     parser = Parser()
     mimetype = "multipart/form-data"
     header = f'Content-Type: {mimetype}; boundary="{boundary}"'
-    text = "\n\n".join([header, value])
+    text = "\n\n".join([header, decoded])
     parts = parser.parsestr(text, headersonly=False)
     return ImmutableMultiDict(
         [

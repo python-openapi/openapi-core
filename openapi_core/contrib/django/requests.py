@@ -76,9 +76,9 @@ class DjangoOpenAPIRequest:
         return self.request.method.lower()
 
     @property
-    def body(self) -> str:
+    def body(self) -> bytes:
         assert isinstance(self.request.body, bytes)
-        return self.request.body.decode("utf-8")
+        return self.request.body
 
     @property
     def content_type(self) -> str:

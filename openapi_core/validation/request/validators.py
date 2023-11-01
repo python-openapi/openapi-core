@@ -248,7 +248,7 @@ class BaseRequestValidator(BaseValidator):
 
     @ValidationErrorWrapper(RequestBodyValidationError, InvalidRequestBody)
     def _get_body(
-        self, body: Optional[str], mimetype: str, operation: SchemaPath
+        self, body: Optional[bytes], mimetype: str, operation: SchemaPath
     ) -> Any:
         if "requestBody" not in operation:
             return None
@@ -262,8 +262,8 @@ class BaseRequestValidator(BaseValidator):
         return value
 
     def _get_body_value(
-        self, body: Optional[str], request_body: SchemaPath
-    ) -> Any:
+        self, body: Optional[bytes], request_body: SchemaPath
+    ) -> bytes:
         if not body:
             if request_body.getkey("required", False):
                 raise MissingRequiredRequestBody

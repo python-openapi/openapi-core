@@ -37,7 +37,7 @@ class TestReadOnly:
                 "id": 10,
                 "name": "Pedro",
             }
-        )
+        ).encode()
 
         request = MockRequest(
             host_url="", method="POST", path="/users", data=data
@@ -55,7 +55,7 @@ class TestReadOnly:
                 "id": 10,
                 "name": "Pedro",
             }
-        )
+        ).encode()
 
         request = MockRequest(host_url="", method="POST", path="/users")
 
@@ -77,7 +77,7 @@ class TestWriteOnly:
                 "name": "Pedro",
                 "hidden": False,
             }
-        )
+        ).encode()
 
         request = MockRequest(
             host_url="", method="POST", path="/users", data=data
@@ -98,7 +98,7 @@ class TestWriteOnly:
                 "name": "Pedro",
                 "hidden": True,
             }
-        )
+        ).encode()
 
         request = MockRequest(host_url="", method="POST", path="/users")
         response = MockResponse(data)

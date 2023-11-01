@@ -41,17 +41,13 @@ class BaseTestFlaskProject:
 
 
 class TestPetPhotoView(BaseTestFlaskProject):
-    @pytest.mark.xfail(
-        reason="response binary format not supported",
-        strict=True,
-    )
     def test_get_valid(self, client, data_gif):
         headers = {
             "Authorization": "Basic testuser",
             "Api-Key": self.api_key_encoded,
         }
 
-        client.set_cookie("petstore.swagger.io", "user", "1")
+        client.set_cookie("user", "1", domain="petstore.swagger.io")
         response = client.get(
             "/v1/pets/1/photo",
             headers=headers,
@@ -60,10 +56,6 @@ class TestPetPhotoView(BaseTestFlaskProject):
         assert response.get_data() == data_gif
         assert response.status_code == 200
 
-    @pytest.mark.xfail(
-        reason="request binary format not supported",
-        strict=True,
-    )
     def test_post_valid(self, client, data_gif):
         content_type = "image/gif"
         headers = {
@@ -71,15 +63,12 @@ class TestPetPhotoView(BaseTestFlaskProject):
             "Api-Key": self.api_key_encoded,
             "Content-Type": content_type,
         }
-        data = {
-            "file": data_gif,
-        }
 
-        client.set_cookie("petstore.swagger.io", "user", "1")
+        client.set_cookie("user", "1", domain="petstore.swagger.io")
         response = client.post(
             "/v1/pets/1/photo",
             headers=headers,
-            data=data,
+            data=data_gif,
         )
 
         assert not response.text

@@ -8,9 +8,9 @@ class MediaTypeDeserializeError(DeserializeError):
     """Media type deserialize operation error"""
 
     mimetype: str
-    value: str
+    value: bytes
 
     def __str__(self) -> str:
         return (
             "Failed to deserialize value with {mimetype} mimetype: {value}"
-        ).format(value=self.value, mimetype=self.mimetype)
+        ).format(value=self.value.decode("utf-8"), mimetype=self.mimetype)

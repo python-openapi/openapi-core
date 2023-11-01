@@ -39,7 +39,7 @@ class TestResponseUnmarshaller:
 
     def test_invalid_server(self, response_unmarshaller):
         request = MockRequest("http://petstore.invalid.net/v1", "get", "/")
-        response = MockResponse("Not Found", status_code=404)
+        response = MockResponse(b"Not Found", status_code=404)
 
         result = response_unmarshaller.unmarshal(request, response)
 
@@ -50,7 +50,7 @@ class TestResponseUnmarshaller:
 
     def test_invalid_operation(self, response_unmarshaller):
         request = MockRequest(self.host_url, "patch", "/v1/pets")
-        response = MockResponse("Not Found", status_code=404)
+        response = MockResponse(b"Not Found", status_code=404)
 
         result = response_unmarshaller.unmarshal(request, response)
 
@@ -61,7 +61,7 @@ class TestResponseUnmarshaller:
 
     def test_invalid_response(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("Not Found", status_code=409)
+        response = MockResponse(b"Not Found", status_code=409)
 
         result = response_unmarshaller.unmarshal(request, response)
 
@@ -72,7 +72,7 @@ class TestResponseUnmarshaller:
 
     def test_invalid_content_type(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("Not Found", content_type="text/csv")
+        response = MockResponse(b"Not Found", content_type="text/csv")
 
         result = response_unmarshaller.unmarshal(request, response)
 
@@ -93,20 +93,20 @@ class TestResponseUnmarshaller:
 
     def test_invalid_media_type(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("abcde")
+        response = MockResponse(b"abcde")
 
         result = response_unmarshaller.unmarshal(request, response)
 
         assert result.errors == [DataValidationError()]
         assert result.errors[0].__cause__ == MediaTypeDeserializeError(
-            mimetype="application/json", value="abcde"
+            mimetype="application/json", value=b"abcde"
         )
         assert result.data is None
         assert result.headers == {}
 
     def test_invalid_media_type_value(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")
-        response = MockResponse("{}")
+        response = MockResponse(b"{}")
 
         result = response_unmarshaller.unmarshal(request, response)
 
@@ -154,7 +154,7 @@ class TestResponseUnmarshaller:
                 },
             ],
         }
-        response_data = json.dumps(response_json)
+        response_data = json.dumps(response_json).encode()
         headers = {
             "x-delete-confirm": "true",
             "x-delete-date": "today",
@@ -181,7 +181,7 @@ class TestResponseUnmarshaller:
                 },
             ],
         }
-        response_data = json.dumps(response_json)
+        response_data = json.dumps(response_json).encode()
         response = MockResponse(response_data)
 
         result = response_unmarshaller.unmarshal(request, response)

@@ -74,7 +74,7 @@ class TestMediaTypeDeserializer:
     def test_json_valid(self, deserializer_factory, mimetype):
         parameters = {"charset": "utf-8"}
         deserializer = deserializer_factory(mimetype, parameters=parameters)
-        value = '{"test": "test"}'
+        value = b'{"test": "test"}'
 
         result = deserializer.deserialize(value)
 
@@ -90,7 +90,7 @@ class TestMediaTypeDeserializer:
     )
     def test_json_empty(self, deserializer_factory, mimetype):
         deserializer = deserializer_factory(mimetype)
-        value = ""
+        value = b""
 
         with pytest.raises(DeserializeError):
             deserializer.deserialize(value)
@@ -104,7 +104,7 @@ class TestMediaTypeDeserializer:
     )
     def test_json_empty_object(self, deserializer_factory, mimetype):
         deserializer = deserializer_factory(mimetype)
-        value = "{}"
+        value = b"{}"
 
         result = deserializer.deserialize(value)
 
@@ -119,7 +119,7 @@ class TestMediaTypeDeserializer:
     )
     def test_xml_empty(self, deserializer_factory, mimetype):
         deserializer = deserializer_factory(mimetype)
-        value = ""
+        value = b""
 
         with pytest.raises(DeserializeError):
             deserializer.deserialize(value)
@@ -131,10 +131,25 @@ class TestMediaTypeDeserializer:
             "application/xhtml+xml",
         ],
     )
+    def test_xml_default_charset_valid(self, deserializer_factory, mimetype):
+        deserializer = deserializer_factory(mimetype)
+        value = b"<obj>text</obj>"
+
+        result = deserializer.deserialize(value)
+
+        assert type(result) is Element
+
+    @pytest.mark.parametrize(
+        "mimetype",
+        [
+            "application/xml",
+            "application/xhtml+xml",
+        ],
+    )
     def test_xml_valid(self, deserializer_factory, mimetype):
         parameters = {"charset": "utf-8"}
         deserializer = deserializer_factory(mimetype, parameters=parameters)
-        value = "<obj>text</obj>"
+        value = b"<obj>text</obj>"
 
         result = deserializer.deserialize(value)
 
@@ -143,7 +158,7 @@ class TestMediaTypeDeserializer:
     def test_octet_stream_empty(self, deserializer_factory):
         mimetype = "application/octet-stream"
         deserializer = deserializer_factory(mimetype)
-        value = ""
+        value = b""
 
         result = deserializer.deserialize(value)
 
@@ -180,7 +195,7 @@ class TestMediaTypeDeserializer:
         schema_dict = {}
         schema = SchemaPath.from_dict(schema_dict)
         deserializer = deserializer_factory(mimetype, schema=schema)
-        value = ""
+        value = b""
 
         result = deserializer.deserialize(value)
 
@@ -206,7 +221,7 @@ class TestMediaTypeDeserializer:
         deserializer = deserializer_factory(
             mimetype, schema=schema, encoding=encoding
         )
-        value = "name=foo+bar"
+        value = b"name=foo+bar"
 
         result = deserializer.deserialize(value)
 
@@ -229,7 +244,7 @@ class TestMediaTypeDeserializer:
         }
         schema = SchemaPath.from_dict(schema_dict)
         deserializer = deserializer_factory(mimetype, schema=schema)
-        value = "prop=a&prop=b&prop=c"
+        value = b"prop=a&prop=b&prop=c"
 
         result = deserializer.deserialize(value)
 
@@ -260,7 +275,7 @@ class TestMediaTypeDeserializer:
         deserializer = deserializer_factory(
             mimetype, schema=schema, encoding=encoding
         )
-        value = 'prop=["a","b","c"]'
+        value = b'prop=["a","b","c"]'
 
         result = deserializer.deserialize(value)
 
@@ -300,7 +315,7 @@ class TestMediaTypeDeserializer:
         deserializer = deserializer_factory(
             mimetype, schema=schema, encoding=encoding
         )
-        value = "color[R]=100&color[G]=200&color[B]=150"
+        value = b"color[R]=100&color[G]=200&color[B]=150"
 
         result = deserializer.deserialize(value)
 
@@ -312,12 +327,12 @@ class TestMediaTypeDeserializer:
             },
         }
 
-    @pytest.mark.parametrize("value", [b"", ""])
-    def test_multipart_form_empty(self, deserializer_factory, value):
+    def test_multipart_form_empty(self, deserializer_factory):
         mimetype = "multipart/form-data"
         schema_dict = {}
         schema = SchemaPath.from_dict(schema_dict)
         deserializer = deserializer_factory(mimetype, schema=schema)
+        value = b""
 
         result = deserializer.deserialize(value)
 
@@ -416,7 +431,7 @@ class TestMediaTypeDeserializer:
             custom_mimetype,
             extra_media_type_deserializers=extra_media_type_deserializers,
         )
-        value = "{}"
+        value = b"{}"
 
         result = deserializer.deserialize(
             value,

@@ -41,7 +41,9 @@ class MediaTypesDeserializer:
             extra_media_type_deserializers = {}
         self.extra_media_type_deserializers = extra_media_type_deserializers
 
-    def deserialize(self, mimetype: str, value: Any, **parameters: str) -> Any:
+    def deserialize(
+        self, mimetype: str, value: bytes, **parameters: str
+    ) -> Any:
         deserializer_callable = self.get_deserializer_callable(mimetype)
 
         try:
@@ -75,7 +77,7 @@ class MediaTypeDeserializer:
         self.encoding = encoding
         self.parameters = parameters
 
-    def deserialize(self, value: Any) -> Any:
+    def deserialize(self, value: bytes) -> Any:
         deserialized = self.media_types_deserializer.deserialize(
             self.mimetype, value, **self.parameters
         )
@@ -192,5 +194,4 @@ class MediaTypeDeserializer:
                 value = location.getlist(prop_name)
                 return list(map(prop_deserializer.deserialize, value))
 
-        value = location[prop_name]
-        return prop_deserializer.deserialize(value)
+        return prop_deserializer.deserialize(location[prop_name])

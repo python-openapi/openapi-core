@@ -110,7 +110,7 @@ Fzk0lpcjIQA7
         )
         return django_response
 
-    def post(self, request):
+    def post(self, request, petId):
         assert request.openapi
         assert not request.openapi.errors
 

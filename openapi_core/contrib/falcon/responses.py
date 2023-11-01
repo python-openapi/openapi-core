@@ -1,4 +1,6 @@
 """OpenAPI core contrib falcon responses module"""
+from itertools import tee
+
 from falcon.response import Response
 from werkzeug.datastructures import Headers
 
@@ -10,11 +12,16 @@ class FalconOpenAPIResponse:
         self.response = response
 
     @property
-    def data(self) -> str:
+    def data(self) -> bytes:
         if self.response.text is None:
-            return ""
+            if self.response.stream is None:
+                return b""
+            resp_iter1, resp_iter2 = tee(self.response.stream)
+            self.response.stream = resp_iter1
+            content = b"".join(resp_iter2)
+            return content
         assert isinstance(self.response.text, str)
-        return self.response.text
+        return self.response.text.encode("utf-8")
 
     @property
     def status_code(self) -> int:
