@@ -371,10 +371,6 @@ class TestPetDetailResource:
 
 
 class TestPetPhotoResource(BaseTestFalconProject):
-    @pytest.mark.xfail(
-        reason="response binary format not supported",
-        strict=True,
-    )
     def test_get_valid(self, client, data_gif):
         cookies = {"user": 1}
         headers = {

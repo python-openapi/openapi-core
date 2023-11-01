@@ -9,7 +9,7 @@ class TestFlaskOpenAPIResponse:
             FlaskOpenAPIResponse(None)
 
     def test_invalid_server(self, response_factory):
-        data = "Not Found"
+        data = b"Not Found"
         status_code = 404
         response = response_factory(data, status_code=status_code)
 

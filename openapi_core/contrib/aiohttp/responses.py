@@ -13,13 +13,13 @@ class AIOHTTPOpenAPIWebResponse:
         self.response = response
 
     @property
-    def data(self) -> str:
+    def data(self) -> bytes:
         if self.response.body is None:
-            return ""
+            return b""
         if isinstance(self.response.body, bytes):
-            return self.response.body.decode("utf-8")
+            return self.response.body
         assert isinstance(self.response.body, str)
-        return self.response.body
+        return self.response.body.encode("utf-8")
 
     @property
     def status_code(self) -> int:

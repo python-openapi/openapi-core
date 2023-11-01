@@ -38,10 +38,6 @@ class BaseTestPetstore:
 
 
 class TestPetPhotoView(BaseTestPetstore):
-    @pytest.mark.xfail(
-        reason="response binary format not supported",
-        strict=True,
-    )
     def test_get_valid(self, client, data_gif):
         headers = {
             "Authorization": "Basic testuser",
@@ -55,7 +51,7 @@ class TestPetPhotoView(BaseTestPetstore):
             cookies=cookies,
         )
 
-        assert response.get_data() == data_gif
+        assert response.content == data_gif
         assert response.status_code == 200
 
     def test_post_valid(self, client, data_gif):

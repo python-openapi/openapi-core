@@ -165,10 +165,6 @@ class TestPetstore(BaseTestPetstore):
     def response_unmarshaller(self, spec):
         return V30ResponseUnmarshaller(spec)
 
-    @pytest.mark.xfail(
-        reason="response binary format not supported",
-        strict=True,
-    )
     @responses.activate
     def test_response_binary_valid(self, response_unmarshaller, data_gif):
         responses.add(

@@ -41,10 +41,6 @@ class BaseTestFlaskProject:
 
 
 class TestPetPhotoView(BaseTestFlaskProject):
-    @pytest.mark.xfail(
-        reason="response binary format not supported",
-        strict=True,
-    )
     def test_get_valid(self, client, data_gif):
         headers = {
             "Authorization": "Basic testuser",

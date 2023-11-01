@@ -5,6 +5,7 @@ from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Mapping
+from typing import Optional
 
 from jsonschema_path import SchemaPath
 from openapi_spec_validator import OpenAPIV30SpecValidator
@@ -41,7 +42,7 @@ class BaseResponseValidator(BaseValidator):
     def _iter_errors(
         self,
         status_code: int,
-        data: str,
+        data: Optional[bytes],
         headers: Mapping[str, Any],
         mimetype: str,
         operation: SchemaPath,
@@ -66,7 +67,11 @@ class BaseResponseValidator(BaseValidator):
             yield from exc.context
 
     def _iter_data_errors(
-        self, status_code: int, data: str, mimetype: str, operation: SchemaPath
+        self,
+        status_code: int,
+        data: Optional[bytes],
+        mimetype: str,
+        operation: SchemaPath,
     ) -> Iterator[Exception]:
         try:
             operation_response = self._find_operation_response(
@@ -114,7 +119,10 @@ class BaseResponseValidator(BaseValidator):
 
     @ValidationErrorWrapper(DataValidationError, InvalidData)
     def _get_data(
-        self, data: str, mimetype: str, operation_response: SchemaPath
+        self,
+        data: Optional[bytes],
+        mimetype: str,
+        operation_response: SchemaPath,
     ) -> Any:
         if "content" not in operation_response:
             return None
@@ -125,7 +133,7 @@ class BaseResponseValidator(BaseValidator):
         value, _ = self._get_content_and_schema(raw_data, content, mimetype)
         return value
 
-    def _get_data_value(self, data: str) -> Any:
+    def _get_data_value(self, data: Optional[bytes]) -> bytes:
         if not data:
             raise MissingData
 

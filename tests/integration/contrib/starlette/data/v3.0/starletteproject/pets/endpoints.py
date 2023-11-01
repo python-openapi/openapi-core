@@ -24,11 +24,13 @@ def pet_photo_endpoint(request):
     openapi_request = StarletteOpenAPIRequest(request)
     request_unmarshalled = unmarshal_request(openapi_request, spec=spec)
     if request.method == "GET":
-        response = StreamingResponse([OPENID_LOGO], media_type="image/gif")
+        contents = iter([OPENID_LOGO])
+        response = StreamingResponse(contents, media_type="image/gif")
+        openapi_response = StarletteOpenAPIResponse(response, data=OPENID_LOGO)
     elif request.method == "POST":
         contents = request.body()
         response = Response(status_code=201)
-    openapi_response = StarletteOpenAPIResponse(response)
+        openapi_response = StarletteOpenAPIResponse(response)
     response_unmarshalled = unmarshal_response(
         openapi_request, openapi_response, spec=spec
     )

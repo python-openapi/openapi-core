@@ -9,7 +9,7 @@ from werkzeug.datastructures import Headers
 class MockResponse:
     def __init__(
         self,
-        data: str,
+        data: bytes,
         status_code: int = 200,
         headers: Optional[Dict[str, Any]] = None,
         content_type: str = "application/json",

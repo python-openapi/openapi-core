@@ -55,7 +55,7 @@ class TestReadOnly:
                 "id": 10,
                 "name": "Pedro",
             }
-        )
+        ).encode()
 
         request = MockRequest(host_url="", method="POST", path="/users")
 

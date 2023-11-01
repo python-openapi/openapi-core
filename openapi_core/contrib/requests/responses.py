@@ -10,9 +10,9 @@ class RequestsOpenAPIResponse:
         self.response = response
 
     @property
-    def data(self) -> str:
+    def data(self) -> bytes:
         assert isinstance(self.response.content, bytes)
-        return self.response.content.decode("utf-8")
+        return self.response.content
 
     @property
     def status_code(self) -> int:

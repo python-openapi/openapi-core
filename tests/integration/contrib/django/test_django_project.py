@@ -398,10 +398,6 @@ class TestDRFTagListView(BaseTestDRF):
 
 
 class TestPetPhotoView(BaseTestDjangoProject):
-    @pytest.mark.xfail(
-        reason="response binary format not supported",
-        strict=True,
-    )
     def test_get_valid(self, client, data_gif):
         headers = {
             "HTTP_AUTHORIZATION": "Basic testuser",

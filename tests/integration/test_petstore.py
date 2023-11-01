@@ -123,7 +123,7 @@ class TestPetstore:
         data_json = {
             "data": [],
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         headers = {
             "Content-Type": "application/json",
             "x-next": "next-url",
@@ -185,7 +185,7 @@ class TestPetstore:
                 }
             ],
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -286,7 +286,7 @@ class TestPetstore:
                 }
             ],
         }
-        response_data = json.dumps(response_data_json)
+        response_data = json.dumps(response_data_json).encode()
         response = MockResponse(response_data)
 
         with pytest.raises(InvalidData) as exc_info:
@@ -349,7 +349,7 @@ class TestPetstore:
         data_json = {
             "data": [],
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -398,7 +398,7 @@ class TestPetstore:
         data_json = {
             "data": [],
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1267,7 +1267,7 @@ class TestPetstore:
                 },
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         with pytest.raises(ServerNotFound):
@@ -1362,7 +1362,7 @@ class TestPetstore:
                 },
             },
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1413,7 +1413,7 @@ class TestPetstore:
             "message": message,
             "rootCause": rootCause,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data, status_code=404)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1492,7 +1492,7 @@ class TestPetstore:
         assert result.body is None
 
         data_json = ["cats", "birds"]
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1637,7 +1637,7 @@ class TestPetstore:
             "rootCause": rootCause,
             "additionalinfo": additionalinfo,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data, status_code=404)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1694,7 +1694,7 @@ class TestPetstore:
             "rootCause": "Tag already exist",
             "additionalinfo": "Tag Dog already exist",
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data, status_code=404)
 
         response_result = unmarshal_response(request, response, spec=spec)
@@ -1753,7 +1753,7 @@ class TestPetstore:
             "rootCause": rootCause,
             "additionalinfo": additionalinfo,
         }
-        response_data = json.dumps(response_data_json)
+        response_data = json.dumps(response_data_json).encode()
         response = MockResponse(response_data, status_code=404)
 
         result = unmarshal_response(
@@ -1827,7 +1827,7 @@ class TestPetstore:
             "rootCause": rootCause,
             "additionalinfo": additionalinfo,
         }
-        response_data = json.dumps(response_data_json)
+        response_data = json.dumps(response_data_json).encode()
         response = MockResponse(response_data, status_code=404)
 
         result = unmarshal_response(
@@ -1898,7 +1898,7 @@ class TestPetstore:
             "rootCause": rootCause,
             "additionalinfo": additionalinfo,
         }
-        data = json.dumps(data_json)
+        data = json.dumps(data_json).encode()
         response = MockResponse(data, status_code=404)
 
         response_result = unmarshal_response(request, response, spec=spec)

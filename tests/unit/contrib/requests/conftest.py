@@ -37,7 +37,7 @@ def response_factory():
     def create_response(
         data, status_code=200, content_type="application/json"
     ):
-        fp = BytesIO(bytes(data, "latin-1"))
+        fp = BytesIO(data)
         raw = HTTPResponse(fp, preload_content=False)
         resp = Response()
         resp.headers = CaseInsensitiveDict(

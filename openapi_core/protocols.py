@@ -120,7 +120,7 @@ class Response(Protocol):
     """
 
     @property
-    def data(self) -> str:
+    def data(self) -> Optional[bytes]:
         ...
 
     @property
