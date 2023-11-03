@@ -48,8 +48,9 @@ class TestV30StarletteFactory:
     def test_request_validator_path_pattern(self, client, spec):
         response_data = {"data": "data"}
 
-        def test_route(request):
-            openapi_request = StarletteOpenAPIRequest(request)
+        async def test_route(request):
+            body = await request.body()
+            openapi_request = StarletteOpenAPIRequest(request, body)
             result = unmarshal_request(openapi_request, spec)
             assert not result.errors
             return JSONResponse(

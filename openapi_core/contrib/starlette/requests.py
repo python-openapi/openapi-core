@@ -8,7 +8,7 @@ from openapi_core.datatypes import RequestParameters
 
 
 class StarletteOpenAPIRequest:
-    def __init__(self, request: Request):
+    def __init__(self, request: Request, body: Optional[bytes] = None):
         if not isinstance(request, Request):
             raise TypeError(f"'request' argument is not type of {Request}")
         self.request = request
@@ -19,7 +19,7 @@ class StarletteOpenAPIRequest:
             cookie=self.request.cookies,
         )
 
-        self._get_body = AsyncToSync(self.request.body, force_new_loop=True)
+        self._body = body
 
     @property
     def host_url(self) -> str:
@@ -35,13 +35,7 @@ class StarletteOpenAPIRequest:
 
     @property
     def body(self) -> Optional[bytes]:
-        body = self._get_body()
-        if body is None:
-            return None
-        if isinstance(body, bytes):
-            return body
-        assert isinstance(body, str)
-        return body.encode("utf-8")
+        return self._body
 
     @property
     def content_type(self) -> str:

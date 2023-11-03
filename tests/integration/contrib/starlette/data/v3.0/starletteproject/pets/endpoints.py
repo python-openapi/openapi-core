@@ -1,5 +1,6 @@
 from base64 import b64decode
 
+from starlette.responses import JSONResponse
 from starlette.responses import Response
 from starlette.responses import StreamingResponse
 from starletteproject.openapi import spec
@@ -20,18 +21,85 @@ Fzk0lpcjIQA7
 )
 
 
-def pet_photo_endpoint(request):
-    openapi_request = StarletteOpenAPIRequest(request)
-    request_unmarshalled = unmarshal_request(openapi_request, spec=spec)
+async def pet_list_endpoint(request):
+    assert request.scope["openapi"]
+    assert not request.scope["openapi"].errors
+    if request.method == "GET":
+        assert request.scope["openapi"].parameters.query == {
+            "page": 1,
+            "limit": 12,
+            "search": "",
+        }
+        data = [
+            {
+                "id": 12,
+                "name": "Cat",
+                "ears": {
+                    "healthy": True,
+                },
+            },
+        ]
+        response_dict = {
+            "data": data,
+        }
+        headers = {
+            "X-Rate-Limit": "12",
+        }
+        return JSONResponse(response_dict, headers=headers)
+    elif request.method == "POST":
+        assert request.scope["openapi"].parameters.cookie == {
+            "user": 1,
+        }
+        assert request.scope["openapi"].parameters.header == {
+            "api-key": "12345",
+        }
+        assert request.scope["openapi"].body.__class__.__name__ == "PetCreate"
+        assert request.scope["openapi"].body.name in ["Cat", "Bird"]
+        if request.scope["openapi"].body.name == "Cat":
+            assert (
+                request.scope["openapi"].body.ears.__class__.__name__ == "Ears"
+            )
+            assert request.scope["openapi"].body.ears.healthy is True
+        if request.scope["openapi"].body.name == "Bird":
+            assert (
+                request.scope["openapi"].body.wings.__class__.__name__
+                == "Wings"
+            )
+            assert request.scope["openapi"].body.wings.healthy is True
+
+        headers = {
+            "X-Rate-Limit": "12",
+        }
+        return Response(status_code=201, headers=headers)
+
+
+async def pet_detail_endpoint(request):
+    assert request.scope["openapi"]
+    assert not request.scope["openapi"].errors
+    if request.method == "GET":
+        assert request.scope["openapi"].parameters.path == {
+            "petId": 12,
+        }
+        data = {
+            "id": 12,
+            "name": "Cat",
+            "ears": {
+                "healthy": True,
+            },
+        }
+        response_dict = {
+            "data": data,
+        }
+        headers = {
+            "X-Rate-Limit": "12",
+        }
+        return JSONResponse(response_dict, headers=headers)
+
+
+async def pet_photo_endpoint(request):
+    body = await request.body()
     if request.method == "GET":
         contents = iter([OPENID_LOGO])
-        response = StreamingResponse(contents, media_type="image/gif")
-        openapi_response = StarletteOpenAPIResponse(response, data=OPENID_LOGO)
+        return StreamingResponse(contents, media_type="image/gif")
     elif request.method == "POST":
-        contents = request.body()
-        response = Response(status_code=201)
-        openapi_response = StarletteOpenAPIResponse(response)
-    response_unmarshalled = unmarshal_response(
-        openapi_request, openapi_response, spec=spec
-    )
-    return response
+        return Response(status_code=201)
