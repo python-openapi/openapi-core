@@ -113,6 +113,8 @@ class BaseRequestValidator(BaseValidator):
 
         try:
             self._get_body(request.body, request.content_type, operation)
+        except MissingRequestBody:
+            pass
         except RequestBodyValidationError as exc:
             yield exc
 

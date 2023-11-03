@@ -1973,6 +1973,8 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
+        validate_request(request, spec=spec)
+
         result = unmarshal_request(
             request,
             spec=spec,
