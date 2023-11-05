@@ -14,9 +14,9 @@ from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
 
 class TestWerkzeugOpenAPIValidation:
     @pytest.fixture
-    def spec(self, factory):
+    def schema_path(self, schema_path_factory):
         specfile = "contrib/requests/data/v3.1/requests_factory.yaml"
-        return factory.spec_from_file(specfile)
+        return schema_path_factory.from_file(specfile)
 
     @pytest.fixture
     def app(self):
@@ -39,7 +39,7 @@ class TestWerkzeugOpenAPIValidation:
     def client(self, app):
         return Client(app)
 
-    def test_request_validator_root_path(self, client, spec):
+    def test_request_validator_root_path(self, client, schema_path):
         query_string = {
             "q": "string",
         }
@@ -53,11 +53,11 @@ class TestWerkzeugOpenAPIValidation:
             headers=headers,
         )
         openapi_request = WerkzeugOpenAPIRequest(response.request)
-        unmarshaller = V30RequestUnmarshaller(spec)
+        unmarshaller = V30RequestUnmarshaller(schema_path)
         result = unmarshaller.unmarshal(openapi_request)
         assert not result.errors
 
-    def test_request_validator_path_pattern(self, client, spec):
+    def test_request_validator_path_pattern(self, client, schema_path):
         query_string = {
             "q": "string",
         }
@@ -71,12 +71,12 @@ class TestWerkzeugOpenAPIValidation:
             headers=headers,
         )
         openapi_request = WerkzeugOpenAPIRequest(response.request)
-        unmarshaller = V30RequestUnmarshaller(spec)
+        unmarshaller = V30RequestUnmarshaller(schema_path)
         result = unmarshaller.unmarshal(openapi_request)
         assert not result.errors
 
     @responses.activate
-    def test_response_validator_path_pattern(self, client, spec):
+    def test_response_validator_path_pattern(self, client, schema_path):
         query_string = {
             "q": "string",
         }
@@ -91,6 +91,6 @@ class TestWerkzeugOpenAPIValidation:
         )
         openapi_request = WerkzeugOpenAPIRequest(response.request)
         openapi_response = WerkzeugOpenAPIResponse(response)
-        unmarshaller = V30ResponseUnmarshaller(spec)
+        unmarshaller = V30ResponseUnmarshaller(schema_path)
         result = unmarshaller.unmarshal(openapi_request, openapi_response)
         assert not result.errors

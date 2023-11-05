@@ -2,8 +2,8 @@
 from typing import Any
 
 from flask.views import MethodView
-from jsonschema_path import SchemaPath
 
+from openapi_core import OpenAPI
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 from openapi_core.contrib.flask.handlers import FlaskOpenAPIErrorsHandler
 
@@ -13,13 +13,12 @@ class FlaskOpenAPIView(MethodView):
 
     openapi_errors_handler = FlaskOpenAPIErrorsHandler
 
-    def __init__(self, spec: SchemaPath, **unmarshaller_kwargs: Any):
+    def __init__(self, openapi: OpenAPI):
         super().__init__()
 
         self.decorator = FlaskOpenAPIViewDecorator(
-            spec,
+            openapi,
             errors_handler_cls=self.openapi_errors_handler,
-            **unmarshaller_kwargs,
         )
 
     def dispatch_request(self, *args: Any, **kwargs: Any) -> Any:

@@ -48,20 +48,20 @@ The integration supports Django from version 3.0 and above.
 Middleware
 ~~~~~~~~~~
 
-Django can be integrated by middleware. Add ``DjangoOpenAPIMiddleware`` to your ``MIDDLEWARE`` list and define ``OPENAPI_SPEC``.
+Django can be integrated by middleware. Add ``DjangoOpenAPIMiddleware`` to your ``MIDDLEWARE`` list and define ``OPENAPI``.
 
 .. code-block:: python
   :emphasize-lines: 6,9
 
     # settings.py
-    from jsonschema_path import SchemaPath
+    from openapi_core import OpenAPI
 
     MIDDLEWARE = [
        # ...
        'openapi_core.contrib.django.middlewares.DjangoOpenAPIMiddleware',
     ]
 
-    OPENAPI_SPEC = SchemaPath.from_dict(spec_dict)
+    OPENAPI = OpenAPI.from_dict(spec_dict)
 
 You can skip response validation process: by setting ``OPENAPI_RESPONSE_CLS`` to ``None``
 
@@ -69,14 +69,14 @@ You can skip response validation process: by setting ``OPENAPI_RESPONSE_CLS`` to
   :emphasize-lines: 10
 
     # settings.py
-    from jsonschema_path import SchemaPath
+    from openapi_core import OpenAPI
 
     MIDDLEWARE = [
        # ...
        'openapi_core.contrib.django.middlewares.DjangoOpenAPIMiddleware',
     ]
 
-    OPENAPI_SPEC = SchemaPath.from_dict(spec_dict)
+    OPENAPI = OpenAPI.from_dict(spec_dict)
     OPENAPI_RESPONSE_CLS = None
 
 After that you have access to unmarshal result object with all validated request data from Django view through request object.

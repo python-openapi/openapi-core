@@ -7,6 +7,8 @@ from jsonschema_path import SchemaPath
 from openapi_spec_validator.readers import read_from_filename
 from yaml import safe_load
 
+from openapi_core import Spec
+
 
 def content_from_file(spec_file):
     directory = path.abspath(path.dirname(__file__))
@@ -14,15 +16,25 @@ def content_from_file(spec_file):
     return read_from_filename(path_full)
 
 
-def spec_from_file(spec_file):
+def schema_path_from_file(spec_file):
     spec_dict, base_uri = content_from_file(spec_file)
     return SchemaPath.from_dict(spec_dict, base_uri=base_uri)
 
 
-def spec_from_url(base_uri):
+def schema_path_from_url(base_uri):
     content = request.urlopen(base_uri)
     spec_dict = safe_load(content)
     return SchemaPath.from_dict(spec_dict, base_uri=base_uri)
+
+
+def spec_from_file(spec_file):
+    schema_path = schema_path_from_file(spec_file)
+    return Spec(schema_path)
+
+
+def spec_from_url(base_uri):
+    schema_path = schema_path_from_url(base_uri)
+    return Spec(schema_path)
 
 
 @pytest.fixture(scope="session")
@@ -44,17 +56,31 @@ class Factory(dict):
 
 
 @pytest.fixture(scope="session")
-def factory():
+def content_factory():
     return Factory(
-        content_from_file=content_from_file,
-        spec_from_file=spec_from_file,
-        spec_from_url=spec_from_url,
+        from_file=content_from_file,
     )
 
 
 @pytest.fixture(scope="session")
-def v30_petstore_content(factory):
-    content, _ = factory.content_from_file("data/v3.0/petstore.yaml")
+def schema_path_factory():
+    return Factory(
+        from_file=schema_path_from_file,
+        from_url=schema_path_from_url,
+    )
+
+
+@pytest.fixture(scope="session")
+def spec_factory(schema_path_factory):
+    return Factory(
+        from_file=spec_from_file,
+        from_url=spec_from_url,
+    )
+
+
+@pytest.fixture(scope="session")
+def v30_petstore_content(content_factory):
+    content, _ = content_factory.from_file("data/v3.0/petstore.yaml")
     return content
 
 

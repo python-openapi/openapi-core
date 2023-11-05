@@ -9,9 +9,9 @@ class TestLinkSpec:
             "data/v3.1/links.yaml",
         ],
     )
-    def test_no_param(self, spec_file, factory):
-        spec = factory.spec_from_file(spec_file)
-        resp = spec / "paths#/status#get#responses#default"
+    def test_no_param(self, spec_file, schema_path_factory):
+        schema_path = schema_path_factory.from_file(spec_file)
+        resp = schema_path / "paths#/status#get#responses#default"
 
         links = resp / "links"
         assert len(links) == 1
@@ -29,9 +29,9 @@ class TestLinkSpec:
             "data/v3.1/links.yaml",
         ],
     )
-    def test_param(self, spec_file, factory):
-        spec = factory.spec_from_file(spec_file)
-        resp = spec / "paths#/status/{resourceId}#get#responses#default"
+    def test_param(self, spec_file, schema_path_factory):
+        schema_path = schema_path_factory.from_file(spec_file)
+        resp = schema_path / "paths#/status/{resourceId}#get#responses#default"
 
         links = resp / "links"
         assert len(links) == 1

@@ -15,9 +15,6 @@ class RequestValidator(Protocol):
     def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
         ...
 
-    def check_spec(self, spec: SchemaPath) -> None:
-        ...
-
     def iter_errors(
         self,
         request: Request,
@@ -34,9 +31,6 @@ class RequestValidator(Protocol):
 @runtime_checkable
 class WebhookRequestValidator(Protocol):
     def __init__(self, spec: SchemaPath, base_url: Optional[str] = None):
-        ...
-
-    def check_spec(self, spec: SchemaPath) -> None:
         ...
 
     def iter_errors(

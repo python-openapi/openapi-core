@@ -16,18 +16,18 @@ from openapi_core.validation.response.exceptions import InvalidData
 
 
 @pytest.fixture(scope="class")
-def spec(factory):
-    return factory.spec_from_file("data/v3.0/read_only_write_only.yaml")
+def schema_path(schema_path_factory):
+    return schema_path_factory.from_file("data/v3.0/read_only_write_only.yaml")
 
 
 @pytest.fixture(scope="class")
-def request_unmarshaller(spec):
-    return V30RequestUnmarshaller(spec)
+def request_unmarshaller(schema_path):
+    return V30RequestUnmarshaller(schema_path)
 
 
 @pytest.fixture(scope="class")
-def response_unmarshaller(spec):
-    return V30ResponseUnmarshaller(spec)
+def response_unmarshaller(schema_path):
+    return V30ResponseUnmarshaller(schema_path)
 
 
 class TestReadOnly:

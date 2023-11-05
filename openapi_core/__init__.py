@@ -1,4 +1,6 @@
 """OpenAPI core module"""
+from openapi_core.app import OpenAPI
+from openapi_core.configurations import Config
 from openapi_core.shortcuts import unmarshal_apicall_request
 from openapi_core.shortcuts import unmarshal_apicall_response
 from openapi_core.shortcuts import unmarshal_request
@@ -11,7 +13,7 @@ from openapi_core.shortcuts import validate_request
 from openapi_core.shortcuts import validate_response
 from openapi_core.shortcuts import validate_webhook_request
 from openapi_core.shortcuts import validate_webhook_response
-from openapi_core.spec import Spec
+from openapi_core.spec.paths import Spec
 from openapi_core.unmarshalling.request import V3RequestUnmarshaller
 from openapi_core.unmarshalling.request import V3WebhookRequestUnmarshaller
 from openapi_core.unmarshalling.request import V30RequestUnmarshaller
@@ -40,6 +42,8 @@ __url__ = "https://github.com/python-openapi/openapi-core"
 __license__ = "BSD 3-Clause License"
 
 __all__ = [
+    "OpenAPI",
+    "Config",
     "Spec",
     "unmarshal_request",
     "unmarshal_response",

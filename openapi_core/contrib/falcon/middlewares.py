@@ -2,15 +2,21 @@
 from typing import Any
 from typing import Optional
 from typing import Type
+from typing import Union
 
 from falcon.request import Request
 from falcon.response import Response
+from jsonschema._utils import Unset
+from jsonschema.validators import _UNSET
 from jsonschema_path import SchemaPath
 
+from openapi_core import Config
+from openapi_core import OpenAPI
 from openapi_core.contrib.falcon.handlers import FalconOpenAPIErrorsHandler
 from openapi_core.contrib.falcon.handlers import (
     FalconOpenAPIValidRequestHandler,
 )
+from openapi_core.contrib.falcon.integrations import FalconIntegration
 from openapi_core.contrib.falcon.requests import FalconOpenAPIRequest
 from openapi_core.contrib.falcon.responses import FalconOpenAPIResponse
 from openapi_core.unmarshalling.processors import UnmarshallingProcessor
@@ -18,9 +24,7 @@ from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
 from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 
 
-class FalconOpenAPIMiddleware(UnmarshallingProcessor[Request, Response]):
-    request_cls = FalconOpenAPIRequest
-    response_cls = FalconOpenAPIResponse
+class FalconOpenAPIMiddleware(FalconIntegration):
     valid_request_handler_cls = FalconOpenAPIValidRequestHandler
     errors_handler_cls: Type[
         FalconOpenAPIErrorsHandler
@@ -28,9 +32,7 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor[Request, Response]):
 
     def __init__(
         self,
-        spec: SchemaPath,
-        request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
-        response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
+        openapi: OpenAPI,
         request_cls: Type[FalconOpenAPIRequest] = FalconOpenAPIRequest,
         response_cls: Type[FalconOpenAPIResponse] = FalconOpenAPIResponse,
         errors_handler_cls: Type[
@@ -38,12 +40,7 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor[Request, Response]):
         ] = FalconOpenAPIErrorsHandler,
         **unmarshaller_kwargs: Any,
     ):
-        super().__init__(
-            spec,
-            request_unmarshaller_cls=request_unmarshaller_cls,
-            response_unmarshaller_cls=response_unmarshaller_cls,
-            **unmarshaller_kwargs,
-        )
+        super().__init__(openapi)
         self.request_cls = request_cls or self.request_cls
         self.response_cls = response_cls or self.response_cls
         self.errors_handler_cls = errors_handler_cls or self.errors_handler_cls
@@ -52,8 +49,12 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor[Request, Response]):
     def from_spec(
         cls,
         spec: SchemaPath,
-        request_unmarshaller_cls: Optional[RequestUnmarshallerType] = None,
-        response_unmarshaller_cls: Optional[ResponseUnmarshallerType] = None,
+        request_unmarshaller_cls: Union[
+            RequestUnmarshallerType, Unset
+        ] = _UNSET,
+        response_unmarshaller_cls: Union[
+            ResponseUnmarshallerType, Unset
+        ] = _UNSET,
         request_cls: Type[FalconOpenAPIRequest] = FalconOpenAPIRequest,
         response_cls: Type[FalconOpenAPIResponse] = FalconOpenAPIResponse,
         errors_handler_cls: Type[
@@ -61,8 +62,13 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor[Request, Response]):
         ] = FalconOpenAPIErrorsHandler,
         **unmarshaller_kwargs: Any,
     ) -> "FalconOpenAPIMiddleware":
+        config = Config(
+            request_unmarshaller_cls=request_unmarshaller_cls,
+            response_unmarshaller_cls=response_unmarshaller_cls,
+        )
+        openapi = OpenAPI(spec, config=config)
         return cls(
-            spec,
+            openapi,
             request_unmarshaller_cls=request_unmarshaller_cls,
             response_unmarshaller_cls=response_unmarshaller_cls,
             request_cls=request_cls,
@@ -81,15 +87,3 @@ class FalconOpenAPIMiddleware(UnmarshallingProcessor[Request, Response]):
     ) -> None:
         errors_handler = self.errors_handler_cls(req, resp)
         self.handle_response(req, resp, errors_handler)
-
-    def _get_openapi_request(self, request: Request) -> FalconOpenAPIRequest:
-        return self.request_cls(request)
-
-    def _get_openapi_response(
-        self, response: Response
-    ) -> FalconOpenAPIResponse:
-        assert self.response_cls is not None
-        return self.response_cls(response)
-
-    def _validate_response(self) -> bool:
-        return self.response_cls is not None
