@@ -18,7 +18,7 @@ class TestResponses:
 
     @pytest.fixture(scope="class")
     def responses(self, spec):
-        return Spec.from_dict(spec, validator=None)
+        return Spec.from_dict(spec, spec_validator_cls=None)
 
     @pytest.fixture(scope="class")
     def finder(self, responses):

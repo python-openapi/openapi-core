@@ -116,8 +116,8 @@ class TestRequestUnmarshaller:
             "api_key": self.api_key,
         }
 
-    def test_get_pets_webob(self, request_unmarshaller):
-        from webob.multidict import GetDict
+    def test_get_pets_multidict(self, request_unmarshaller):
+        from multidict import MultiDict
 
         request = MockRequest(
             self.host_url,
@@ -125,8 +125,8 @@ class TestRequestUnmarshaller:
             "/v1/pets",
             path_pattern="/v1/pets",
         )
-        request.parameters.query = GetDict(
-            [("limit", "5"), ("ids", "1"), ("ids", "2")], {}
+        request.parameters.query = MultiDict(
+            [("limit", "5"), ("ids", "1"), ("ids", "2")],
         )
 
         with pytest.warns(DeprecationWarning):

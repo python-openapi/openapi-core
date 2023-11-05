@@ -68,7 +68,7 @@ isodate = "*"
 more-itertools = "*"
 parse = "*"
 openapi-schema-validator = "^0.6.0"
-openapi-spec-validator = "^0.6.0"
+openapi-spec-validator = "^0.7.1"
 requests = {version = "*", optional = true}
 werkzeug = "*"
 jsonschema-spec = "^0.2.3"

@@ -45,7 +45,7 @@ class ArrayUnmarshaller(PrimitiveUnmarshaller):
     def items_unmarshaller(self) -> "SchemaUnmarshaller":
         # sometimes we don't have any schema i.e. free-form objects
         items_schema = self.schema.get(
-            "items", Spec.from_dict({}, validator=None)
+            "items", Spec.from_dict({}, spec_validator_cls=None)
         )
         return self.schema_unmarshaller.evolve(items_schema)
 
@@ -120,7 +120,7 @@ class ObjectUnmarshaller(PrimitiveUnmarshaller):
             # free-form object
             if additional_properties is True:
                 additional_prop_schema = Spec.from_dict(
-                    {"nullable": True}, validator=None
+                    {"nullable": True}, spec_validator_cls=None
                 )
             # defined schema
             else:

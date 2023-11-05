@@ -20,7 +20,7 @@ class TestGetStyle:
             "name": "default",
             "in": location,
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = Spec.from_dict(spec, spec_validator_cls=None)
         result = get_style(param)
 
         assert result == expected
@@ -45,7 +45,7 @@ class TestGetStyle:
             "in": location,
             "style": style,
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = Spec.from_dict(spec, spec_validator_cls=None)
         result = get_style(param)
 
         assert result == style
@@ -69,7 +69,7 @@ class TestGetExplode:
             "in": location,
             "style": style,
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = Spec.from_dict(spec, spec_validator_cls=None)
         result = get_explode(param)
 
         assert result is False
@@ -81,7 +81,7 @@ class TestGetExplode:
             "in": location,
             "style": "form",
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = Spec.from_dict(spec, spec_validator_cls=None)
         result = get_explode(param)
 
         assert result is True
@@ -117,7 +117,7 @@ class TestGetExplode:
                 "type": schema_type,
             },
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = Spec.from_dict(spec, spec_validator_cls=None)
         result = get_explode(param)
 
         assert result == explode

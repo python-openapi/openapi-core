@@ -20,7 +20,7 @@ class TestSchemaCaster:
                 "type": "number",
             },
         }
-        schema = Spec.from_dict(spec, validator=None)
+        schema = Spec.from_dict(spec, spec_validator_cls=None)
         value = ["test", "test2"]
 
         with pytest.raises(CastError):
@@ -34,7 +34,7 @@ class TestSchemaCaster:
                 "oneOf": [{"type": "number"}, {"type": "string"}],
             },
         }
-        schema = Spec.from_dict(spec, validator=None)
+        schema = Spec.from_dict(spec, spec_validator_cls=None)
 
         with pytest.raises(
             CastError, match=f"Failed to cast value to array type: {value}"

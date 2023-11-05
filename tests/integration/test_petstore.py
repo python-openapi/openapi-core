@@ -97,11 +97,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -153,11 +156,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -210,11 +216,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -253,11 +262,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -322,11 +334,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -371,11 +386,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -420,12 +438,15 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.raises(ParameterValidationError) as exc_info:
-            validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            with pytest.raises(ParameterValidationError) as exc_info:
+                validate_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
         assert type(exc_info.value.__cause__) is DeserializeError
 
         result = unmarshal_request(
@@ -449,12 +470,15 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.raises(ParameterValidationError) as exc_info:
-            validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersValidator,
-            )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            with pytest.raises(ParameterValidationError) as exc_info:
+                validate_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersValidator,
+                )
         assert type(exc_info.value.__cause__) is CastError
 
         result = unmarshal_request(
@@ -473,12 +497,15 @@ class TestPetstore:
             path_pattern=path_pattern,
         )
 
-        with pytest.raises(MissingRequiredParameter):
-            validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersValidator,
-            )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            with pytest.raises(MissingRequiredParameter):
+                validate_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersValidator,
+                )
 
         result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
@@ -501,12 +528,15 @@ class TestPetstore:
             args=query_params,
         )
 
-        with pytest.raises(ParameterValidationError) as exc_info:
-            validate_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersValidator,
-            )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            with pytest.raises(ParameterValidationError) as exc_info:
+                validate_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersValidator,
+                )
         assert type(exc_info.value.__cause__) is EmptyQueryParameterValue
 
         result = unmarshal_request(
@@ -531,11 +561,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -566,11 +599,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -602,11 +638,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert result.parameters == Parameters(
             query={
@@ -643,11 +682,14 @@ class TestPetstore:
             args=query_params,
         )
 
-        result = unmarshal_request(
-            request,
-            spec=spec,
-            cls=V30RequestParametersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="limit parameter is deprecated"
+        ):
+            result = unmarshal_request(
+                request,
+                spec=spec,
+                cls=V30RequestParametersUnmarshaller,
+            )
 
         assert is_dataclass(result.parameters.query["coordinates"])
         assert (
@@ -1785,16 +1827,22 @@ class TestPetstore:
         }
         response = MockResponse(data, status_code=200, headers=headers)
 
-        response_result = unmarshal_response(request, response, spec=spec)
+        with pytest.warns(
+            DeprecationWarning, match="x-delete-confirm header is deprecated"
+        ):
+            response_result = unmarshal_response(request, response, spec=spec)
         assert response_result.errors == []
         assert response_result.data is None
 
-        result = unmarshal_response(
-            request,
-            response,
-            spec=spec,
-            cls=V30ResponseHeadersUnmarshaller,
-        )
+        with pytest.warns(
+            DeprecationWarning, match="x-delete-confirm header is deprecated"
+        ):
+            result = unmarshal_response(
+                request,
+                response,
+                spec=spec,
+                cls=V30ResponseHeadersUnmarshaller,
+            )
 
         assert result.headers == {
             "x-delete-confirm": True,

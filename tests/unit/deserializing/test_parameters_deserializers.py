@@ -19,7 +19,7 @@ class TestParameterDeserializer:
 
     def test_unsupported(self, deserializer_factory):
         spec = {"name": "param", "in": "header", "style": "unsupported"}
-        param = Spec.from_dict(spec, validator=None)
+        param = Spec.from_dict(spec, spec_validator_cls=None)
         deserializer = deserializer_factory(param)
         value = ""
 
@@ -33,7 +33,7 @@ class TestParameterDeserializer:
             "name": "param",
             "in": "query",
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = Spec.from_dict(spec, spec_validator_cls=None)
         deserializer = deserializer_factory(param)
         value = ""
 
@@ -45,7 +45,7 @@ class TestParameterDeserializer:
             "name": "param",
             "in": "query",
         }
-        param = Spec.from_dict(spec, validator=None)
+        param = Spec.from_dict(spec, spec_validator_cls=None)
         deserializer = deserializer_factory(param)
         value = "test"
 
