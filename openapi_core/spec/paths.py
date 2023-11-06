@@ -5,8 +5,9 @@ from typing import Mapping
 from typing import Type
 from typing import TypeVar
 
+from jsonschema.validators import _UNSET
 from jsonschema_path import SchemaPath
-from openapi_spec_validator.validation import openapi_spec_validator_proxy
+from openapi_spec_validator import validate
 
 TSpec = TypeVar("TSpec", bound="Spec")
 
@@ -25,10 +26,21 @@ class Spec(SchemaPath):
             "Spec is deprecated. Use SchemaPath from jsonschema-path package.",
             DeprecationWarning,
         )
-        validator = kwargs.pop("validator", openapi_spec_validator_proxy)
-        if validator is not None:
-            base_uri = kwargs.get("base_uri", "")
-            spec_url = kwargs.get("spec_url")
-            validator.validate(data, base_uri=base_uri, spec_url=spec_url)
+        if "validator" in kwargs:
+            warnings.warn(
+                "validator parameter is deprecated. Use spec_validator_cls instead.",
+                DeprecationWarning,
+            )
+        validator = kwargs.pop("validator", _UNSET)
+        spec_validator_cls = kwargs.pop("spec_validator_cls", _UNSET)
+        base_uri = kwargs.get("base_uri", "")
+        spec_url = kwargs.get("spec_url")
+        if spec_validator_cls is not None:
+            if spec_validator_cls is not _UNSET:
+                validate(data, base_uri=base_uri, cls=spec_validator_cls)
+            elif validator is _UNSET:
+                validate(data, base_uri=base_uri)
+            elif validator is not None:
+                validator.validate(data, base_uri=base_uri, spec_url=spec_url)
 
         return super().from_dict(data, *args, **kwargs)
