@@ -27,7 +27,9 @@ class TestImportModelCreate:
     def test_dynamic_model(self):
         factory = ModelPathFactory()
 
-        schema = Spec.from_dict({"x-model": "TestModel"}, validator=None)
+        schema = Spec.from_dict(
+            {"x-model": "TestModel"}, spec_validator_cls=None
+        )
         test_model_class = factory.create(schema, ["name"])
 
         assert is_dataclass(test_model_class)
@@ -39,7 +41,7 @@ class TestImportModelCreate:
         factory = ModelPathFactory()
 
         schema = Spec.from_dict(
-            {"x-model-path": "foo.BarModel"}, validator=None
+            {"x-model-path": "foo.BarModel"}, spec_validator_cls=None
         )
         test_model_class = factory.create(schema, ["a", "b"])
 

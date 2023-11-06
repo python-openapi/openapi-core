@@ -124,7 +124,7 @@ class BaseTestSpecServer:
             "servers": servers,
             "paths": paths,
         }
-        return Spec.from_dict(spec, validator=None)
+        return Spec.from_dict(spec, spec_validator_cls=None)
 
     @pytest.fixture
     def finder(self, spec):
@@ -146,7 +146,7 @@ class BaseTestPathServer(BaseTestSpecServer):
             "info": info,
             "paths": paths,
         }
-        return Spec.from_dict(spec, validator=None)
+        return Spec.from_dict(spec, spec_validator_cls=None)
 
 
 class BaseTestOperationServer(BaseTestSpecServer):
@@ -165,7 +165,7 @@ class BaseTestOperationServer(BaseTestSpecServer):
             "info": info,
             "paths": paths,
         }
-        return Spec.from_dict(spec, validator=None)
+        return Spec.from_dict(spec, spec_validator_cls=None)
 
 
 class BaseTestServerNotFound:
@@ -281,7 +281,7 @@ class BaseTestPathsNotFound:
         spec = {
             "info": info,
         }
-        return Spec.from_dict(spec, validator=None)
+        return Spec.from_dict(spec, spec_validator_cls=None)
 
     def test_raises(self, finder):
         method = "get"

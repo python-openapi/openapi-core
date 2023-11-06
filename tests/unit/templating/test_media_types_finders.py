@@ -16,7 +16,7 @@ class TestMediaTypes:
 
     @pytest.fixture(scope="class")
     def content(self, spec):
-        return Spec.from_dict(spec, validator=None)
+        return Spec.from_dict(spec, spec_validator_cls=None)
 
     @pytest.fixture(scope="class")
     def finder(self, content):

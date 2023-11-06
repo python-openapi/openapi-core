@@ -56,7 +56,7 @@ class TestOAS30SchemaUnmarshallerFactoryCreate:
             "type": "string",
             "format": unknown_format,
         }
-        spec = Spec.from_dict(schema, validator=None)
+        spec = Spec.from_dict(schema, spec_validator_cls=None)
 
         with pytest.raises(FormatterNotFoundError):
             unmarshaller_factory(spec)
@@ -67,7 +67,7 @@ class TestOAS30SchemaUnmarshallerFactoryCreate:
             "type": "string",
             "format": custom_format,
         }
-        spec = Spec.from_dict(schema, validator=None)
+        spec = Spec.from_dict(schema, spec_validator_cls=None)
 
         with pytest.raises(
             FormatterNotFoundError,
@@ -88,7 +88,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
             "type": "string",
             "format": "custom",
         }
-        spec = Spec.from_dict(schema, validator=None)
+        spec = Spec.from_dict(schema, spec_validator_cls=None)
         value = "x"
         schema_validators_factory = SchemaValidatorsFactory(
             OAS30WriteValidator
@@ -118,7 +118,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
             "type": "string",
             "format": custom_format,
         }
-        spec = Spec.from_dict(schema, validator=None)
+        spec = Spec.from_dict(schema, spec_validator_cls=None)
         value = "x"
         schema_validators_factory = SchemaValidatorsFactory(
             OAS30WriteValidator
@@ -147,7 +147,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
             "type": "string",
             "format": custom_format,
         }
-        spec = Spec.from_dict(schema, validator=None)
+        spec = Spec.from_dict(schema, spec_validator_cls=None)
         value = "x"
         schema_validators_factory = SchemaValidatorsFactory(
             OAS30WriteValidator
@@ -175,7 +175,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
             "type": "string",
             "format": custom_format,
         }
-        spec = Spec.from_dict(schema, validator=None)
+        spec = Spec.from_dict(schema, spec_validator_cls=None)
         value = "x"
         schema_validators_factory = SchemaValidatorsFactory(
             OAS30WriteValidator
@@ -208,7 +208,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
             "type": "string",
             "format": custom_format,
         }
-        spec = Spec.from_dict(schema, validator=None)
+        spec = Spec.from_dict(schema, spec_validator_cls=None)
         value = "x"
         schema_validators_factory = SchemaValidatorsFactory(
             OAS30WriteValidator
@@ -235,7 +235,7 @@ class TestOAS30SchemaUnmarshallerUnmarshal:
             "type": "string",
             "format": custom_format,
         }
-        spec = Spec.from_dict(schema, validator=None)
+        spec = Spec.from_dict(schema, spec_validator_cls=None)
         value = "x"
         schema_validators_factory = SchemaValidatorsFactory(
             OAS30WriteValidator
