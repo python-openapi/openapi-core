@@ -44,7 +44,6 @@ class TestV31RequestsFactory:
             "http://localhost/browse/12/?q=string",
             json={"data": "data"},
             status=200,
-            match_querystring=True,
             headers={"X-Rate-Limit": "12"},
         )
         request = requests.Request(
