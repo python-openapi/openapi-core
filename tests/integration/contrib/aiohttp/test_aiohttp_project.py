@@ -16,10 +16,10 @@ def project_setup():
 
 
 @pytest.fixture
-def app(project_setup, loop):
+def app(project_setup):
     from aiohttpproject.__main__ import get_app
 
-    return get_app(loop=loop)
+    return get_app()
 
 
 @pytest.fixture

@@ -22,4 +22,5 @@ class TestSpecFromDict:
     def test_spec_validator_cls_none(self):
         schema = {}
 
-        Spec.from_dict(schema, spec_validator_cls=None)
+        with pytest.warns(DeprecationWarning):
+            Spec.from_dict(schema, spec_validator_cls=None)
