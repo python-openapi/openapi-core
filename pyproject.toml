@@ -124,6 +124,11 @@ addopts = """
 --cov-report=xml
 """
 asyncio_mode = "auto"
+filterwarnings = [
+    "error",
+    # falcon.media.handlers uses cgi to parse data
+    "ignore:'cgi' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
+]
 
 [tool.black]
 line-length = 79

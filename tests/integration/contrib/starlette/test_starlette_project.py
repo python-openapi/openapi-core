@@ -159,7 +159,7 @@ class TestPetListEndpoint(BaseTestPetstore):
 
     def test_post_media_type_invalid(self, client):
         client.cookies.set("user", "1")
-        data = "data"
+        content = "data"
         content_type = "text/html"
         headers = {
             "Authorization": "Basic testuser",
@@ -168,7 +168,7 @@ class TestPetListEndpoint(BaseTestPetstore):
         }
         response = client.post(
             "https://staging.gigantic-server.com/v1/pets",
-            data=data,
+            content=content,
             headers=headers,
         )
 
@@ -350,22 +350,22 @@ class TestPetDetailEndpoint(BaseTestPetstore):
 
 class TestPetPhotoEndpoint(BaseTestPetstore):
     def test_get_valid(self, client, data_gif):
+        client.cookies.set("user", "1")
         headers = {
             "Authorization": "Basic testuser",
             "Api-Key": self.api_key_encoded,
         }
 
-        cookies = {"user": "1"}
         response = client.get(
             "/v1/pets/1/photo",
             headers=headers,
-            cookies=cookies,
         )
 
         assert response.content == data_gif
         assert response.status_code == 200
 
     def test_post_valid(self, client, data_gif):
+        client.cookies.set("user", "1")
         content_type = "image/gif"
         headers = {
             "Authorization": "Basic testuser",
@@ -373,12 +373,10 @@ class TestPetPhotoEndpoint(BaseTestPetstore):
             "Content-Type": content_type,
         }
 
-        cookies = {"user": "1"}
         response = client.post(
             "/v1/pets/1/photo",
             headers=headers,
-            data=data_gif,
-            cookies=cookies,
+            content=data_gif,
         )
 
         assert not response.text
