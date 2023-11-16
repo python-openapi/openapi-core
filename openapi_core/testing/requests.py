@@ -31,7 +31,7 @@ class MockRequest:
         self.view_args = view_args
         self.headers = headers
         self.cookies = cookies
-        self.body = data or ""
+        self.body = data or b""
         self.content_type = content_type
 
         self.parameters = RequestParameters(
