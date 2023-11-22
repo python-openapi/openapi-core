@@ -9,13 +9,15 @@ By default, the specified specification is also validated.
 If you know you have a valid specification already, disabling the validator can improve the performance.
 
 .. code-block:: python
-  :emphasize-lines: 4
+  :emphasize-lines: 1,4,6
 
-    validate_request(
-       request,
-       spec=spec,
+    from openapi_core import Config
+
+    config = Config(
        spec_validator_cls=None,
     )
+    openapi = OpenAPI.from_file_path('openapi.json', config=config)
+    openapi.validate_request(request)
 
 Media type deserializers
 ------------------------
@@ -25,7 +27,7 @@ OpenAPI comes with a set of built-in media type deserializers such as: ``applica
 You can also define your own ones. Pass custom defined media type deserializers dictionary with supported mimetypes as a key to `unmarshal_response` function:
 
 .. code-block:: python
-  :emphasize-lines: 13
+  :emphasize-lines: 11
 
     def protobuf_deserializer(message):
        feature = route_guide_pb2.Feature()
@@ -36,11 +38,12 @@ You can also define your own ones. Pass custom defined media type deserializers 
        'application/protobuf': protobuf_deserializer,
     }
 
-    result = unmarshal_response(
-       request, response,
-       spec=spec,
+    config = Config(
        extra_media_type_deserializers=extra_media_type_deserializers,
     )
+    openapi = OpenAPI.from_file_path('openapi.json', config=config)
+
+    result = openapi.unmarshal_response(request, response)
 
 Format validators
 -----------------
@@ -52,7 +55,7 @@ OpenAPI comes with a set of built-in format validators, but it's also possible t
 Here's how you could add support for a ``usdate`` format that handles dates of the form MM/DD/YYYY:
 
 .. code-block:: python
-  :emphasize-lines: 13
+  :emphasize-lines: 11
 
     import re
 
@@ -63,11 +66,12 @@ Here's how you could add support for a ``usdate`` format that handles dates of t
        'usdate': validate_usdate,
     }
 
-    validate_response(
-       request, response,
-       spec=spec,
+    config = Config(
        extra_format_validators=extra_format_validators,
     )
+    openapi = OpenAPI.from_file_path('openapi.json', config=config)
+
+    openapi.validate_response(request, response)
 
 Format unmarshallers
 --------------------
@@ -79,7 +83,7 @@ Openapi-core comes with a set of built-in format unmarshallers, but it's also po
 Here's an example with the ``usdate`` format that converts a value to date object:
 
 .. code-block:: python
-  :emphasize-lines: 13
+  :emphasize-lines: 11
 
     from datetime import datetime
 
@@ -90,8 +94,9 @@ Here's an example with the ``usdate`` format that converts a value to date objec
        'usdate': unmarshal_usdate,
     }
 
-    result = unmarshal_response(
-       request, response,
-       spec=spec,
+    config = Config(
        extra_format_unmarshallers=extra_format_unmarshallers,
     )
+    openapi = OpenAPI.from_file_path('openapi.json', config=config)
+
+    result = openapi.unmarshal_response(request, response)

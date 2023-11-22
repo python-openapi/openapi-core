@@ -10,12 +10,12 @@ from openapi_core.contrib.flask import FlaskOpenAPIRequest
 
 
 class TestFlaskOpenAPIValidation:
-    def test_request_validator_root_path(self, spec, app_factory):
+    def test_request_validator_root_path(self, schema_path, app_factory):
         def details_view_func(id):
             from flask import request
 
             openapi_request = FlaskOpenAPIRequest(request)
-            unmarshaller = V30RequestUnmarshaller(spec)
+            unmarshaller = V30RequestUnmarshaller(schema_path)
             result = unmarshaller.unmarshal(openapi_request)
             assert not result.errors
 

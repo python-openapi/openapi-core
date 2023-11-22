@@ -4,18 +4,20 @@ from typing import Dict
 from typing import Optional
 from typing import Union
 
+from jsonschema.validators import _UNSET
 from jsonschema_path import SchemaPath
 from openapi_spec_validator.versions import consts as versions
 from openapi_spec_validator.versions.datatypes import SpecVersion
 from openapi_spec_validator.versions.exceptions import OpenAPIVersionNotFound
 from openapi_spec_validator.versions.shortcuts import get_spec_version
 
+from openapi_core.app import OpenAPI
+from openapi_core.configurations import Config
 from openapi_core.exceptions import SpecError
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
-from openapi_core.spec import Spec
-from openapi_core.types import SpecClasses
+from openapi_core.types import AnyRequest
 from openapi_core.unmarshalling.request import V30RequestUnmarshaller
 from openapi_core.unmarshalling.request import V31RequestUnmarshaller
 from openapi_core.unmarshalling.request import V31WebhookRequestUnmarshaller
@@ -63,43 +65,6 @@ from openapi_core.validation.response.types import AnyResponseValidatorType
 from openapi_core.validation.response.types import ResponseValidatorType
 from openapi_core.validation.response.types import WebhookResponseValidatorType
 
-AnyRequest = Union[Request, WebhookRequest]
-
-SPEC2CLASSES: Dict[SpecVersion, SpecClasses] = {
-    versions.OPENAPIV30: SpecClasses(
-        V30RequestValidator,
-        V30ResponseValidator,
-        None,
-        None,
-        V30RequestUnmarshaller,
-        V30ResponseUnmarshaller,
-        None,
-        None,
-    ),
-    versions.OPENAPIV31: SpecClasses(
-        V31RequestValidator,
-        V31ResponseValidator,
-        V31WebhookRequestValidator,
-        V31WebhookResponseValidator,
-        V31RequestUnmarshaller,
-        V31ResponseUnmarshaller,
-        V31WebhookRequestUnmarshaller,
-        V31WebhookResponseUnmarshaller,
-    ),
-}
-
-
-def get_classes(spec: SchemaPath) -> SpecClasses:
-    try:
-        spec_version = get_spec_version(spec.contents())
-    # backward compatibility
-    except OpenAPIVersionNotFound:
-        raise SpecError("Spec schema version not detected")
-    try:
-        return SPEC2CLASSES[spec_version]
-    except KeyError:
-        raise SpecError("Spec schema version not supported")
-
 
 def unmarshal_apicall_request(
     request: Request,
@@ -108,18 +73,12 @@ def unmarshal_apicall_request(
     cls: Optional[RequestUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> RequestUnmarshalResult:
-    if not isinstance(request, Request):
-        raise TypeError("'request' argument is not type of Request")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if cls is None:
-        classes = get_classes(spec)
-        cls = classes.request_unmarshaller_cls
-    if not issubclass(cls, RequestUnmarshaller):
-        raise TypeError("'cls' argument is not type of RequestUnmarshaller")
-    v = cls(spec, base_url=base_url, **unmarshaller_kwargs)
-    v.check_spec(spec)
-    result = v.unmarshal(request)
+    config = Config(
+        server_base_url=base_url,
+        request_unmarshaller_cls=cls or _UNSET,
+        **unmarshaller_kwargs,
+    )
+    result = OpenAPI(spec, config=config).unmarshal_apicall_request(request)
     result.raise_for_errors()
     return result
 
@@ -131,22 +90,12 @@ def unmarshal_webhook_request(
     cls: Optional[WebhookRequestUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> RequestUnmarshalResult:
-    if not isinstance(request, WebhookRequest):
-        raise TypeError("'request' argument is not type of WebhookRequest")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if cls is None:
-        classes = get_classes(spec)
-        cls = classes.webhook_request_unmarshaller_cls
-        if cls is None:
-            raise SpecError("Unmarshaller class not found")
-    if not issubclass(cls, WebhookRequestUnmarshaller):
-        raise TypeError(
-            "'cls' argument is not type of WebhookRequestUnmarshaller"
-        )
-    v = cls(spec, base_url=base_url, **unmarshaller_kwargs)
-    v.check_spec(spec)
-    result = v.unmarshal(request)
+    config = Config(
+        server_base_url=base_url,
+        webhook_request_unmarshaller_cls=cls or _UNSET,
+        **unmarshaller_kwargs,
+    )
+    result = OpenAPI(spec, config=config).unmarshal_webhook_request(request)
     result.raise_for_errors()
     return result
 
@@ -158,36 +107,15 @@ def unmarshal_request(
     cls: Optional[AnyRequestUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> RequestUnmarshalResult:
-    if not isinstance(request, (Request, WebhookRequest)):
-        raise TypeError("'request' argument is not type of (Webhook)Request")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if isinstance(request, WebhookRequest):
-        if cls is None or issubclass(cls, WebhookRequestUnmarshaller):
-            return unmarshal_webhook_request(
-                request,
-                spec,
-                base_url=base_url,
-                cls=cls,
-                **unmarshaller_kwargs,
-            )
-        else:
-            raise TypeError(
-                "'cls' argument is not type of WebhookRequestUnmarshaller"
-            )
-    else:
-        if cls is None or issubclass(cls, RequestUnmarshaller):
-            return unmarshal_apicall_request(
-                request,
-                spec,
-                base_url=base_url,
-                cls=cls,
-                **unmarshaller_kwargs,
-            )
-        else:
-            raise TypeError(
-                "'cls' argument is not type of RequestUnmarshaller"
-            )
+    config = Config(
+        server_base_url=base_url,
+        request_unmarshaller_cls=cls or _UNSET,
+        webhook_request_unmarshaller_cls=cls or _UNSET,
+        **unmarshaller_kwargs,
+    )
+    result = OpenAPI(spec, config=config).unmarshal_request(request)
+    result.raise_for_errors()
+    return result
 
 
 def unmarshal_apicall_response(
@@ -198,20 +126,14 @@ def unmarshal_apicall_response(
     cls: Optional[ResponseUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> ResponseUnmarshalResult:
-    if not isinstance(request, Request):
-        raise TypeError("'request' argument is not type of Request")
-    if not isinstance(response, Response):
-        raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if cls is None:
-        classes = get_classes(spec)
-        cls = classes.response_unmarshaller_cls
-    if not issubclass(cls, ResponseUnmarshaller):
-        raise TypeError("'cls' argument is not type of ResponseUnmarshaller")
-    v = cls(spec, base_url=base_url, **unmarshaller_kwargs)
-    v.check_spec(spec)
-    result = v.unmarshal(request, response)
+    config = Config(
+        server_base_url=base_url,
+        response_unmarshaller_cls=cls or _UNSET,
+        **unmarshaller_kwargs,
+    )
+    result = OpenAPI(spec, config=config).unmarshal_apicall_response(
+        request, response
+    )
     result.raise_for_errors()
     return result
 
@@ -224,24 +146,14 @@ def unmarshal_webhook_response(
     cls: Optional[WebhookResponseUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> ResponseUnmarshalResult:
-    if not isinstance(request, WebhookRequest):
-        raise TypeError("'request' argument is not type of WebhookRequest")
-    if not isinstance(response, Response):
-        raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if cls is None:
-        classes = get_classes(spec)
-        cls = classes.webhook_response_unmarshaller_cls
-        if cls is None:
-            raise SpecError("Unmarshaller class not found")
-    if not issubclass(cls, WebhookResponseUnmarshaller):
-        raise TypeError(
-            "'cls' argument is not type of WebhookResponseUnmarshaller"
-        )
-    v = cls(spec, base_url=base_url, **unmarshaller_kwargs)
-    v.check_spec(spec)
-    result = v.unmarshal(request, response)
+    config = Config(
+        server_base_url=base_url,
+        webhook_response_unmarshaller_cls=cls or _UNSET,
+        **unmarshaller_kwargs,
+    )
+    result = OpenAPI(spec, config=config).unmarshal_webhook_response(
+        request, response
+    )
     result.raise_for_errors()
     return result
 
@@ -254,40 +166,15 @@ def unmarshal_response(
     cls: Optional[AnyResponseUnmarshallerType] = None,
     **unmarshaller_kwargs: Any,
 ) -> ResponseUnmarshalResult:
-    if not isinstance(request, (Request, WebhookRequest)):
-        raise TypeError("'request' argument is not type of (Webhook)Request")
-    if not isinstance(response, Response):
-        raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if isinstance(request, WebhookRequest):
-        if cls is None or issubclass(cls, WebhookResponseUnmarshaller):
-            return unmarshal_webhook_response(
-                request,
-                response,
-                spec,
-                base_url=base_url,
-                cls=cls,
-                **unmarshaller_kwargs,
-            )
-        else:
-            raise TypeError(
-                "'cls' argument is not type of WebhookResponseUnmarshaller"
-            )
-    else:
-        if cls is None or issubclass(cls, ResponseUnmarshaller):
-            return unmarshal_apicall_response(
-                request,
-                response,
-                spec,
-                base_url=base_url,
-                cls=cls,
-                **unmarshaller_kwargs,
-            )
-        else:
-            raise TypeError(
-                "'cls' argument is not type of ResponseUnmarshaller"
-            )
+    config = Config(
+        server_base_url=base_url,
+        response_unmarshaller_cls=cls or _UNSET,
+        webhook_response_unmarshaller_cls=cls or _UNSET,
+        **unmarshaller_kwargs,
+    )
+    result = OpenAPI(spec, config=config).unmarshal_response(request, response)
+    result.raise_for_errors()
+    return result
 
 
 def validate_request(
@@ -296,83 +183,31 @@ def validate_request(
     base_url: Optional[str] = None,
     cls: Optional[AnyRequestValidatorType] = None,
     **validator_kwargs: Any,
-) -> Optional[RequestUnmarshalResult]:
-    if not isinstance(request, (Request, WebhookRequest)):
-        raise TypeError("'request' argument is not type of (Webhook)Request")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-
-    if isinstance(request, WebhookRequest):
-        if cls is None or issubclass(cls, WebhookRequestValidator):
-            validate_webhook_request(
-                request,
-                spec,
-                base_url=base_url,
-                cls=cls,
-                **validator_kwargs,
-            )
-            return None
-        else:
-            raise TypeError(
-                "'cls' argument is not type of WebhookRequestValidator"
-            )
-    else:
-        if cls is None or issubclass(cls, RequestValidator):
-            validate_apicall_request(
-                request,
-                spec,
-                base_url=base_url,
-                cls=cls,
-                **validator_kwargs,
-            )
-            return None
-        else:
-            raise TypeError("'cls' argument is not type of RequestValidator")
+) -> None:
+    config = Config(
+        server_base_url=base_url,
+        request_validator_cls=cls or _UNSET,
+        webhook_request_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).validate_request(request)
 
 
 def validate_response(
-    request: Union[Request, WebhookRequest, Spec],
-    response: Union[Response, Request, WebhookRequest],
-    spec: Union[SchemaPath, Response],
+    request: Union[Request, WebhookRequest],
+    response: Response,
+    spec: SchemaPath,
     base_url: Optional[str] = None,
     cls: Optional[AnyResponseValidatorType] = None,
     **validator_kwargs: Any,
-) -> Optional[ResponseUnmarshalResult]:
-    if not isinstance(request, (Request, WebhookRequest)):
-        raise TypeError("'request' argument is not type of (Webhook)Request")
-    if not isinstance(response, Response):
-        raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-
-    if isinstance(request, WebhookRequest):
-        if cls is None or issubclass(cls, WebhookResponseValidator):
-            validate_webhook_response(
-                request,
-                response,
-                spec,
-                base_url=base_url,
-                cls=cls,
-                **validator_kwargs,
-            )
-            return None
-        else:
-            raise TypeError(
-                "'cls' argument is not type of WebhookResponseValidator"
-            )
-    else:
-        if cls is None or issubclass(cls, ResponseValidator):
-            validate_apicall_response(
-                request,
-                response,
-                spec,
-                base_url=base_url,
-                cls=cls,
-                **validator_kwargs,
-            )
-            return None
-        else:
-            raise TypeError("'cls' argument is not type of ResponseValidator")
+) -> None:
+    config = Config(
+        server_base_url=base_url,
+        response_validator_cls=cls or _UNSET,
+        webhook_response_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).validate_response(request, response)
 
 
 def validate_apicall_request(
@@ -382,18 +217,12 @@ def validate_apicall_request(
     cls: Optional[RequestValidatorType] = None,
     **validator_kwargs: Any,
 ) -> None:
-    if not isinstance(request, Request):
-        raise TypeError("'request' argument is not type of Request")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if cls is None:
-        classes = get_classes(spec)
-        cls = classes.request_validator_cls
-    if not issubclass(cls, RequestValidator):
-        raise TypeError("'cls' argument is not type of RequestValidator")
-    v = cls(spec, base_url=base_url, **validator_kwargs)
-    v.check_spec(spec)
-    return v.validate(request)
+    config = Config(
+        server_base_url=base_url,
+        request_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).validate_apicall_request(request)
 
 
 def validate_webhook_request(
@@ -403,22 +232,12 @@ def validate_webhook_request(
     cls: Optional[WebhookRequestValidatorType] = None,
     **validator_kwargs: Any,
 ) -> None:
-    if not isinstance(request, WebhookRequest):
-        raise TypeError("'request' argument is not type of WebhookRequest")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if cls is None:
-        classes = get_classes(spec)
-        cls = classes.webhook_request_validator_cls
-        if cls is None:
-            raise SpecError("Validator class not found")
-    if not issubclass(cls, WebhookRequestValidator):
-        raise TypeError(
-            "'cls' argument is not type of WebhookRequestValidator"
-        )
-    v = cls(spec, base_url=base_url, **validator_kwargs)
-    v.check_spec(spec)
-    return v.validate(request)
+    config = Config(
+        server_base_url=base_url,
+        webhook_request_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).validate_webhook_request(request)
 
 
 def validate_apicall_response(
@@ -429,20 +248,14 @@ def validate_apicall_response(
     cls: Optional[ResponseValidatorType] = None,
     **validator_kwargs: Any,
 ) -> None:
-    if not isinstance(request, Request):
-        raise TypeError("'request' argument is not type of Request")
-    if not isinstance(response, Response):
-        raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if cls is None:
-        classes = get_classes(spec)
-        cls = classes.response_validator_cls
-    if not issubclass(cls, ResponseValidator):
-        raise TypeError("'cls' argument is not type of ResponseValidator")
-    v = cls(spec, base_url=base_url, **validator_kwargs)
-    v.check_spec(spec)
-    return v.validate(request, response)
+    config = Config(
+        server_base_url=base_url,
+        response_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).validate_apicall_response(
+        request, response
+    )
 
 
 def validate_webhook_response(
@@ -453,21 +266,11 @@ def validate_webhook_response(
     cls: Optional[WebhookResponseValidatorType] = None,
     **validator_kwargs: Any,
 ) -> None:
-    if not isinstance(request, WebhookRequest):
-        raise TypeError("'request' argument is not type of WebhookRequest")
-    if not isinstance(response, Response):
-        raise TypeError("'response' argument is not type of Response")
-    if not isinstance(spec, SchemaPath):
-        raise TypeError("'spec' argument is not type of SchemaPath")
-    if cls is None:
-        classes = get_classes(spec)
-        cls = classes.webhook_response_validator_cls
-        if cls is None:
-            raise SpecError("Validator class not found")
-    if not issubclass(cls, WebhookResponseValidator):
-        raise TypeError(
-            "'cls' argument is not type of WebhookResponseValidator"
-        )
-    v = cls(spec, base_url=base_url, **validator_kwargs)
-    v.check_spec(spec)
-    return v.validate(request, response)
+    config = Config(
+        server_base_url=base_url,
+        webhook_response_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).validate_webhook_response(
+        request, response
+    )

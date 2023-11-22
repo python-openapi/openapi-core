@@ -1,11 +1,12 @@
 import pytest
 from flask import Flask
+from jsonschema_path import SchemaPath
 
 
 @pytest.fixture(scope="session")
-def spec(factory):
+def schema_path(schema_path_factory):
     specfile = "contrib/flask/data/v3.0/flask_factory.yaml"
-    return factory.spec_from_file(specfile)
+    return schema_path_factory.from_file(specfile)
 
 
 @pytest.fixture

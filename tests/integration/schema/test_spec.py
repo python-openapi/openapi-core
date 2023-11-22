@@ -23,26 +23,26 @@ class TestPetstore:
         return "file://tests/integration/data/v3.0/petstore.yaml"
 
     @pytest.fixture
-    def spec_dict(self, factory):
-        content, _ = factory.content_from_file("data/v3.0/petstore.yaml")
+    def spec_dict(self, content_factory):
+        content, _ = content_factory.from_file("data/v3.0/petstore.yaml")
         return content
 
     @pytest.fixture
-    def spec(self, spec_dict, base_uri):
+    def schema_path(self, spec_dict, base_uri):
         return SchemaPath.from_dict(spec_dict, base_uri=base_uri)
 
     @pytest.fixture
-    def request_validator(self, spec):
-        return V30RequestValidator(spec)
+    def request_validator(self, schema_path):
+        return V30RequestValidator(schema_path)
 
     @pytest.fixture
-    def response_validator(self, spec):
-        return V30ResponseValidator(spec)
+    def response_validator(self, schema_path):
+        return V30ResponseValidator(schema_path)
 
-    def test_spec(self, spec, spec_dict):
+    def test_spec(self, schema_path, spec_dict):
         url = "http://petstore.swagger.io/v1"
 
-        info = spec / "info"
+        info = schema_path / "info"
         info_spec = spec_dict["info"]
         assert info["title"] == info_spec["title"]
         assert info["description"] == info_spec["description"]
@@ -60,16 +60,16 @@ class TestPetstore:
         assert license["name"] == license_spec["name"]
         assert license["url"] == license_spec["url"]
 
-        security = spec / "security"
+        security = schema_path / "security"
         security_spec = spec_dict.get("security", [])
         for idx, security_reqs in enumerate(security):
             security_reqs_spec = security_spec[idx]
             for scheme_name, security_req in security_reqs.items():
                 security_req == security_reqs_spec[scheme_name]
 
-        assert get_spec_url(spec) == url
+        assert get_spec_url(schema_path) == url
 
-        servers = spec / "servers"
+        servers = schema_path / "servers"
         for idx, server in enumerate(servers):
             server_spec = spec_dict["servers"][idx]
             assert server["url"] == server_spec["url"]
@@ -81,7 +81,7 @@ class TestPetstore:
                 assert variable["default"] == variable_spec["default"]
                 assert variable["enum"] == variable_spec.get("enum")
 
-        paths = spec / "paths"
+        paths = schema_path / "paths"
         for path_name, path in paths.items():
             path_spec = spec_dict["paths"][path_name]
             assert path.getkey("summary") == path_spec.get("summary")
@@ -287,7 +287,7 @@ class TestPetstore:
                         "required"
                     )
 
-        components = spec.get("components")
+        components = schema_path.get("components")
         if not components:
             return
 
@@ -312,14 +312,14 @@ class TestWebhook:
         return "file://tests/integration/data/v3.1/webhook-example.yaml"
 
     @pytest.fixture
-    def spec_dict(self, factory):
-        content, _ = factory.content_from_file(
+    def spec_dict(self, content_factory):
+        content, _ = content_factory.from_file(
             "data/v3.1/webhook-example.yaml"
         )
         return content
 
     @pytest.fixture
-    def spec(self, spec_dict, base_uri):
+    def schema_path(self, spec_dict, base_uri):
         return SchemaPath.from_dict(
             spec_dict,
             base_uri=base_uri,
@@ -333,17 +333,17 @@ class TestWebhook:
     def response_validator(self, spec):
         return ResponseValidator(spec)
 
-    def test_spec(self, spec, spec_dict):
-        info = spec / "info"
+    def test_spec(self, schema_path, spec_dict):
+        info = schema_path / "info"
         info_spec = spec_dict["info"]
         assert info["title"] == info_spec["title"]
         assert info["version"] == info_spec["version"]
 
-        webhooks = spec / "webhooks"
+        webhooks = schema_path / "webhooks"
         webhooks_spec = spec_dict["webhooks"]
         assert webhooks["newPet"] == webhooks_spec["newPet"]
 
-        components = spec.get("components")
+        components = schema_path.get("components")
         if not components:
             return
 

@@ -2,7 +2,7 @@ from base64 import b64decode
 from io import BytesIO
 
 from aiohttp import web
-from aiohttpproject.openapi import spec
+from aiohttpproject.openapi import openapi
 from multidict import MultiDict
 
 from openapi_core import unmarshal_request
@@ -27,14 +27,14 @@ Fzk0lpcjIQA7
         openapi_request = AIOHTTPOpenAPIWebRequest(
             self.request, body=request_body
         )
-        request_unmarshalled = unmarshal_request(openapi_request, spec=spec)
+        request_unmarshalled = openapi.unmarshal_request(openapi_request)
         response = web.Response(
             body=self.OPENID_LOGO,
             content_type="image/gif",
         )
         openapi_response = AIOHTTPOpenAPIWebResponse(response)
-        response_unmarshalled = unmarshal_response(
-            openapi_request, openapi_response, spec=spec
+        response_unmarshalled = openapi.unmarshal_response(
+            openapi_request, openapi_response
         )
         return response
 
@@ -43,10 +43,10 @@ Fzk0lpcjIQA7
         openapi_request = AIOHTTPOpenAPIWebRequest(
             self.request, body=request_body
         )
-        request_unmarshalled = unmarshal_request(openapi_request, spec=spec)
+        request_unmarshalled = openapi.unmarshal_request(openapi_request)
         response = web.Response(status=201)
         openapi_response = AIOHTTPOpenAPIWebResponse(response)
-        response_unmarshalled = unmarshal_response(
-            openapi_request, openapi_response, spec=spec
+        response_unmarshalled = openapi.unmarshal_response(
+            openapi_request, openapi_response
         )
         return response

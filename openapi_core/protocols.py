@@ -6,6 +6,8 @@ from typing import Protocol
 from typing import runtime_checkable
 
 from openapi_core.datatypes import RequestParameters
+from openapi_core.typing import RequestType
+from openapi_core.typing import ResponseType
 
 
 @runtime_checkable

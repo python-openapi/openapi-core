@@ -8,9 +8,9 @@ from openapi_core.datatypes import Parameters
 
 
 @pytest.fixture(scope="session")
-def decorator_factory(spec):
+def decorator_factory(schema_path):
     def create(**kwargs):
-        return FlaskOpenAPIViewDecorator.from_spec(spec, **kwargs)
+        return FlaskOpenAPIViewDecorator.from_spec(schema_path, **kwargs)
 
     return create
 

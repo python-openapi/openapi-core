@@ -14,10 +14,10 @@ from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebResponse
 
 
 @pytest.fixture
-def spec(factory):
+def schema_path(schema_path_factory):
     directory = pathlib.Path(__file__).parent
     specfile = directory / "data" / "v3.0" / "aiohttp_factory.yaml"
-    return factory.spec_from_file(str(specfile))
+    return schema_path_factory.from_file(str(specfile))
 
 
 @pytest.fixture
@@ -41,11 +41,11 @@ def no_validation(response_getter):
 
 
 @pytest.fixture
-def request_validation(spec, response_getter):
+def request_validation(schema_path, response_getter):
     async def test_route(request: web.Request) -> web.Response:
         request_body = await request.text()
         openapi_request = AIOHTTPOpenAPIWebRequest(request, body=request_body)
-        unmarshaller = V30RequestUnmarshaller(spec)
+        unmarshaller = V30RequestUnmarshaller(schema_path)
         result = unmarshaller.unmarshal(openapi_request)
         response: dict[str, Any] = response_getter()
         status = 200
@@ -62,7 +62,7 @@ def request_validation(spec, response_getter):
 
 
 @pytest.fixture
-def response_validation(spec, response_getter):
+def response_validation(schema_path, response_getter):
     async def test_route(request: web.Request) -> web.Response:
         request_body = await request.text()
         openapi_request = AIOHTTPOpenAPIWebRequest(request, body=request_body)
@@ -73,7 +73,7 @@ def response_validation(spec, response_getter):
             status=200,
         )
         openapi_response = AIOHTTPOpenAPIWebResponse(response)
-        unmarshaller = V30ResponseUnmarshaller(spec)
+        unmarshaller = V30ResponseUnmarshaller(schema_path)
         result = unmarshaller.unmarshal(openapi_request, openapi_response)
         if result.errors:
             response = web.json_response(

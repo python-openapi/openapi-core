@@ -537,7 +537,7 @@ class TestValidateAPICallRequest:
 
         result = validate_apicall_request(request, spec=spec_v31)
 
-        assert result == mock_validate.return_value
+        assert result is None
         mock_validate.assert_called_once_with(request)
 
 
@@ -588,7 +588,7 @@ class TestValidateWebhookRequest:
 
         result = validate_webhook_request(request, spec=spec_v31)
 
-        assert result == mock_validate.return_value
+        assert result is None
         mock_validate.assert_called_once_with(request)
 
 
@@ -812,7 +812,7 @@ class TestValidateAPICallResponse:
 
         result = validate_apicall_response(request, response, spec=spec_v31)
 
-        assert result == mock_validate.return_value
+        assert result is None
         mock_validate.assert_called_once_with(request, response)
 
 
@@ -879,7 +879,7 @@ class TestValidateWebhookResponse:
 
         result = validate_webhook_response(request, response, spec=spec_v31)
 
-        assert result == mock_validate.return_value
+        assert result is None
         mock_validate.assert_called_once_with(request, response)
 
 

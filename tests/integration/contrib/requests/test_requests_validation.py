@@ -17,25 +17,25 @@ from openapi_core.contrib.requests import RequestsOpenAPIWebhookRequest
 
 class TestV31RequestsFactory:
     @pytest.fixture
-    def spec(self, factory):
+    def schema_path(self, schema_path_factory):
         specfile = "contrib/requests/data/v3.1/requests_factory.yaml"
-        return factory.spec_from_file(specfile)
+        return schema_path_factory.from_file(specfile)
 
     @pytest.fixture
-    def request_unmarshaller(self, spec):
-        return V31RequestUnmarshaller(spec)
+    def request_unmarshaller(self, schema_path):
+        return V31RequestUnmarshaller(schema_path)
 
     @pytest.fixture
-    def response_unmarshaller(self, spec):
-        return V31ResponseUnmarshaller(spec)
+    def response_unmarshaller(self, schema_path):
+        return V31ResponseUnmarshaller(schema_path)
 
     @pytest.fixture
-    def webhook_request_unmarshaller(self, spec):
-        return V31WebhookRequestUnmarshaller(spec)
+    def webhook_request_unmarshaller(self, schema_path):
+        return V31WebhookRequestUnmarshaller(schema_path)
 
     @pytest.fixture
-    def webhook_response_unmarshaller(self, spec):
-        return V31WebhookResponseUnmarshaller(spec)
+    def webhook_response_unmarshaller(self, schema_path):
+        return V31WebhookResponseUnmarshaller(schema_path)
 
     @responses.activate
     def test_response_validator_path_pattern(self, response_unmarshaller):
@@ -152,17 +152,17 @@ class BaseTestPetstore:
 
 class TestPetstore(BaseTestPetstore):
     @pytest.fixture
-    def spec(self, factory):
+    def schema_path(self, schema_path_factory):
         specfile = "data/v3.0/petstore.yaml"
-        return factory.spec_from_file(specfile)
+        return schema_path_factory.from_file(specfile)
 
     @pytest.fixture
-    def request_unmarshaller(self, spec):
-        return V30RequestUnmarshaller(spec)
+    def request_unmarshaller(self, schema_path):
+        return V30RequestUnmarshaller(schema_path)
 
     @pytest.fixture
-    def response_unmarshaller(self, spec):
-        return V30ResponseUnmarshaller(spec)
+    def response_unmarshaller(self, schema_path):
+        return V30ResponseUnmarshaller(schema_path)
 
     @responses.activate
     def test_response_binary_valid(self, response_unmarshaller, data_gif):

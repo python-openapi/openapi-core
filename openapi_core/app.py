@@ -1,0 +1,363 @@
+"""OpenAPI core app module"""
+import warnings
+from dataclasses import dataclass
+from dataclasses import field
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+from typing import Hashable
+from typing import Mapping
+from typing import Optional
+from typing import Type
+from typing import TypeVar
+from typing import Union
+
+from jsonschema._utils import Unset
+from jsonschema.validators import _UNSET
+from jsonschema_path import SchemaPath
+from jsonschema_path.handlers.protocols import SupportsRead
+from jsonschema_path.typing import Schema
+from openapi_spec_validator import validate
+from openapi_spec_validator.validation.exceptions import ValidatorDetectError
+from openapi_spec_validator.validation.types import SpecValidatorType
+from openapi_spec_validator.versions.datatypes import SpecVersion
+from openapi_spec_validator.versions.exceptions import OpenAPIVersionNotFound
+from openapi_spec_validator.versions.shortcuts import get_spec_version
+
+from openapi_core.configurations import Config
+from openapi_core.exceptions import SpecError
+from openapi_core.protocols import Request
+from openapi_core.protocols import Response
+from openapi_core.protocols import WebhookRequest
+from openapi_core.types import AnyRequest
+from openapi_core.unmarshalling.request import (
+    UNMARSHALLERS as REQUEST_UNMARSHALLERS,
+)
+from openapi_core.unmarshalling.request import (
+    WEBHOOK_UNMARSHALLERS as WEBHOOK_REQUEST_UNMARSHALLERS,
+)
+from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
+from openapi_core.unmarshalling.request.protocols import RequestUnmarshaller
+from openapi_core.unmarshalling.request.protocols import (
+    WebhookRequestUnmarshaller,
+)
+from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
+from openapi_core.unmarshalling.request.types import (
+    WebhookRequestUnmarshallerType,
+)
+from openapi_core.unmarshalling.response import (
+    UNMARSHALLERS as RESPONSE_UNMARSHALLERS,
+)
+from openapi_core.unmarshalling.response import (
+    WEBHOOK_UNMARSHALLERS as WEBHOOK_RESPONSE_UNMARSHALLERS,
+)
+from openapi_core.unmarshalling.response.datatypes import (
+    ResponseUnmarshalResult,
+)
+from openapi_core.unmarshalling.response.protocols import ResponseUnmarshaller
+from openapi_core.unmarshalling.response.protocols import (
+    WebhookResponseUnmarshaller,
+)
+from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
+from openapi_core.unmarshalling.response.types import (
+    WebhookResponseUnmarshallerType,
+)
+from openapi_core.validation.request import VALIDATORS as REQUEST_VALIDATORS
+from openapi_core.validation.request import (
+    WEBHOOK_VALIDATORS as WEBHOOK_REQUEST_VALIDATORS,
+)
+from openapi_core.validation.request.protocols import RequestValidator
+from openapi_core.validation.request.protocols import WebhookRequestValidator
+from openapi_core.validation.request.types import RequestValidatorType
+from openapi_core.validation.request.types import WebhookRequestValidatorType
+from openapi_core.validation.response import VALIDATORS as RESPONSE_VALIDATORS
+from openapi_core.validation.response import (
+    WEBHOOK_VALIDATORS as WEBHOOK_RESPONSE_VALIDATORS,
+)
+from openapi_core.validation.response.protocols import ResponseValidator
+from openapi_core.validation.response.protocols import WebhookResponseValidator
+from openapi_core.validation.response.types import ResponseValidatorType
+from openapi_core.validation.response.types import WebhookResponseValidatorType
+
+
+class OpenAPI:
+    """OpenAPI class."""
+
+    def __init__(
+        self,
+        spec: SchemaPath,
+        config: Optional[Config] = None,
+    ):
+        if not isinstance(spec, SchemaPath):
+            raise TypeError("'spec' argument is not type of SchemaPath")
+
+        self.spec = spec
+        self.config = config or Config()
+
+        self.check_spec()
+
+    @classmethod
+    def from_dict(
+        cls, data: Schema, config: Optional[Config] = None
+    ) -> "OpenAPI":
+        sp = SchemaPath.from_dict(data)
+        return cls(sp, config=config)
+
+    @classmethod
+    def from_path(
+        cls, path: Path, config: Optional[Config] = None
+    ) -> "OpenAPI":
+        sp = SchemaPath.from_path(path)
+        return cls(sp, config=config)
+
+    @classmethod
+    def from_file_path(
+        cls, file_path: str, config: Optional[Config] = None
+    ) -> "OpenAPI":
+        sp = SchemaPath.from_file_path(file_path)
+        return cls(sp, config=config)
+
+    @classmethod
+    def from_file(
+        cls, fileobj: SupportsRead, config: Optional[Config] = None
+    ) -> "OpenAPI":
+        sp = SchemaPath.from_file(fileobj)
+        return cls(sp, config=config)
+
+    def _get_version(self) -> SpecVersion:
+        try:
+            return get_spec_version(self.spec.contents())
+        # backward compatibility
+        except OpenAPIVersionNotFound:
+            raise SpecError("Spec schema version not detected")
+
+    def check_spec(self) -> None:
+        if self.config.spec_validator_cls is None:
+            return
+
+        cls = None
+        if self.config.spec_validator_cls is not _UNSET:
+            cls = self.config.spec_validator_cls
+
+        try:
+            validate(
+                self.spec.contents(),
+                base_uri=self.config.spec_base_uri,
+                cls=cls,
+            )
+        except ValidatorDetectError:
+            raise SpecError("spec not detected")
+
+    @property
+    def version(self) -> SpecVersion:
+        return self._get_version()
+
+    @property
+    def request_validator_cls(self) -> Optional[RequestValidatorType]:
+        if not isinstance(self.config.request_validator_cls, Unset):
+            return self.config.request_validator_cls
+        return REQUEST_VALIDATORS.get(self.version)
+
+    @property
+    def response_validator_cls(self) -> Optional[ResponseValidatorType]:
+        if not isinstance(self.config.response_validator_cls, Unset):
+            return self.config.response_validator_cls
+        return RESPONSE_VALIDATORS.get(self.version)
+
+    @property
+    def webhook_request_validator_cls(
+        self,
+    ) -> Optional[WebhookRequestValidatorType]:
+        if not isinstance(self.config.webhook_request_validator_cls, Unset):
+            return self.config.webhook_request_validator_cls
+        return WEBHOOK_REQUEST_VALIDATORS.get(self.version)
+
+    @property
+    def webhook_response_validator_cls(
+        self,
+    ) -> Optional[WebhookResponseValidatorType]:
+        if not isinstance(self.config.webhook_response_validator_cls, Unset):
+            return self.config.webhook_response_validator_cls
+        return WEBHOOK_RESPONSE_VALIDATORS.get(self.version)
+
+    @property
+    def request_unmarshaller_cls(self) -> Optional[RequestUnmarshallerType]:
+        if not isinstance(self.config.request_unmarshaller_cls, Unset):
+            return self.config.request_unmarshaller_cls
+        return REQUEST_UNMARSHALLERS.get(self.version)
+
+    @property
+    def response_unmarshaller_cls(self) -> Optional[ResponseUnmarshallerType]:
+        if not isinstance(self.config.response_unmarshaller_cls, Unset):
+            return self.config.response_unmarshaller_cls
+        return RESPONSE_UNMARSHALLERS.get(self.version)
+
+    @property
+    def webhook_request_unmarshaller_cls(
+        self,
+    ) -> Optional[WebhookRequestUnmarshallerType]:
+        if not isinstance(self.config.webhook_request_unmarshaller_cls, Unset):
+            return self.config.webhook_request_unmarshaller_cls
+        return WEBHOOK_REQUEST_UNMARSHALLERS.get(self.version)
+
+    @property
+    def webhook_response_unmarshaller_cls(
+        self,
+    ) -> Optional[WebhookResponseUnmarshallerType]:
+        if not isinstance(
+            self.config.webhook_response_unmarshaller_cls, Unset
+        ):
+            return self.config.webhook_response_unmarshaller_cls
+        return WEBHOOK_RESPONSE_UNMARSHALLERS.get(self.version)
+
+    @property
+    def request_validator(self) -> RequestValidator:
+        if self.request_validator_cls is None:
+            raise SpecError("Validator class not found")
+        return self.request_validator_cls(
+            self.spec, base_url=self.config.server_base_url
+        )
+
+    @property
+    def response_validator(self) -> ResponseValidator:
+        if self.response_validator_cls is None:
+            raise SpecError("Validator class not found")
+        return self.response_validator_cls(
+            self.spec, base_url=self.config.server_base_url
+        )
+
+    @property
+    def webhook_request_validator(self) -> WebhookRequestValidator:
+        if self.webhook_request_validator_cls is None:
+            raise SpecError("Validator class not found")
+        return self.webhook_request_validator_cls(
+            self.spec, base_url=self.config.server_base_url
+        )
+
+    @property
+    def webhook_response_validator(self) -> WebhookResponseValidator:
+        if self.webhook_response_validator_cls is None:
+            raise SpecError("Validator class not found")
+        return self.webhook_response_validator_cls(
+            self.spec, base_url=self.config.server_base_url
+        )
+
+    @property
+    def request_unmarshaller(self) -> RequestUnmarshaller:
+        if self.request_unmarshaller_cls is None:
+            raise SpecError("Unmarshaller class not found")
+        return self.request_unmarshaller_cls(
+            self.spec, base_url=self.config.server_base_url
+        )
+
+    @property
+    def response_unmarshaller(self) -> ResponseUnmarshaller:
+        if self.response_unmarshaller_cls is None:
+            raise SpecError("Unmarshaller class not found")
+        return self.response_unmarshaller_cls(
+            self.spec, base_url=self.config.server_base_url
+        )
+
+    @property
+    def webhook_request_unmarshaller(self) -> WebhookRequestUnmarshaller:
+        if self.webhook_request_unmarshaller_cls is None:
+            raise SpecError("Unmarshaller class not found")
+        return self.webhook_request_unmarshaller_cls(
+            self.spec, base_url=self.config.server_base_url
+        )
+
+    @property
+    def webhook_response_unmarshaller(self) -> WebhookResponseUnmarshaller:
+        if self.webhook_response_unmarshaller_cls is None:
+            raise SpecError("Unmarshaller class not found")
+        return self.webhook_response_unmarshaller_cls(
+            self.spec, base_url=self.config.server_base_url
+        )
+
+    def validate_request(self, request: AnyRequest) -> None:
+        if isinstance(request, WebhookRequest):
+            self.validate_webhook_request(request)
+        else:
+            self.validate_apicall_request(request)
+
+    def validate_response(
+        self, request: AnyRequest, response: Response
+    ) -> None:
+        if isinstance(request, WebhookRequest):
+            self.validate_webhook_response(request, response)
+        else:
+            self.validate_apicall_response(request, response)
+
+    def validate_apicall_request(self, request: Request) -> None:
+        if not isinstance(request, Request):
+            raise TypeError("'request' argument is not type of Request")
+        self.request_validator.validate(request)
+
+    def validate_apicall_response(
+        self, request: Request, response: Response
+    ) -> None:
+        if not isinstance(request, Request):
+            raise TypeError("'request' argument is not type of Request")
+        if not isinstance(response, Response):
+            raise TypeError("'response' argument is not type of Response")
+        self.response_validator.validate(request, response)
+
+    def validate_webhook_request(self, request: WebhookRequest) -> None:
+        if not isinstance(request, WebhookRequest):
+            raise TypeError("'request' argument is not type of WebhookRequest")
+        self.webhook_request_validator.validate(request)
+
+    def validate_webhook_response(
+        self, request: WebhookRequest, response: Response
+    ) -> None:
+        if not isinstance(request, WebhookRequest):
+            raise TypeError("'request' argument is not type of WebhookRequest")
+        if not isinstance(response, Response):
+            raise TypeError("'response' argument is not type of Response")
+        self.webhook_response_validator.validate(request, response)
+
+    def unmarshal_request(self, request: AnyRequest) -> RequestUnmarshalResult:
+        if isinstance(request, WebhookRequest):
+            return self.unmarshal_webhook_request(request)
+        else:
+            return self.unmarshal_apicall_request(request)
+
+    def unmarshal_response(
+        self, request: AnyRequest, response: Response
+    ) -> ResponseUnmarshalResult:
+        if isinstance(request, WebhookRequest):
+            return self.unmarshal_webhook_response(request, response)
+        else:
+            return self.unmarshal_apicall_response(request, response)
+
+    def unmarshal_apicall_request(
+        self, request: Request
+    ) -> RequestUnmarshalResult:
+        if not isinstance(request, Request):
+            raise TypeError("'request' argument is not type of Request")
+        return self.request_unmarshaller.unmarshal(request)
+
+    def unmarshal_apicall_response(
+        self, request: Request, response: Response
+    ) -> ResponseUnmarshalResult:
+        if not isinstance(request, Request):
+            raise TypeError("'request' argument is not type of Request")
+        if not isinstance(response, Response):
+            raise TypeError("'response' argument is not type of Response")
+        return self.response_unmarshaller.unmarshal(request, response)
+
+    def unmarshal_webhook_request(
+        self, request: WebhookRequest
+    ) -> RequestUnmarshalResult:
+        if not isinstance(request, WebhookRequest):
+            raise TypeError("'request' argument is not type of WebhookRequest")
+        return self.webhook_request_unmarshaller.unmarshal(request)
+
+    def unmarshal_webhook_response(
+        self, request: WebhookRequest, response: Response
+    ) -> ResponseUnmarshalResult:
+        if not isinstance(request, WebhookRequest):
+            raise TypeError("'request' argument is not type of WebhookRequest")
+        if not isinstance(response, Response):
+            raise TypeError("'response' argument is not type of Response")
+        return self.webhook_response_unmarshaller.unmarshal(request, response)

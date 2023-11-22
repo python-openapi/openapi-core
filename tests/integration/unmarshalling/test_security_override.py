@@ -11,13 +11,13 @@ from openapi_core.validation.request.exceptions import SecurityValidationError
 
 
 @pytest.fixture(scope="class")
-def spec(factory):
-    return factory.spec_from_file("data/v3.0/security_override.yaml")
+def schema_path(schema_path_factory):
+    return schema_path_factory.from_file("data/v3.0/security_override.yaml")
 
 
 @pytest.fixture(scope="class")
-def request_unmarshaller(spec):
-    return V30RequestUnmarshaller(spec)
+def request_unmarshaller(schema_path):
+    return V30RequestUnmarshaller(schema_path)
 
 
 class TestSecurityOverride:

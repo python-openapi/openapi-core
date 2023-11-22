@@ -3,7 +3,6 @@ from base64 import b64decode
 from starlette.responses import JSONResponse
 from starlette.responses import Response
 from starlette.responses import StreamingResponse
-from starletteproject.openapi import spec
 
 from openapi_core import unmarshal_request
 from openapi_core import unmarshal_response

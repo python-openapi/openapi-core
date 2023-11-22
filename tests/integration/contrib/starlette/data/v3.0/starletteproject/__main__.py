@@ -1,7 +1,7 @@
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.routing import Route
-from starletteproject.openapi import spec
+from starletteproject.openapi import openapi
 from starletteproject.pets.endpoints import pet_detail_endpoint
 from starletteproject.pets.endpoints import pet_list_endpoint
 from starletteproject.pets.endpoints import pet_photo_endpoint
@@ -13,7 +13,7 @@ from openapi_core.contrib.starlette.middlewares import (
 middleware = [
     Middleware(
         StarletteOpenAPIMiddleware,
-        spec=spec,
+        openapi=openapi,
     ),
 ]
 

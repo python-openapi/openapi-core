@@ -128,6 +128,7 @@ filterwarnings = [
     "error",
     # falcon.media.handlers uses cgi to parse data
     "ignore:'cgi' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
+    "ignore:co_lnotab is deprecated, use co_lines instead:DeprecationWarning",
 ]
 
 [tool.black]

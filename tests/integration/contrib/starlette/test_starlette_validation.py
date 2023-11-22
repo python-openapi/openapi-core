@@ -16,9 +16,9 @@ from openapi_core.contrib.starlette import StarletteOpenAPIResponse
 
 class TestV30StarletteFactory:
     @pytest.fixture
-    def spec(self, factory):
+    def schema_path(self, schema_path_factory):
         specfile = "contrib/starlette/data/v3.0/starlette_factory.yaml"
-        return factory.spec_from_file(specfile)
+        return schema_path_factory.from_file(specfile)
 
     @pytest.fixture
     def app(self):
@@ -45,13 +45,13 @@ class TestV30StarletteFactory:
     def client(self, app):
         return TestClient(app, base_url="http://localhost")
 
-    def test_request_validator_path_pattern(self, client, spec):
+    def test_request_validator_path_pattern(self, client, schema_path):
         response_data = {"data": "data"}
 
         async def test_route(request):
             body = await request.body()
             openapi_request = StarletteOpenAPIRequest(request, body)
-            result = unmarshal_request(openapi_request, spec)
+            result = unmarshal_request(openapi_request, schema_path)
             assert not result.errors
             return JSONResponse(
                 response_data,
@@ -81,7 +81,7 @@ class TestV30StarletteFactory:
         assert response.status_code == 200
         assert response.json() == response_data
 
-    def test_response_validator_path_pattern(self, client, spec):
+    def test_response_validator_path_pattern(self, client, schema_path):
         response_data = {"data": "data"}
 
         def test_route(request):
@@ -94,7 +94,7 @@ class TestV30StarletteFactory:
             openapi_request = StarletteOpenAPIRequest(request)
             openapi_response = StarletteOpenAPIResponse(response)
             result = unmarshal_response(
-                openapi_request, openapi_response, spec
+                openapi_request, openapi_response, schema_path
             )
             assert not result.errors
             return response
