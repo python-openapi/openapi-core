@@ -9,7 +9,7 @@ By default, objects are unmarshalled to dictionaries. You can use dynamically cr
 .. code-block:: yaml
   :emphasize-lines: 5
 
-    ...
+    # ...
     components:
      schemas:
        Coordinates:

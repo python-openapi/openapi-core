@@ -3,15 +3,16 @@ openapi-core
 
 .. toctree::
     :hidden:
-    :maxdepth: 2
+    :maxdepth: 3
 
     unmarshalling
     validation
-    integrations
-    customizations
+    integrations/index
+    customizations/index
     security
     extensions
     contributing
+    api
 
 Openapi-core is a Python library that adds client-side and server-side support
 for the `OpenAPI v3.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md>`__
@@ -21,8 +22,8 @@ Key features
 ------------
 
 * :doc:`validation` and :doc:`unmarshalling <unmarshalling>` of request and response data (including webhooks)
-* :doc:`Integrations <integrations>` with popular libraries (Requests, Werkzeug) and frameworks (Django, Falcon, Flask, Starlette)
-* :doc:`Customization <customizations>` with **media type deserializers** and **format unmarshallers**
+* :doc:`Integrations <integrations/index>` with popular libraries (Requests, Werkzeug) and frameworks (Django, Falcon, Flask, Starlette)
+* :doc:`Customization <customizations/index>` with **media type deserializers** and **format unmarshallers**
 * :doc:`Security <security>` data providers (API keys, Cookie, Basic and Bearer HTTP authentications)
 
 Installation
@@ -74,7 +75,7 @@ Retrieve validated and unmarshalled request data
     # get security data
     security = result.security
 
-Request object should implement OpenAPI Request protocol. Check :doc:`integrations` to find oficially supported implementations.
+Request object should implement OpenAPI Request protocol. Check :doc:`integrations/index` to find oficially supported implementations.
 
 For more details read about :doc:`unmarshalling` process.
 
