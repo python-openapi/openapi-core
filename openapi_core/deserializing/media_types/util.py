@@ -2,7 +2,6 @@ from email.parser import Parser
 from json import loads
 from typing import Any
 from typing import Mapping
-from typing import Union
 from urllib.parse import parse_qsl
 from xml.etree.ElementTree import Element
 from xml.etree.ElementTree import fromstring

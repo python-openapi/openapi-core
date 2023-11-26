@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from openapi_core.templating.paths.datatypes import Path
 
 

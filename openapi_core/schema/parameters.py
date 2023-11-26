@@ -1,13 +1,6 @@
-from typing import Any
-from typing import Dict
-from typing import Mapping
-from typing import Optional
 from typing import Tuple
 
 from jsonschema_path import SchemaPath
-
-from openapi_core.schema.protocols import SuportsGetAll
-from openapi_core.schema.protocols import SuportsGetList
 
 
 def get_style(

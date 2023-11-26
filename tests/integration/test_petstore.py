@@ -14,7 +14,6 @@ from openapi_core import validate_request
 from openapi_core import validate_response
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.datatypes import Parameters
-from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.styles.exceptions import (
     EmptyQueryParameterValue,
 )
@@ -1326,7 +1325,6 @@ class TestPetstore:
         view_args = {
             "petId": "1",
         }
-        auth = "authuser"
         request = MockRequest(
             host_url,
             "GET",

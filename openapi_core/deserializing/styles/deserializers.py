@@ -1,17 +1,10 @@
 import warnings
 from typing import Any
-from typing import Callable
-from typing import List
 from typing import Mapping
 from typing import Optional
 
-from jsonschema_path import SchemaPath
-
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.styles.datatypes import DeserializerCallable
-from openapi_core.deserializing.styles.exceptions import (
-    EmptyQueryParameterValue,
-)
 
 
 class StyleDeserializer:

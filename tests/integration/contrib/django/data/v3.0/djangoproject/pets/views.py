@@ -1,6 +1,5 @@
 from base64 import b64decode
 
-from django.conf import settings
 from django.http import FileResponse
 from django.http import HttpResponse
 from django.http import JsonResponse

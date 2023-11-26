@@ -24,5 +24,5 @@ Fzk0lpcjIQA7
         return send_file(fp, mimetype="image/gif")
 
     def post(self, petId):
-        data = request.stream.read()
+        assert request.data == self.OPENID_LOGO
         return Response(status=201)

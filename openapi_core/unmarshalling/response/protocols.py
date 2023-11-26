@@ -1,6 +1,4 @@
 """OpenAPI core validation response protocols module"""
-from typing import Any
-from typing import Mapping
 from typing import Optional
 from typing import Protocol
 from typing import runtime_checkable

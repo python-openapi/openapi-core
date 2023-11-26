@@ -3,7 +3,6 @@ from functools import partial
 from typing import Any
 from typing import List
 from typing import Mapping
-from typing import Optional
 
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList

@@ -1,11 +1,9 @@
 """OpenAPI X-Model extension factories module"""
 from dataclasses import make_dataclass
-from pydoc import ErrorDuringImport
 from pydoc import locate
 from typing import Any
 from typing import Dict
 from typing import Iterable
-from typing import Optional
 from typing import Type
 
 from jsonschema_path import SchemaPath

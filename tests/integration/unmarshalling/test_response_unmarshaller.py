@@ -137,11 +137,16 @@ class TestResponseUnmarshaller:
             "name": 1,
         }
         userdata_json = json.dumps(userdata)
+        cookies = {
+            "user": "123",
+            "userdata": userdata_json,
+        }
         request = MockRequest(
             self.host_url,
             "delete",
             "/v1/tags",
             path_pattern="/v1/tags",
+            cookies=cookies,
         )
         response_json = {
             "data": [

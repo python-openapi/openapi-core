@@ -1,12 +1,9 @@
-from typing import Dict
 from typing import Optional
 
 from jsonschema_path import SchemaPath
 
 from openapi_core.casting.schemas.casters import SchemaCaster
 from openapi_core.casting.schemas.casters import TypesCaster
-from openapi_core.casting.schemas.datatypes import CasterCallable
-from openapi_core.util import forcebool
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 

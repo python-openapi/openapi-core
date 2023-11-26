@@ -3,7 +3,6 @@ from jsonschema_path import SchemaPath
 
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.media_types.finders import MediaTypeFinder
-from openapi_core.testing import MockResponse
 
 
 class TestMediaTypes:

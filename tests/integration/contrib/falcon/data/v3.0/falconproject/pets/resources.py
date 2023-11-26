@@ -95,4 +95,5 @@ Fzk0lpcjIQA7
 
     def on_post(self, request, response, petId=None):
         data = request.stream.read()
+        assert data == self.OPENID_LOGO
         response.status = HTTP_201

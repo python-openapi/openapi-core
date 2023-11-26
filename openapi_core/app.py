@@ -1,16 +1,6 @@
 """OpenAPI core app module"""
-import warnings
-from dataclasses import dataclass
-from dataclasses import field
-from functools import lru_cache
 from pathlib import Path
-from typing import Any
-from typing import Hashable
-from typing import Mapping
 from typing import Optional
-from typing import Type
-from typing import TypeVar
-from typing import Union
 
 from jsonschema._utils import Unset
 from jsonschema.validators import _UNSET
@@ -19,7 +9,6 @@ from jsonschema_path.handlers.protocols import SupportsRead
 from jsonschema_path.typing import Schema
 from openapi_spec_validator import validate
 from openapi_spec_validator.validation.exceptions import ValidatorDetectError
-from openapi_spec_validator.validation.types import SpecValidatorType
 from openapi_spec_validator.versions.datatypes import SpecVersion
 from openapi_spec_validator.versions.exceptions import OpenAPIVersionNotFound
 from openapi_spec_validator.versions.shortcuts import get_spec_version

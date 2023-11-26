@@ -3,7 +3,6 @@ import sys
 from base64 import b64encode
 
 import pytest
-from starlette.testclient import TestClient
 
 
 @pytest.fixture(autouse=True, scope="session")

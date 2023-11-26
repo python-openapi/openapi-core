@@ -593,7 +593,7 @@ class TestValidateWebhookRequest:
 
 
 class TestValidateRequest:
-    def test_spec_not_detected(self, spec_invalid):
+    def test_spec_invalid(self, spec_invalid):
         request = mock.Mock(spec=Request)
 
         with pytest.raises(SpecError):
