@@ -2,7 +2,6 @@ from base64 import b64encode
 from json import dumps
 
 import pytest
-from falcon.constants import MEDIA_URLENCODED
 
 
 class BaseTestFalconProject:

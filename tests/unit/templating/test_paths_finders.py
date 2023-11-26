@@ -7,7 +7,6 @@ from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.paths.exceptions import PathsNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.templating.paths.finders import APICallPathFinder
-from openapi_core.testing import MockRequest
 
 
 class BaseTestSimpleServer:

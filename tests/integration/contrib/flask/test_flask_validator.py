@@ -1,7 +1,5 @@
 from json import dumps
 
-import pytest
-from flask import Flask
 from flask.testing import FlaskClient
 from flask.wrappers import Response
 

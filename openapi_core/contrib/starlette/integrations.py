@@ -1,6 +1,3 @@
-from typing import Callable
-
-from aioitertools.builtins import list as alist
 from aioitertools.itertools import tee as atee
 from starlette.requests import Request
 from starlette.responses import Response

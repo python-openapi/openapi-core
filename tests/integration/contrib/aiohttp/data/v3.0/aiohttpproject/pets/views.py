@@ -1,12 +1,8 @@
 from base64 import b64decode
-from io import BytesIO
 
 from aiohttp import web
 from aiohttpproject.openapi import openapi
-from multidict import MultiDict
 
-from openapi_core import unmarshal_request
-from openapi_core import unmarshal_response
 from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebRequest
 from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebResponse
 
@@ -28,6 +24,7 @@ Fzk0lpcjIQA7
             self.request, body=request_body
         )
         request_unmarshalled = openapi.unmarshal_request(openapi_request)
+        request_unmarshalled.raise_for_errors()
         response = web.Response(
             body=self.OPENID_LOGO,
             content_type="image/gif",
@@ -36,6 +33,7 @@ Fzk0lpcjIQA7
         response_unmarshalled = openapi.unmarshal_response(
             openapi_request, openapi_response
         )
+        response_unmarshalled.raise_for_errors()
         return response
 
     async def post(self):
@@ -44,9 +42,11 @@ Fzk0lpcjIQA7
             self.request, body=request_body
         )
         request_unmarshalled = openapi.unmarshal_request(openapi_request)
+        request_unmarshalled.raise_for_errors()
         response = web.Response(status=201)
         openapi_response = AIOHTTPOpenAPIWebResponse(response)
         response_unmarshalled = openapi.unmarshal_response(
             openapi_request, openapi_response
         )
+        response_unmarshalled.raise_for_errors()
         return response

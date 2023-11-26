@@ -4,11 +4,6 @@ from starlette.responses import JSONResponse
 from starlette.responses import Response
 from starlette.responses import StreamingResponse
 
-from openapi_core import unmarshal_request
-from openapi_core import unmarshal_response
-from openapi_core.contrib.starlette import StarletteOpenAPIRequest
-from openapi_core.contrib.starlette import StarletteOpenAPIResponse
-
 OPENID_LOGO = b64decode(
     """
 R0lGODlhEAAQAMQAAO3t7eHh4srKyvz8/P5pDP9rENLS0v/28P/17tXV1dHEvPDw8M3Nzfn5+d3d
@@ -96,9 +91,10 @@ async def pet_detail_endpoint(request):
 
 
 async def pet_photo_endpoint(request):
-    body = await request.body()
     if request.method == "GET":
         contents = iter([OPENID_LOGO])
         return StreamingResponse(contents, media_type="image/gif")
     elif request.method == "POST":
+        body = await request.body()
+        assert body == OPENID_LOGO
         return Response(status_code=201)

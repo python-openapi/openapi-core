@@ -1,6 +1,5 @@
 import pytest
 from flask import Flask
-from jsonschema_path import SchemaPath
 
 
 @pytest.fixture(scope="session")

@@ -1,6 +1,4 @@
-from typing import TYPE_CHECKING
 from typing import Any
-from typing import Callable
 from typing import Generic
 from typing import Iterable
 from typing import List
@@ -12,7 +10,6 @@ from typing import Union
 
 from jsonschema_path import SchemaPath
 
-from openapi_core.casting.schemas.datatypes import CasterCallable
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.schema.schemas import get_properties
 from openapi_core.util import forcebool

@@ -1,10 +1,7 @@
 """OpenAPI core contrib aiohttp requests module"""
 from __future__ import annotations
 
-from typing import cast
-
 from aiohttp import web
-from asgiref.sync import AsyncToSync
 
 from openapi_core.datatypes import RequestParameters
 

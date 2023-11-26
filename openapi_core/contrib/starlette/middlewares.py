@@ -3,7 +3,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.responses import StreamingResponse
 from starlette.types import ASGIApp
 
 from openapi_core import OpenAPI
@@ -14,9 +13,6 @@ from openapi_core.contrib.starlette.handlers import (
     StarletteOpenAPIValidRequestHandler,
 )
 from openapi_core.contrib.starlette.integrations import StarletteIntegration
-from openapi_core.contrib.starlette.requests import StarletteOpenAPIRequest
-from openapi_core.contrib.starlette.responses import StarletteOpenAPIResponse
-from openapi_core.unmarshalling.processors import AsyncUnmarshallingProcessor
 
 
 class StarletteOpenAPIMiddleware(StarletteIntegration, BaseHTTPMiddleware):

@@ -1,5 +1,3 @@
-from urllib.parse import urljoin
-
 import pytest
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict

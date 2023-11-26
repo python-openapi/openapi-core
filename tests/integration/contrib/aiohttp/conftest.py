@@ -102,7 +102,7 @@ def router(
     )
     router_ = web.RouteTableDef()
     handler = test_routes[request.param]
-    route = router_.post("/browse/{id}/")(handler)
+    router_.post("/browse/{id}/")(handler)
     return router_
 
 

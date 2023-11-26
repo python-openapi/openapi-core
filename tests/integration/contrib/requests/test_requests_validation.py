@@ -207,7 +207,7 @@ class TestPetstore(BaseTestPetstore):
             data=data_gif,
         )
         request_prepared = request.prepare()
-        openapi_request = RequestsOpenAPIRequest(request)
+        openapi_request = RequestsOpenAPIRequest(request_prepared)
         result = request_unmarshaller.unmarshal(openapi_request)
         assert not result.errors
         assert result.body == data_gif

@@ -3,8 +3,6 @@ from base64 import b64encode
 import pytest
 from jsonschema_path import SchemaPath
 
-from openapi_core import V30RequestValidator
-from openapi_core import V30ResponseValidator
 from openapi_core.schema.servers import get_server_url
 from openapi_core.schema.specs import get_spec_url
 
@@ -30,14 +28,6 @@ class TestPetstore:
     @pytest.fixture
     def schema_path(self, spec_dict, base_uri):
         return SchemaPath.from_dict(spec_dict, base_uri=base_uri)
-
-    @pytest.fixture
-    def request_validator(self, schema_path):
-        return V30RequestValidator(schema_path)
-
-    @pytest.fixture
-    def response_validator(self, schema_path):
-        return V30ResponseValidator(schema_path)
 
     def test_spec(self, schema_path, spec_dict):
         url = "http://petstore.swagger.io/v1"
@@ -324,14 +314,6 @@ class TestWebhook:
             spec_dict,
             base_uri=base_uri,
         )
-
-    @pytest.fixture
-    def request_validator(self, spec):
-        return RequestValidator(spec)
-
-    @pytest.fixture
-    def response_validator(self, spec):
-        return ResponseValidator(spec)
 
     def test_spec(self, schema_path, spec_dict):
         info = schema_path / "info"

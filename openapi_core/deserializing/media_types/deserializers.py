@@ -1,8 +1,6 @@
-import warnings
 from typing import Any
 from typing import Mapping
 from typing import Optional
-from typing import cast
 from xml.etree.ElementTree import ParseError
 
 from jsonschema_path import SchemaPath
@@ -106,7 +104,6 @@ class MediaTypeDeserializer:
     def decode(self, location: Mapping[str, Any]) -> Mapping[str, Any]:
         # schema is required for multipart
         assert self.schema is not None
-        schema_props = self.schema.get("properties")
         properties = {}
         for prop_name, prop_schema in get_properties(self.schema).items():
             try:
@@ -127,7 +124,6 @@ class MediaTypeDeserializer:
         location: Mapping[str, Any],
     ) -> Any:
         if self.encoding is None or prop_name not in self.encoding:
-            prop_schema_type = prop_schema.getkey("type", "")
             if self.mimetype == "application/x-www-form-urlencoded":
                 # default serialization strategy for complex objects
                 # in the application/x-www-form-urlencoded

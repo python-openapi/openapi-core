@@ -2,7 +2,6 @@
 from functools import wraps
 from typing import Any
 from typing import Callable
-from typing import Optional
 from typing import Type
 
 from flask.globals import request
@@ -17,9 +16,6 @@ from openapi_core.contrib.flask.integrations import FlaskIntegration
 from openapi_core.contrib.flask.providers import FlaskRequestProvider
 from openapi_core.contrib.flask.requests import FlaskOpenAPIRequest
 from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
-from openapi_core.unmarshalling.processors import UnmarshallingProcessor
-from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
-from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 
 
 class FlaskOpenAPIViewDecorator(FlaskIntegration):

@@ -13,9 +13,6 @@ from openapi_core.contrib.django.handlers import (
     DjangoOpenAPIValidRequestHandler,
 )
 from openapi_core.contrib.django.integrations import DjangoIntegration
-from openapi_core.contrib.django.requests import DjangoOpenAPIRequest
-from openapi_core.contrib.django.responses import DjangoOpenAPIResponse
-from openapi_core.unmarshalling.processors import UnmarshallingProcessor
 
 
 class DjangoOpenAPIMiddleware(DjangoIntegration):

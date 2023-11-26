@@ -355,7 +355,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
         assert (
-            f"is not a 'date-time'" in exc_info.value.schema_errors[0].message
+            "is not a 'date-time'" in exc_info.value.schema_errors[0].message
         )
 
     def test_string_password(self, unmarshallers_factory):
@@ -396,7 +396,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
         assert len(exc_info.value.schema_errors) == 1
-        assert f"is not a 'uuid'" in exc_info.value.schema_errors[0].message
+        assert "is not a 'uuid'" in exc_info.value.schema_errors[0].message
 
     @pytest.mark.parametrize(
         "type,format,value,expected",

@@ -1,7 +1,6 @@
 """OpenAPI core contrib starlette requests module"""
 from typing import Optional
 
-from asgiref.sync import AsyncToSync
 from starlette.requests import Request
 
 from openapi_core.datatypes import RequestParameters

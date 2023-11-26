@@ -4,9 +4,6 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.styles import style_deserializers_factory
-from openapi_core.deserializing.styles.exceptions import (
-    EmptyQueryParameterValue,
-)
 from openapi_core.schema.parameters import get_style_and_explode
 
 

@@ -4,9 +4,6 @@ from typing import Optional
 from jsonschema_path import SchemaPath
 
 from openapi_core.deserializing.media_types.datatypes import (
-    DeserializerCallable,
-)
-from openapi_core.deserializing.media_types.datatypes import (
     MediaTypeDeserializersDict,
 )
 from openapi_core.deserializing.media_types.deserializers import (

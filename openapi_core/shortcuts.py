@@ -1,45 +1,25 @@
 """OpenAPI core shortcuts module"""
 from typing import Any
-from typing import Dict
 from typing import Optional
 from typing import Union
 
 from jsonschema.validators import _UNSET
 from jsonschema_path import SchemaPath
-from openapi_spec_validator.versions import consts as versions
-from openapi_spec_validator.versions.datatypes import SpecVersion
-from openapi_spec_validator.versions.exceptions import OpenAPIVersionNotFound
-from openapi_spec_validator.versions.shortcuts import get_spec_version
 
 from openapi_core.app import OpenAPI
 from openapi_core.configurations import Config
-from openapi_core.exceptions import SpecError
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
 from openapi_core.types import AnyRequest
-from openapi_core.unmarshalling.request import V30RequestUnmarshaller
-from openapi_core.unmarshalling.request import V31RequestUnmarshaller
-from openapi_core.unmarshalling.request import V31WebhookRequestUnmarshaller
 from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
-from openapi_core.unmarshalling.request.protocols import RequestUnmarshaller
-from openapi_core.unmarshalling.request.protocols import (
-    WebhookRequestUnmarshaller,
-)
 from openapi_core.unmarshalling.request.types import AnyRequestUnmarshallerType
 from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
 from openapi_core.unmarshalling.request.types import (
     WebhookRequestUnmarshallerType,
 )
-from openapi_core.unmarshalling.response import V30ResponseUnmarshaller
-from openapi_core.unmarshalling.response import V31ResponseUnmarshaller
-from openapi_core.unmarshalling.response import V31WebhookResponseUnmarshaller
 from openapi_core.unmarshalling.response.datatypes import (
     ResponseUnmarshalResult,
-)
-from openapi_core.unmarshalling.response.protocols import ResponseUnmarshaller
-from openapi_core.unmarshalling.response.protocols import (
-    WebhookResponseUnmarshaller,
 )
 from openapi_core.unmarshalling.response.types import (
     AnyResponseUnmarshallerType,
@@ -48,19 +28,9 @@ from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 from openapi_core.unmarshalling.response.types import (
     WebhookResponseUnmarshallerType,
 )
-from openapi_core.validation.request import V30RequestValidator
-from openapi_core.validation.request import V31RequestValidator
-from openapi_core.validation.request import V31WebhookRequestValidator
-from openapi_core.validation.request.protocols import RequestValidator
-from openapi_core.validation.request.protocols import WebhookRequestValidator
 from openapi_core.validation.request.types import AnyRequestValidatorType
 from openapi_core.validation.request.types import RequestValidatorType
 from openapi_core.validation.request.types import WebhookRequestValidatorType
-from openapi_core.validation.response import V30ResponseValidator
-from openapi_core.validation.response import V31ResponseValidator
-from openapi_core.validation.response import V31WebhookResponseValidator
-from openapi_core.validation.response.protocols import ResponseValidator
-from openapi_core.validation.response.protocols import WebhookResponseValidator
 from openapi_core.validation.response.types import AnyResponseValidatorType
 from openapi_core.validation.response.types import ResponseValidatorType
 from openapi_core.validation.response.types import WebhookResponseValidatorType

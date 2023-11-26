@@ -1,6 +1,5 @@
 """OpenAPI core contrib falcon middlewares module"""
 from typing import Any
-from typing import Optional
 from typing import Type
 from typing import Union
 
@@ -19,7 +18,6 @@ from openapi_core.contrib.falcon.handlers import (
 from openapi_core.contrib.falcon.integrations import FalconIntegration
 from openapi_core.contrib.falcon.requests import FalconOpenAPIRequest
 from openapi_core.contrib.falcon.responses import FalconOpenAPIResponse
-from openapi_core.unmarshalling.processors import UnmarshallingProcessor
 from openapi_core.unmarshalling.request.types import RequestUnmarshallerType
 from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 

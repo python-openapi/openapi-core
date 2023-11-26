@@ -15,12 +15,6 @@ from openapi_core.deserializing.styles import style_deserializers_factory
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
-from openapi_core.unmarshalling.schemas.datatypes import (
-    FormatUnmarshallersDict,
-)
-from openapi_core.unmarshalling.schemas.factories import (
-    SchemaUnmarshallersFactory,
-)
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
