@@ -170,17 +170,43 @@ class BaseTestOperationServer(BaseTestSpecServer):
 class BaseTestServerNotFound:
     @pytest.fixture
     def servers(self):
-        return []
+        return [
+            SchemaPath.from_dict(
+                {"url": "http://petstore.swagger.io/resource"}
+            )
+        ]
 
-    @pytest.mark.xfail(
-        reason="returns default server",
-    )
     def test_raises(self, finder):
         method = "get"
-        full_url = "http://petstore.swagger.io/resource"
+        full_url = "http://invalidserver/resource"
 
         with pytest.raises(ServerNotFound):
             finder.find(method, full_url)
+
+
+class BaseTestDefaultServer:
+    @pytest.fixture
+    def servers(self):
+        return []
+
+    def test_returns_default_server(self, finder, spec):
+        method = "get"
+        full_url = "http://petstore.swagger.io/resource"
+
+        result = finder.find(method, full_url)
+
+        path = spec / "paths" / self.path_name
+        operation = spec / "paths" / self.path_name / method
+        server = SchemaPath.from_dict({"url": "/"})
+        path_result = TemplateResult(self.path_name, {})
+        server_result = TemplateResult("/", {})
+        assert result == (
+            path,
+            operation,
+            server,
+            path_result,
+            server_result,
+        )
 
 
 class BaseTestOperationNotFound:
@@ -290,6 +316,15 @@ class BaseTestPathsNotFound:
             finder.find(method, full_url)
 
 
+class TestSpecSimpleServerDefaultServer(
+    BaseTestDefaultServer,
+    BaseTestSpecServer,
+    BaseTestSimplePath,
+    BaseTestSimpleServer,
+):
+    pass
+
+
 class TestSpecSimpleServerServerNotFound(
     BaseTestServerNotFound,
     BaseTestSpecServer,
@@ -325,6 +360,15 @@ class TestSpecSimpleServerPathsNotFound(
     pass
 
 
+class TestOperationSimpleServerDefaultServer(
+    BaseTestDefaultServer,
+    BaseTestOperationServer,
+    BaseTestSimplePath,
+    BaseTestSimpleServer,
+):
+    pass
+
+
 class TestOperationSimpleServerServerNotFound(
     BaseTestServerNotFound,
     BaseTestOperationServer,
@@ -355,6 +399,15 @@ class TestOperationSimpleServerPathNotFound(
 class TestOperationSimpleServerPathsNotFound(
     BaseTestPathsNotFound,
     BaseTestOperationServer,
+    BaseTestSimpleServer,
+):
+    pass
+
+
+class TestPathSimpleServerDefaultServer(
+    BaseTestDefaultServer,
+    BaseTestPathServer,
+    BaseTestSimplePath,
     BaseTestSimpleServer,
 ):
     pass
@@ -443,6 +496,15 @@ class TestPathSimpleServerVariablePathValid(
     pass
 
 
+class TestSpecVariableServerDefaultServer(
+    BaseTestDefaultServer,
+    BaseTestSpecServer,
+    BaseTestSimplePath,
+    BaseTestVariableServer,
+):
+    pass
+
+
 class TestSpecVariableServerServerNotFound(
     BaseTestServerNotFound,
     BaseTestSpecServer,
@@ -478,6 +540,15 @@ class TestSpecVariableServerPathsNotFound(
     pass
 
 
+class TestOperationVariableServerDefaultServer(
+    BaseTestDefaultServer,
+    BaseTestOperationServer,
+    BaseTestSimplePath,
+    BaseTestVariableServer,
+):
+    pass
+
+
 class TestOperationVariableServerServerNotFound(
     BaseTestServerNotFound,
     BaseTestOperationServer,
@@ -508,6 +579,15 @@ class TestOperationVariableServerPathNotFound(
 class TestOperationVariableServerPathsNotFound(
     BaseTestPathsNotFound,
     BaseTestOperationServer,
+    BaseTestVariableServer,
+):
+    pass
+
+
+class TestPathVariableServerDefaultServer(
+    BaseTestDefaultServer,
+    BaseTestPathServer,
+    BaseTestSimplePath,
     BaseTestVariableServer,
 ):
     pass
