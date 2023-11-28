@@ -101,8 +101,10 @@ class APICallPathFinder(BasePathFinder):
             servers = (
                 path.get("servers", None)
                 or operation.get("servers", None)
-                or self.spec.get("servers", [{"url": "/"}])
+                or self.spec.get("servers", None)
             )
+            if not servers:
+                servers = [SchemaPath.from_dict({"url": "/"})]
             for server in servers:
                 server_url_pattern = name.rsplit(path_result.resolved, 1)[0]
                 server_url = server["url"]
