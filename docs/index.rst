@@ -12,7 +12,6 @@ openapi-core
     security
     extensions
     contributing
-    api
 
 Openapi-core is a Python library that adds client-side and server-side support
 for the `OpenAPI v3.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md>`__

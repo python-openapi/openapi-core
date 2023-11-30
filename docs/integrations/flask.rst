@@ -3,34 +3,24 @@ Flask
 
 This section describes integration with `Flask <https://flask.palletsprojects.com>`__ web framework.
 
-Decorator
----------
+View decorator
+--------------
 
-Flask views can be integrated by ``FlaskOpenAPIViewDecorator`` decorator.
+Flask can be integrated by `view decorator <https://flask.palletsprojects.com/en/latest/patterns/viewdecorators/>`__ to apply OpenAPI validation to your application's specific views.
+
+Use ``FlaskOpenAPIViewDecorator`` with OpenAPI object to create the decorator.
 
 .. code-block:: python
   :emphasize-lines: 1,3,6
 
     from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 
-    openapi = FlaskOpenAPIViewDecorator.from_spec(spec)
+    openapi_validated = FlaskOpenAPIViewDecorator(openapi)
 
     @app.route('/home')
-    @openapi
+    @openapi_validated
     def home():
        return "Welcome home"
-
-Additional customization parameters can be passed to the decorator.
-
-.. code-block:: python
-  :emphasize-lines: 5
-
-    from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
-
-    openapi = FlaskOpenAPIViewDecorator.from_spec(
-       spec,
-       extra_format_validators=extra_format_validators,
-    )
 
 You can skip response validation process: by setting ``response_cls`` to ``None``
 
@@ -39,8 +29,8 @@ You can skip response validation process: by setting ``response_cls`` to ``None`
 
     from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
 
-    openapi = FlaskOpenAPIViewDecorator.from_spec(
-       spec,
+    openapi_validated = FlaskOpenAPIViewDecorator(
+       openapi,
        response_cls=None,
     )
 
@@ -50,7 +40,7 @@ If you want to decorate class based view you can use the decorators attribute:
   :emphasize-lines: 2
 
     class MyView(View):
-       decorators = [openapi]
+       decorators = [openapi_validated]
 
        def dispatch_request(self):
            return "Welcome home"

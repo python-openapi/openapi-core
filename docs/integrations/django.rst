@@ -7,7 +7,9 @@ The integration supports Django from version 3.0 and above.
 Middleware
 ----------
 
-Django can be integrated by middleware. Add ``DjangoOpenAPIMiddleware`` to your ``MIDDLEWARE`` list and define ``OPENAPI``.
+Django can be integrated by `middleware <https://docs.djangoproject.com/en/5.0/topics/http/middleware/>`__ to apply OpenAPI validation to your entire application.
+
+Add ``DjangoOpenAPIMiddleware`` to your ``MIDDLEWARE`` list and define ``OPENAPI``.
 
 .. code-block:: python
   :emphasize-lines: 6,9
@@ -21,6 +23,30 @@ Django can be integrated by middleware. Add ``DjangoOpenAPIMiddleware`` to your 
     ]
 
     OPENAPI = OpenAPI.from_dict(spec_dict)
+
+After that all your requests and responses will be validated.
+
+Also you have access to unmarshal result object with all unmarshalled request data through ``openapi`` attribute of request object.
+
+.. code-block:: python
+
+    from django.views import View
+
+    class MyView(View):
+       def get(self, request):
+           # get parameters object with path, query, cookies and headers parameters
+           unmarshalled_params = request.openapi.parameters
+           # or specific location parameters
+           unmarshalled_path_params = request.openapi.parameters.path
+
+           # get body
+           unmarshalled_body = request.openapi.body
+
+           # get security data
+           unmarshalled_security = request.openapi.security
+
+Response validation
+^^^^^^^^^^^^^^^^^^^
 
 You can skip response validation process: by setting ``OPENAPI_RESPONSE_CLS`` to ``None``
 
@@ -38,43 +64,38 @@ You can skip response validation process: by setting ``OPENAPI_RESPONSE_CLS`` to
     OPENAPI = OpenAPI.from_dict(spec_dict)
     OPENAPI_RESPONSE_CLS = None
 
-After that you have access to unmarshal result object with all validated request data from Django view through request object.
-
-.. code-block:: python
-
-    from django.views import View
-
-    class MyView(View):
-       def get(self, req):
-           # get parameters object with path, query, cookies and headers parameters
-           validated_params = req.openapi.parameters
-           # or specific location parameters
-           validated_path_params = req.openapi.parameters.path
-
-           # get body
-           validated_body = req.openapi.body
-
-           # get security data
-           validated_security = req.openapi.security
-
 Low level
 ---------
 
-You can use ``DjangoOpenAPIRequest`` as a Django request factory:
+The integration defines classes useful for low level integration.
+
+Request
+^^^^^^^
+
+Use ``DjangoOpenAPIRequest`` to create OpenAPI request from Django request:
 
 .. code-block:: python
 
     from openapi_core.contrib.django import DjangoOpenAPIRequest
 
-    openapi_request = DjangoOpenAPIRequest(django_request)
-    result = openapi.unmarshal_request(openapi_request)
+    class MyView(View):
+       def get(self, request):
+           openapi_request = DjangoOpenAPIRequest(request)
+           openapi.validate_request(openapi_request)
 
-You can use ``DjangoOpenAPIResponse`` as a Django response factory:
+Response
+^^^^^^^^
+
+Use ``DjangoOpenAPIResponse`` to create OpenAPI response from Django response:
 
 .. code-block:: python
 
     from openapi_core.contrib.django import DjangoOpenAPIResponse
 
-    openapi_response = DjangoOpenAPIResponse(django_response)
-    result = openapi.unmarshal_response(openapi_request, openapi_response)
-
+    class MyView(View):
+       def get(self, request):
+           response = JsonResponse({'hello': 'world'})
+           openapi_request = DjangoOpenAPIRequest(request)
+           openapi_response = DjangoOpenAPIResponse(response)
+           openapi.validate_response(openapi_request, openapi_response)
+           return response
