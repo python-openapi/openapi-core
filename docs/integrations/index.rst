@@ -10,6 +10,7 @@ Openapi-core integrates with your popular libraries and frameworks. Each integra
     bottle
     django
     falcon
+    fastapi
     flask
     pyramid
     requests
