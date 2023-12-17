@@ -6,7 +6,9 @@ This section describes integration with `Starlette <https://www.starlette.io>`__
 Middleware
 ----------
 
-Starlette can be integrated by middleware. Add ``StarletteOpenAPIMiddleware`` with ``spec`` to your ``middleware`` list.
+Starlette can be integrated by `middleware <https://www.starlette.io/middleware/>`__ to apply OpenAPI validation to your entire application.
+
+Add ``StarletteOpenAPIMiddleware`` with OpenAPI object to your ``middleware`` list.
 
 .. code-block:: python
   :emphasize-lines: 1,6
@@ -24,21 +26,26 @@ Starlette can be integrated by middleware. Add ``StarletteOpenAPIMiddleware`` wi
         middleware=middleware,
     )
 
-After that you have access to unmarshal result object with all validated request data from endpoint through ``openapi`` key of request's scope directory.
+After that all your requests and responses will be validated.
+
+Also you have access to unmarshal result object with all unmarshalled request data through ``openapi`` scope of request object.
 
 .. code-block:: python
 
-    async def get_endpoint(req):
+    async def homepage(request):
        # get parameters object with path, query, cookies and headers parameters
-       validated_params = req.scope["openapi"].parameters
+       unmarshalled_params = request.scope["openapi"].parameters
        # or specific location parameters
-       validated_path_params = req.scope["openapi"].parameters.path
+       unmarshalled_path_params = request.scope["openapi"].parameters.path
 
        # get body
-       validated_body = req.scope["openapi"].body
+       unmarshalled_body = request.scope["openapi"].body
 
        # get security data
-       validated_security = req.scope["openapi"].security
+       unmarshalled_security = request.scope["openapi"].security
+
+Response validation
+^^^^^^^^^^^^^^^^^^^
 
 You can skip response validation process: by setting ``response_cls`` to ``None``
 
@@ -57,20 +64,34 @@ You can skip response validation process: by setting ``response_cls`` to ``None`
 Low level
 ---------
 
-You can use ``StarletteOpenAPIRequest`` as a Starlette request factory:
+The integration defines classes useful for low level integration.
+
+Request
+^^^^^^^
+
+Use ``StarletteOpenAPIRequest`` to create OpenAPI request from Starlette request:
 
 .. code-block:: python
 
     from openapi_core.contrib.starlette import StarletteOpenAPIRequest
 
-    openapi_request = StarletteOpenAPIRequest(starlette_request)
-    result = openapi.unmarshal_request(openapi_request)
+    async def homepage(request):
+        openapi_request = StarletteOpenAPIRequest(request)
+        result = openapi.unmarshal_request(openapi_request)
+        return JSONResponse({'hello': 'world'})
 
-You can use ``StarletteOpenAPIResponse`` as a Starlette response factory:
+Response
+^^^^^^^^
+
+Use ``StarletteOpenAPIResponse`` to create OpenAPI response from Starlette response:
 
 .. code-block:: python
 
     from openapi_core.contrib.starlette import StarletteOpenAPIResponse
 
-    openapi_response = StarletteOpenAPIResponse(starlette_response)
-    result = openapi.unmarshal_response(openapi_request, openapi_response)
+    async def homepage(request):
+        response = JSONResponse({'hello': 'world'})
+        openapi_request = StarletteOpenAPIRequest(request)
+        openapi_response = StarletteOpenAPIResponse(response)
+        openapi.validate_response(openapi_request, openapi_response)
+        return response

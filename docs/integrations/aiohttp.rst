@@ -6,21 +6,36 @@ This section describes integration with `aiohttp.web <https://docs.aiohttp.org/e
 Low level
 ---------
 
-You can use ``AIOHTTPOpenAPIWebRequest`` as an aiohttp request factory:
+The integration defines classes useful for low level integration.
+
+Request
+^^^^^^^
+
+Use ``AIOHTTPOpenAPIWebRequest`` to create OpenAPI request from aiohttp.web request:
 
 .. code-block:: python
 
     from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebRequest
 
-    request_body = await aiohttp_request.text()
-    openapi_request = AIOHTTPOpenAPIWebRequest(aiohttp_request, body=request_body)
-    result = openapi.unmarshal_request(openapi_request)
+    async def hello(request):
+        request_body = await request.text()
+        openapi_request = AIOHTTPOpenAPIWebRequest(request, body=request_body)
+        openapi.validate_request(openapi_request)
+        return web.Response(text="Hello, world")
 
-You can use ``AIOHTTPOpenAPIWebRequest`` as an aiohttp response factory:
+Response
+^^^^^^^^
+
+Use ``AIOHTTPOpenAPIWebResponse`` to create OpenAPI response from aiohttp.web response:
 
 .. code-block:: python
 
-    from openapi_core.contrib.starlette import AIOHTTPOpenAPIWebRequest
+    from openapi_core.contrib.starlette import AIOHTTPOpenAPIWebResponse
 
-    openapi_response = StarletteOpenAPIResponse(aiohttp_response)
-    result = openapi.unmarshal_response(openapi_request, openapi_response)
+    async def hello(request):
+        request_body = await request.text()
+        response = web.Response(text="Hello, world")
+        openapi_request = AIOHTTPOpenAPIWebRequest(request, body=request_body)
+        openapi_response = AIOHTTPOpenAPIWebResponse(response)
+        result = openapi.unmarshal_response(openapi_request, openapi_response)
+        return response

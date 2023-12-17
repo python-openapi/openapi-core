@@ -6,28 +6,37 @@ This section describes integration with `Werkzeug <https://werkzeug.palletsproje
 Low level
 ---------
 
-The integration defines ``WerkzeugOpenAPIRequest`` and ``WerkzeugOpenAPIResponse`` classes that convert
-Werkzeug requests and responses to OpenAPI ones.
+The integration defines classes useful for low level integration.
 
-.. md-tab-set::
+Request
+^^^^^^^
 
-    .. md-tab-item:: Request
+Use ``WerkzeugOpenAPIRequest`` to create OpenAPI request from Werkzeug request:
 
-      .. code-block:: python
+.. code-block:: python
 
-         from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest
+    from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest
 
-         openapi_request = WerkzeugOpenAPIRequest(werkzeug_request)
+    def application(environ, start_response):
+        request = Request(environ)
+        openapi_request = WerkzeugOpenAPIRequest(request)
+        openapi.validate_request(openapi_request)
+        response = Response("Hello world", mimetype='text/plain')
+        return response(environ, start_response)
 
-         result = openapi.unmarshal_request(openapi_request)
+Response
+^^^^^^^^
 
-    .. md-tab-item:: Response
+Use ``WerkzeugOpenAPIResponse`` to create OpenAPI response from Werkzeug response:
 
-      .. code-block:: python
+.. code-block:: python
 
-         from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest, WerkzeugOpenAPIResponse
+    from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse
 
-         openapi_request = WerkzeugOpenAPIRequest(werkzeug_request)
-         openapi_response = WerkzeugOpenAPIResponse(werkzeug_response)
-
-         result = openapi.unmarshal_response(openapi_request, openapi_response)
+    def application(environ, start_response):
+        request = Request(environ)
+        response = Response("Hello world", mimetype='text/plain')
+        openapi_request = WerkzeugOpenAPIRequest(request)
+        openapi_response = WerkzeugOpenAPIResponse(response)
+        openapi.validate_response(openapi_request, openapi_response)
+        return response(environ, start_response)
