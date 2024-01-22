@@ -64,7 +64,7 @@ django = {version = ">=3.0", optional = true}
 falcon = {version = ">=3.0", optional = true}
 flask = {version = "*", optional = true}
 aiohttp = {version = ">=3.0", optional = true}
-starlette = {version = ">=0.26.1,<0.35.0", optional = true}
+starlette = {version = ">=0.26.1,<0.37.0", optional = true}
 isodate = "*"
 more-itertools = "*"
 parse = "*"
@@ -98,7 +98,7 @@ pytest-flake8 = "*"
 pytest-cov = "*"
 python-multipart = "*"
 responses = "*"
-starlette = ">=0.26.1,<0.35.0"
+starlette = ">=0.26.1,<0.37.0"
 strict-rfc3339 = "^0.7"
 webob = "*"
 mypy = "^1.2"
