@@ -204,7 +204,16 @@ class OpenAPI:
         if self.request_validator_cls is None:
             raise SpecError("Validator class not found")
         return self.request_validator_cls(
-            self.spec, base_url=self.config.server_base_url
+            self.spec,
+            base_url=self.config.server_base_url,
+            style_deserializers_factory=self.config.style_deserializers_factory,
+            media_type_deserializers_factory=self.config.media_type_deserializers_factory,
+            schema_casters_factory=self.config.schema_casters_factory,
+            schema_validators_factory=self.config.schema_validators_factory,
+            spec_validator_cls=self.config.spec_validator_cls,
+            extra_format_validators=self.config.extra_format_validators,
+            extra_media_type_deserializers=self.config.extra_media_type_deserializers,
+            security_provider_factory=self.config.security_provider_factory,
         )
 
     @property
@@ -212,7 +221,15 @@ class OpenAPI:
         if self.response_validator_cls is None:
             raise SpecError("Validator class not found")
         return self.response_validator_cls(
-            self.spec, base_url=self.config.server_base_url
+            self.spec,
+            base_url=self.config.server_base_url,
+            style_deserializers_factory=self.config.style_deserializers_factory,
+            media_type_deserializers_factory=self.config.media_type_deserializers_factory,
+            schema_casters_factory=self.config.schema_casters_factory,
+            schema_validators_factory=self.config.schema_validators_factory,
+            spec_validator_cls=self.config.spec_validator_cls,
+            extra_format_validators=self.config.extra_format_validators,
+            extra_media_type_deserializers=self.config.extra_media_type_deserializers,
         )
 
     @property
@@ -220,7 +237,16 @@ class OpenAPI:
         if self.webhook_request_validator_cls is None:
             raise SpecError("Validator class not found")
         return self.webhook_request_validator_cls(
-            self.spec, base_url=self.config.server_base_url
+            self.spec,
+            base_url=self.config.server_base_url,
+            style_deserializers_factory=self.config.style_deserializers_factory,
+            media_type_deserializers_factory=self.config.media_type_deserializers_factory,
+            schema_casters_factory=self.config.schema_casters_factory,
+            schema_validators_factory=self.config.schema_validators_factory,
+            spec_validator_cls=self.config.spec_validator_cls,
+            extra_format_validators=self.config.extra_format_validators,
+            extra_media_type_deserializers=self.config.extra_media_type_deserializers,
+            security_provider_factory=self.config.security_provider_factory,
         )
 
     @property
@@ -228,7 +254,15 @@ class OpenAPI:
         if self.webhook_response_validator_cls is None:
             raise SpecError("Validator class not found")
         return self.webhook_response_validator_cls(
-            self.spec, base_url=self.config.server_base_url
+            self.spec,
+            base_url=self.config.server_base_url,
+            style_deserializers_factory=self.config.style_deserializers_factory,
+            media_type_deserializers_factory=self.config.media_type_deserializers_factory,
+            schema_casters_factory=self.config.schema_casters_factory,
+            schema_validators_factory=self.config.schema_validators_factory,
+            spec_validator_cls=self.config.spec_validator_cls,
+            extra_format_validators=self.config.extra_format_validators,
+            extra_media_type_deserializers=self.config.extra_media_type_deserializers,
         )
 
     @property
@@ -236,7 +270,18 @@ class OpenAPI:
         if self.request_unmarshaller_cls is None:
             raise SpecError("Unmarshaller class not found")
         return self.request_unmarshaller_cls(
-            self.spec, base_url=self.config.server_base_url
+            self.spec,
+            base_url=self.config.server_base_url,
+            style_deserializers_factory=self.config.style_deserializers_factory,
+            media_type_deserializers_factory=self.config.media_type_deserializers_factory,
+            schema_casters_factory=self.config.schema_casters_factory,
+            schema_validators_factory=self.config.schema_validators_factory,
+            spec_validator_cls=self.config.spec_validator_cls,
+            extra_format_validators=self.config.extra_format_validators,
+            extra_media_type_deserializers=self.config.extra_media_type_deserializers,
+            security_provider_factory=self.config.security_provider_factory,
+            schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
+            extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
 
     @property
@@ -244,7 +289,17 @@ class OpenAPI:
         if self.response_unmarshaller_cls is None:
             raise SpecError("Unmarshaller class not found")
         return self.response_unmarshaller_cls(
-            self.spec, base_url=self.config.server_base_url
+            self.spec,
+            base_url=self.config.server_base_url,
+            style_deserializers_factory=self.config.style_deserializers_factory,
+            media_type_deserializers_factory=self.config.media_type_deserializers_factory,
+            schema_casters_factory=self.config.schema_casters_factory,
+            schema_validators_factory=self.config.schema_validators_factory,
+            spec_validator_cls=self.config.spec_validator_cls,
+            extra_format_validators=self.config.extra_format_validators,
+            extra_media_type_deserializers=self.config.extra_media_type_deserializers,
+            schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
+            extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
 
     @property
@@ -252,7 +307,18 @@ class OpenAPI:
         if self.webhook_request_unmarshaller_cls is None:
             raise SpecError("Unmarshaller class not found")
         return self.webhook_request_unmarshaller_cls(
-            self.spec, base_url=self.config.server_base_url
+            self.spec,
+            base_url=self.config.server_base_url,
+            style_deserializers_factory=self.config.style_deserializers_factory,
+            media_type_deserializers_factory=self.config.media_type_deserializers_factory,
+            schema_casters_factory=self.config.schema_casters_factory,
+            schema_validators_factory=self.config.schema_validators_factory,
+            spec_validator_cls=self.config.spec_validator_cls,
+            extra_format_validators=self.config.extra_format_validators,
+            extra_media_type_deserializers=self.config.extra_media_type_deserializers,
+            security_provider_factory=self.config.security_provider_factory,
+            schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
+            extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
 
     @property
@@ -260,7 +326,17 @@ class OpenAPI:
         if self.webhook_response_unmarshaller_cls is None:
             raise SpecError("Unmarshaller class not found")
         return self.webhook_response_unmarshaller_cls(
-            self.spec, base_url=self.config.server_base_url
+            self.spec,
+            base_url=self.config.server_base_url,
+            style_deserializers_factory=self.config.style_deserializers_factory,
+            media_type_deserializers_factory=self.config.media_type_deserializers_factory,
+            schema_casters_factory=self.config.schema_casters_factory,
+            schema_validators_factory=self.config.schema_validators_factory,
+            spec_validator_cls=self.config.spec_validator_cls,
+            extra_format_validators=self.config.extra_format_validators,
+            extra_media_type_deserializers=self.config.extra_media_type_deserializers,
+            schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
+            extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
 
     def validate_request(self, request: AnyRequest) -> None:
