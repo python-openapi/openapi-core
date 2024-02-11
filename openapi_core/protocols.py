@@ -1,4 +1,5 @@
 """OpenAPI core protocols module"""
+
 from typing import Any
 from typing import Mapping
 from typing import Optional
@@ -13,16 +14,13 @@ class BaseRequest(Protocol):
     parameters: RequestParameters
 
     @property
-    def method(self) -> str:
-        ...
+    def method(self) -> str: ...
 
     @property
-    def body(self) -> Optional[bytes]:
-        ...
+    def body(self) -> Optional[bytes]: ...
 
     @property
-    def content_type(self) -> str:
-        ...
+    def content_type(self) -> str: ...
 
 
 @runtime_checkable
@@ -54,12 +52,10 @@ class Request(BaseRequest, Protocol):
     """
 
     @property
-    def host_url(self) -> str:
-        ...
+    def host_url(self) -> str: ...
 
     @property
-    def path(self) -> str:
-        ...
+    def path(self) -> str: ...
 
 
 @runtime_checkable
@@ -82,8 +78,7 @@ class WebhookRequest(BaseRequest, Protocol):
     """
 
     @property
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
 
 @runtime_checkable
@@ -100,8 +95,7 @@ class SupportsPathPattern(Protocol):
     """
 
     @property
-    def path_pattern(self) -> str:
-        ...
+    def path_pattern(self) -> str: ...
 
 
 @runtime_checkable
@@ -120,17 +114,13 @@ class Response(Protocol):
     """
 
     @property
-    def data(self) -> Optional[bytes]:
-        ...
+    def data(self) -> Optional[bytes]: ...
 
     @property
-    def status_code(self) -> int:
-        ...
+    def status_code(self) -> int: ...
 
     @property
-    def content_type(self) -> str:
-        ...
+    def content_type(self) -> str: ...
 
     @property
-    def headers(self) -> Mapping[str, Any]:
-        ...
+    def headers(self) -> Mapping[str, Any]: ...

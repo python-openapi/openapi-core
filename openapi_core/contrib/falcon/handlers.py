@@ -1,4 +1,5 @@
 """OpenAPI core contrib falcon handlers module"""
+
 from json import dumps
 from typing import Any
 from typing import Dict

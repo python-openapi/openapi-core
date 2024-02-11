@@ -6,11 +6,9 @@ from typing import runtime_checkable
 
 @runtime_checkable
 class SuportsGetAll(Protocol):
-    def getall(self, name: str) -> List[Any]:
-        ...
+    def getall(self, name: str) -> List[Any]: ...
 
 
 @runtime_checkable
 class SuportsGetList(Protocol):
-    def getlist(self, name: str) -> List[Any]:
-        ...
+    def getlist(self, name: str) -> List[Any]: ...

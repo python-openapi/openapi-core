@@ -1,4 +1,5 @@
 """OpenAPI core contrib django middlewares module"""
+
 import warnings
 from typing import Callable
 

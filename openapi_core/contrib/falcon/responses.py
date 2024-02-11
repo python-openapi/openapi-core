@@ -1,4 +1,5 @@
 """OpenAPI core contrib falcon responses module"""
+
 from itertools import tee
 
 from falcon.response import Response

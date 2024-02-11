@@ -1,4 +1,5 @@
 """OpenAPI core unmarshalling response module"""
+
 from typing import Mapping
 
 from openapi_spec_validator.versions import consts as versions

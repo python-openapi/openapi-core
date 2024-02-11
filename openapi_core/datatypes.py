@@ -1,4 +1,5 @@
 """OpenAPI core validation request datatypes module"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

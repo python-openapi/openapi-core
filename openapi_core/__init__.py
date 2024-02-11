@@ -1,4 +1,5 @@
 """OpenAPI core module"""
+
 from openapi_core.app import OpenAPI
 from openapi_core.configurations import Config
 from openapi_core.shortcuts import unmarshal_apicall_request

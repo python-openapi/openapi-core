@@ -23,9 +23,9 @@ class ResponseUnmarshallingProcessor:
         self.response_unmarshaller_cls = response_unmarshaller_cls
         self.unmarshaller_kwargs = unmarshaller_kwargs
 
-        self._response_unmarshaller_cached: Optional[
-            ResponseUnmarshaller
-        ] = None
+        self._response_unmarshaller_cached: Optional[ResponseUnmarshaller] = (
+            None
+        )
 
     @property
     def response_unmarshaller(self) -> ResponseUnmarshaller:

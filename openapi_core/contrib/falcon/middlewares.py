@@ -1,4 +1,5 @@
 """OpenAPI core contrib falcon middlewares module"""
+
 from typing import Any
 from typing import Type
 from typing import Union
@@ -24,9 +25,9 @@ from openapi_core.unmarshalling.response.types import ResponseUnmarshallerType
 
 class FalconOpenAPIMiddleware(FalconIntegration):
     valid_request_handler_cls = FalconOpenAPIValidRequestHandler
-    errors_handler_cls: Type[
+    errors_handler_cls: Type[FalconOpenAPIErrorsHandler] = (
         FalconOpenAPIErrorsHandler
-    ] = FalconOpenAPIErrorsHandler
+    )
 
     def __init__(
         self,

@@ -1,4 +1,5 @@
 """OpenAPI core contrib django responses module"""
+
 from itertools import tee
 
 from django.http.response import HttpResponse

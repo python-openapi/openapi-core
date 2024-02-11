@@ -1,4 +1,5 @@
 """OpenAPI core schemas util module"""
+
 from base64 import b64decode
 from datetime import date
 from datetime import datetime

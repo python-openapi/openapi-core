@@ -29,9 +29,11 @@ class StarletteIntegration(AsyncUnmarshallingProcessor[Request, Response]):
             response.body_iterator = body_iter2
             data = b"".join(
                 [
-                    chunk.encode(response.charset)
-                    if not isinstance(chunk, bytes)
-                    else chunk
+                    (
+                        chunk.encode(response.charset)
+                        if not isinstance(chunk, bytes)
+                        else chunk
+                    )
                     async for chunk in body_iter1
                 ]
             )

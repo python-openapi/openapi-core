@@ -1,4 +1,5 @@
 """OpenAPI core contrib aiohttp requests module"""
+
 from __future__ import annotations
 
 from aiohttp import web
@@ -6,8 +7,7 @@ from aiohttp import web
 from openapi_core.datatypes import RequestParameters
 
 
-class Empty:
-    ...
+class Empty: ...
 
 
 _empty = Empty()

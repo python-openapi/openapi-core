@@ -1,4 +1,5 @@
 """OpenAPI core validation datatypes module"""
+
 from dataclasses import dataclass
 from typing import Iterable
 

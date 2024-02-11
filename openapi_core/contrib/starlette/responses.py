@@ -1,4 +1,5 @@
 """OpenAPI core contrib starlette responses module"""
+
 from typing import Optional
 
 from starlette.datastructures import Headers

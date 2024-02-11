@@ -1,4 +1,5 @@
 """OpenAPI X-Model extension factories module"""
+
 from dataclasses import make_dataclass
 from pydoc import locate
 from typing import Any

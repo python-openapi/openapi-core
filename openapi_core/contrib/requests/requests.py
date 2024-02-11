@@ -1,4 +1,5 @@
 """OpenAPI core contrib requests requests module"""
+
 from typing import Optional
 from typing import Union
 from urllib.parse import parse_qs

@@ -1,4 +1,5 @@
 """OpenAPI core validation validators module"""
+
 import warnings
 from functools import cached_property
 from typing import Any

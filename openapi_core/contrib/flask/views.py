@@ -1,4 +1,5 @@
 """OpenAPI core contrib flask views module"""
+
 from typing import Any
 
 from flask.views import MethodView

@@ -1,4 +1,5 @@
 """OpenAPI core validation response protocols module"""
+
 from typing import Optional
 from typing import Protocol
 from typing import runtime_checkable
@@ -57,15 +58,13 @@ class ResponseUnmarshaller(Protocol):
         ] = None,
         format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
         extra_format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
-    ):
-        ...
+    ): ...
 
     def unmarshal(
         self,
         request: Request,
         response: Response,
-    ) -> ResponseUnmarshalResult:
-        ...
+    ) -> ResponseUnmarshalResult: ...
 
 
 @runtime_checkable
@@ -89,12 +88,10 @@ class WebhookResponseUnmarshaller(Protocol):
         ] = None,
         format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
         extra_format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
-    ):
-        ...
+    ): ...
 
     def unmarshal(
         self,
         request: WebhookRequest,
         response: Response,
-    ) -> ResponseUnmarshalResult:
-        ...
+    ) -> ResponseUnmarshalResult: ...
