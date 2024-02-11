@@ -1,4 +1,5 @@
 """OpenAPI core templating media types finders module"""
+
 import fnmatch
 from typing import Mapping
 from typing import Tuple

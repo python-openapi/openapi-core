@@ -1,4 +1,5 @@
 """OpenAPI core contrib django requests module"""
+
 import re
 from typing import Optional
 

@@ -1,4 +1,5 @@
 """OpenAPI core contrib starlette handlers module"""
+
 from typing import Any
 from typing import Dict
 from typing import Iterable

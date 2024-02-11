@@ -1,4 +1,5 @@
 """OpenAPI core templating paths finders module"""
+
 from typing import Iterator
 from typing import List
 from typing import Optional

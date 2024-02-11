@@ -1,4 +1,5 @@
 """OpenAPI core util module"""
+
 from itertools import chain
 from typing import Any
 from typing import Iterable

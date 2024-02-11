@@ -1,4 +1,5 @@
 """OpenAPI core contrib starlette requests module"""
+
 from typing import Optional
 
 from starlette.requests import Request

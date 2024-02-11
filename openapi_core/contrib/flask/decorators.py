@@ -1,4 +1,5 @@
 """OpenAPI core contrib flask decorators module"""
+
 from functools import wraps
 from typing import Any
 from typing import Callable
@@ -20,9 +21,9 @@ from openapi_core.contrib.flask.responses import FlaskOpenAPIResponse
 
 class FlaskOpenAPIViewDecorator(FlaskIntegration):
     valid_request_handler_cls = FlaskOpenAPIValidRequestHandler
-    errors_handler_cls: Type[
+    errors_handler_cls: Type[FlaskOpenAPIErrorsHandler] = (
         FlaskOpenAPIErrorsHandler
-    ] = FlaskOpenAPIErrorsHandler
+    )
 
     def __init__(
         self,

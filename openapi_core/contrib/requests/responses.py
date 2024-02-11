@@ -1,4 +1,5 @@
 """OpenAPI core contrib requests responses module"""
+
 from requests import Response
 from werkzeug.datastructures import Headers
 

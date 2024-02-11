@@ -1,4 +1,5 @@
 """OpenAPI core unmarshalling response datatypes module"""
+
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any

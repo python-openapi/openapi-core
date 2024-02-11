@@ -1,4 +1,5 @@
 """OpenAPI core contrib werkzeug requests module"""
+
 import re
 from typing import Optional
 

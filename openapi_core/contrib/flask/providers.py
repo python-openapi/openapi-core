@@ -1,4 +1,5 @@
 """OpenAPI core contrib flask providers module"""
+
 from typing import Any
 
 from flask.globals import request

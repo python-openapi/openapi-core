@@ -1,4 +1,5 @@
 """OpenAPI core contrib werkzeug responses module"""
+
 from itertools import tee
 
 from werkzeug.datastructures import Headers

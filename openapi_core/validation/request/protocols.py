@@ -1,4 +1,5 @@
 """OpenAPI core validation request protocols module"""
+
 from typing import Iterator
 from typing import Optional
 from typing import Protocol
@@ -46,20 +47,17 @@ class RequestValidator(Protocol):
             MediaTypeDeserializersDict
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
-    ):
-        ...
+    ): ...
 
     def iter_errors(
         self,
         request: Request,
-    ) -> Iterator[Exception]:
-        ...
+    ) -> Iterator[Exception]: ...
 
     def validate(
         self,
         request: Request,
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 @runtime_checkable
@@ -79,17 +77,14 @@ class WebhookRequestValidator(Protocol):
             MediaTypeDeserializersDict
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
-    ):
-        ...
+    ): ...
 
     def iter_errors(
         self,
         request: WebhookRequest,
-    ) -> Iterator[Exception]:
-        ...
+    ) -> Iterator[Exception]: ...
 
     def validate(
         self,
         request: WebhookRequest,
-    ) -> None:
-        ...
+    ) -> None: ...

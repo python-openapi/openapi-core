@@ -1,4 +1,5 @@
 """OpenAPI core shortcuts module"""
+
 from typing import Any
 from typing import Optional
 from typing import Union

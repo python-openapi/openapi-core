@@ -1,4 +1,5 @@
 """OpenAPI core contrib flask requests module"""
+
 from flask.wrappers import Request
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict

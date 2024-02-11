@@ -1,4 +1,5 @@
 """OpenAPI core contrib falcon responses module"""
+
 import warnings
 from json import dumps
 from typing import Any

@@ -1,4 +1,5 @@
 """OpenAPI core contrib starlette middlewares module"""
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.requests import Request
