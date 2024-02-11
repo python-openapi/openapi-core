@@ -15,6 +15,8 @@ from openapi_core.deserializing.styles import style_deserializers_factory
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
+from openapi_core.security import security_provider_factory
+from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
@@ -38,6 +40,8 @@ class ValidatorConfig:
             Extra format validators.
         extra_media_type_deserializers
             Extra media type deserializers.
+        security_provider_factory
+            Security providers factory.
     """
 
     server_base_url: Optional[str] = None
@@ -53,3 +57,7 @@ class ValidatorConfig:
 
     extra_format_validators: Optional[FormatValidatorsDict] = None
     extra_media_type_deserializers: Optional[MediaTypeDeserializersDict] = None
+
+    security_provider_factory: SecurityProviderFactory = (
+        security_provider_factory
+    )
