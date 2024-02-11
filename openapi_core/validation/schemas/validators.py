@@ -78,6 +78,24 @@ class SchemaValidator:
 
         return lambda x: True
 
+    def get_primitive_type(self, value: Any) -> Optional[str]:
+        schema_types = self.schema.getkey("type")
+        if isinstance(schema_types, str):
+            return schema_types
+        if schema_types is None:
+            schema_types = sorted(self.validator.TYPE_CHECKER._type_checkers)
+        assert isinstance(schema_types, list)
+        for schema_type in schema_types:
+            result = self.type_validator(value, type_override=schema_type)
+            if not result:
+                continue
+            result = self.format_validator(value)
+            if not result:
+                continue
+            assert isinstance(schema_type, (str, type(None)))
+            return schema_type
+        return None
+
     def iter_valid_schemas(self, value: Any) -> Iterator[SchemaPath]:
         yield self.schema
 
