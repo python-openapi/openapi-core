@@ -71,7 +71,17 @@ from openapi_core.validation.response.types import WebhookResponseValidatorType
 
 
 class OpenAPI:
-    """OpenAPI class."""
+    """`OpenAPI` application class, the main entrypoint class for OpenAPI-core.
+
+    Read more information, in the 
+    [OpenAPI-core docs for First Steps](https://openapi-core.readthedocs.io/#first-steps).
+
+    Import :class:`OpenAPI` class from the main `openapi_core` module::
+
+        from openapi_core import OpenAPI
+
+        app = OpenAPI(spec)
+    """
 
     def __init__(
         self,
@@ -90,6 +100,7 @@ class OpenAPI:
     def from_dict(
         cls, data: Schema, config: Optional[Config] = None
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a dictionary."""
         sp = SchemaPath.from_dict(data)
         return cls(sp, config=config)
 
@@ -97,6 +108,7 @@ class OpenAPI:
     def from_path(
         cls, path: Path, config: Optional[Config] = None
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a path object."""
         sp = SchemaPath.from_path(path)
         return cls(sp, config=config)
 
@@ -104,6 +116,7 @@ class OpenAPI:
     def from_file_path(
         cls, file_path: str, config: Optional[Config] = None
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a file path string."""
         sp = SchemaPath.from_file_path(file_path)
         return cls(sp, config=config)
 
@@ -111,6 +124,7 @@ class OpenAPI:
     def from_file(
         cls, fileobj: SupportsRead, config: Optional[Config] = None
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a file object."""
         sp = SchemaPath.from_file(fileobj)
         return cls(sp, config=config)
 

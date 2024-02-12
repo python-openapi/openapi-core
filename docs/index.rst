@@ -11,6 +11,7 @@ openapi-core
     customizations/index
     security
     extensions
+    api/index
     contributing
 
 Openapi-core is a Python library that adds client-side and server-side support
