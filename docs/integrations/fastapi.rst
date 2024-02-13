@@ -1,11 +1,11 @@
 FastAPI
-=========
+=======
 
 This section describes integration with `FastAPI <https://fastapi.tiangolo.com>`__  ASGI framework.
 
 .. note::
 
-    FastAPI also provides OpenAPI support. The main difference is that, unlike FastAPI's code-first approach, OpenAPI-core allows you to laverage your existing specification that alligns with API-First approach. You can read more about API-first vs. code-first in the [Guide to API-first](https://www.postman.com/api-first/).
+    FastAPI also provides OpenAPI support. The main difference is that, unlike FastAPI's code-first approach, OpenAPI-core allows you to laverage your existing specification that alligns with API-First approach. You can read more about API-first vs. code-first in the `Guide to API-first <https://www.postman.com/api-first/>`__.
 
 Middleware
 ----------
@@ -47,10 +47,14 @@ Response validation
 You can skip response validation process: by setting ``response_cls`` to ``None``
 
 .. code-block:: python
-  :emphasize-lines: 2
+  :emphasize-lines: 5
 
     app = FastAPI()
-    app.add_middleware(FastAPIOpenAPIMiddleware, openapi=openapi, response_cls=None)
+    app.add_middleware(
+        FastAPIOpenAPIMiddleware,
+        openapi=openapi,
+        response_cls=None,
+    )
 
 Low level
 ---------
