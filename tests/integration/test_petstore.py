@@ -100,11 +100,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -159,11 +163,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -219,11 +227,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -267,11 +279,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -339,11 +355,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -391,11 +411,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -443,12 +467,16 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            with pytest.raises(ParameterValidationError) as exc_info:
-                validate_request(
-                    request,
-                    spec=spec,
-                    cls=V30RequestParametersUnmarshaller,
-                )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                with pytest.raises(ParameterValidationError) as exc_info:
+                    validate_request(
+                        request,
+                        spec=spec,
+                        cls=V30RequestParametersUnmarshaller,
+                    )
         assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
         result = unmarshal_request(
@@ -475,12 +503,16 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            with pytest.raises(ParameterValidationError) as exc_info:
-                validate_request(
-                    request,
-                    spec=spec,
-                    cls=V30RequestParametersValidator,
-                )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                with pytest.raises(ParameterValidationError) as exc_info:
+                    validate_request(
+                        request,
+                        spec=spec,
+                        cls=V30RequestParametersValidator,
+                    )
         assert type(exc_info.value.__cause__) is CastError
 
         result = unmarshal_request(
@@ -502,12 +534,16 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            with pytest.raises(MissingRequiredParameter):
-                validate_request(
-                    request,
-                    spec=spec,
-                    cls=V30RequestParametersValidator,
-                )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                with pytest.raises(MissingRequiredParameter):
+                    validate_request(
+                        request,
+                        spec=spec,
+                        cls=V30RequestParametersValidator,
+                    )
 
         result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
@@ -534,12 +570,16 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            with pytest.raises(ParameterValidationError) as exc_info:
-                validate_request(
-                    request,
-                    spec=spec,
-                    cls=V30RequestParametersValidator,
-                )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                with pytest.raises(ParameterValidationError) as exc_info:
+                    validate_request(
+                        request,
+                        spec=spec,
+                        cls=V30RequestParametersValidator,
+                    )
         assert type(exc_info.value.__cause__) is EmptyQueryParameterValue
 
         result = unmarshal_request(
@@ -567,11 +607,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -605,11 +649,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -644,11 +692,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert result.parameters == Parameters(
             query={
@@ -688,11 +740,15 @@ class TestPetstore:
         with pytest.warns(
             DeprecationWarning, match="limit parameter is deprecated"
         ):
-            result = unmarshal_request(
-                request,
-                spec=spec,
-                cls=V30RequestParametersUnmarshaller,
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match="Use of allowEmptyValue property is deprecated",
+            ):
+                result = unmarshal_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersUnmarshaller,
+                )
 
         assert is_dataclass(result.parameters.query["coordinates"])
         assert (
