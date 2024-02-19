@@ -23,7 +23,7 @@ jobs:
           python-version: '3.x'
 
       - name: Set up poetry
-        uses: Gr1N/setup-poetry@v8
+        uses: Gr1N/setup-poetry@v9
 
       - name: Build
         run: poetry build
