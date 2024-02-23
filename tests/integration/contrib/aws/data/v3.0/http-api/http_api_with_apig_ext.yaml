@@ -1,0 +1,104 @@
+openapi: "3.0.1"
+info:
+  title: "test-http-api"
+  version: "2024-04-15 20:45:05UTC"
+servers:
+- url: "https://testapi.execute-api.us-west-2.amazonaws.com/{basePath}"
+  variables:
+    basePath:
+      default: "dev"
+paths:
+  /test-http-proxy/{proxy+}:
+    parameters:
+    - name: "proxy+"
+      in: "path"
+      description: "Generated path parameter for proxy+"
+      required: true
+      schema:
+        type: "string"
+    x-amazon-apigateway-any-method:
+      responses:
+        default:
+          description: "Default response for ANY /test-http-proxy/{proxy+}"
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "1.0"
+        type: "http_proxy"
+        httpMethod: "ANY"
+        uri: "https://testlambdafunction.lambda-url.us-west-2.on.aws/{proxy}"
+        connectionType: "INTERNET"
+  /test-lambda-proxy-v2/{id}:
+    parameters:
+    - name: "id"
+      in: "path"
+      description: "Generated path parameter for id"
+      required: true
+      schema:
+        type: "string"
+    x-amazon-apigateway-any-method:
+      responses:
+        default:
+          description: "Default response for ANY /test-lambda-proxy-v2/{id}"
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "2.0"
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:123456789012:function:test-openapi-func/invocations"
+        connectionType: "INTERNET"
+        timeoutInMillis: 30000
+  /test-lambda-proxy/{id}:
+    parameters:
+    - name: "id"
+      in: "path"
+      description: "Generated path parameter for id"
+      required: true
+      schema:
+        type: "string"
+    x-amazon-apigateway-any-method:
+      responses:
+        default:
+          description: "Default response for ANY /test-lambda-proxy/{id}"
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "1.0"
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:123456789012:function:test-openapi-func/invocations"
+        connectionType: "INTERNET"
+        timeoutInMillis: 30000
+  /test-http-proxy:
+    get:
+      responses:
+        default:
+          description: "Default response for GET /test-http-proxy"
+      x-amazon-apigateway-integration:
+        requestParameters:
+          append:header.testing: "testing"
+        payloadFormatVersion: "1.0"
+        type: "http_proxy"
+        httpMethod: "ANY"
+        uri: "https://testlambdafunction.lambda-url.us-west-2.on.aws"
+        connectionType: "INTERNET"
+  /test-lambda-proxy:
+    get:
+      responses:
+        default:
+          description: "Default response for GET /test-lambda-proxy"
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "1.0"
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:123456789012:function:test-openapi-func/invocations"
+        connectionType: "INTERNET"
+        timeoutInMillis: 30000
+  /test-lambda-proxy-v2:
+    get:
+      responses:
+        default:
+          description: "Default response for GET /test-lambda-proxy-v2"
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "2.0"
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:123456789012:function:test-openapi-func/invocations"
+        connectionType: "INTERNET"
+        timeoutInMillis: 30000
+x-amazon-apigateway-importexport-version: "1.0"

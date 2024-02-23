@@ -6,6 +6,7 @@ Openapi-core integrates with your popular libraries and frameworks. Each integra
 .. toctree::
     :maxdepth: 1
 
+    aws
     aiohttp
     bottle
     django
