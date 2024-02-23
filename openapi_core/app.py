@@ -1,5 +1,6 @@
 """OpenAPI core app module"""
 
+from functools import cached_property
 from pathlib import Path
 from typing import Optional
 
@@ -142,19 +143,19 @@ class OpenAPI:
     def version(self) -> SpecVersion:
         return self._get_version()
 
-    @property
+    @cached_property
     def request_validator_cls(self) -> Optional[RequestValidatorType]:
         if not isinstance(self.config.request_validator_cls, Unset):
             return self.config.request_validator_cls
         return REQUEST_VALIDATORS.get(self.version)
 
-    @property
+    @cached_property
     def response_validator_cls(self) -> Optional[ResponseValidatorType]:
         if not isinstance(self.config.response_validator_cls, Unset):
             return self.config.response_validator_cls
         return RESPONSE_VALIDATORS.get(self.version)
 
-    @property
+    @cached_property
     def webhook_request_validator_cls(
         self,
     ) -> Optional[WebhookRequestValidatorType]:
@@ -162,7 +163,7 @@ class OpenAPI:
             return self.config.webhook_request_validator_cls
         return WEBHOOK_REQUEST_VALIDATORS.get(self.version)
 
-    @property
+    @cached_property
     def webhook_response_validator_cls(
         self,
     ) -> Optional[WebhookResponseValidatorType]:
@@ -170,19 +171,19 @@ class OpenAPI:
             return self.config.webhook_response_validator_cls
         return WEBHOOK_RESPONSE_VALIDATORS.get(self.version)
 
-    @property
+    @cached_property
     def request_unmarshaller_cls(self) -> Optional[RequestUnmarshallerType]:
         if not isinstance(self.config.request_unmarshaller_cls, Unset):
             return self.config.request_unmarshaller_cls
         return REQUEST_UNMARSHALLERS.get(self.version)
 
-    @property
+    @cached_property
     def response_unmarshaller_cls(self) -> Optional[ResponseUnmarshallerType]:
         if not isinstance(self.config.response_unmarshaller_cls, Unset):
             return self.config.response_unmarshaller_cls
         return RESPONSE_UNMARSHALLERS.get(self.version)
 
-    @property
+    @cached_property
     def webhook_request_unmarshaller_cls(
         self,
     ) -> Optional[WebhookRequestUnmarshallerType]:
@@ -190,7 +191,7 @@ class OpenAPI:
             return self.config.webhook_request_unmarshaller_cls
         return WEBHOOK_REQUEST_UNMARSHALLERS.get(self.version)
 
-    @property
+    @cached_property
     def webhook_response_unmarshaller_cls(
         self,
     ) -> Optional[WebhookResponseUnmarshallerType]:
@@ -200,7 +201,7 @@ class OpenAPI:
             return self.config.webhook_response_unmarshaller_cls
         return WEBHOOK_RESPONSE_UNMARSHALLERS.get(self.version)
 
-    @property
+    @cached_property
     def request_validator(self) -> RequestValidator:
         if self.request_validator_cls is None:
             raise SpecError("Validator class not found")
@@ -211,13 +212,14 @@ class OpenAPI:
             media_type_deserializers_factory=self.config.media_type_deserializers_factory,
             schema_casters_factory=self.config.schema_casters_factory,
             schema_validators_factory=self.config.schema_validators_factory,
+            path_finder_cls=self.config.path_finder_cls,
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
             security_provider_factory=self.config.security_provider_factory,
         )
 
-    @property
+    @cached_property
     def response_validator(self) -> ResponseValidator:
         if self.response_validator_cls is None:
             raise SpecError("Validator class not found")
@@ -228,12 +230,13 @@ class OpenAPI:
             media_type_deserializers_factory=self.config.media_type_deserializers_factory,
             schema_casters_factory=self.config.schema_casters_factory,
             schema_validators_factory=self.config.schema_validators_factory,
+            path_finder_cls=self.config.path_finder_cls,
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
         )
 
-    @property
+    @cached_property
     def webhook_request_validator(self) -> WebhookRequestValidator:
         if self.webhook_request_validator_cls is None:
             raise SpecError("Validator class not found")
@@ -244,13 +247,14 @@ class OpenAPI:
             media_type_deserializers_factory=self.config.media_type_deserializers_factory,
             schema_casters_factory=self.config.schema_casters_factory,
             schema_validators_factory=self.config.schema_validators_factory,
+            path_finder_cls=self.config.webhook_path_finder_cls,
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
             security_provider_factory=self.config.security_provider_factory,
         )
 
-    @property
+    @cached_property
     def webhook_response_validator(self) -> WebhookResponseValidator:
         if self.webhook_response_validator_cls is None:
             raise SpecError("Validator class not found")
@@ -261,12 +265,13 @@ class OpenAPI:
             media_type_deserializers_factory=self.config.media_type_deserializers_factory,
             schema_casters_factory=self.config.schema_casters_factory,
             schema_validators_factory=self.config.schema_validators_factory,
+            path_finder_cls=self.config.webhook_path_finder_cls,
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
         )
 
-    @property
+    @cached_property
     def request_unmarshaller(self) -> RequestUnmarshaller:
         if self.request_unmarshaller_cls is None:
             raise SpecError("Unmarshaller class not found")
@@ -277,6 +282,7 @@ class OpenAPI:
             media_type_deserializers_factory=self.config.media_type_deserializers_factory,
             schema_casters_factory=self.config.schema_casters_factory,
             schema_validators_factory=self.config.schema_validators_factory,
+            path_finder_cls=self.config.path_finder_cls,
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
@@ -285,7 +291,7 @@ class OpenAPI:
             extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
 
-    @property
+    @cached_property
     def response_unmarshaller(self) -> ResponseUnmarshaller:
         if self.response_unmarshaller_cls is None:
             raise SpecError("Unmarshaller class not found")
@@ -296,6 +302,7 @@ class OpenAPI:
             media_type_deserializers_factory=self.config.media_type_deserializers_factory,
             schema_casters_factory=self.config.schema_casters_factory,
             schema_validators_factory=self.config.schema_validators_factory,
+            path_finder_cls=self.config.path_finder_cls,
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
@@ -303,7 +310,7 @@ class OpenAPI:
             extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
 
-    @property
+    @cached_property
     def webhook_request_unmarshaller(self) -> WebhookRequestUnmarshaller:
         if self.webhook_request_unmarshaller_cls is None:
             raise SpecError("Unmarshaller class not found")
@@ -314,6 +321,7 @@ class OpenAPI:
             media_type_deserializers_factory=self.config.media_type_deserializers_factory,
             schema_casters_factory=self.config.schema_casters_factory,
             schema_validators_factory=self.config.schema_validators_factory,
+            path_finder_cls=self.config.webhook_path_finder_cls,
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
@@ -322,7 +330,7 @@ class OpenAPI:
             extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
 
-    @property
+    @cached_property
     def webhook_response_unmarshaller(self) -> WebhookResponseUnmarshaller:
         if self.webhook_response_unmarshaller_cls is None:
             raise SpecError("Unmarshaller class not found")
@@ -333,6 +341,7 @@ class OpenAPI:
             media_type_deserializers_factory=self.config.media_type_deserializers_factory,
             schema_casters_factory=self.config.schema_casters_factory,
             schema_validators_factory=self.config.schema_validators_factory,
+            path_finder_cls=self.config.webhook_path_finder_cls,
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,

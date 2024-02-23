@@ -36,6 +36,7 @@ from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.finders import APICallPathFinder
 from openapi_core.templating.paths.finders import BasePathFinder
 from openapi_core.templating.paths.finders import WebhookPathFinder
+from openapi_core.templating.paths.types import PathFinderType
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
@@ -43,6 +44,7 @@ from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 class BaseValidator:
     schema_casters_factory: SchemaCastersFactory = NotImplemented
     schema_validators_factory: SchemaValidatorsFactory = NotImplemented
+    path_finder_cls: PathFinderType = NotImplemented
     spec_validator_cls: Optional[SpecValidatorType] = None
 
     def __init__(
@@ -53,6 +55,7 @@ class BaseValidator:
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        path_finder_cls: Optional[PathFinderType] = None,
         spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
@@ -79,10 +82,17 @@ class BaseValidator:
             raise NotImplementedError(
                 "schema_validators_factory is not assigned"
             )
+        self.path_finder_cls = path_finder_cls or self.path_finder_cls
+        if self.path_finder_cls is NotImplemented:  # type: ignore[comparison-overlap]
+            raise NotImplementedError("path_finder_cls is not assigned")
         self.spec_validator_cls = spec_validator_cls or self.spec_validator_cls
         self.format_validators = format_validators
         self.extra_format_validators = extra_format_validators
         self.extra_media_type_deserializers = extra_media_type_deserializers
+
+    @cached_property
+    def path_finder(self) -> BasePathFinder:
+        return self.path_finder_cls(self.spec, base_url=self.base_url)
 
     def check_spec(self, spec: SchemaPath) -> None:
         if self.spec_validator_cls is None:
@@ -267,9 +277,7 @@ class BaseValidator:
 
 
 class BaseAPICallValidator(BaseValidator):
-    @cached_property
-    def path_finder(self) -> BasePathFinder:
-        return APICallPathFinder(self.spec, base_url=self.base_url)
+    path_finder_cls = APICallPathFinder
 
     def _find_path(self, request: Request) -> PathOperationServer:
         path_pattern = getattr(request, "path_pattern", None) or request.path
@@ -278,9 +286,7 @@ class BaseAPICallValidator(BaseValidator):
 
 
 class BaseWebhookValidator(BaseValidator):
-    @cached_property
-    def path_finder(self) -> BasePathFinder:
-        return WebhookPathFinder(self.spec, base_url=self.base_url)
+    path_finder_cls = WebhookPathFinder
 
     def _find_path(self, request: WebhookRequest) -> PathOperationServer:
         return self.path_finder.find(request.method, request.name)
