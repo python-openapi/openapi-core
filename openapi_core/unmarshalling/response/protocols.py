@@ -24,6 +24,7 @@ from openapi_core.deserializing.styles.factories import (
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
+from openapi_core.templating.paths.types import PathFinderType
 from openapi_core.unmarshalling.response.datatypes import (
     ResponseUnmarshalResult,
 )
@@ -47,6 +48,7 @@ class ResponseUnmarshaller(Protocol):
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        path_finder_cls: Optional[PathFinderType] = None,
         spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
@@ -77,6 +79,7 @@ class WebhookResponseUnmarshaller(Protocol):
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        path_finder_cls: Optional[PathFinderType] = None,
         spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,

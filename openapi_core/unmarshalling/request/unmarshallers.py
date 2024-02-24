@@ -23,6 +23,7 @@ from openapi_core.protocols import WebhookRequest
 from openapi_core.security import security_provider_factory
 from openapi_core.security.factories import SecurityProviderFactory
 from openapi_core.templating.paths.exceptions import PathError
+from openapi_core.templating.paths.types import PathFinderType
 from openapi_core.unmarshalling.request.datatypes import RequestUnmarshalResult
 from openapi_core.unmarshalling.schemas import (
     oas30_write_schema_unmarshallers_factory,
@@ -88,6 +89,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
         schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
+        path_finder_cls: Optional[PathFinderType] = None,
         spec_validator_cls: Optional[SpecValidatorType] = None,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
@@ -109,6 +111,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             media_type_deserializers_factory=media_type_deserializers_factory,
             schema_casters_factory=schema_casters_factory,
             schema_validators_factory=schema_validators_factory,
+            path_finder_cls=path_finder_cls,
             spec_validator_cls=spec_validator_cls,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
@@ -125,6 +128,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             media_type_deserializers_factory=media_type_deserializers_factory,
             schema_casters_factory=schema_casters_factory,
             schema_validators_factory=schema_validators_factory,
+            path_finder_cls=path_finder_cls,
             spec_validator_cls=spec_validator_cls,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,

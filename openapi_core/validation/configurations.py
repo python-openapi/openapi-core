@@ -17,6 +17,7 @@ from openapi_core.deserializing.styles.factories import (
 )
 from openapi_core.security import security_provider_factory
 from openapi_core.security.factories import SecurityProviderFactory
+from openapi_core.templating.paths.types import PathFinderType
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
@@ -28,6 +29,10 @@ class ValidatorConfig:
     Attributes:
         server_base_url
             Server base URI.
+        path_finder_cls
+            Path finder class.
+        webhook_path_finder_cls
+            Webhook path finder class.
         style_deserializers_factory
             Style deserializers factory.
         media_type_deserializers_factory
@@ -45,6 +50,8 @@ class ValidatorConfig:
     """
 
     server_base_url: Optional[str] = None
+    path_finder_cls: Optional[PathFinderType] = None
+    webhook_path_finder_cls: Optional[PathFinderType] = None
 
     style_deserializers_factory: StyleDeserializersFactory = (
         style_deserializers_factory
