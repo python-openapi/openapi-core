@@ -84,7 +84,9 @@ class BaseRequestValidator(BaseValidator):
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
     ):
-        super().__init__(
+
+        BaseValidator.__init__(
+            self,
             spec,
             base_url=base_url,
             style_deserializers_factory=style_deserializers_factory,
