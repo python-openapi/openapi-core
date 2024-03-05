@@ -1,8 +1,10 @@
 import enum
+
 import pytest
 from jsonschema_path import SchemaPath
 
-from openapi_core import V30RequestUnmarshaller, V31RequestUnmarshaller
+from openapi_core import V30RequestUnmarshaller
+from openapi_core import V31RequestUnmarshaller
 from openapi_core.datatypes import Parameters
 from openapi_core.testing import MockRequest
 
@@ -43,13 +45,11 @@ class TestRequestUnmarshaller:
                                         "$ref": "#/components/schemas/createResource"
                                     }
                                 }
-                            }
+                            },
                         },
                         "responses": {
-                            "201": {
-                                "description": "Resource was created."
-                            }
-                        }
+                            "201": {"description": "Resource was created."}
+                        },
                     },
                     "get": {
                         "description": "POST resources test request",
@@ -67,8 +67,8 @@ class TestRequestUnmarshaller:
                             "default": {
                                 "description": "Returned resources matching request."
                             }
-                        }
-                    }
+                        },
+                    },
                 }
             },
             "components": {
@@ -76,52 +76,60 @@ class TestRequestUnmarshaller:
                     "colors": {
                         "type": "string",
                         "enum": ["yellow", "blue", "red"],
-                        "format": "enum_Colors"
+                        "format": "enum_Colors",
                     },
                     "createResource": {
                         "type": "object",
                         "properties": {
-                            "resId": {
-                                "type": "integer"
-                            },
-                            "color": {
-                                "$ref": "#/components/schemas/colors"
-                            }
+                            "resId": {"type": "integer"},
+                            "color": {"$ref": "#/components/schemas/colors"},
                         },
-                        "required": ["resId", "color"]
-                    }
+                        "required": ["resId", "color"],
+                    },
                 }
-            }
+            },
         }
 
     @pytest.fixture(scope="session")
     def spec(self, spec_dict):
         return SchemaPath.from_dict(spec_dict)
 
-    @pytest.mark.parametrize("req_unmarshaller_cls", [V30RequestUnmarshaller, V31RequestUnmarshaller])
+    @pytest.mark.parametrize(
+        "req_unmarshaller_cls",
+        [V30RequestUnmarshaller, V31RequestUnmarshaller],
+    )
     def test_request_body_extra_unmarshaller(self, spec, req_unmarshaller_cls):
-        ru = req_unmarshaller_cls(spec=spec, extra_format_unmarshallers={
-            "enum_Colors": Colors.of
-        })
-        request = MockRequest(host_url="http://example.com",
-                              method="post",
-                              path="/resources",
-                              data=b'{"resId": 23498572, "color": "blue"}')
+        ru = req_unmarshaller_cls(
+            spec=spec, extra_format_unmarshallers={"enum_Colors": Colors.of}
+        )
+        request = MockRequest(
+            host_url="http://example.com",
+            method="post",
+            path="/resources",
+            data=b'{"resId": 23498572, "color": "blue"}',
+        )
         result = ru.unmarshal(request)
 
         assert not result.errors
         assert result.body == {"resId": 23498572, "color": Colors.BLUE}
         assert result.parameters == Parameters()
 
-    @pytest.mark.parametrize("req_unmarshaller_cls", [V30RequestUnmarshaller, V31RequestUnmarshaller])
-    def test_request_param_extra_unmarshaller(self, spec, req_unmarshaller_cls):
-        ru = req_unmarshaller_cls(spec=spec, extra_format_unmarshallers={
-            "enum_Colors": Colors.of
-        })
-        request = MockRequest(host_url="http://example.com",
-                              method="get",
-                              path="/resources",
-                              args={"color": "blue"})
+    @pytest.mark.parametrize(
+        "req_unmarshaller_cls",
+        [V30RequestUnmarshaller, V31RequestUnmarshaller],
+    )
+    def test_request_param_extra_unmarshaller(
+        self, spec, req_unmarshaller_cls
+    ):
+        ru = req_unmarshaller_cls(
+            spec=spec, extra_format_unmarshallers={"enum_Colors": Colors.of}
+        )
+        request = MockRequest(
+            host_url="http://example.com",
+            method="get",
+            path="/resources",
+            args={"color": "blue"},
+        )
         result = ru.unmarshal(request)
 
         assert not result.errors
