@@ -60,7 +60,8 @@ class BaseUnmarshaller(BaseValidator):
             schema_validators_factory = (
                 schema_unmarshallers_factory.schema_validators_factory
             )
-        super().__init__(
+        BaseValidator.__init__(
+            self,
             spec,
             base_url=base_url,
             style_deserializers_factory=style_deserializers_factory,
