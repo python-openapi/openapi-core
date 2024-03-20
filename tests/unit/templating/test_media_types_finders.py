@@ -21,10 +21,19 @@ class TestMediaTypes:
     def finder(self, content):
         return MediaTypeFinder(content)
 
-    def test_charset(self, finder, content):
-        mimetype = "text/html; charset=utf-8"
-
-        mimetype, parameters, _ = finder.find(mimetype)
+    @pytest.mark.parametrize(
+        "media_type",
+        [
+            # equivalent according to RFC 9110
+            "text/html;charset=utf-8",
+            'Text/HTML;Charset="utf-8"',
+            'text/html; charset="utf-8"',
+            "text/html;charset=UTF-8",
+            "text/html ; charset=utf-8",
+        ],
+    )
+    def test_charset(self, finder, content, media_type):
+        mimetype, parameters, _ = finder.find(media_type)
         assert mimetype == "text/*"
         assert parameters == {"charset": "utf-8"}
 
