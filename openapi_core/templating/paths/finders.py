@@ -57,7 +57,9 @@ class BasePathFinder:
         try:
             return next(servers_iter)
         except StopIteration:
-            raise ServerNotFound(name)
+            return PathOperationServer(path=name, operation=next(operations_iter_peek), server=None, path_result=name, server_result=None)
+
+
 
 
 class APICallPathFinder(BasePathFinder):
