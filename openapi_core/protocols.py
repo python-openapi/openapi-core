@@ -44,11 +44,11 @@ class Request(BaseRequest, Protocol):
         parameters
             A RequestParameters object. Needs to supports path attribute setter
             to write resolved path parameters.
-        body
-            The request body, as string.
         content_type
             The content type with parameters (eg, charset, boundary etc.)
             and always lowercase.
+        body
+            The request body, as bytes (None if not provided).
     """
 
     @property
@@ -70,11 +70,11 @@ class WebhookRequest(BaseRequest, Protocol):
         parameters
             A RequestParameters object. Needs to supports path attribute setter
             to write resolved path parameters.
-        body
-            The request body, as string.
         content_type
             The content type with parameters (eg, charset, boundary etc.)
             and always lowercase.
+        body
+            The request body, as bytes (None if not provided).
     """
 
     @property
@@ -103,18 +103,15 @@ class Response(Protocol):
     """Response protocol.
 
     Attributes:
-        data
-            The response body, as string.
         status_code
             The status code as integer.
         headers
             Response headers as Headers.
         content_type
             The content type with parameters and always lowercase.
+        data
+            The response body, as bytes (None if not provided).
     """
-
-    @property
-    def data(self) -> Optional[bytes]: ...
 
     @property
     def status_code(self) -> int: ...
@@ -124,3 +121,6 @@ class Response(Protocol):
 
     @property
     def headers(self) -> Mapping[str, Any]: ...
+
+    @property
+    def data(self) -> Optional[bytes]: ...
