@@ -11,6 +11,7 @@ from falcon.request import RequestOptions
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
+from openapi_core.contrib.falcon.util import unpack_params
 from openapi_core.datatypes import RequestParameters
 
 
@@ -29,7 +30,7 @@ class FalconOpenAPIRequest:
 
         # Path gets deduced by path finder against spec
         self.parameters = RequestParameters(
-            query=ImmutableMultiDict(list(self.request.params.items())),
+            query=ImmutableMultiDict(unpack_params(self.request.params)),
             header=Headers(self.request.headers),
             cookie=self.request.cookies,
         )
