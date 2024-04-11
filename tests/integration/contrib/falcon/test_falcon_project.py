@@ -67,6 +67,33 @@ class TestPetListResource(BaseTestFalconProject):
             ],
         }
 
+    def test_get_valid_multiple_ids(self, client):
+        headers = {
+            "Content-Type": "application/json",
+        }
+        query_string = "limit=2&ids=1&ids=2"
+
+        with pytest.warns(DeprecationWarning):
+            response = client.simulate_get(
+                "/v1/pets",
+                host="petstore.swagger.io",
+                headers=headers,
+                query_string=query_string,
+            )
+
+        assert response.status_code == 200
+        assert response.json == {
+            "data": [
+                {
+                    "id": 12,
+                    "name": "Cat",
+                    "ears": {
+                        "healthy": True,
+                    },
+                },
+            ],
+        }
+
     def test_post_server_invalid(self, client):
         response = client.simulate_post(
             "/v1/pets",

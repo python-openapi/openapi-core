@@ -11,11 +11,19 @@ class PetListResource:
     def on_get(self, request, response):
         assert request.context.openapi
         assert not request.context.openapi.errors
-        assert request.context.openapi.parameters.query == {
-            "page": 1,
-            "limit": 12,
-            "search": "",
-        }
+        if "ids" in request.params:
+            assert request.context.openapi.parameters.query == {
+                "page": 1,
+                "limit": 2,
+                "search": "",
+                "ids": [1, 2],
+            }
+        else:
+            assert request.context.openapi.parameters.query == {
+                "page": 1,
+                "limit": 12,
+                "search": "",
+            }
         data = [
             {
                 "id": 12,
