@@ -1,6 +1,7 @@
 import os
 import sys
 from base64 import b64encode
+from io import BytesIO
 
 import pytest
 
@@ -63,7 +64,7 @@ class TestPetPhotoView(BaseTestPetstore):
             "Host": "petstore.swagger.io",
         }
         data = {
-            "file": data_gif,
+            "file": BytesIO(data_gif),
         }
 
         cookies = {"user": "1"}
