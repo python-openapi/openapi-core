@@ -29,6 +29,7 @@ class TestSearch:
         [
             ("/{test_id}/test", {"test_id": "test"}),
             ("/{test.id}/test", {"test.id": "test"}),
+            ("/{test-id}/test", {"test-id": "test"}),
         ],
     )
     def test_chars_valid(self, path_pattern, expected):
@@ -49,7 +50,6 @@ class TestSearch:
         "path_pattern,expected",
         [
             ("/{test~id}/test", {"test~id": "test"}),
-            ("/{test-id}/test", {"test-id": "test"}),
         ],
     )
     def test_special_chars_valid(self, path_pattern, expected):
