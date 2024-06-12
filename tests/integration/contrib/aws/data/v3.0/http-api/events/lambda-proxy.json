@@ -1,0 +1,97 @@
+{
+    "version": "1.0",
+    "resource": "/test-lambda-proxy/{id}",
+    "path": "/dev/test-lambda-proxy/13",
+    "httpMethod": "GET",
+    "headers": {
+        "Content-Length": "0",
+        "Host": "testapi.execute-api.us-west-2.amazonaws.com",
+        "User-Agent": "python/7.37.3",
+        "X-Amzn-Trace-Id": "Root=1-661d2e89-5ee35c1b508c257713c5b594",
+        "X-Forwarded-For": "79.191.34.167",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "cache-control": "no-cache"
+    },
+    "multiValueHeaders": {
+        "Content-Length": [
+            "0"
+        ],
+        "Host": [
+            "testapi.execute-api.us-west-2.amazonaws.com"
+        ],
+        "User-Agent": [
+            "python/7.37.3"
+        ],
+        "X-Amzn-Trace-Id": [
+            "Root=1-661d2e89-5ee35c1b508c257713c5b594"
+        ],
+        "X-Forwarded-For": [
+            "79.191.34.167"
+        ],
+        "X-Forwarded-Port": [
+            "443"
+        ],
+        "X-Forwarded-Proto": [
+            "https"
+        ],
+        "accept": [
+            "*/*"
+        ],
+        "accept-encoding": [
+            "gzip, deflate, br"
+        ],
+        "cache-control": [
+            "no-cache"
+        ]
+    },
+    "queryStringParameters": {
+        "q": "1"
+    },
+    "multiValueQueryStringParameters": {
+        "q": [
+            "1"
+        ]
+    },
+    "requestContext": {
+        "accountId": "123456789012",
+        "apiId": "testapi",
+        "domainName": "testapi.execute-api.us-west-2.amazonaws.com",
+        "domainPrefix": "testapi",
+        "extendedRequestId": "WRQ1liQfvHcEMoQ=",
+        "httpMethod": "GET",
+        "identity": {
+            "accessKey": null,
+            "accountId": null,
+            "caller": null,
+            "cognitoAmr": null,
+            "cognitoAuthenticationProvider": null,
+            "cognitoAuthenticationType": null,
+            "cognitoIdentityId": null,
+            "cognitoIdentityPoolId": null,
+            "principalOrgId": null,
+            "sourceIp": "79.191.34.167",
+            "user": null,
+            "userAgent": "python/7.37.3",
+            "userArn": null
+        },
+        "path": "/dev/test-lambda-proxy/13",
+        "protocol": "HTTP/1.1",
+        "requestId": "WRQ1liQfvHcEMoQ=",
+        "requestTime": "15/Apr/2024:13:41:29 +0000",
+        "requestTimeEpoch": 1713188489870,
+        "resourceId": "ANY /test-lambda-proxy/{id}",
+        "resourcePath": "/test-lambda-proxy/{id}",
+        "stage": "dev"
+    },
+    "pathParameters": {
+        "id": "13"
+    },
+    "stageVariables": {
+        "environment": "dev"
+    },
+    "body": null,
+    "isBase64Encoded": false
+}

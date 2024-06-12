@@ -1,0 +1,44 @@
+{
+    "version": "2.0",
+    "routeKey": "$default",
+    "rawPath": "/12/",
+    "rawQueryString": "q=1",
+    "headers": {
+        "content-length": "0",
+        "x-amzn-tls-version": "TLSv1.3",
+        "x-forwarded-proto": "https",
+        "x-forwarded-port": "443",
+        "x-forwarded-for": "44.234.31.53",
+        "forwarded": "by=44.234.31.53;for=79.191.34.167;host=testapi.execute-api.us-west-2.amazonaws.com;proto=https",
+        "accept": "*/*",
+        "via": "HTTP/1.1 AmazonAPIGateway",
+        "x-amzn-tls-cipher-suite": "TLS_AES_128_GCM_SHA256",
+        "x-amzn-trace-id": "Self=1-661d921a-64f7833670ee8e067b95f249;Root=1-661d921a-47006f4f437ff0d62f67aff9",
+        "host": "testlambdafunction.lambda-url.us-west-2.on.aws",
+        "cache-control": "no-cache",
+        "accept-encoding": "gzip, deflate, br",
+        "user-agent": "python/7.37.3"
+    },
+    "queryStringParameters": {
+        "q": "1"
+    },
+    "requestContext": {
+        "accountId": "anonymous",
+        "apiId": "testlambdafunction",
+        "domainName": "testlambdafunction.lambda-url.us-west-2.on.aws",
+        "domainPrefix": "testlambdafunction",
+        "http": {
+            "method": "GET",
+            "path": "/12",
+            "protocol": "HTTP/1.1",
+            "sourceIp": "44.234.31.53",
+            "userAgent": "python/7.37.3"
+        },
+        "requestId": "fb47f473-d1d0-4672-a325-7995de9e0596",
+        "routeKey": "$default",
+        "stage": "$default",
+        "time": "15/Apr/2024:20:46:18 +0000",
+        "timeEpoch": 1713213978505
+    },
+    "isBase64Encoded": false
+}

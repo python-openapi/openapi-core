@@ -1,0 +1,46 @@
+{
+    "version": "2.0",
+    "routeKey": "ANY /test-lambda-proxy-v2/{id}",
+    "rawPath": "/dev/test-lambda-proxy-v2/14",
+    "rawQueryString": "q=1",
+    "headers": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "cache-control": "no-cache",
+        "content-length": "0",
+        "host": "testapi.execute-api.us-west-2.amazonaws.com",
+        "user-agent": "python/7.37.3",
+        "x-amzn-trace-id": "Root=1-661d2e7e-5d132c9f61e28d8f3be17aad",
+        "x-forwarded-for": "79.191.34.167",
+        "x-forwarded-port": "443",
+        "x-forwarded-proto": "https"
+    },
+    "queryStringParameters": {
+        "q": "1"
+    },
+    "requestContext": {
+        "accountId": "123456789012",
+        "apiId": "testapi",
+        "domainName": "testapi.execute-api.us-west-2.amazonaws.com",
+        "domainPrefix": "testapi",
+        "http": {
+            "method": "GET",
+            "path": "/dev/test-lambda-proxy-v2/14",
+            "protocol": "HTTP/1.1",
+            "sourceIp": "79.191.34.167",
+            "userAgent": "python/7.37.3"
+        },
+        "requestId": "WRQz0jBEvHcEMjw=",
+        "routeKey": "ANY /test-lambda-proxy-v2/{id}",
+        "stage": "dev",
+        "time": "15/Apr/2024:13:41:18 +0000",
+        "timeEpoch": 1713188478585
+    },
+    "pathParameters": {
+        "id": "14"
+    },
+    "stageVariables": {
+        "environment": "dev"
+    },
+    "isBase64Encoded": false
+}
