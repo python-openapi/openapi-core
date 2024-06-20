@@ -28,7 +28,7 @@ class Config(UnmarshallerConfig):
         spec_validator_cls
             Specifincation validator class.
         spec_base_uri
-            Specification base uri.
+            Specification base uri. Deprecated, use base_uri parameter in OpenAPI.from_dict and OpenAPI.from_file if you want to define it.
         request_validator_cls
             Request validator class.
         response_validator_cls

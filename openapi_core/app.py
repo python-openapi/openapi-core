@@ -89,9 +89,9 @@ class OpenAPI:
 
     @classmethod
     def from_dict(
-        cls, data: Schema, config: Optional[Config] = None
+        cls, data: Schema, config: Optional[Config] = None, base_uri: str = ""
     ) -> "OpenAPI":
-        sp = SchemaPath.from_dict(data)
+        sp = SchemaPath.from_dict(data, base_uri=base_uri)
         return cls(sp, config=config)
 
     @classmethod
@@ -110,9 +110,12 @@ class OpenAPI:
 
     @classmethod
     def from_file(
-        cls, fileobj: SupportsRead, config: Optional[Config] = None
+        cls,
+        fileobj: SupportsRead,
+        config: Optional[Config] = None,
+        base_uri: str = "",
     ) -> "OpenAPI":
-        sp = SchemaPath.from_file(fileobj)
+        sp = SchemaPath.from_file(fileobj, base_uri=base_uri)
         return cls(sp, config=config)
 
     def _get_version(self) -> SpecVersion:
@@ -133,7 +136,8 @@ class OpenAPI:
         try:
             validate(
                 self.spec.contents(),
-                base_uri=self.config.spec_base_uri,
+                base_uri=self.config.spec_base_uri
+                or self.spec.accessor.resolver._base_uri,  # type: ignore[attr-defined]
                 cls=cls,
             )
         except ValidatorDetectError:
