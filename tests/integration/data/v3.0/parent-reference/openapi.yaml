@@ -1,0 +1,7 @@
+openapi: "3.0.0"
+info:
+  title: sample
+  version: "0.1"
+paths:
+  /books:
+    $ref: "./paths/books.yaml"

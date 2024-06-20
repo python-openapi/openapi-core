@@ -1,0 +1,9 @@
+Book:
+  type: object
+  properties:
+    id:
+      $ref: "#/BookId"
+    title:
+      type: string
+BookId:
+  type: string
