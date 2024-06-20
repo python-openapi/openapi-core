@@ -1,0 +1,10 @@
+get:
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../schemas/book.yaml#/Book"
