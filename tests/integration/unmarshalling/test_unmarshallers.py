@@ -1840,6 +1840,25 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
 
         assert result == value
 
+    def test_subschema_nullable(self, unmarshallers_factory):
+        schema = {
+            "oneOf": [
+                {
+                    "type": "integer",
+                },
+                {
+                    "nullable": True,
+                },
+            ]
+        }
+        spec = SchemaPath.from_dict(schema)
+        unmarshaller = unmarshallers_factory.create(spec)
+        value = None
+
+        result = unmarshaller.unmarshal(value)
+
+        assert result is None
+
 
 class TestOAS30RequestSchemaUnmarshallersFactory(
     BaseTestOASSchemaUnmarshallersFactoryCall,
@@ -2084,5 +2103,24 @@ class TestOAS31SchemaUnmarshallersFactory(
         unmarshaller = unmarshallers_factory.create(spec)
 
         result = unmarshaller.unmarshal(None)
+
+        assert result is None
+
+    def test_subschema_null(self, unmarshallers_factory):
+        schema = {
+            "oneOf": [
+                {
+                    "type": "integer",
+                },
+                {
+                    "type": "null",
+                },
+            ]
+        }
+        spec = SchemaPath.from_dict(schema)
+        unmarshaller = unmarshallers_factory.create(spec)
+        value = None
+
+        result = unmarshaller.unmarshal(value)
 
         assert result is None

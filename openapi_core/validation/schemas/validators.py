@@ -94,6 +94,7 @@ class SchemaValidator:
                 continue
             assert isinstance(schema_type, (str, type(None)))
             return schema_type
+        # OpenAPI 3.0: None is not a primitive type so None value will not find any type
         return None
 
     def iter_valid_schemas(self, value: Any) -> Iterator[SchemaPath]:

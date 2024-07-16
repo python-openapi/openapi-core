@@ -137,6 +137,9 @@ class ObjectUnmarshaller(PrimitiveUnmarshaller):
 class MultiTypeUnmarshaller(PrimitiveUnmarshaller):
     def __call__(self, value: Any) -> Any:
         primitive_type = self.schema_validator.get_primitive_type(value)
+        # OpenAPI 3.0: handle no type for None
+        if primitive_type is None:
+            return None
         unmarshaller = self.schema_unmarshaller.get_type_unmarshaller(
             primitive_type
         )
@@ -247,6 +250,9 @@ class SchemaUnmarshaller:
         schema_type = self.schema.getkey("type")
         type_unmarshaller = self.get_type_unmarshaller(schema_type)
         typed = type_unmarshaller(value)
+        # skip finding format for None
+        if typed is None:
+            return None
         schema_format = self.find_format(value)
         if schema_format is None:
             return typed
