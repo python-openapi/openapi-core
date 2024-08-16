@@ -38,8 +38,11 @@ class SchemaValidator:
     def evolve(self, schema: SchemaPath) -> "SchemaValidator":
         cls = self.__class__
 
-        with schema.open() as schema_dict:
-            return cls(schema, self.validator.evolve(schema=schema_dict))
+        with schema.resolve() as resolved:
+            validator = self.validator.evolve(
+                schema=resolved.contents, _resolver=resolved.resolver
+            )
+            return cls(schema, validator)
 
     def type_validator(
         self, value: Any, type_override: Optional[str] = None
