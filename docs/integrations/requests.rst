@@ -15,6 +15,7 @@ Use ``RequestsOpenAPIRequest`` to create OpenAPI request from Requests request:
 
 .. code-block:: python
 
+    from requests import Request, Session
     from openapi_core.contrib.requests import RequestsOpenAPIRequest
 
     request = Request('POST', url, data=data, headers=headers)
@@ -28,6 +29,7 @@ Use ``RequestsOpenAPIWebhookRequest`` to create OpenAPI webhook request from Req
 
 .. code-block:: python
 
+    from requests import Request, Session
     from openapi_core.contrib.requests import RequestsOpenAPIWebhookRequest
 
     request = Request('POST', url, data=data, headers=headers)
@@ -41,12 +43,13 @@ Use ``RequestsOpenAPIResponse`` to create OpenAPI response from Requests respons
 
 .. code-block:: python
 
+    from requests import Request, Session
     from openapi_core.contrib.requests import RequestsOpenAPIResponse
 
     session = Session()
     request = Request('POST', url, data=data, headers=headers)
     prepped = session.prepare_request(req)
-    response = session,send(prepped)
+    response = session.send(prepped)
     openapi_request = RequestsOpenAPIRequest(request)
     openapi_response = RequestsOpenAPIResponse(response)
     openapi.validate_response(openapi_request, openapi_response)
