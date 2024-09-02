@@ -2350,13 +2350,13 @@ doc = ["sphinx"]
 
 [[package]]
 name = "starlette"
-version = "0.37.2"
+version = "0.38.4"
 description = "The little ASGI library that shines."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "starlette-0.37.2-py3-none-any.whl", hash = "sha256:6fe59f29268538e5d0d182f2791a479a0c64638e6935d1c6989e63fb2699c6ee"},
-    {file = "starlette-0.37.2.tar.gz", hash = "sha256:9af890290133b79fc3db55474ade20f6220a364a0402e0b556e7cd5e1e093823"},
+    {file = "starlette-0.38.4-py3-none-any.whl", hash = "sha256:526f53a77f0e43b85f583438aee1a940fd84f8fd610353e8b0c1a77ad8a87e76"},
+    {file = "starlette-0.38.4.tar.gz", hash = "sha256:53a7439060304a208fea17ed407e998f46da5e5d9b1addfea3040094512a6379"},
 ]
 
 [package.dependencies]
@@ -2592,4 +2592,4 @@ starlette = ["aioitertools", "starlette"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.0"
-content-hash = "9256d4197366f7ddd6c36ec950c373508dfbf7c20e6e36c4b46c3d1187416eec"
+content-hash = "ab4d2745fbf177094a1711e5d45775583d72f7dbc7840e5fd5dfe945fe48f793"
