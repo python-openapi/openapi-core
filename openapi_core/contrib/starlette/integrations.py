@@ -1,7 +1,6 @@
 from aioitertools.itertools import tee as atee
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.responses import StreamingResponse
 
 from openapi_core.contrib.starlette.requests import StarletteOpenAPIRequest
 from openapi_core.contrib.starlette.responses import StarletteOpenAPIResponse
@@ -24,7 +23,7 @@ class StarletteIntegration(AsyncUnmarshallingProcessor[Request, Response]):
     ) -> StarletteOpenAPIResponse:
         assert self.response_cls is not None
         data = None
-        if isinstance(response, StreamingResponse):
+        if hasattr(response, "body_iterator"):
             body_iter1, body_iter2 = atee(response.body_iterator)
             response.body_iterator = body_iter2
             data = b"".join(
