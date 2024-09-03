@@ -1,7 +1,10 @@
+from email.message import Message
 from email.parser import Parser
 from json import loads
 from typing import Any
+from typing import Iterator
 from typing import Mapping
+from typing import Tuple
 from urllib.parse import parse_qsl
 from xml.etree.ElementTree import Element
 from xml.etree.ElementTree import fromstring
@@ -57,12 +60,14 @@ def data_form_loads(value: bytes, **parameters: str) -> Mapping[str, Any]:
     header = f'Content-Type: {mimetype}; boundary="{boundary}"'
     text = "\n\n".join([header, decoded])
     parts = parser.parsestr(text, headersonly=False)
-    return ImmutableMultiDict(
-        [
-            (
-                part.get_param("name", header="content-disposition"),
-                part.get_payload(decode=True),
-            )
-            for part in parts.get_payload()
-        ]
-    )
+    return ImmutableMultiDict(list(iter_payloads(parts)))
+
+
+def iter_payloads(parts: Message) -> Iterator[Tuple[str, bytes]]:
+    for part in parts.get_payload():
+        assert isinstance(part, Message)
+        name = part.get_param("name", header="content-disposition")
+        assert isinstance(name, str)
+        payload = part.get_payload(decode=True)
+        assert isinstance(payload, bytes)
+        yield name, payload

@@ -83,7 +83,7 @@ class BaseValidator:
                 "schema_validators_factory is not assigned"
             )
         self.path_finder_cls = path_finder_cls or self.path_finder_cls
-        if self.path_finder_cls is NotImplemented:  # type: ignore[comparison-overlap]
+        if self.path_finder_cls is NotImplemented:
             raise NotImplementedError("path_finder_cls is not assigned")
         self.spec_validator_cls = spec_validator_cls or self.spec_validator_cls
         self.format_validators = format_validators
