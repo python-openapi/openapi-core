@@ -1,0 +1,84 @@
+site_name: OpenAPI-core
+site_description: OpenAPI for Python
+site_url: https://openapi-core.readthedocs.io/
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github-alt
+  palette:
+  - media: "(prefers-color-scheme)"
+    toggle:
+      icon: material/toggle-switch
+      name: Switch to light mode
+  - media: '(prefers-color-scheme: light)'
+    scheme: default
+    primary: lime
+    accent: amber
+    toggle:
+      icon: material/toggle-switch-off-outline
+      name: Switch to dark mode
+  - media: '(prefers-color-scheme: dark)'
+    scheme: slate
+    primary: lime
+    accent: amber
+    toggle:
+      icon: material/toggle-switch-off
+      name: Switch to system preference
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - content.footnote.tooltips
+    - content.tabs.link
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.path
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+repo_name: python-openapi/openapi-core
+repo_url: https://github.com/python-openapi/openapi-core
+nav:
+  - OpenAPI-core: index.md
+  - unmarshalling.md
+  - validation.md
+  - Integrations:
+    - integrations/index.md
+    - integrations/aiohttp.md
+    - integrations/bottle.md
+    - integrations/django.md
+    - integrations/falcon.md
+    - integrations/fastapi.md
+    - integrations/flask.md
+    - integrations/pyramid.md
+    - integrations/requests.md
+    - integrations/starlette.md
+    - integrations/tornado.md
+    - integrations/werkzeug.md
+  - Customizations:
+    - customizations/index.md
+    - customizations/spec_validator_cls.md
+    - customizations/request_validator_cls.md
+    - customizations/response_validator_cls.md
+    - customizations/request_unmarshaller_cls.md
+    - customizations/response_unmarshaller_cls.md
+    - customizations/extra_media_type_deserializers.md
+    - customizations/extra_format_validators.md
+    - customizations/extra_format_unmarshallers.md
+  - security.md
+  - extensions.md
+  - contributing.md
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
