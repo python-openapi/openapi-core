@@ -14,6 +14,8 @@ from openapi_spec_validator.validation.exceptions import ValidatorDetectError
 from openapi_spec_validator.versions.datatypes import SpecVersion
 from openapi_spec_validator.versions.exceptions import OpenAPIVersionNotFound
 from openapi_spec_validator.versions.shortcuts import get_spec_version
+from typing_extensions import Annotated
+from typing_extensions import Doc
 
 from openapi_core.configurations import Config
 from openapi_core.exceptions import SpecError
@@ -72,11 +74,28 @@ from openapi_core.validation.response.types import WebhookResponseValidatorType
 
 
 class OpenAPI:
-    """OpenAPI class."""
+    """`OpenAPI` application class, the main entrypoint class for OpenAPI-core.
+
+    Read more information, in the 
+    [OpenAPI-core docs for First Steps](https://openapi-core.readthedocs.io/#first-steps).
+
+    Import :class:`OpenAPI` class from the main `openapi_core` module::
+
+        from openapi_core import OpenAPI
+
+        app = OpenAPI(spec)
+    """
 
     def __init__(
         self,
-        spec: SchemaPath,
+        spec: Annotated[
+            SchemaPath,
+            Doc(
+                """
+                OpenAPI specification schema path object.
+                """
+            ),
+        ],
         config: Optional[Config] = None,
     ):
         if not isinstance(spec, SchemaPath):
@@ -91,6 +110,7 @@ class OpenAPI:
     def from_dict(
         cls, data: Schema, config: Optional[Config] = None, base_uri: str = ""
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a dictionary."""
         sp = SchemaPath.from_dict(data, base_uri=base_uri)
         return cls(sp, config=config)
 
@@ -98,6 +118,7 @@ class OpenAPI:
     def from_path(
         cls, path: Path, config: Optional[Config] = None
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a path object."""
         sp = SchemaPath.from_path(path)
         return cls(sp, config=config)
 
@@ -105,6 +126,7 @@ class OpenAPI:
     def from_file_path(
         cls, file_path: str, config: Optional[Config] = None
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a file path string."""
         sp = SchemaPath.from_file_path(file_path)
         return cls(sp, config=config)
 
@@ -115,6 +137,7 @@ class OpenAPI:
         config: Optional[Config] = None,
         base_uri: str = "",
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a file object."""
         sp = SchemaPath.from_file(fileobj, base_uri=base_uri)
         return cls(sp, config=config)
 

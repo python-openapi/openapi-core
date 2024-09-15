@@ -46,6 +46,13 @@ theme:
     - toc.follow
 repo_name: python-openapi/openapi-core
 repo_url: https://github.com/python-openapi/openapi-core
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            extensions:
+              - griffe_typingdoc
 nav:
   - OpenAPI-core: index.md
   - unmarshalling.md
@@ -75,6 +82,9 @@ nav:
     - customizations/extra_format_unmarshallers.md
   - security.md
   - extensions.md
+  - Reference:
+    - reference/index.md
+    - reference/openapi.md
   - contributing.md
 markdown_extensions:
   - admonition
