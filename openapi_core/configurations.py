@@ -24,27 +24,20 @@ from openapi_core.validation.response.types import WebhookResponseValidatorType
 class Config(UnmarshallerConfig):
     """OpenAPI configuration dataclass.
 
+    Read more information, in the
+    [OpenAPI-core docs for Configuration](https://openapi-core.readthedocs.io/configuration/).
+
     Attributes:
-        spec_validator_cls
-            Specifincation validator class.
-        spec_base_uri
-            Specification base uri. Deprecated, use base_uri parameter in OpenAPI.from_dict and OpenAPI.from_file if you want to define it.
-        request_validator_cls
-            Request validator class.
-        response_validator_cls
-            Response validator class.
-        webhook_request_validator_cls
-            Webhook request validator class.
-        webhook_response_validator_cls
-            Webhook response validator class.
-        request_unmarshaller_cls
-            Request unmarshaller class.
-        response_unmarshaller_cls
-            Response unmarshaller class.
-        webhook_request_unmarshaller_cls
-            Webhook request unmarshaller class.
-        webhook_response_unmarshaller_cls
-            Webhook response unmarshaller class.
+        spec_validator_cls: Specification validator class.
+        spec_base_uri: Specification base URI. Deprecated, use base_uri parameter in OpenAPI.from_dict and OpenAPI.from_file if you want to define it.
+        request_validator_cls: Request validator class.
+        response_validator_cls: Response validator class.
+        webhook_request_validator_cls: Webhook request validator class.
+        webhook_response_validator_cls: Webhook response validator class.
+        request_unmarshaller_cls: Request unmarshaller class.
+        response_unmarshaller_cls: Response unmarshaller class.
+        webhook_request_unmarshaller_cls: Webhook request unmarshaller class.
+        webhook_response_unmarshaller_cls: Webhook response unmarshaller class.
     """
 
     spec_validator_cls: Union[SpecValidatorType, Unset] = _UNSET

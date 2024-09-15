@@ -46,6 +46,25 @@ theme:
     - toc.follow
 repo_name: python-openapi/openapi-core
 repo_url: https://github.com/python-openapi/openapi-core
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            extensions:
+              - griffe_typingdoc
+            show_root_heading: true
+            show_if_no_docstring: true
+            inherited_members: true
+            members_order: source
+            unwrap_annotated: true
+            docstring_section_style: spacy
+            separate_signature: true
+            signature_crossrefs: true
+            show_category_heading: true
+            show_signature_annotations: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
 nav:
   - OpenAPI-core: index.md
   - unmarshalling.md
@@ -63,22 +82,24 @@ nav:
     - integrations/starlette.md
     - integrations/tornado.md
     - integrations/werkzeug.md
-  - Customizations:
-    - customizations/index.md
-    - customizations/spec_validator_cls.md
-    - customizations/request_validator_cls.md
-    - customizations/response_validator_cls.md
-    - customizations/request_unmarshaller_cls.md
-    - customizations/response_unmarshaller_cls.md
-    - customizations/extra_media_type_deserializers.md
-    - customizations/extra_format_validators.md
-    - customizations/extra_format_unmarshallers.md
+  - configuration.md
   - security.md
   - extensions.md
+  - Reference:
+    - reference/index.md
+    - reference/openapi.md
+    - reference/configurations.md
+    - reference/datatypes.md
+    - reference/protocols.md
+    - reference/types.md
   - contributing.md
 markdown_extensions:
   - admonition
+  - toc:
+      permalink: true
   - pymdownx.details
+  - pymdownx.highlight:
+      line_spans: __span
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true

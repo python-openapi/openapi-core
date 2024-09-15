@@ -1,3 +1,3 @@
 # Bottle
 
-See [bottle-openapi-3](https://github.com/cope-systems/bottle-openapi-3) project.
+For more information, see the [bottle-openapi-3](https://github.com/cope-systems/bottle-openapi-3) project.

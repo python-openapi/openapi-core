@@ -1,14 +1,14 @@
 # Werkzeug
 
-This section describes integration with [Werkzeug](https://werkzeug.palletsprojects.com) a WSGI web application library.
+This section describes the integration with [Werkzeug](https://werkzeug.palletsprojects.com), a WSGI web application library.
 
 ## Low level
 
-The integration defines classes useful for low level integration.
+The integration defines classes useful for low-level integration.
 
 ### Request
 
-Use `WerkzeugOpenAPIRequest` to create OpenAPI request from Werkzeug request:
+Use `WerkzeugOpenAPIRequest` to create an OpenAPI request from a Werkzeug request:
 
 ``` python
 from openapi_core.contrib.werkzeug import WerkzeugOpenAPIRequest
@@ -23,7 +23,7 @@ def application(environ, start_response):
 
 ### Response
 
-Use `WerkzeugOpenAPIResponse` to create OpenAPI response from Werkzeug response:
+Use `WerkzeugOpenAPIResponse` to create an OpenAPI response from a Werkzeug response:
 
 ``` python
 from openapi_core.contrib.werkzeug import WerkzeugOpenAPIResponse

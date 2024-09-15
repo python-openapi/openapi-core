@@ -1,16 +1,16 @@
 # FastAPI
 
-This section describes integration with [FastAPI](https://fastapi.tiangolo.com)  ASGI framework.
+This section describes integration with [FastAPI](https://fastapi.tiangolo.com) ASGI framework.
 
 !!! note
 
-    FastAPI also provides OpenAPI support. The main difference is that, unlike FastAPI's code-first approach, OpenAPI-core allows you to laverage your existing specification that alligns with API-First approach. You can read more about API-first vs. code-first in the [Guide to API-first](https://www.postman.com/api-first/).
+    FastAPI also provides OpenAPI support. The main difference is that, unlike FastAPI's code-first approach, OpenAPI-core allows you to leverage your existing specification that aligns with the API-First approach. You can read more about API-first vs. code-first in the [Guide to API-first](https://www.postman.com/api-first/).
 
 ## Middleware
 
 FastAPI can be integrated by [middleware](https://fastapi.tiangolo.com/tutorial/middleware/) to apply OpenAPI validation to your entire application.
 
-Add `FastAPIOpenAPIMiddleware` with OpenAPI object to your `middleware` list.
+Add `FastAPIOpenAPIMiddleware` with the OpenAPI object to your `middleware` list.
 
 ``` python hl_lines="2 5"
 from fastapi import FastAPI
@@ -20,9 +20,9 @@ app = FastAPI()
 app.add_middleware(FastAPIOpenAPIMiddleware, openapi=openapi)
 ```
 
-After that all your requests and responses will be validated.
+After that, all your requests and responses will be validated.
 
-Also you have access to unmarshal result object with all unmarshalled request data through `openapi` scope of request object.
+You also have access to the unmarshal result object with all unmarshalled request data through the `openapi` scope of the request object.
 
 ``` python
 async def homepage(request):
@@ -40,7 +40,7 @@ async def homepage(request):
 
 ### Response validation
 
-You can skip response validation process: by setting `response_cls` to `None`
+You can skip the response validation process by setting `response_cls` to `None`
 
 ``` python hl_lines="5"
 app = FastAPI()
@@ -53,4 +53,4 @@ app.add_middleware(
 
 ## Low level
 
-For low level integration see [Starlette](starlette.md) integration.
+For low-level integration, see [Starlette](starlette.md) integration.
