@@ -2,6 +2,9 @@
 
 from openapi_core.app import OpenAPI
 from openapi_core.configurations import Config
+from openapi_core.protocols import Request
+from openapi_core.protocols import Response
+from openapi_core.protocols import WebhookRequest
 from openapi_core.shortcuts import unmarshal_apicall_request
 from openapi_core.shortcuts import unmarshal_apicall_response
 from openapi_core.shortcuts import unmarshal_request
@@ -45,6 +48,9 @@ __license__ = "BSD 3-Clause License"
 __all__ = [
     "OpenAPI",
     "Config",
+    "Request",
+    "Response",
+    "WebhookRequest",
     "Spec",
     "unmarshal_request",
     "unmarshal_response",
