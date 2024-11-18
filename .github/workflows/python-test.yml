@@ -60,7 +60,7 @@ jobs:
         run: poetry run deptry .
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
 
   static-checks:
     name: "Static checks"
