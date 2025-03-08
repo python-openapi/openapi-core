@@ -32,10 +32,10 @@ reports-cleanup:
 test-cleanup: test-cache-cleanup reports-cleanup
 
 docs-html:
-	sphinx-build -b html docs docs/_build
+	python -m mkdocs build --clean --site-dir docs_build --config-file mkdocs.yml
 
 docs-cleanup:
-	@rm -rf docs/_build
+	@rm -rf docs_build
 
 cleanup: dist-cleanup test-cleanup
 
