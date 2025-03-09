@@ -14,6 +14,8 @@ from openapi_spec_validator.validation.exceptions import ValidatorDetectError
 from openapi_spec_validator.versions.datatypes import SpecVersion
 from openapi_spec_validator.versions.exceptions import OpenAPIVersionNotFound
 from openapi_spec_validator.versions.shortcuts import get_spec_version
+from typing_extensions import Annotated
+from typing_extensions import Doc
 
 from openapi_core.configurations import Config
 from openapi_core.exceptions import SpecError
@@ -72,11 +74,28 @@ from openapi_core.validation.response.types import WebhookResponseValidatorType
 
 
 class OpenAPI:
-    """OpenAPI class."""
+    """`OpenAPI` application class, the main entrypoint class for OpenAPI-core.
+
+    Read more information, in the 
+    [OpenAPI-core docs for First Steps](https://openapi-core.readthedocs.io/#first-steps).
+
+    Import :class:`OpenAPI` class from the main `openapi_core` module::
+
+        from openapi_core import OpenAPI
+
+        app = OpenAPI(spec)
+    """
 
     def __init__(
         self,
-        spec: SchemaPath,
+        spec: Annotated[
+            SchemaPath,
+            Doc(
+                """
+                OpenAPI specification schema path object.
+                """
+            ),
+        ],
         config: Optional[Config] = None,
     ):
         if not isinstance(spec, SchemaPath):
@@ -89,32 +108,85 @@ class OpenAPI:
 
     @classmethod
     def from_dict(
-        cls, data: Schema, config: Optional[Config] = None, base_uri: str = ""
+        cls,
+        data: Annotated[
+            Schema,
+            Doc(
+                """
+                Dictionary representing the OpenAPI specification.
+                """
+            ),
+        ],
+        config: Optional[Config] = None,
+        base_uri: Annotated[
+            str,
+            Doc(
+                """
+                Base URI for the OpenAPI specification.
+                """
+            ),
+        ] = "",
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a dictionary."""
         sp = SchemaPath.from_dict(data, base_uri=base_uri)
         return cls(sp, config=config)
 
     @classmethod
     def from_path(
-        cls, path: Path, config: Optional[Config] = None
+        cls,
+        path: Annotated[
+            Path,
+            Doc(
+                """
+                Path object representing the OpenAPI specification file.
+                """
+            ),
+        ],
+        config: Optional[Config] = None,
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a path object."""
         sp = SchemaPath.from_path(path)
         return cls(sp, config=config)
 
     @classmethod
     def from_file_path(
-        cls, file_path: str, config: Optional[Config] = None
+        cls,
+        file_path: Annotated[
+            str,
+            Doc(
+                """
+                File path string representing the OpenAPI specification file.
+                """
+            ),
+        ],
+        config: Optional[Config] = None,
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a file path string."""
         sp = SchemaPath.from_file_path(file_path)
         return cls(sp, config=config)
 
     @classmethod
     def from_file(
         cls,
-        fileobj: SupportsRead,
+        fileobj: Annotated[
+            SupportsRead,
+            Doc(
+                """
+                File object representing the OpenAPI specification file.
+                """
+            ),
+        ],
         config: Optional[Config] = None,
-        base_uri: str = "",
+        base_uri: Annotated[
+            str,
+            Doc(
+                """
+                Base URI for the OpenAPI specification.
+                """
+            ),
+        ] = "",
     ) -> "OpenAPI":
+        """Creates :class:`OpenAPI` class instance from a file object."""
         sp = SchemaPath.from_file(fileobj, base_uri=base_uri)
         return cls(sp, config=config)
 
@@ -353,27 +425,79 @@ class OpenAPI:
             extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
 
-    def validate_request(self, request: AnyRequest) -> None:
+    def validate_request(
+        self,
+        request: Annotated[
+            AnyRequest,
+            Doc(
+                """
+                Request object to be validated.
+                """
+            ),
+        ],
+    ) -> None:
         if isinstance(request, WebhookRequest):
             self.validate_webhook_request(request)
         else:
             self.validate_apicall_request(request)
 
     def validate_response(
-        self, request: AnyRequest, response: Response
+        self,
+        request: Annotated[
+            AnyRequest,
+            Doc(
+                """
+                Request object associated with the response.
+                """
+            ),
+        ],
+        response: Annotated[
+            Response,
+            Doc(
+                """
+                Response object to be validated.
+                """
+            ),
+        ],
     ) -> None:
         if isinstance(request, WebhookRequest):
             self.validate_webhook_response(request, response)
         else:
             self.validate_apicall_response(request, response)
 
-    def validate_apicall_request(self, request: Request) -> None:
+    def validate_apicall_request(
+        self,
+        request: Annotated[
+            Request,
+            Doc(
+                """
+                API call request object to be validated.
+                """
+            ),
+        ],
+    ) -> None:
         if not isinstance(request, Request):
             raise TypeError("'request' argument is not type of Request")
         self.request_validator.validate(request)
 
     def validate_apicall_response(
-        self, request: Request, response: Response
+        self,
+        request: Annotated[
+            Request,
+            Doc(
+                """
+                API call request object associated with the response.
+                """
+            ),
+        ],
+        response: Annotated[
+            Response,
+            Doc(
+                """
+                API call response object to be validated.
+                """
+            ),
+        ],
     ) -> None:
         if not isinstance(request, Request):
             raise TypeError("'request' argument is not type of Request")
@@ -381,13 +505,39 @@ class OpenAPI:
             raise TypeError("'response' argument is not type of Response")
         self.response_validator.validate(request, response)
 
-    def validate_webhook_request(self, request: WebhookRequest) -> None:
+    def validate_webhook_request(
+        self,
+        request: Annotated[
+            WebhookRequest,
+            Doc(
+                """
+                Webhook request object to be validated.
+                """
+            ),
+        ],
+    ) -> None:
         if not isinstance(request, WebhookRequest):
             raise TypeError("'request' argument is not type of WebhookRequest")
         self.webhook_request_validator.validate(request)
 
     def validate_webhook_response(
-        self, request: WebhookRequest, response: Response
+        self,
+        request: Annotated[
+            WebhookRequest,
+            Doc(
+                """
+                Webhook request object associated with the response.
+                """
+            ),
+        ],
+        response: Annotated[
+            Response,
+            Doc(
+                """
+                Webhook response object to be validated.
+                """
+            ),
+        ],
     ) -> None:
         if not isinstance(request, WebhookRequest):
             raise TypeError("'request' argument is not type of WebhookRequest")
@@ -395,14 +545,40 @@ class OpenAPI:
             raise TypeError("'response' argument is not type of Response")
         self.webhook_response_validator.validate(request, response)
 
-    def unmarshal_request(self, request: AnyRequest) -> RequestUnmarshalResult:
+    def unmarshal_request(
+        self,
+        request: Annotated[
+            AnyRequest,
+            Doc(
+                """
+                Request object to be unmarshalled.
+                """
+            ),
+        ],
+    ) -> RequestUnmarshalResult:
         if isinstance(request, WebhookRequest):
             return self.unmarshal_webhook_request(request)
         else:
             return self.unmarshal_apicall_request(request)
 
     def unmarshal_response(
-        self, request: AnyRequest, response: Response
+        self,
+        request: Annotated[
+            AnyRequest,
+            Doc(
+                """
+                Request object associated with the response.
+                """
+            ),
+        ],
+        response: Annotated[
+            Response,
+            Doc(
+                """
+                Response object to be unmarshalled.
+                """
+            ),
+        ],
     ) -> ResponseUnmarshalResult:
         if isinstance(request, WebhookRequest):
             return self.unmarshal_webhook_response(request, response)
@@ -410,14 +586,38 @@ class OpenAPI:
             return self.unmarshal_apicall_response(request, response)
 
     def unmarshal_apicall_request(
-        self, request: Request
+        self,
+        request: Annotated[
+            Request,
+            Doc(
+                """
+                API call request object to be unmarshalled.
+                """
+            ),
+        ],
     ) -> RequestUnmarshalResult:
         if not isinstance(request, Request):
             raise TypeError("'request' argument is not type of Request")
         return self.request_unmarshaller.unmarshal(request)
 
     def unmarshal_apicall_response(
-        self, request: Request, response: Response
+        self,
+        request: Annotated[
+            Request,
+            Doc(
+                """
+                API call request object associated with the response.
+                """
+            ),
+        ],
+        response: Annotated[
+            Response,
+            Doc(
+                """
+                API call response object to be unmarshalled.
+                """
+            ),
+        ],
     ) -> ResponseUnmarshalResult:
         if not isinstance(request, Request):
             raise TypeError("'request' argument is not type of Request")
@@ -426,14 +626,38 @@ class OpenAPI:
         return self.response_unmarshaller.unmarshal(request, response)
 
     def unmarshal_webhook_request(
-        self, request: WebhookRequest
+        self,
+        request: Annotated[
+            WebhookRequest,
+            Doc(
+                """
+                Webhook request object to be unmarshalled.
+                """
+            ),
+        ],
     ) -> RequestUnmarshalResult:
         if not isinstance(request, WebhookRequest):
             raise TypeError("'request' argument is not type of WebhookRequest")
         return self.webhook_request_unmarshaller.unmarshal(request)
 
     def unmarshal_webhook_response(
-        self, request: WebhookRequest, response: Response
+        self,
+        request: Annotated[
+            WebhookRequest,
+            Doc(
+                """
+                Webhook request object associated with the response.
+                """
+            ),
+        ],
+        response: Annotated[
+            Response,
+            Doc(
+                """
+                Webhook response object to be unmarshalled.
+                """
+            ),
+        ],
     ) -> ResponseUnmarshalResult:
         if not isinstance(request, WebhookRequest):
             raise TypeError("'request' argument is not type of WebhookRequest")
