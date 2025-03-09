@@ -14,11 +14,9 @@ build:
   tools:
     python: "3.12"
   jobs:
-    post_create_environment:
-      # Install poetry
-      - pip install poetry==1.7.1
-      # Tell poetry to not use a virtual environment
-      - poetry config virtualenvs.create false
+    post_system_dependencies:
+      - asdf plugin-add poetry
+      - asdf install poetry 2.1.1
+      - asdf global poetry 2.1.1
     post_install:
-      # Install dependencies
-      - poetry install --with docs
+      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --no-interaction --with docs
