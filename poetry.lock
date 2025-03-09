@@ -2732,14 +2732,14 @@ doc = ["sphinx"]
 
 [[package]]
 name = "starlette"
-version = "0.41.2"
+version = "0.44.0"
 description = "The little ASGI library that shines."
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
 files = [
-    {file = "starlette-0.41.2-py3-none-any.whl", hash = "sha256:fbc189474b4731cf30fcef52f18a8d070e3f3b46c6a04c97579e85e6ffca942d"},
-    {file = "starlette-0.41.2.tar.gz", hash = "sha256:9834fd799d1a87fd346deb76158668cfa0b0d56f85caefe8268e2d97c3468b62"},
+    {file = "starlette-0.44.0-py3-none-any.whl", hash = "sha256:19edeb75844c16dcd4f9dd72f22f9108c1539f3fc9c4c88885654fef64f85aea"},
+    {file = "starlette-0.44.0.tar.gz", hash = "sha256:e35166950a3ccccc701962fe0711db0bc14f2ecd37c6f9fe5e3eae0cbaea8715"},
 ]
 
 [package.dependencies]
@@ -2747,7 +2747,7 @@ anyio = ">=3.4.0,<5"
 typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
-full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7)", "pyyaml"]
+full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
 
 [[package]]
 name = "strict-rfc3339"
@@ -3078,4 +3078,4 @@ starlette = ["aioitertools", "starlette"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.8.0"
-content-hash = "100ef1a8ef28b99b21ca9309ddc45b7ce40ab359ca0a365fadda67db596f2311"
+content-hash = "ced0e037e704eba5d6e805ed5900ed7399be7206ba96ada1c15ebc26ebc709ba"
