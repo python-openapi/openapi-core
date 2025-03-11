@@ -1,12 +1,12 @@
 # Flask
 
-This section describes integration with [Flask](https://flask.palletsprojects.com) web framework.
+This section describes integration with the [Flask](https://flask.palletsprojects.com) web framework.
 
 ## View decorator
 
-Flask can be integrated by [view decorator](https://flask.palletsprojects.com/en/latest/patterns/viewdecorators/) to apply OpenAPI validation to your application's specific views.
+Flask can be integrated using a [view decorator](https://flask.palletsprojects.com/en/latest/patterns/viewdecorators/) to apply OpenAPI validation to your application's specific views.
 
-Use `FlaskOpenAPIViewDecorator` with OpenAPI object to create the decorator.
+Use `FlaskOpenAPIViewDecorator` with the OpenAPI object to create the decorator.
 
 ``` python hl_lines="1 3 6"
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
@@ -19,7 +19,7 @@ def home():
     return "Welcome home"
 ```
 
-You can skip response validation process: by setting `response_cls` to `None`
+You can skip the response validation process by setting `response_cls` to `None`.
 
 ``` python hl_lines="5"
 from openapi_core.contrib.flask.decorators import FlaskOpenAPIViewDecorator
@@ -30,7 +30,7 @@ openapi_validated = FlaskOpenAPIViewDecorator(
 )
 ```
 
-If you want to decorate class based view you can use the decorators attribute:
+If you want to decorate a class-based view, you can use the `decorators` attribute:
 
 ``` python hl_lines="2"
 class MyView(View):
@@ -44,7 +44,7 @@ app.add_url_rule('/home', view_func=MyView.as_view('home'))
 
 ## View
 
-As an alternative to the decorator-based integration, a Flask method based views can be integrated by inheritance from `FlaskOpenAPIView` class.
+As an alternative to the decorator-based integration, Flask method-based views can be integrated by inheriting from the `FlaskOpenAPIView` class.
 
 ``` python hl_lines="1 3 8"
 from openapi_core.contrib.flask.views import FlaskOpenAPIView
@@ -79,7 +79,7 @@ app.add_url_rule(
 
 ## Request parameters
 
-In Flask, all unmarshalled request data are provided as Flask request object's `openapi.parameters` attribute
+In Flask, all unmarshalled request data are provided as the Flask request object's `openapi.parameters` attribute.
 
 ``` python hl_lines="6 7"
 from flask.globals import request
@@ -104,4 +104,4 @@ openapi_request = FlaskOpenAPIRequest(flask_request)
 result = openapi.unmarshal_request(openapi_request)
 ```
 
-For response factory see [Werkzeug](werkzeug.md) integration.
+For the response factory, see the [Werkzeug](werkzeug.md) integration.

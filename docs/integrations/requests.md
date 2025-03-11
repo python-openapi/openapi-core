@@ -1,14 +1,14 @@
 # Requests
 
-This section describes integration with [Requests](https://requests.readthedocs.io) library.
+This section describes the integration with the [Requests](https://requests.readthedocs.io) library.
 
 ## Low level
 
-The integration defines classes useful for low level integration.
+The integration defines classes useful for low-level integration.
 
 ### Request
 
-Use `RequestsOpenAPIRequest` to create OpenAPI request from Requests request:
+Use `RequestsOpenAPIRequest` to create an OpenAPI request from a Requests request:
 
 ``` python
 from requests import Request, Session
@@ -21,7 +21,7 @@ openapi.validate_request(openapi_request)
 
 ### Webhook request
 
-Use `RequestsOpenAPIWebhookRequest` to create OpenAPI webhook request from Requests request:
+Use `RequestsOpenAPIWebhookRequest` to create an OpenAPI webhook request from a Requests request:
 
 ``` python
 from requests import Request, Session
@@ -34,7 +34,7 @@ openapi.validate_request(openapi_webhook_request)
 
 ### Response
 
-Use `RequestsOpenAPIResponse` to create OpenAPI response from Requests response:
+Use `RequestsOpenAPIResponse` to create an OpenAPI response from a Requests response:
 
 ``` python
 from requests import Request, Session
@@ -42,7 +42,7 @@ from openapi_core.contrib.requests import RequestsOpenAPIResponse
 
 session = Session()
 request = Request('POST', url, data=data, headers=headers)
-prepped = session.prepare_request(req)
+prepped = session.prepare_request(request)
 response = session.send(prepped)
 openapi_request = RequestsOpenAPIRequest(request)
 openapi_response = RequestsOpenAPIResponse(response)

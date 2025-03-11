@@ -25,7 +25,7 @@ async def hello(request):
 Use `AIOHTTPOpenAPIWebResponse` to create OpenAPI response from aiohttp.web response:
 
 ``` python
-from openapi_core.contrib.starlette import AIOHTTPOpenAPIWebResponse
+from openapi_core.contrib.aiohttp import AIOHTTPOpenAPIWebResponse
 
 async def hello(request):
     request_body = await request.text()

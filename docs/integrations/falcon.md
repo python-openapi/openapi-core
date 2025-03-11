@@ -1,11 +1,11 @@
 # Falcon
 
-This section describes integration with [Falcon](https://falconframework.org) web framework.
-The integration supports Falcon from version 3.0 and above.
+This section describes the integration with the [Falcon](https://falconframework.org) web framework.
+The integration supports Falcon version 3.0 and above.
 
 ## Middleware
 
-The Falcon API can be integrated by `FalconOpenAPIMiddleware` middleware.
+The Falcon API can be integrated using the `FalconOpenAPIMiddleware` middleware.
 
 ``` python hl_lines="1 3 7"
 from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
@@ -34,7 +34,7 @@ app = falcon.App(
 )
 ```
 
-You can skip response validation process: by setting `response_cls` to `None`
+You can skip the response validation process by setting `response_cls` to `None`.
 
 ``` python hl_lines="5"
 from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
@@ -50,20 +50,20 @@ app = falcon.App(
 )
 ```
 
-After that you will have access to validation result object with all validated request data from Falcon view through request context.
+After that, you will have access to the validation result object with all validated request data from the Falcon view through the request context.
 
 ``` python
 class ThingsResource:
     def on_get(self, req, resp):
-        # get parameters object with path, query, cookies and headers parameters
+        # Get the parameters object with path, query, cookies, and headers parameters
         validated_params = req.context.openapi.parameters
-        # or specific location parameters
+        # Or specific location parameters
         validated_path_params = req.context.openapi.parameters.path
 
-        # get body
+        # Get the body
         validated_body = req.context.openapi.body
 
-        # get security data
+        # Get security data
         validated_security = req.context.openapi.security
 ```
 

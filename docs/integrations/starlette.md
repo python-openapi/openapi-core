@@ -1,12 +1,12 @@
 # Starlette
 
-This section describes integration with [Starlette](https://www.starlette.io)  ASGI framework.
+This section describes integration with the [Starlette](https://www.starlette.io) ASGI framework.
 
 ## Middleware
 
-Starlette can be integrated by [middleware](https://www.starlette.io/middleware/) to apply OpenAPI validation to your entire application.
+Starlette can be integrated using [middleware](https://www.starlette.io/middleware/) to apply OpenAPI validation to your entire application.
 
-Add `StarletteOpenAPIMiddleware` with OpenAPI object to your `middleware` list.
+Add `StarletteOpenAPIMiddleware` with the OpenAPI object to your `middleware` list.
 
 ``` python hl_lines="1 6"
 from openapi_core.contrib.starlette.middlewares import StarletteOpenAPIMiddleware
@@ -23,13 +23,13 @@ app = Starlette(
 )
 ```
 
-After that all your requests and responses will be validated.
+After that, all your requests and responses will be validated.
 
-Also you have access to unmarshal result object with all unmarshalled request data through `openapi` scope of request object.
+You also have access to the unmarshalled result object with all unmarshalled request data through the `openapi` scope of the request object.
 
 ``` python
 async def homepage(request):
-    # get parameters object with path, query, cookies and headers parameters
+    # get parameters object with path, query, cookies, and headers parameters
     unmarshalled_params = request.scope["openapi"].parameters
     # or specific location parameters
     unmarshalled_path_params = request.scope["openapi"].parameters.path
@@ -43,7 +43,7 @@ async def homepage(request):
 
 ### Response validation
 
-You can skip response validation process: by setting `response_cls` to `None`
+You can skip the response validation process by setting `response_cls` to `None`.
 
 ``` python hl_lines="2"
 middleware = [
@@ -58,11 +58,11 @@ app = Starlette(
 
 ## Low level
 
-The integration defines classes useful for low level integration.
+The integration defines classes useful for low-level integration.
 
 ### Request
 
-Use `StarletteOpenAPIRequest` to create OpenAPI request from Starlette request:
+Use `StarletteOpenAPIRequest` to create an OpenAPI request from a Starlette request:
 
 ``` python
 from openapi_core.contrib.starlette import StarletteOpenAPIRequest
@@ -75,7 +75,7 @@ async def homepage(request):
 
 ### Response
 
-Use `StarletteOpenAPIResponse` to create OpenAPI response from Starlette response:
+Use `StarletteOpenAPIResponse` to create an OpenAPI response from a Starlette response:
 
 ``` python
 from openapi_core.contrib.starlette import StarletteOpenAPIResponse

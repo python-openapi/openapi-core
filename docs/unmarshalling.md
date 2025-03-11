@@ -5,46 +5,45 @@ hide:
 
 # Unmarshalling
 
-Unmarshalling is the process of converting a primitive schema type of value into a higher-level object based on a `format` keyword. All request/response data, that can be described by a schema in OpenAPI specification, can be unmarshalled.
+Unmarshalling is the process of converting a primitive schema type value into a higher-level object based on a `format` keyword. All request/response data that can be described by a schema in the OpenAPI specification can be unmarshalled.
 
-Unmarshallers firstly validate data against the provided schema (See [Validation](validation.md)).
+Unmarshallers first validate data against the provided schema (See [Validation](validation.md)).
 
 Openapi-core comes with a set of built-in format unmarshallers:
 
-- `date` - converts string into a date object,
-- `date-time` - converts string into a datetime object,
-- `binary` - converts string into a byte object,
-- `uuid` - converts string into an UUID object,
-- `byte` - decodes Base64-encoded string.
+- `date` - converts a string into a date object,
+- `date-time` - converts a string into a datetime object,
+- `binary` - converts a string into a byte object,
+- `uuid` - converts a string into a UUID object,
+- `byte` - decodes a Base64-encoded string.
 
-You can also define your own format unmarshallers (See [Format unmarshallers](customizations/extra_format_unmarshallers.md)).
+You can also define your own format unmarshallers (See [Extra Format Unmarshallers](configuration.md#extra-format-unmarshallers)).
 
 ## Request unmarshalling
 
-Use `unmarshal_request` method to validate and unmarshal request data against a given spec. By default, OpenAPI spec version is detected:
+Use the `unmarshal_request` method to validate and unmarshal request data against a given spec. By default, the OpenAPI spec version is detected:
 
 ```python
-# raises error if request is invalid
+# raises an error if the request is invalid
 result = openapi.unmarshal_request(request)
 ```
 
-Request object should implement OpenAPI Request protocol (See [Integrations](integrations/index.md)).
+The request object should implement the OpenAPI Request protocol (See [Integrations](integrations/index.md)).
 
 !!! note
 
-    Webhooks feature is part of OpenAPI v3.1 only
-
+    The Webhooks feature is part of OpenAPI v3.1 only.
 
 Use the same method to validate and unmarshal webhook request data against a given spec.
 
 ```python
-# raises error if request is invalid
+# raises an error if the request is invalid
 result = openapi.unmarshal_request(webhook_request)
 ```
 
-Webhook request object should implement OpenAPI WebhookRequest protocol (See [Integrations](integrations/index.md)).
+The webhook request object should implement the OpenAPI WebhookRequest protocol (See [Integrations](integrations/index.md)).
 
-Retrieve validated and unmarshalled request data
+Retrieve validated and unmarshalled request data:
 
 ```python
 # get parameters
@@ -58,31 +57,31 @@ body = result.body
 security = result.security
 ```
 
-You can also define your own request unmarshaller (See [Request unmarshaller](customizations/request_unmarshaller_cls.md)).
+You can also define your own request unmarshaller (See [Request Unmarshaller](configuration.md#request-unmarshaller)).
 
 ## Response unmarshalling
 
-Use `unmarshal_response` method to validate and unmarshal response data against a given spec. By default, OpenAPI spec version is detected:
+Use the `unmarshal_response` method to validate and unmarshal response data against a given spec. By default, the OpenAPI spec version is detected:
 
 ```python
-# raises error if response is invalid
+# raises an error if the response is invalid
 result = openapi.unmarshal_response(request, response)
 ```
 
-Response object should implement OpenAPI Response protocol  (See [Integrations](integrations/index.md)).
+The response object should implement the OpenAPI Response protocol (See [Integrations](integrations/index.md)).
 
 !!! note
 
-    Webhooks feature is part of OpenAPI v3.1 only
+    The Webhooks feature is part of OpenAPI v3.1 only.
 
-Use the same method to validate and unmarshal response data from webhook request against a given spec.
+Use the same method to validate and unmarshal response data from a webhook request against a given spec.
 
 ```python
-# raises error if request is invalid
+# raises an error if the request is invalid
 result = openapi.unmarshal_response(webhook_request, response)
 ```
 
-Retrieve validated and unmarshalled response data
+Retrieve validated and unmarshalled response data:
 
 ```python
 # get headers
@@ -91,4 +90,4 @@ headers = result.headers
 data = result.data
 ```
 
-You can also define your own response unmarshaller (See [Response unmarshaller](customizations/response_unmarshaller_cls.md)).
+You can also define your own response unmarshaller (See [Response Unmarshaller](configuration.md#response-unmarshaller)).

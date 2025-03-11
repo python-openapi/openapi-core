@@ -1,3 +1,5 @@
+"""OpenAPI core types"""
+
 from typing import Union
 
 from openapi_core.protocols import Request

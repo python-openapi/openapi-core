@@ -5,7 +5,7 @@ hide:
 
 # Contributing
 
-Firstly, thank you all for taking the time to contribute.
+Firstly, thank you for taking the time to contribute.
 
 The following section describes how you can contribute to the openapi-core project on GitHub.
 
@@ -13,16 +13,16 @@ The following section describes how you can contribute to the openapi-core proje
 
 ### Before you report
 
-- Check whether your issue does not already exist in the [Issue tracker](https://github.com/python-openapi/openapi-core/issues).
-- Make sure it is not a support request or question better suited for [Discussion board](https://github.com/python-openapi/openapi-core/discussions).
+- Check whether your issue already exists in the [Issue tracker](https://github.com/python-openapi/openapi-core/issues).
+- Make sure it is not a support request or question better suited for the [Discussion board](https://github.com/python-openapi/openapi-core/discussions).
 
 ### How to submit a report
 
-- Include clear title.
-- Describe your runtime environment with exact versions you use.
-- Describe the exact steps which reproduce the problem, including minimal code snippets.
-- Describe the behavior you observed after following the steps, pasting console outputs.
-- Describe expected behavior to see and why, including links to documentations.
+- Include a clear title.
+- Describe your runtime environment with the exact versions you use.
+- Describe the exact steps to reproduce the problem, including minimal code snippets.
+- Describe the behavior you observed after following the steps, including console outputs.
+- Describe the expected behavior and why, including links to documentation.
 
 ## Code contribution
 
@@ -50,9 +50,9 @@ poetry shell
 
 ### Static checks
 
-The project uses static checks using fantastic [pre-commit](https://pre-commit.com/). Every change is checked on CI and if it does not pass the tests it cannot be accepted. If you want to check locally then run following command to install pre-commit.
+The project uses static checks with the fantastic [pre-commit](https://pre-commit.com/). Every change is checked on CI, and if it does not pass the tests, it cannot be accepted. If you want to check locally, run the following command to install pre-commit.
 
-To turn on pre-commit checks for commit operations in git, enter:
+To enable pre-commit checks for commit operations in git, enter:
 
 ```console
 pre-commit install
@@ -70,4 +70,4 @@ To run all checks on all files, enter:
 pre-commit run --all-files
 ```
 
-Pre-commit check results are also attached to your PR through integration with Github Action.
+Pre-commit check results are also attached to your PR through integration with GitHub Actions.
