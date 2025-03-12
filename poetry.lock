@@ -733,46 +733,60 @@ testing = ["hatch", "pre-commit", "pytest", "tox"]
 
 [[package]]
 name = "falcon"
-version = "3.1.3"
+version = "4.0.2"
 description = "The ultra-reliable, fast ASGI+WSGI framework for building data plane APIs at scale."
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.8"
 groups = ["main", "dev"]
 files = [
-    {file = "falcon-3.1.3-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:094d295a767e2aa84f07bec6b23e9ebe2e43cde81d9d583bef037168bd775ad6"},
-    {file = "falcon-3.1.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8b203408040e87e8323e1c1921b106353fa5fe5dc05c9b3f4881acb3af03f556"},
-    {file = "falcon-3.1.3-cp310-cp310-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:d56d9a9886387585ce4547354c9929bf5743394df04a17df6ed51ad6bb58a4cc"},
-    {file = "falcon-3.1.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1c335f1118a6e42f08cf30d56914a0bc0d470aa6db7619fdc4c546b184f38248"},
-    {file = "falcon-3.1.3-cp310-cp310-win_amd64.whl", hash = "sha256:cb6b6a79d096b3a1f2f37f66f46a2cf18deb575db6dee9935057e6036d98d01f"},
-    {file = "falcon-3.1.3-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:508fdf30617cf1fa5c9d3058c14124dc8e5f7e316e26dca22d974f916493fd0e"},
-    {file = "falcon-3.1.3-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ca3c6cbcba90e272f60581fb3c4561cdcd0ac6d19672f5a11a04309b1d23fa66"},
-    {file = "falcon-3.1.3-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:7471aab646875d4478377065246a4115aaf3c0801a6eb4b6871f9836c8ef60b1"},
-    {file = "falcon-3.1.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:51bbbfa1ecb1d50bed9f8ae940b0f1049d958e945f1a08891769d40cfabe6fb2"},
-    {file = "falcon-3.1.3-cp311-cp311-win_amd64.whl", hash = "sha256:24aa51ba4145f05649976c33664971ef36f92846208bd9d4d4158ceb51bc753f"},
-    {file = "falcon-3.1.3-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:7a1ee54bf19d9c7f998edd8ac21ab8ead1e2f73c24822237eb5485890979a25d"},
-    {file = "falcon-3.1.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:db78171113a3920f0f33d8dd26364527a362db2d1c3376a95778653ff87dea24"},
-    {file = "falcon-3.1.3-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:656e738e0e220f4503e4f07747b564f4459da159a1f32ec6d2478efb651278dd"},
-    {file = "falcon-3.1.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e19a0a3827821bcf754a9b24217e3b8b4750f7eb437c4a8c461135a86ca9b1c5"},
-    {file = "falcon-3.1.3-cp312-cp312-win_amd64.whl", hash = "sha256:d52a05be5c2ef364853cdc6d97056dd880a534016db73b95f5a6ebc652577533"},
-    {file = "falcon-3.1.3-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:d78a6cfe2d135632673def489a19474e2508d83475c7662c4fa63be0ba82dd81"},
-    {file = "falcon-3.1.3-cp36-cp36m-win_amd64.whl", hash = "sha256:adc23ced91c4690042a11a0515c5cfe93eeeb7d063940900aee85f8eae7460ec"},
-    {file = "falcon-3.1.3-cp37-cp37m-macosx_11_0_x86_64.whl", hash = "sha256:d6b7131e85dff13abaacb4ff479c456256f0d57b262b1fb1771180f7535cc902"},
-    {file = "falcon-3.1.3-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:57d51f556ece73766f07ede57f17fa65dbbc2cc5e1c7075fb606f727464ad71e"},
-    {file = "falcon-3.1.3-cp37-cp37m-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:7b210c05b38a8d655e16aa3ae2befaa70ecfb49bef73c0c1995566b22afcfdd1"},
-    {file = "falcon-3.1.3-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:04a92f159d392098a11d14b8ca71d17129d8b1ef37b7a3577f1f8bcb7b3aecba"},
-    {file = "falcon-3.1.3-cp37-cp37m-win_amd64.whl", hash = "sha256:9c82cb54bbf67861febe80d394c9b7bfa0d2e16cc998b69bfff4e8b003c721a2"},
-    {file = "falcon-3.1.3-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:56e8a4728fb0193e2ccd5301d864fd9743a989cc228e709e5c49ff1025cc1a4f"},
-    {file = "falcon-3.1.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:12432c3f6bce46fe4eec3db6db8d2df1abe43a7531219356f1ba859db207e57b"},
-    {file = "falcon-3.1.3-cp38-cp38-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:e1f622d73111912021b8311d1e5d1eabef484217d2d30abe3d237533cb225ce9"},
-    {file = "falcon-3.1.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:19b2ce8a613a29a9eaf8243ca285ebf80464e8a6489dff60425f850fb5548936"},
-    {file = "falcon-3.1.3-cp38-cp38-win_amd64.whl", hash = "sha256:3cda76fb21568aa058ce454fa6272ca5b2582ebb0efcb7ae0090d3bf6d0db5af"},
-    {file = "falcon-3.1.3-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:cbd40435e99255e40ccfa849e4809cd1638fd8eccc08931fc9d355a6840a7332"},
-    {file = "falcon-3.1.3-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c6319883789ee3abcbde2dc10fed8016cc3d9a05018ae59944838b892101111a"},
-    {file = "falcon-3.1.3-cp39-cp39-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:796a57046b0717bff5ac488235c37ea63834a5cfc2c9291c5eeaa43c53e5e24c"},
-    {file = "falcon-3.1.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9e2fe54081f1cedc71462eff8dca074045d14380a4bca163882c6c4353f65af2"},
-    {file = "falcon-3.1.3-cp39-cp39-win_amd64.whl", hash = "sha256:ad37c46322122f34e228be4fe7ae5fcfedb630eef788a198fbdff5971091d5dc"},
-    {file = "falcon-3.1.3.tar.gz", hash = "sha256:23335dbccd44f29e85ec55f2f35d5a0bc12bd7a509f641ab81f5c64b65626263"},
+    {file = "falcon-4.0.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:8eab0212e77017385d48be2dfe9f5b32305fc9e4066cd298e4bb39e666e114c8"},
+    {file = "falcon-4.0.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:942129dd3bfb56342ac368f05ff4f9be53e98883b4227089fce2fd616ebc6ef3"},
+    {file = "falcon-4.0.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:60e7b6e5ee44bb2411a7f47bb64e0b225f11cca6ddf91e5130d456242095f0d7"},
+    {file = "falcon-4.0.2-cp310-cp310-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:330f1623e579575a9e3d90c2a15aebe100b2afa1e18a4bee2ddaa9a570e97902"},
+    {file = "falcon-4.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9d7cfac5cfca69373d1f65211d75767ed4f2d53b46554307427ec00a6f7f87c1"},
+    {file = "falcon-4.0.2-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:da3d942dd34f7a5213987bd053c3b52b6eb75fcfd342dc4fea9241f79a6529b3"},
+    {file = "falcon-4.0.2-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:5169e064bbe5dece52e088e3e8b17cae429f1e04c7aef8c31ae350303b19c620"},
+    {file = "falcon-4.0.2-cp310-cp310-win_amd64.whl", hash = "sha256:0d62e565b9e71b52b59e03130b2b71345a6873f5299aad6a141caf4a58661b41"},
+    {file = "falcon-4.0.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:cb6ee1aee9ff6a656762cf5fcd2e6c5dced410ca990016be2bc193e6b74ae9da"},
+    {file = "falcon-4.0.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:7f1a16d8bdc8ef9cf2832a6ca6d43b156b613fb1587cd08cc928c7b8a118ea0a"},
+    {file = "falcon-4.0.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:aee81fc4702eef5bccb640b93187fdf36ca2606fca511982069dbc60be2d1c93"},
+    {file = "falcon-4.0.2-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:9c1dbcec63d9118c3dfac1f810305128c4fffe26f4f99a7b4e379dec95fc3bfc"},
+    {file = "falcon-4.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c2892ab1232d3a7cc9890b1b539c471fe04c54f826704f9d05efe5632f18efa1"},
+    {file = "falcon-4.0.2-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:af68482b408bde53a77b36e45317767dfc5b6fce1525f5b25d65f57f35d33fca"},
+    {file = "falcon-4.0.2-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:53d84de83abe1a2094b319a4f018ab6c5773d9c2c841b528662aa151ab9df35c"},
+    {file = "falcon-4.0.2-cp311-cp311-win_amd64.whl", hash = "sha256:1d06bbbccdb58522b2a6bb2e79074844b0db0da1fff407725858a02515e15bbd"},
+    {file = "falcon-4.0.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:23b0419a9a025745734022aaa2e65447595e539ba27352b3f59d86b288f614db"},
+    {file = "falcon-4.0.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:524d7b75f7368fe82e94ed16370db5a27bb4b2d066470cba53f02304264447e8"},
+    {file = "falcon-4.0.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2c6b1d7451d5dee4be9b67a75e2a4a0b024dccffedd4e7c7a09513733b5a11db"},
+    {file = "falcon-4.0.2-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:59bb4a29626c5e610c62620a1395755e8c7b5509385b80d3637fbc8a604d29a3"},
+    {file = "falcon-4.0.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f26c9ed2912ee48e2e1e7eca3e7e85ab664ff07bd321097a26e4ad6168059424"},
+    {file = "falcon-4.0.2-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:0a12bbf3482b7ef1db0c6727c2ad8be5c3ac777d892e56a170e0b4b93651c915"},
+    {file = "falcon-4.0.2-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:a601de7816138f17bf168262e0bceb128fdd1ea2f29ddae035585b5da9223a21"},
+    {file = "falcon-4.0.2-cp312-cp312-win_amd64.whl", hash = "sha256:eec3feda4a9cd773203401e3cf425728a13bf5055b22243b1452e9ad963634f5"},
+    {file = "falcon-4.0.2-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:110b172afe337fbae802f1402c89a5dfe6392f3b8ce4f2ecdfd5cee48f68b805"},
+    {file = "falcon-4.0.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:b3a5db14cf2ef05f8f9630468c03939b86dc16115a5250a1870dac3dca1e04ba"},
+    {file = "falcon-4.0.2-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:14e0b4d41ce29c2b5c5b18021320e9e0977ba47ade46b67face52ee1325e2ea4"},
+    {file = "falcon-4.0.2-cp313-cp313-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:56af3b8838da2e19ae56b4e1bac168669ba257d6941f94933dc4f814fe721c08"},
+    {file = "falcon-4.0.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ec939d26dd77f57f08f3e13fb14b4e609c0baf073dc3f0c368f0e4cc10439528"},
+    {file = "falcon-4.0.2-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:9bfd751dd898505e17152d7ecfcdc457c9d85bceed7e651a9915183bd4afc86b"},
+    {file = "falcon-4.0.2-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:4b85f9c6f50a7465303290cb305404ea5c1ddeff6702179c1a8879c4693b0e5e"},
+    {file = "falcon-4.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:a410e4023999a74ccf615fafa646b112044b987ef5901c8e5c5b79b163f2b3ba"},
+    {file = "falcon-4.0.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:90ba6475a6dc591e72f23f3751476711f9a820a6eca05cb9435c9d039f7c534c"},
+    {file = "falcon-4.0.2-cp38-cp38-musllinux_1_2_x86_64.whl", hash = "sha256:90c8614f8fc7bf144338cbd9f9ac2ccf824c139e57f8122d3e873e92e4a4b053"},
+    {file = "falcon-4.0.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:f9709fd9181f58d492463b951cc42fb33b230e8f261128bc8252a37a4553f318"},
+    {file = "falcon-4.0.2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:427c20ceb367039b856506d7baeef17c7f0c40b8fcbf1147c0e76f33a574a7cf"},
+    {file = "falcon-4.0.2-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1fb50cebc3cae6720ccf4a05fccb233ea6a88e803828a07c063d6dce10a74e0e"},
+    {file = "falcon-4.0.2-cp39-cp39-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:628c450e14af811f13db6334265d7ff8a7b8a25ece1bde35d09a367a72046533"},
+    {file = "falcon-4.0.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e04b30a7f89e5413e00c5cd1ea62bf7948323eb0220f8a5bbf705abae266a384"},
+    {file = "falcon-4.0.2-cp39-cp39-musllinux_1_2_aarch64.whl", hash = "sha256:9095a36b8eeb80207322393b3bc88edaacd0426c2907e8427617618421bde9cc"},
+    {file = "falcon-4.0.2-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:0adc6c2887f9d7ed55fe38edef055cc85c26762e392d80dca8765184c180b921"},
+    {file = "falcon-4.0.2-cp39-cp39-win_amd64.whl", hash = "sha256:7bffb4cadcbf7c5994695d421ef5305ad8315cfbefe971713046967614f0ffa4"},
+    {file = "falcon-4.0.2-py3-none-any.whl", hash = "sha256:077b2abf001940c6128c9b5872ae8147fe13f6ca333f928d8045d7601a5e847e"},
+    {file = "falcon-4.0.2.tar.gz", hash = "sha256:58f4b9c9da4c9b1e2c9f396ad7ef897701b3c7c7c87227f0bd1aee40c7fbc525"},
 ]
+
+[package.extras]
+test = ["pytest"]
 
 [[package]]
 name = "fastapi"
