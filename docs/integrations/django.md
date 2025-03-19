@@ -87,7 +87,7 @@ openapi_validated = DjangoOpenAPIViewDecorator(
 
 If you want to decorate a class-based view, you can use the `method_decorator` decorator:
 
-``` python hl_lines="2"
+``` python hl_lines="3"
 from django.utils.decorators import method_decorator
 
 @method_decorator(openapi_validated, name='dispatch')
