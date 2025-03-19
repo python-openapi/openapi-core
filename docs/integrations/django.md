@@ -92,7 +92,6 @@ from django.utils.decorators import method_decorator
 
 @method_decorator(openapi_validated, name='dispatch')
 class MyView(View):
-    decorators = [openapi_validated]
 
     def get(self, request, *args, **kwargs):
         return "Welcome home"
