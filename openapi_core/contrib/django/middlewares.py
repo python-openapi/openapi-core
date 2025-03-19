@@ -1,19 +1,17 @@
 """OpenAPI core contrib django middlewares module"""
 
-import warnings
 from typing import Callable
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 
-from openapi_core import OpenAPI
 from openapi_core.contrib.django.handlers import DjangoOpenAPIErrorsHandler
 from openapi_core.contrib.django.handlers import (
     DjangoOpenAPIValidRequestHandler,
 )
 from openapi_core.contrib.django.integrations import DjangoIntegration
+from openapi_core.contrib.django.providers import get_default_openapi_instance
 
 
 class DjangoOpenAPIMiddleware(DjangoIntegration):
@@ -26,19 +24,7 @@ class DjangoOpenAPIMiddleware(DjangoIntegration):
         if hasattr(settings, "OPENAPI_RESPONSE_CLS"):
             self.response_cls = settings.OPENAPI_RESPONSE_CLS
 
-        if not hasattr(settings, "OPENAPI"):
-            if not hasattr(settings, "OPENAPI_SPEC"):
-                raise ImproperlyConfigured(
-                    "OPENAPI_SPEC not defined in settings"
-                )
-            else:
-                warnings.warn(
-                    "OPENAPI_SPEC is deprecated. Use OPENAPI instead.",
-                    DeprecationWarning,
-                )
-                openapi = OpenAPI(settings.OPENAPI_SPEC)
-        else:
-            openapi = settings.OPENAPI
+        openapi = get_default_openapi_instance()
 
         super().__init__(openapi)
 

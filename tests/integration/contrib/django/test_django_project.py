@@ -422,3 +422,41 @@ class TestPetPhotoView(BaseTestDjangoProject):
 
         assert response.status_code == 201
         assert not response.content
+
+
+class TestStatusView(BaseTestDjangoProject):
+
+    def test_get_valid(self, client, data_gif):
+        headers = {
+            "HTTP_AUTHORIZATION": "Basic testuser",
+            "HTTP_HOST": "petstore.swagger.io",
+        }
+        from django.conf import settings
+
+        MIDDLEWARE = [
+            v for v in settings.MIDDLEWARE if "openapi_core" not in v
+        ]
+        with override_settings(MIDDLEWARE=MIDDLEWARE):
+            response = client.get("/status", **headers)
+
+        assert response.status_code == 200
+        assert response.content.decode() == "OK"
+
+    def test_post_valid(self, client):
+        data = {"key": "value"}
+        content_type = "application/json"
+        headers = {
+            "HTTP_AUTHORIZATION": "Basic testuser",
+            "HTTP_HOST": "petstore.swagger.io",
+        }
+        from django.conf import settings
+
+        MIDDLEWARE = [
+            v for v in settings.MIDDLEWARE if "openapi_core" not in v
+        ]
+        with override_settings(MIDDLEWARE=MIDDLEWARE):
+            response = client.post(
+                "/status", data=data, content_type=content_type, **headers
+            )
+
+        assert response.status_code == 405  # Method Not Allowed

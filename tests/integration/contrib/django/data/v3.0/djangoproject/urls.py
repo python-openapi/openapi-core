@@ -20,6 +20,7 @@ from django.urls import path
 from djangoproject.pets.views import PetDetailView
 from djangoproject.pets.views import PetListView
 from djangoproject.pets.views import PetPhotoView
+from djangoproject.status.views import get_status
 from djangoproject.tags.views import TagListView
 
 urlpatterns = [
@@ -47,5 +48,10 @@ urlpatterns = [
         "v1/tags",
         TagListView.as_view(),
         name="tag_list_view",
+    ),
+    path(
+        "status",
+        get_status,
+        name="get_status_view",
     ),
 ]
