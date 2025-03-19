@@ -57,6 +57,47 @@ OPENAPI = OpenAPI.from_dict(spec_dict)
 OPENAPI_RESPONSE_CLS = None
 ```
 
+## Decorator
+
+Django can be integrated using [view decorators](https://docs.djangoproject.com/en/5.1/topics/http/decorators/) to apply OpenAPI validation to your application's specific views.
+
+Use `DjangoOpenAPIViewDecorator` with the OpenAPI object to create the decorator.
+
+``` python hl_lines="1 3 6"
+from openapi_core.contrib.django.decorators import DjangoOpenAPIViewDecorator
+
+openapi_validated = FlaskOpenAPIViewDecorator(openapi)
+
+
+@openapi_validated
+def home():
+    return "Welcome home"
+```
+
+You can skip the response validation process by setting `response_cls` to `None`.
+
+``` python hl_lines="5"
+from openapi_core.contrib.django.decorators import DjangoOpenAPIViewDecorator
+
+openapi_validated = DjangoOpenAPIViewDecorator(
+    openapi,
+    response_cls=None,
+)
+```
+
+If you want to decorate a class-based view, you can use the `method_decorator` decorator:
+
+``` python hl_lines="2"
+from django.utils.decorators import method_decorator
+
+@method_decorator(openapi_validated, name='dispatch')
+class MyView(View):
+    decorators = [openapi_validated]
+
+    def get(self, request, *args, **kwargs):
+        return "Welcome home"
+```
+
 ## Low level
 
 The integration defines classes useful for low-level integration.
