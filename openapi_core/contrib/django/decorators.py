@@ -1,5 +1,8 @@
 """OpenAPI core contrib django decorators module"""
 
+from typing import Any
+from typing import Callable
+from typing import Optional
 from typing import Type
 
 from django.conf import settings
@@ -26,7 +29,7 @@ class DjangoOpenAPIViewDecorator(DjangoIntegration):
 
     def __init__(
         self,
-        openapi: OpenAPI == None,
+        openapi: Optional[OpenAPI] = None,
         request_cls: Type[DjangoOpenAPIRequest] = DjangoOpenAPIRequest,
         response_cls: Type[DjangoOpenAPIResponse] = DjangoOpenAPIResponse,
         errors_handler_cls: Type[
@@ -46,7 +49,7 @@ class DjangoOpenAPIViewDecorator(DjangoIntegration):
         self.request_cls = request_cls
         self.response_cls = response_cls
 
-    def __call__(self, view_func):
+    def __call__(self, view_func: Callable[..., Any]) -> Callable[..., Any]:
         """
         Thanks to this method, the class acts as a decorator.
         Example usage:
@@ -57,7 +60,7 @@ class DjangoOpenAPIViewDecorator(DjangoIntegration):
         """
 
         def _wrapped_view(
-            request: HttpRequest, *args, **kwargs
+            request: HttpRequest, *args: Any, **kwargs: Any
         ) -> HttpResponse:
             # get_response is the function that we treats
             # as the "next step" in the chain (i.e., our original view).

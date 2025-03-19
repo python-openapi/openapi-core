@@ -1,6 +1,7 @@
 """OpenAPI core contrib django providers module"""
 
 import warnings
+from typing import cast
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -16,7 +17,7 @@ def get_default_openapi_instance() -> OpenAPI:
     """
     if hasattr(settings, "OPENAPI"):
         # Recommended (newer) approach
-        return settings.OPENAPI
+        return cast(OpenAPI, settings.OPENAPI)
     elif hasattr(settings, "OPENAPI_SPEC"):
         # Backward compatibility
         warnings.warn(
