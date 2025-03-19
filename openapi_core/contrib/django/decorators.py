@@ -13,11 +13,12 @@ from openapi_core.contrib.django.handlers import (
     DjangoOpenAPIValidRequestHandler,
 )
 from openapi_core.contrib.django.integrations import DjangoIntegration
+from openapi_core.contrib.django.providers import get_default_openapi_instance
 from openapi_core.contrib.django.requests import DjangoOpenAPIRequest
 from openapi_core.contrib.django.responses import DjangoOpenAPIResponse
 
 
-class DjangoOpenAPIDecorator(DjangoIntegration):
+class DjangoOpenAPIViewDecorator(DjangoIntegration):
     valid_request_handler_cls = DjangoOpenAPIValidRequestHandler
     errors_handler_cls: Type[DjangoOpenAPIErrorsHandler] = (
         DjangoOpenAPIErrorsHandler
@@ -50,7 +51,7 @@ class DjangoOpenAPIDecorator(DjangoIntegration):
         Thanks to this method, the class acts as a decorator.
         Example usage:
 
-            @DjangoOpenAPIDecorator()
+            @DjangoOpenAPIViewDecorator()
             def my_view(request): ...
 
         """
