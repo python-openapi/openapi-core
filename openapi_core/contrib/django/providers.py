@@ -7,6 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from openapi_core import OpenAPI
 
+
 def get_default_openapi_instance() -> OpenAPI:
     """
     Retrieves or initializes the OpenAPI instance based on Django settings
@@ -24,4 +25,6 @@ def get_default_openapi_instance() -> OpenAPI:
         )
         return OpenAPI(settings.OPENAPI_SPEC)
     else:
-        raise ImproperlyConfigured("Neither OPENAPI nor OPENAPI_SPEC is defined in Django settings.")
+        raise ImproperlyConfigured(
+            "Neither OPENAPI nor OPENAPI_SPEC is defined in Django settings."
+        )
