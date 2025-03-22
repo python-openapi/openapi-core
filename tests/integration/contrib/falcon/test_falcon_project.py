@@ -2,6 +2,7 @@ from base64 import b64encode
 from json import dumps
 
 import pytest
+from urllib3 import encode_multipart_formdata
 
 
 class BaseTestFalconProject:
@@ -204,7 +205,7 @@ class TestPetListResource(BaseTestFalconProject):
                     "title": (
                         "Content for the following mimetype not found: "
                         f"{content_type}. "
-                        "Valid mimetypes: ['application/json', 'application/x-www-form-urlencoded', 'text/plain']"
+                        "Valid mimetypes: ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain']"
                     ),
                 }
             ]
@@ -291,6 +292,43 @@ class TestPetListResource(BaseTestFalconProject):
 
         assert response.status_code == 201
         assert not response.content
+
+    @pytest.mark.xfail(
+        reason="falcon multipart form serialization unsupported",
+        strict=True,
+    )
+    def test_post_multipart_valid(self, client, data_gif):
+        cookies = {"user": 1}
+        auth = "authuser"
+        fields = {
+            "name": "Cat",
+            "address": (
+                "aaddress.json",
+                dumps(dict(city="Warsaw")),
+                "application/json",
+            ),
+            "photo": (
+                "photo.jpg",
+                data_gif,
+                "image/jpeg",
+            ),
+        }
+        body, content_type_header = encode_multipart_formdata(fields)
+        headers = {
+            "Authorization": f"Basic {auth}",
+            "Content-Type": content_type_header,
+        }
+
+        response = client.simulate_post(
+            "/v1/pets",
+            host="staging.gigantic-server.com",
+            headers=headers,
+            body=body,
+            cookies=cookies,
+            protocol="https",
+        )
+
+        assert response.status_code == 200
 
 
 class TestPetDetailResource:

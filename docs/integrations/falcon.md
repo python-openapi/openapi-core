@@ -3,6 +3,10 @@
 This section describes integration with [Falcon](https://falconframework.org) web framework.
 The integration supports Falcon from version 3.0 and above.
 
+!!! warning
+
+    This integration does not support multipart form body requests.
+
 ## Middleware
 
 The Falcon API can be integrated by `FalconOpenAPIMiddleware` middleware.
