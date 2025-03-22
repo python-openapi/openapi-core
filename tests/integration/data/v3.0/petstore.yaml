@@ -150,6 +150,9 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/PetCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PetWithPhotoCreate'
           text/plain: {}
       responses:
         '201':
@@ -375,6 +378,16 @@ components:
       oneOf:
         - $ref: "#/components/schemas/Cat"
         - $ref: "#/components/schemas/Bird"
+    PetWithPhotoCreate:
+      type: object
+      x-model: PetWithPhotoCreate
+      allOf:
+        - $ref: "#/components/schemas/PetCreatePartOne"
+        - $ref: "#/components/schemas/PetCreatePartTwo"
+        - $ref: "#/components/schemas/PetCreatePartPhoto"
+      oneOf:
+        - $ref: "#/components/schemas/Cat"
+        - $ref: "#/components/schemas/Bird"
     PetCreatePartOne:
       type: object
       x-model: PetCreatePartOne
@@ -395,6 +408,15 @@ components:
           $ref: "#/components/schemas/Position"
         healthy:
           type: boolean
+    PetCreatePartPhoto:
+      type: object
+      x-model: PetCreatePartPhoto
+      properties:
+        photo:
+          $ref: "#/components/schemas/PetPhoto"
+    PetPhoto:
+      type: string
+      format: binary
     Bird:
       type: object
       x-model: Bird

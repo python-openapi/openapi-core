@@ -66,9 +66,7 @@ class FalconOpenAPIRequest:
             self.request.content_type, self.request.options.default_media_type
         )
         try:
-            body = handler.serialize(
-                media, content_type=self.request.content_type
-            )
+            body = handler.serialize(media, content_type=self.content_type)
         # multipart form serialization is not supported
         except NotImplementedError:
             warnings.warn(

@@ -183,7 +183,7 @@ class TestPetListEndpoint(BaseTestPetstore):
                     "title": (
                         "Content for the following mimetype not found: "
                         "text/html. "
-                        "Valid mimetypes: ['application/json', 'application/x-www-form-urlencoded', 'text/plain']"
+                        "Valid mimetypes: ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain']"
                     ),
                 }
             ]
