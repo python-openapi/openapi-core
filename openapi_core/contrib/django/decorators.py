@@ -48,6 +48,7 @@ class DjangoOpenAPIViewDecorator(DjangoIntegration):
 
         self.request_cls = request_cls
         self.response_cls = response_cls
+        self.errors_handler_cls = errors_handler_cls
 
     def __call__(self, view_func: Callable[..., Any]) -> Callable[..., Any]:
         """
