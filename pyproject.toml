@@ -82,8 +82,6 @@ aioitertools = {version = ">=0.11,<0.13", optional = true}
 fastapi = {version = ">=0.111,<0.116", optional = true}
 typing-extensions = "^4.8.0"
 rpds-py = "^0.24.0"
-frozenlist = "^1.6.0"
-pydantic-core = "^2.34.1"
 
 [tool.poetry.extras]
 django = ["django"]
