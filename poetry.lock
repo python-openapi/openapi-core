@@ -2890,4 +2890,4 @@ starlette = ["aioitertools", "starlette"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.0"
-content-hash = "c563eb0fc6eaa28ecef83713567d80c9a688c004551861faceabc713d36f4053"
+content-hash = "e65afc8fd5e0b210f7ad24da23b3321d7c9cd76cc8a81d7672d336668fbead0c"
