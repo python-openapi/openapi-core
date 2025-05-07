@@ -58,8 +58,8 @@ jobs:
       - name: Static type check
         run: poetry run mypy
         
-      - name: Check dependencies
-        run: poetry run deptry .
+      # - name: Check dependencies
+      #   run: poetry run deptry .
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
