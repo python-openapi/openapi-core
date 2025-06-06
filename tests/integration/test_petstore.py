@@ -1689,7 +1689,7 @@ class TestPetstore:
                 spec=spec,
                 cls=V30RequestBodyValidator,
             )
-        assert type(exc_info.value.__cause__) is CastError
+        assert type(exc_info.value.__cause__) is InvalidSchemaValue
 
     def test_post_tags_additional_properties(self, spec):
         host_url = "http://petstore.swagger.io/v1"

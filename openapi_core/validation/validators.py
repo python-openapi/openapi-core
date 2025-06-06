@@ -249,6 +249,8 @@ class BaseValidator:
             return deserialised, None
 
         schema = media_type / "schema"
+        # Validate the original deserialized value first before casting
+        self._validate_schema(schema, deserialised)
         # cast for urlencoded content
         # FIXME: don't cast data from media type deserializer
         # See https://github.com/python-openapi/openapi-core/issues/706
@@ -261,9 +263,9 @@ class BaseValidator:
         casted, schema = self._get_content_schema_value_and_schema(
             raw, content, mimetype
         )
+        # Validation already happens in _get_content_schema_value_and_schema for schemas
         if schema is None:
             return casted, None
-        self._validate_schema(schema, casted)
         return casted, schema
 
     def _get_media_type_value(
