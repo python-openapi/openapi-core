@@ -69,12 +69,12 @@ isodate = "*"
 more-itertools = "*"
 parse = "*"
 openapi-schema-validator = "^0.6.0"
-openapi-spec-validator = "^0.7.1"
+openapi-spec-validator = {version = "^0.8.0a1", allow-prereleases = true}
 requests = {version = "*", optional = true}
 # werkzeug 3.1.2 changed the definition of Headers
 # See https://github.com/python-openapi/openapi-core/issues/938
 werkzeug = "<3.1.2"
-jsonschema-path = "^0.3.4"
+jsonschema-path = {version = "^0.4.0a1", allow-prereleases = true}
 jsonschema = "^4.23.0"
 multidict = {version = "^6.0.4", optional = true}
 aioitertools = {version = ">=0.11,<0.13", optional = true}
