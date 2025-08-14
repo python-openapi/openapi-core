@@ -44,7 +44,9 @@ def urlencoded_form_loads(
     value: bytes, **parameters: str
 ) -> Mapping[str, Any]:
     # only UTF-8 is conforming
-    return ImmutableMultiDict(parse_qsl(value.decode("utf-8")))
+    return ImmutableMultiDict(
+        parse_qsl(value.decode("utf-8"), keep_blank_values=True)
+    )
 
 
 def data_form_loads(value: bytes, **parameters: str) -> Mapping[str, Any]:
