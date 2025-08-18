@@ -201,6 +201,24 @@ class TestMediaTypeDeserializer:
 
         assert result == {}
 
+    def test_urlencoded_form_empty_value(self, deserializer_factory):
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                },
+            },
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        deserializer = deserializer_factory(mimetype, schema=schema)
+        value = b"name="
+
+        result = deserializer.deserialize(value)
+
+        assert result == {"name": ""}
+
     def test_urlencoded_form_simple(self, deserializer_factory):
         mimetype = "application/x-www-form-urlencoded"
         schema_dict = {
