@@ -66,7 +66,7 @@ Use `DjangoOpenAPIViewDecorator` with the OpenAPI object to create the decorator
 ``` python hl_lines="1 3 6"
 from openapi_core.contrib.django.decorators import DjangoOpenAPIViewDecorator
 
-openapi_validated = FlaskOpenAPIViewDecorator(openapi)
+openapi_validated = DjangoOpenAPIViewDecorator(openapi)
 
 
 @openapi_validated
