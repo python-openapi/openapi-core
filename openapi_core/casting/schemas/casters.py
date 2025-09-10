@@ -74,7 +74,10 @@ class BooleanCaster(PrimitiveTypeCaster[bool]):
         if isinstance(value, bool):
             return
 
-        if value.lower() not in ["false", "true"]:
+        if (
+            not isinstance(value, (str, bytes)) or
+            value.lower() not in ["false", "true"]
+        ):
             raise ValueError("not a boolean format")
 
 
