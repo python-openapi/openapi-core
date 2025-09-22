@@ -78,7 +78,7 @@ jsonschema-path = "^0.3.4"
 jsonschema = "^4.23.0"
 multidict = {version = "^6.0.4", optional = true}
 aioitertools = {version = ">=0.11,<0.13", optional = true}
-fastapi = {version = ">=0.111,<0.116", optional = true}
+fastapi = {version = ">=0.111,<0.118", optional = true}
 typing-extensions = "^4.8.0"
 
 [tool.poetry.extras]
@@ -113,7 +113,7 @@ aiohttp = "^3.8.4"
 pytest-aiohttp = "^1.0.4"
 bump2version = "^1.0.1"
 pyflakes = "^3.1.0"
-fastapi = ">=0.111,<0.116"
+fastapi = ">=0.111,<0.118"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.1"
