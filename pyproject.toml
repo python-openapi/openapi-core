@@ -75,7 +75,7 @@ werkzeug = ">=2.1.0"
 jsonschema-path = "^0.3.4"
 jsonschema = "^4.23.0"
 multidict = {version = "^6.0.4", optional = true}
-aioitertools = {version = ">=0.11,<0.13", optional = true}
+aioitertools = {version = ">=0.11,<0.14", optional = true}
 fastapi = {version = ">=0.111,<0.116", optional = true}
 typing-extensions = "^4.8.0"
 
