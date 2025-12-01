@@ -4,9 +4,15 @@ from typing import Any
 from typing import Mapping
 from typing import Optional
 from typing import Protocol
+from typing import Union
 from typing import runtime_checkable
 
+from werkzeug.datastructures import Headers
+
 from openapi_core.datatypes import RequestParameters
+
+# Type alias for headers that accepts both Mapping and werkzeug Headers
+HeadersType = Union[Mapping[str, Any], Headers]
 
 
 @runtime_checkable
@@ -109,7 +115,7 @@ class Response(Protocol):
         """The content type with parameters and always lowercase."""
 
     @property
-    def headers(self) -> Mapping[str, Any]:
+    def headers(self) -> HeadersType:
         """Response headers as Headers."""
 
     @property

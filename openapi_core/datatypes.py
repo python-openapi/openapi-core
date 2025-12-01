@@ -6,9 +6,13 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
 from typing import Mapping
+from typing import Union
 
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
+
+# Type alias for headers that accepts both Mapping and werkzeug Headers
+HeadersType = Union[Mapping[str, Any], Headers]
 
 
 @dataclass
@@ -27,7 +31,7 @@ class RequestParameters:
     """
 
     query: Mapping[str, Any] = field(default_factory=ImmutableMultiDict)
-    header: Mapping[str, Any] = field(default_factory=Headers)
+    header: HeadersType = field(default_factory=Headers)
     cookie: Mapping[str, Any] = field(default_factory=ImmutableMultiDict)
     path: Mapping[str, Any] = field(default_factory=dict)
 
