@@ -73,7 +73,7 @@ openapi-spec-validator = "^0.7.1"
 requests = {version = "*", optional = true}
 # werkzeug 3.1.2 changed the definition of Headers
 # See https://github.com/python-openapi/openapi-core/issues/938
-werkzeug = "<3.1.2"
+werkzeug = "<3.1.5"
 jsonschema-path = "^0.3.4"
 jsonschema = "^4.23.0"
 multidict = {version = "^6.0.4", optional = true}
