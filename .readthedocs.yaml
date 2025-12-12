@@ -16,7 +16,7 @@ build:
   jobs:
     post_system_dependencies:
       - asdf plugin-add poetry
-      - asdf install poetry 2.1.1
-      - asdf global poetry 2.1.1
+      - asdf install poetry 2.2.1
+      - asdf global poetry 2.2.1
     post_install:
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --no-interaction --with docs

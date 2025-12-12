@@ -15,6 +15,7 @@ from openapi_spec_validator import OpenAPIV31SpecValidator
 from openapi_core.casting.schemas import oas30_read_schema_casters_factory
 from openapi_core.casting.schemas import oas31_schema_casters_factory
 from openapi_core.exceptions import OpenAPIError
+from openapi_core.protocols import HeadersType
 from openapi_core.protocols import Request
 from openapi_core.protocols import Response
 from openapi_core.protocols import WebhookRequest
@@ -44,7 +45,7 @@ class BaseResponseValidator(BaseValidator):
         self,
         status_code: int,
         data: Optional[bytes],
-        headers: Mapping[str, Any],
+        headers: HeadersType,
         mimetype: str,
         operation: SchemaPath,
     ) -> Iterator[Exception]:
@@ -91,7 +92,7 @@ class BaseResponseValidator(BaseValidator):
     def _iter_headers_errors(
         self,
         status_code: int,
-        headers: Mapping[str, Any],
+        headers: HeadersType,
         operation: SchemaPath,
     ) -> Iterator[Exception]:
         try:
@@ -141,7 +142,7 @@ class BaseResponseValidator(BaseValidator):
         return data
 
     def _get_headers(
-        self, headers: Mapping[str, Any], operation_response: SchemaPath
+        self, headers: HeadersType, operation_response: SchemaPath
     ) -> Dict[str, Any]:
         if "headers" not in operation_response:
             return {}
