@@ -111,9 +111,9 @@ httpx = ">=0.24,<0.29"
 deptry = ">=0.11,<0.21"
 aiohttp = "^3.8.4"
 pytest-aiohttp = "^1.1.0"
-bump2version = "^1.0.1"
 pyflakes = "^3.1.0"
 fastapi = ">=0.111,<0.125"
+tbump = "^6.11.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.1"
@@ -146,3 +146,26 @@ line-length = 79
 profile = "black"
 line_length = 79
 force_single_line = true
+
+[tool.tbump]
+github_url = "https://github.com/python-openapi/openapi-core"
+
+[tool.tbump.version]
+current = "0.19.5"
+regex = '''
+  (?P<major>\d+)
+  \.
+  (?P<minor>\d+)
+  \.
+  (?P<patch>\d+)
+  '''
+
+[tool.tbump.git]
+message_template = "Version {new_version}"
+tag_template = "{new_version}"
+
+[[tool.tbump.file]]
+src = "openapi_core/__init__.py"
+
+[[tool.tbump.file]]
+src = "pyproject.toml"

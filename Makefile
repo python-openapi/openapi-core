@@ -38,12 +38,3 @@ docs-cleanup:
 	@rm -rf docs_build
 
 cleanup: dist-cleanup test-cleanup
-
-release/patch:
-	@bump2version patch
-
-release/minor:
-	@bump2version minor
-
-release/major:
-	@bump2version major
