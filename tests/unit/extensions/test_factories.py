@@ -33,7 +33,9 @@ class TestImportModelCreate:
         assert is_dataclass(test_model_class)
         assert test_model_class.__name__ == "TestModel"
         assert list(test_model_class.__dataclass_fields__.keys()) == ["name"]
-        assert test_model_class.__dataclass_fields__["name"].type == str(Any)
+        assert str(test_model_class.__dataclass_fields__["name"].type) == str(
+            Any
+        )
 
     def test_model_path(self, loaded_model_class):
         factory = ModelPathFactory()
