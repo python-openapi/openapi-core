@@ -32,6 +32,7 @@ class TestSearch:
             ("/{test_id}/test", {"test_id": "test"}),
             ("/{test.id}/test", {"test.id": "test"}),
             ("/{test-id}/test", {"test-id": "test"}),
+            ("/{0test}/test", {"0test": "test"}),
         ],
     )
     def test_chars_valid(self, path_pattern, expected):
@@ -42,17 +43,11 @@ class TestSearch:
 
         assert result.named == expected
 
-    @pytest.mark.xfail(
-        reason=(
-            "Special characters of regex not supported. "
-            "See https://github.com/python-openapi/openapi-core/issues/672"
-        ),
-        strict=True,
-    )
     @pytest.mark.parametrize(
         "path_pattern,expected",
         [
             ("/{test~id}/test", {"test~id": "test"}),
+            ("/{a-b~c.d}/test", {"a-b~c.d": "test"}),
         ],
     )
     def test_special_chars_valid(self, path_pattern, expected):
