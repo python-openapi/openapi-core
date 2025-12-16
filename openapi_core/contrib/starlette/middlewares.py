@@ -1,5 +1,7 @@
 """OpenAPI core contrib starlette middlewares module"""
 
+from typing import Type
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.requests import Request
@@ -14,14 +16,26 @@ from openapi_core.contrib.starlette.handlers import (
     StarletteOpenAPIValidRequestHandler,
 )
 from openapi_core.contrib.starlette.integrations import StarletteIntegration
+from openapi_core.contrib.starlette.requests import StarletteOpenAPIRequest
+from openapi_core.contrib.starlette.responses import StarletteOpenAPIResponse
 
 
 class StarletteOpenAPIMiddleware(StarletteIntegration, BaseHTTPMiddleware):
     valid_request_handler_cls = StarletteOpenAPIValidRequestHandler
     errors_handler = StarletteOpenAPIErrorsHandler()
 
-    def __init__(self, app: ASGIApp, openapi: OpenAPI):
+    def __init__(
+        self,
+        app: ASGIApp,
+        openapi: OpenAPI,
+        request_cls: Type[StarletteOpenAPIRequest] = StarletteOpenAPIRequest,
+        response_cls: Type[
+            StarletteOpenAPIResponse
+        ] = StarletteOpenAPIResponse,
+    ):
         super().__init__(openapi)
+        self.request_cls = request_cls
+        self.response_cls = response_cls
         BaseHTTPMiddleware.__init__(self, app)
 
     async def dispatch(
