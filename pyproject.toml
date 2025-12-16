@@ -119,7 +119,7 @@ tbump = "^6.11.0"
 mkdocs = "^1.6.1"
 mkdocstrings = {extras = ["python"], version = "^0.26.1"}
 mkdocs-material = "^9.5.34"
-griffe-typingdoc = "^0.2.7"
+griffe-typingdoc = ">=0.2.7,<0.4.0"
 
 [tool.pytest.ini_options]
 addopts = """
