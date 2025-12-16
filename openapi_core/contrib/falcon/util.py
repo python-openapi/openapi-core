@@ -5,7 +5,7 @@ from typing import Tuple
 
 
 def unpack_params(
-    params: Mapping[str, Any]
+    params: Mapping[str, Any],
 ) -> Generator[Tuple[str, Any], None, None]:
     for k, v in params.items():
         if isinstance(v, list):
