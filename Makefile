@@ -38,3 +38,6 @@ docs-cleanup:
 	@rm -rf docs_build
 
 cleanup: dist-cleanup test-cleanup
+
+bench-paths:
+	@PYTHONHASHSEED=0 python tests/benchmarks/bench_paths.py --paths 500 --templates-ratio 0.7 --lookups 2000 --output bench-paths.json
