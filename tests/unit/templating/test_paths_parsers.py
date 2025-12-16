@@ -42,13 +42,6 @@ class TestSearch:
 
         assert result.named == expected
 
-    @pytest.mark.xfail(
-        reason=(
-            "Special characters of regex not supported. "
-            "See https://github.com/python-openapi/openapi-core/issues/672"
-        ),
-        strict=True,
-    )
     @pytest.mark.parametrize(
         "path_pattern,expected",
         [
