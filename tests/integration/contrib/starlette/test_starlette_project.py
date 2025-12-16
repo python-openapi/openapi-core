@@ -15,26 +15,37 @@ def project_setup():
     sys.path.remove(project_dir)
 
 
-@pytest.fixture
-def app():
-    from starletteproject.__main__ import app
-
-    return app
-
-
-@pytest.fixture
-def client(app):
-    return TestClient(app, base_url="http://petstore.swagger.io")
-
-
 class BaseTestPetstore:
     api_key = "12345"
+
+    @pytest.fixture
+    def app(self):
+        from starletteproject.__main__ import app
+
+        return app
+
+    @pytest.fixture
+    def client(self, app):
+        return TestClient(app, base_url="http://petstore.swagger.io")
 
     @property
     def api_key_encoded(self):
         api_key_bytes = self.api_key.encode("utf8")
         api_key_bytes_enc = b64encode(api_key_bytes)
         return str(api_key_bytes_enc, "utf8")
+
+
+class BaseTestPetstoreSkipReponse:
+
+    @pytest.fixture
+    def app(self):
+        from starletteproject.__main__ import app_skip_response
+
+        return app_skip_response
+
+    @pytest.fixture
+    def client(self, app):
+        return TestClient(app, base_url="http://petstore.swagger.io")
 
 
 class TestPetListEndpoint(BaseTestPetstore):
@@ -377,6 +388,46 @@ class TestPetPhotoEndpoint(BaseTestPetstore):
             "/v1/pets/1/photo",
             headers=headers,
             content=data_gif,
+        )
+
+        assert not response.text
+        assert response.status_code == 201
+
+
+class TestTagListEndpoint(BaseTestPetstore):
+
+    def test_get_invalid(self, client):
+        headers = {
+            "Authorization": "Basic testuser",
+        }
+
+        response = client.get(
+            "/v1/tags",
+            headers=headers,
+        )
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "errors": [
+                {
+                    "title": "Missing response data",
+                    "status": 400,
+                    "type": "<class 'openapi_core.validation.response.exceptions.MissingData'>",
+                },
+            ],
+        }
+
+
+class TestSkipResponseTagListEndpoint(BaseTestPetstoreSkipReponse):
+
+    def test_get_valid(self, client):
+        headers = {
+            "Authorization": "Basic testuser",
+        }
+
+        response = client.get(
+            "/v1/tags",
+            headers=headers,
         )
 
         assert not response.text
