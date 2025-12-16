@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Iterator
 from typing import List
 from typing import Optional
@@ -12,9 +13,8 @@ from openapi_core.templating.paths.datatypes import Path
 from openapi_core.templating.paths.datatypes import PathOperation
 from openapi_core.templating.paths.datatypes import PathOperationServer
 from openapi_core.templating.paths.exceptions import PathsNotFound
+from openapi_core.templating.paths.parsers import PathParser
 from openapi_core.templating.paths.util import template_path_len
-from openapi_core.templating.util import parse
-from openapi_core.templating.util import search
 
 
 class SimplePathsIterator:
@@ -52,13 +52,18 @@ class TemplatePathsIterator:
                 yield Path(path, path_result)
             # template path
             else:
-                result = search(path_pattern, name)
+                path_parser = self._get_path_parser(path_pattern)
+                result = path_parser.search(name)
                 if result:
                     path_result = TemplateResult(path_pattern, result.named)
                     template_paths.append(Path(path, path_result))
 
         # Fewer variables -> more concrete path
         yield from sorted(template_paths, key=template_path_len)
+
+    @lru_cache(maxsize=4096)
+    def _get_path_parser(self, path_pattern: str) -> PathParser:
+        return PathParser(path_pattern, post_expression="$")
 
 
 class SimpleOperationsIterator:
@@ -156,7 +161,10 @@ class TemplateServersIterator:
                     )
                 # template path
                 else:
-                    result = parse(server["url"], server_url_pattern)
+                    server_url_parser = self._get_server_url_parser(
+                        server["url"]
+                    )
+                    result = server_url_parser.parse(server_url_pattern)
                     if result:
                         server_result = TemplateResult(
                             server["url"], result.named
@@ -171,7 +179,7 @@ class TemplateServersIterator:
                     # servers should'n end with tailing slash
                     # but let's search for this too
                     server_url_pattern += "/"
-                    result = parse(server["url"], server_url_pattern)
+                    result = server_url_parser.parse(server_url_pattern)
                     if result:
                         server_result = TemplateResult(
                             server["url"], result.named
@@ -183,3 +191,7 @@ class TemplateServersIterator:
                             path_result,
                             server_result,
                         )
+
+    @lru_cache(maxsize=1024)
+    def _get_server_url_parser(self, server_url: str) -> PathParser:
+        return PathParser(server_url, pre_expression="^")

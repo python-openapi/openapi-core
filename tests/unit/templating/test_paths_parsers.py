@@ -1,14 +1,15 @@
 import pytest
 
-from openapi_core.templating.util import search
+from openapi_core.templating.paths.parsers import PathParser
 
 
 class TestSearch:
     def test_endswith(self):
         path_pattern = "/{test}/test"
+        parser = PathParser(path_pattern, post_expression="$")
         full_url_pattern = "/test1/test/test2/test"
 
-        result = search(path_pattern, full_url_pattern)
+        result = parser.search(full_url_pattern)
 
         assert result.named == {
             "test": "test2",
@@ -16,9 +17,10 @@ class TestSearch:
 
     def test_exact(self):
         path_pattern = "/{test}/test"
+        parser = PathParser(path_pattern, post_expression="$")
         full_url_pattern = "/test/test"
 
-        result = search(path_pattern, full_url_pattern)
+        result = parser.search(full_url_pattern)
 
         assert result.named == {
             "test": "test",
@@ -33,9 +35,10 @@ class TestSearch:
         ],
     )
     def test_chars_valid(self, path_pattern, expected):
+        parser = PathParser(path_pattern, post_expression="$")
         full_url_pattern = "/test/test"
 
-        result = search(path_pattern, full_url_pattern)
+        result = parser.search(full_url_pattern)
 
         assert result.named == expected
 
@@ -53,8 +56,9 @@ class TestSearch:
         ],
     )
     def test_special_chars_valid(self, path_pattern, expected):
+        parser = PathParser(path_pattern, post_expression="$")
         full_url_pattern = "/test/test"
 
-        result = search(path_pattern, full_url_pattern)
+        result = parser.search(full_url_pattern)
 
         assert result.named == expected
