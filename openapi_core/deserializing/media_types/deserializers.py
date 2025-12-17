@@ -1,6 +1,8 @@
 from typing import Any
+from typing import Dict
 from typing import Mapping
 from typing import Optional
+from typing import Tuple
 from xml.etree.ElementTree import ParseError
 
 from jsonschema_path import SchemaPath
@@ -11,9 +13,12 @@ from openapi_core.deserializing.media_types.datatypes import (
 from openapi_core.deserializing.media_types.datatypes import (
     MediaTypeDeserializersDict,
 )
+from openapi_core.deserializing.media_types.enums import DataKind
 from openapi_core.deserializing.media_types.exceptions import (
     MediaTypeDeserializeError,
 )
+from openapi_core.deserializing.media_types.util import binary_loads
+from openapi_core.deserializing.media_types.util import json_loads
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
@@ -55,7 +60,21 @@ class MediaTypesDeserializer:
     ) -> DeserializerCallable:
         if mimetype in self.extra_media_type_deserializers:
             return self.extra_media_type_deserializers[mimetype]
-        return self.media_type_deserializers[mimetype]
+
+        # Exact match (for regular dicts / explicit registrations).
+        if mimetype in self.media_type_deserializers:
+            return self.media_type_deserializers[mimetype]
+
+        # Per RFC 6839, any media type ending with +json is JSON.
+        # Default to JSON parsing unless explicitly overridden above.
+        if mimetype.lower().endswith("+json"):
+            return json_loads
+
+        # Fallback for unknown media types.
+        try:
+            return self.media_type_deserializers[mimetype]
+        except KeyError:
+            return binary_loads
 
 
 class MediaTypeDeserializer:
@@ -75,7 +94,13 @@ class MediaTypeDeserializer:
         self.encoding = encoding
         self.parameters = parameters
 
-    def deserialize(self, value: bytes) -> Any:
+    def deserialize(self, value: bytes) -> Tuple[Any, Dict[str, DataKind]]:
+        """Deserialize value and return property data kinds.
+
+        Returns:
+            Tuple of (deserialized_value, property_data_kinds)
+            where property_data_kinds maps property names to their DataKind.
+        """
         deserialized = self.media_types_deserializer.deserialize(
             self.mimetype, value, **self.parameters
         )
@@ -84,9 +109,10 @@ class MediaTypeDeserializer:
             self.mimetype != "application/x-www-form-urlencoded"
             and not self.mimetype.startswith("multipart")
         ):
-            return deserialized
+            # Non-form types: return empty data kind map
+            return deserialized, {}
 
-        # decode multipart request bodies
+        # decode multipart/form request bodies and build property data kinds
         return self.decode(deserialized)
 
     def evolve(
@@ -101,21 +127,39 @@ class MediaTypeDeserializer:
             schema=schema,
         )
 
-    def decode(self, location: Mapping[str, Any]) -> Mapping[str, Any]:
+    def decode(
+        self, location: Mapping[str, Any]
+    ) -> Tuple[Mapping[str, Any], Dict[str, DataKind]]:
         # schema is required for multipart
         assert self.schema is not None
         properties = {}
+        property_data_kinds: Dict[str, DataKind] = {}
+
         for prop_name, prop_schema in get_properties(self.schema).items():
             try:
                 properties[prop_name] = self.decode_property(
                     prop_name, prop_schema, location
                 )
+
+                # Check if this property has JSON content type encoding
+                if self.encoding and prop_name in self.encoding:
+                    prop_encoding = self.encoding / prop_name
+                    prop_content_type = get_content_type(
+                        prop_schema, prop_encoding
+                    )
+                    # If encoded as JSON, mark as TYPED data
+                    if (
+                        prop_content_type.lower() == "application/json"
+                        or prop_content_type.lower().endswith("+json")
+                    ):
+                        property_data_kinds[prop_name] = DataKind.TYPED
+
             except KeyError:
                 if "default" not in prop_schema:
                     continue
                 properties[prop_name] = prop_schema["default"]
 
-        return properties
+        return properties, property_data_kinds
 
     def decode_property(
         self,
@@ -185,9 +229,28 @@ class MediaTypeDeserializer:
         ):
             if isinstance(location, SuportsGetAll):
                 value = location.getall(prop_name)
-                return list(map(prop_deserializer.deserialize, value))
-            if isinstance(location, SuportsGetList):
+                deserialized_list = list(
+                    map(prop_deserializer.deserialize, value)
+                )
+                # Extract values from tuples if present
+                return [
+                    d[0] if isinstance(d, tuple) else d
+                    for d in deserialized_list
+                ]
+            elif isinstance(location, SuportsGetList):
                 value = location.getlist(prop_name)
-                return list(map(prop_deserializer.deserialize, value))
+                deserialized_list = list(
+                    map(prop_deserializer.deserialize, value)
+                )
+                # Extract values from tuples if present
+                return [
+                    d[0] if isinstance(d, tuple) else d
+                    for d in deserialized_list
+                ]
 
-        return prop_deserializer.deserialize(location[prop_name])
+        # Deserialize the property value
+        deserialized = prop_deserializer.deserialize(location[prop_name])
+        # If it's a tuple (nested form/multipart), extract just the value
+        if isinstance(deserialized, tuple):
+            return deserialized[0]
+        return deserialized

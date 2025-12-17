@@ -3,6 +3,7 @@
 import warnings
 from functools import cached_property
 from typing import Any
+from typing import Dict
 from typing import Mapping
 from typing import Optional
 from typing import Tuple
@@ -18,6 +19,7 @@ from openapi_core.deserializing.media_types import (
 from openapi_core.deserializing.media_types.datatypes import (
     MediaTypeDeserializersDict,
 )
+from openapi_core.deserializing.media_types.enums import DataKind
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
@@ -117,7 +119,7 @@ class BaseValidator:
         mimetype: str,
         parameters: Mapping[str, str],
         value: bytes,
-    ) -> Any:
+    ) -> Tuple[Any, DataKind, Dict[str, DataKind]]:
         schema = media_type.get("schema")
         encoding = None
         if "encoding" in media_type:
@@ -129,7 +131,22 @@ class BaseValidator:
             encoding=encoding,
             extra_media_type_deserializers=self.extra_media_type_deserializers,
         )
-        return deserializer.deserialize(value)
+
+        # Decide data kind based on media type
+        # JSON and +json variants produce typed values
+        mimetype_lower = mimetype.lower()
+        if mimetype_lower == "application/json" or mimetype_lower.endswith(
+            "+json"
+        ):
+            data_kind = DataKind.TYPED
+        else:
+            # Form data and other types are stringly
+            data_kind = DataKind.STRINGLY
+
+        deserialized_value, property_data_kinds = deserializer.deserialize(
+            value
+        )
+        return deserialized_value, data_kind, property_data_kinds
 
     def _deserialise_style(
         self,
@@ -145,9 +162,19 @@ class BaseValidator:
         )
         return deserializer.deserialize(location)
 
-    def _cast(self, schema: SchemaPath, value: Any) -> Any:
+    def _cast(
+        self,
+        schema: SchemaPath,
+        value: Any,
+        data_kind: DataKind = DataKind.STRINGLY,
+        property_data_kinds: Optional[Dict[str, DataKind]] = None,
+    ) -> Any:
         caster = self.schema_casters_factory.create(schema)
-        return caster.cast(value)
+        return caster.cast(
+            value,
+            data_kind=data_kind,
+            property_data_kinds=property_data_kinds or {},
+        )
 
     def _validate_schema(self, schema: SchemaPath, value: Any) -> None:
         validator = self.schema_validators_factory.create(
@@ -217,7 +244,8 @@ class BaseValidator:
             ):
                 param_or_header_name = param_or_header["name"]
                 raise EmptyQueryParameterValue(param_or_header_name)
-        casted = self._cast(schema, deserialised)
+        # Parameters/headers are always stringly, use COERCE_STRINGS
+        casted = self._cast(schema, deserialised, data_kind=DataKind.STRINGLY)
         return casted, schema
 
     def _get_complex_param_or_header(
@@ -241,18 +269,27 @@ class BaseValidator:
         )
         # no point to catch KetError
         # in complex scenrios schema doesn't exist
-        deserialised = self._deserialise_media_type(
-            media_type, mime_type, parameters, raw
+        deserialised, data_kind, property_data_kinds = (
+            self._deserialise_media_type(
+                media_type, mime_type, parameters, raw
+            )
         )
 
         if "schema" not in media_type:
             return deserialised, None
 
         schema = media_type / "schema"
-        # cast for urlencoded content
-        # FIXME: don't cast data from media type deserializer
-        # See https://github.com/python-openapi/openapi-core/issues/706
-        casted = self._cast(schema, deserialised)
+        # Apply casting based on policy.
+        # TYPED policy (JSON) skips casting to preserve typed values.
+        # COERCE_STRINGS policy (forms) casts string inputs to schema types.
+        # property_data_kinds provides per-property overrides for form fields with JSON encoding.
+        # See https://github.com/python-openapi/openapi-core/issues/1017
+        casted = self._cast(
+            schema,
+            deserialised,
+            data_kind=data_kind,
+            property_data_kinds=property_data_kinds,
+        )
         return casted, schema
 
     def _get_content_and_schema(
