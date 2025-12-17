@@ -3,12 +3,14 @@ from xml.etree.ElementTree import Element
 import pytest
 from jsonschema_path import SchemaPath
 
+from openapi_core.casting.schemas import oas31_schema_casters_factory
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.deserializing.media_types import media_type_deserializers
+from openapi_core.deserializing.media_types import (
+    media_type_deserializers as default_media_type_deserializers,
+)
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
-from openapi_core.deserializing.styles import style_deserializers_factory
 
 
 class TestMediaTypeDeserializer:
@@ -19,12 +21,13 @@ class TestMediaTypeDeserializer:
             schema=None,
             encoding=None,
             parameters=None,
-            media_type_deserializers=media_type_deserializers,
+            media_type_deserializers=default_media_type_deserializers,
             extra_media_type_deserializers=None,
         ):
-            return MediaTypeDeserializersFactory(
-                style_deserializers_factory,
-                media_type_deserializers,
+
+            return MediaTypeDeserializersFactory.from_schema_casters_factory(
+                oas31_schema_casters_factory,
+                media_type_deserializers=media_type_deserializers,
             ).create(
                 mimetype,
                 schema=schema,
@@ -247,7 +250,7 @@ class TestMediaTypeDeserializer:
             "name": "foo bar",
         }
 
-    def test_urlencoded_complex(self, deserializer_factory):
+    def test_urlencoded_complex_cast_error(self, deserializer_factory):
         mimetype = "application/x-www-form-urlencoded"
         schema_dict = {
             "type": "object",
@@ -264,10 +267,30 @@ class TestMediaTypeDeserializer:
         deserializer = deserializer_factory(mimetype, schema=schema)
         value = b"prop=a&prop=b&prop=c"
 
+        with pytest.raises(DeserializeError):
+            deserializer.deserialize(value)
+
+    def test_urlencoded_complex(self, deserializer_factory):
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "type": "object",
+            "properties": {
+                "prop": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                    },
+                },
+            },
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        deserializer = deserializer_factory(mimetype, schema=schema)
+        value = b"prop=1&prop=2&prop=3"
+
         result = deserializer.deserialize(value)
 
         assert result == {
-            "prop": ["a", "b", "c"],
+            "prop": [1, 2, 3],
         }
 
     def test_urlencoded_content_type(self, deserializer_factory):
@@ -339,9 +362,9 @@ class TestMediaTypeDeserializer:
 
         assert result == {
             "color": {
-                "R": "100",
-                "G": "200",
-                "B": "150",
+                "R": 100,
+                "G": 200,
+                "B": 150,
             },
         }
 

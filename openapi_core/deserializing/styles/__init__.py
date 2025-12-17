@@ -10,7 +10,7 @@ from openapi_core.deserializing.styles.util import pipe_delimited_loads
 from openapi_core.deserializing.styles.util import simple_loads
 from openapi_core.deserializing.styles.util import space_delimited_loads
 
-__all__ = ["style_deserializers_factory"]
+__all__ = ["style_deserializers", "StyleDeserializersFactory"]
 
 style_deserializers: StyleDeserializersDict = {
     "matrix": matrix_loads,
@@ -21,7 +21,3 @@ style_deserializers: StyleDeserializersDict = {
     "pipeDelimited": pipe_delimited_loads,
     "deepObject": deep_object_loads,
 }
-
-style_deserializers_factory = StyleDeserializersFactory(
-    style_deserializers=style_deserializers,
-)

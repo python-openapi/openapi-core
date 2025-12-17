@@ -1,7 +1,6 @@
 from typing import Any
 from typing import Generic
 from typing import Iterable
-from typing import List
 from typing import Mapping
 from typing import Optional
 from typing import Type
@@ -28,6 +27,14 @@ class PrimitiveCaster:
         self.schema_caster = schema_caster
 
     def __call__(self, value: Any) -> Any:
+        self.validate(value)
+
+        return self.cast(value)
+
+    def validate(self, value: Any) -> None:
+        pass
+
+    def cast(self, value: Any) -> Any:
         return value
 
 
@@ -37,17 +44,8 @@ PrimitiveType = TypeVar("PrimitiveType")
 class PrimitiveTypeCaster(Generic[PrimitiveType], PrimitiveCaster):
     primitive_type: Type[PrimitiveType] = NotImplemented
 
-    def __call__(self, value: Union[str, bytes]) -> Any:
-        self.validate(value)
-
+    def cast(self, value: Union[str, bytes]) -> PrimitiveType:
         return self.primitive_type(value)  # type: ignore [call-arg]
-
-    def validate(self, value: Any) -> None:
-        # FIXME: don't cast data from media type deserializer
-        # See https://github.com/python-openapi/openapi-core/issues/706
-        # if not isinstance(value, (str, bytes)):
-        #     raise ValueError("should cast only from string or bytes")
-        pass
 
 
 class IntegerCaster(PrimitiveTypeCaster[int]):
@@ -61,21 +59,17 @@ class NumberCaster(PrimitiveTypeCaster[float]):
 class BooleanCaster(PrimitiveTypeCaster[bool]):
     primitive_type = bool
 
-    def __call__(self, value: Union[str, bytes]) -> Any:
-        self.validate(value)
-
-        return self.primitive_type(forcebool(value))
-
     def validate(self, value: Any) -> None:
         super().validate(value)
 
-        # FIXME: don't cast data from media type deserializer
-        # See https://github.com/python-openapi/openapi-core/issues/706
         if isinstance(value, bool):
             return
 
         if value.lower() not in ["false", "true"]:
             raise ValueError("not a boolean format")
+
+    def cast(self, value: Union[str, bytes]) -> bool:
+        return self.primitive_type(forcebool(value))
 
 
 class ArrayCaster(PrimitiveCaster):
@@ -85,19 +79,21 @@ class ArrayCaster(PrimitiveCaster):
         items_schema = self.schema.get("items", SchemaPath.from_dict({}))
         return self.schema_caster.evolve(items_schema)
 
-    def __call__(self, value: Any) -> List[Any]:
+    def validate(self, value: Any) -> None:
         # str and bytes are not arrays according to the OpenAPI spec
         if isinstance(value, (str, bytes)) or not isinstance(value, Iterable):
-            raise CastError(value, self.schema["type"])
+            raise ValueError("not an array format")
 
-        try:
-            return list(map(self.items_caster.cast, value))
-        except (ValueError, TypeError):
-            raise CastError(value, self.schema["type"])
+    def cast(self, value: list[Any]) -> list[Any]:
+        return list(map(self.items_caster.cast, value))
 
 
 class ObjectCaster(PrimitiveCaster):
-    def __call__(self, value: Any) -> Any:
+    def validate(self, value: Any) -> None:
+        if not isinstance(value, dict):
+            raise ValueError("not an object format")
+
+    def cast(self, value: dict[str, Any]) -> dict[str, Any]:
         return self._cast_proparties(value)
 
     def evolve(self, schema: SchemaPath) -> "ObjectCaster":
@@ -109,9 +105,11 @@ class ObjectCaster(PrimitiveCaster):
             self.schema_caster.evolve(schema),
         )
 
-    def _cast_proparties(self, value: Any, schema_only: bool = False) -> Any:
+    def _cast_proparties(
+        self, value: dict[str, Any], schema_only: bool = False
+    ) -> dict[str, Any]:
         if not isinstance(value, dict):
-            raise CastError(value, self.schema["type"])
+            raise ValueError("not an object format")
 
         all_of_schemas = self.schema_validator.iter_all_of_schemas(value)
         for all_of_schema in all_of_schemas:

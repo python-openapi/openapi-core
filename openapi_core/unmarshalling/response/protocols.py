@@ -8,16 +8,12 @@ from jsonschema_path import SchemaPath
 from openapi_spec_validator.validation.types import SpecValidatorType
 
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
-from openapi_core.deserializing.media_types import (
-    media_type_deserializers_factory,
-)
 from openapi_core.deserializing.media_types.datatypes import (
     MediaTypeDeserializersDict,
 )
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
-from openapi_core.deserializing.styles import style_deserializers_factory
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
@@ -44,8 +40,12 @@ class ResponseUnmarshaller(Protocol):
         self,
         spec: SchemaPath,
         base_url: Optional[str] = None,
-        style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
-        media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        style_deserializers_factory: Optional[
+            StyleDeserializersFactory
+        ] = None,
+        media_type_deserializers_factory: Optional[
+            MediaTypeDeserializersFactory
+        ] = None,
         schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         path_finder_cls: Optional[PathFinderType] = None,
@@ -75,8 +75,12 @@ class WebhookResponseUnmarshaller(Protocol):
         self,
         spec: SchemaPath,
         base_url: Optional[str] = None,
-        style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
-        media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        style_deserializers_factory: Optional[
+            StyleDeserializersFactory
+        ] = None,
+        media_type_deserializers_factory: Optional[
+            MediaTypeDeserializersFactory
+        ] = None,
         schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         path_finder_cls: Optional[PathFinderType] = None,

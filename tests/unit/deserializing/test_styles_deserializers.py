@@ -2,14 +2,23 @@ import pytest
 from jsonschema_path import SchemaPath
 from werkzeug.datastructures import ImmutableMultiDict
 
+from openapi_core.casting.schemas import oas31_schema_casters_factory
 from openapi_core.deserializing.exceptions import DeserializeError
-from openapi_core.deserializing.styles import style_deserializers_factory
+from openapi_core.deserializing.styles import style_deserializers
+from openapi_core.deserializing.styles.factories import (
+    StyleDeserializersFactory,
+)
 from openapi_core.schema.parameters import get_style_and_explode
 
 
 class TestParameterStyleDeserializer:
     @pytest.fixture
     def deserializer_factory(self):
+        style_deserializers_factory = StyleDeserializersFactory(
+            oas31_schema_casters_factory,
+            style_deserializers=style_deserializers,
+        )
+
         def create_deserializer(param, name=None):
             name = name or param["name"]
             style, explode = get_style_and_explode(param)

@@ -3,6 +3,10 @@ from typing import Any
 from typing import Mapping
 from typing import Optional
 
+from jsonschema_path import SchemaPath
+
+from openapi_core.casting.schemas.casters import SchemaCaster
+from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.styles.datatypes import DeserializerCallable
 
@@ -13,13 +17,16 @@ class StyleDeserializer:
         style: str,
         explode: bool,
         name: str,
-        schema_type: str,
+        schema: SchemaPath,
+        caster: SchemaCaster,
         deserializer_callable: Optional[DeserializerCallable] = None,
     ):
         self.style = style
         self.explode = explode
         self.name = name
-        self.schema_type = schema_type
+        self.schema = schema
+        self.schema_type = schema.getkey("type", "")
+        self.caster = caster
         self.deserializer_callable = deserializer_callable
 
     def deserialize(self, location: Mapping[str, Any]) -> Any:
@@ -28,8 +35,13 @@ class StyleDeserializer:
             return location[self.name]
 
         try:
-            return self.deserializer_callable(
+            value = self.deserializer_callable(
                 self.explode, self.name, self.schema_type, location
             )
-        except (ValueError, TypeError, AttributeError):
-            raise DeserializeError(self.style, self.name)
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise DeserializeError(self.style, self.name) from exc
+
+        try:
+            return self.caster.cast(value)
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise CastError(value, self.schema_type) from exc
