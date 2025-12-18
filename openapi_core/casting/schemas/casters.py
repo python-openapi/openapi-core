@@ -11,6 +11,8 @@ from jsonschema_path import SchemaPath
 
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.schema.schemas import get_properties
+from openapi_core.util import BOOLEAN_FALSE_VALUES
+from openapi_core.util import BOOLEAN_TRUE_VALUES
 from openapi_core.util import forcebool
 from openapi_core.validation.schemas.validators import SchemaValidator
 
@@ -65,7 +67,7 @@ class BooleanCaster(PrimitiveTypeCaster[bool]):
         if isinstance(value, bool):
             return
 
-        if value.lower() not in ["false", "true"]:
+        if value.lower() not in BOOLEAN_TRUE_VALUES + BOOLEAN_FALSE_VALUES:
             raise ValueError("not a boolean format")
 
     def cast(self, value: Union[str, bytes]) -> bool:
