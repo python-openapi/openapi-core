@@ -12,16 +12,14 @@ from jsonschema_path import SchemaPath
 from openapi_spec_validator.validation.types import SpecValidatorType
 
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
-from openapi_core.deserializing.media_types import (
-    media_type_deserializers_factory,
-)
+from openapi_core.deserializing.media_types import media_type_deserializers
 from openapi_core.deserializing.media_types.datatypes import (
     MediaTypeDeserializersDict,
 )
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
-from openapi_core.deserializing.styles import style_deserializers_factory
+from openapi_core.deserializing.styles import style_deserializers
 from openapi_core.deserializing.styles.exceptions import (
     EmptyQueryParameterValue,
 )
@@ -51,8 +49,12 @@ class BaseValidator:
         self,
         spec: SchemaPath,
         base_url: Optional[str] = None,
-        style_deserializers_factory: StyleDeserializersFactory = style_deserializers_factory,
-        media_type_deserializers_factory: MediaTypeDeserializersFactory = media_type_deserializers_factory,
+        style_deserializers_factory: Optional[
+            StyleDeserializersFactory
+        ] = None,
+        media_type_deserializers_factory: Optional[
+            MediaTypeDeserializersFactory
+        ] = None,
         schema_casters_factory: Optional[SchemaCastersFactory] = None,
         schema_validators_factory: Optional[SchemaValidatorsFactory] = None,
         path_finder_cls: Optional[PathFinderType] = None,
@@ -71,9 +73,19 @@ class BaseValidator:
         )
         if self.schema_casters_factory is NotImplemented:
             raise NotImplementedError("schema_casters_factory is not assigned")
-        self.style_deserializers_factory = style_deserializers_factory
+        self.style_deserializers_factory = (
+            style_deserializers_factory
+            or StyleDeserializersFactory(
+                self.schema_casters_factory,
+                style_deserializers=style_deserializers,
+            )
+        )
         self.media_type_deserializers_factory = (
             media_type_deserializers_factory
+            or MediaTypeDeserializersFactory(
+                self.style_deserializers_factory,
+                media_type_deserializers=media_type_deserializers,
+            )
         )
         self.schema_validators_factory = (
             schema_validators_factory or self.schema_validators_factory
@@ -145,10 +157,6 @@ class BaseValidator:
         )
         return deserializer.deserialize(location)
 
-    def _cast(self, schema: SchemaPath, value: Any) -> Any:
-        caster = self.schema_casters_factory.create(schema)
-        return caster.cast(value)
-
     def _validate_schema(self, schema: SchemaPath, value: Any) -> None:
         validator = self.schema_validators_factory.create(
             schema,
@@ -217,8 +225,7 @@ class BaseValidator:
             ):
                 param_or_header_name = param_or_header["name"]
                 raise EmptyQueryParameterValue(param_or_header_name)
-        casted = self._cast(schema, deserialised)
-        return casted, schema
+        return deserialised, schema
 
     def _get_complex_param_or_header(
         self,
@@ -249,22 +256,18 @@ class BaseValidator:
             return deserialised, None
 
         schema = media_type / "schema"
-        # cast for urlencoded content
-        # FIXME: don't cast data from media type deserializer
-        # See https://github.com/python-openapi/openapi-core/issues/706
-        casted = self._cast(schema, deserialised)
-        return casted, schema
+        return deserialised, schema
 
     def _get_content_and_schema(
         self, raw: bytes, content: SchemaPath, mimetype: Optional[str] = None
     ) -> Tuple[Any, Optional[SchemaPath]]:
-        casted, schema = self._get_content_schema_value_and_schema(
+        deserialised, schema = self._get_content_schema_value_and_schema(
             raw, content, mimetype
         )
         if schema is None:
-            return casted, None
-        self._validate_schema(schema, casted)
-        return casted, schema
+            return deserialised, None
+        self._validate_schema(schema, deserialised)
+        return deserialised, schema
 
     def _get_media_type_value(
         self,

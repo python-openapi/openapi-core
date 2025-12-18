@@ -3,6 +3,7 @@ from typing import Optional
 
 from jsonschema_path import SchemaPath
 
+from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.deserializing.media_types.datatypes import (
     MediaTypeDeserializersDict,
 )
@@ -12,6 +13,7 @@ from openapi_core.deserializing.media_types.deserializers import (
 from openapi_core.deserializing.media_types.deserializers import (
     MediaTypesDeserializer,
 )
+from openapi_core.deserializing.styles.datatypes import StyleDeserializersDict
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
@@ -27,6 +29,31 @@ class MediaTypeDeserializersFactory:
         if media_type_deserializers is None:
             media_type_deserializers = {}
         self.media_type_deserializers = media_type_deserializers
+
+    @classmethod
+    def from_schema_casters_factory(
+        cls,
+        schema_casters_factory: SchemaCastersFactory,
+        style_deserializers: Optional[StyleDeserializersDict] = None,
+        media_type_deserializers: Optional[MediaTypeDeserializersDict] = None,
+    ) -> "MediaTypeDeserializersFactory":
+        from openapi_core.deserializing.media_types import (
+            media_type_deserializers as default_media_type_deserializers,
+        )
+        from openapi_core.deserializing.styles import (
+            style_deserializers as default_style_deserializers,
+        )
+
+        style_deserializers_factory = StyleDeserializersFactory(
+            schema_casters_factory,
+            style_deserializers=style_deserializers
+            or default_style_deserializers,
+        )
+        return cls(
+            style_deserializers_factory,
+            media_type_deserializers=media_type_deserializers
+            or default_media_type_deserializers,
+        )
 
     def create(
         self,

@@ -12,9 +12,8 @@ from openapi_core.deserializing.media_types.util import json_loads
 from openapi_core.deserializing.media_types.util import plain_loads
 from openapi_core.deserializing.media_types.util import urlencoded_form_loads
 from openapi_core.deserializing.media_types.util import xml_loads
-from openapi_core.deserializing.styles import style_deserializers_factory
 
-__all__ = ["media_type_deserializers_factory"]
+__all__ = ["media_type_deserializers", "MediaTypeDeserializersFactory"]
 
 media_type_deserializers: MediaTypeDeserializersDict = defaultdict(
     lambda: binary_loads,
@@ -29,9 +28,4 @@ media_type_deserializers: MediaTypeDeserializersDict = defaultdict(
         "application/x-www-form-urlencoded": urlencoded_form_loads,
         "multipart/form-data": data_form_loads,
     }
-)
-
-media_type_deserializers_factory = MediaTypeDeserializersFactory(
-    style_deserializers_factory,
-    media_type_deserializers=media_type_deserializers,
 )
