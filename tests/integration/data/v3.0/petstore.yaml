@@ -286,6 +286,12 @@ paths:
       operationId: deleteTag
       tags:
         - tags
+      parameters:
+        - name: x-delete-force
+          in: header
+          schema:
+            type: boolean
+          required: false
       requestBody:
         required: false
         content:

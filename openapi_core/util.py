@@ -4,13 +4,16 @@ from itertools import chain
 from typing import Any
 from typing import Iterable
 
+BOOLEAN_TRUE_VALUES = ("y", "yes", "t", "true", "on", "1")
+BOOLEAN_FALSE_VALUES = ("n", "no", "f", "false", "off", "0")
+
 
 def forcebool(val: Any) -> bool:
     if isinstance(val, str):
         val = val.lower()
-        if val in ("y", "yes", "t", "true", "on", "1"):
+        if val in BOOLEAN_TRUE_VALUES:
             return True
-        elif val in ("n", "no", "f", "false", "off", "0"):
+        elif val in BOOLEAN_FALSE_VALUES:
             return False
         else:
             raise ValueError(f"invalid truth value {val!r}")
