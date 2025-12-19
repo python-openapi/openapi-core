@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Mapping
 from typing import Optional
@@ -22,6 +23,10 @@ from openapi_core.schema.parameters import get_style_and_explode
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList
 from openapi_core.schema.schemas import get_properties
+from openapi_core.validation.schemas.validators import SchemaValidator
+
+if TYPE_CHECKING:
+    from openapi_core.casting.schemas.casters import SchemaCaster
 
 
 class MediaTypesDeserializer:
@@ -65,6 +70,8 @@ class MediaTypeDeserializer:
         media_types_deserializer: MediaTypesDeserializer,
         mimetype: str,
         schema: Optional[SchemaPath] = None,
+        schema_validator: Optional[SchemaValidator] = None,
+        schema_caster: Optional["SchemaCaster"] = None,
         encoding: Optional[SchemaPath] = None,
         **parameters: str,
     ):
@@ -72,6 +79,8 @@ class MediaTypeDeserializer:
         self.media_types_deserializer = media_types_deserializer
         self.mimetype = mimetype
         self.schema = schema
+        self.schema_validator = schema_validator
+        self.schema_caster = schema_caster
         self.encoding = encoding
         self.parameters = parameters
 
@@ -86,25 +95,72 @@ class MediaTypeDeserializer:
         ):
             return deserialized
 
-        # decode multipart request bodies
-        return self.decode(deserialized)
+        # decode multipart request bodies if schema provided
+        if self.schema is not None:
+            return self.decode(deserialized)
+
+        return deserialized
 
     def evolve(
-        self, mimetype: str, schema: Optional[SchemaPath]
+        self,
+        schema: SchemaPath,
+        mimetype: Optional[str] = None,
     ) -> "MediaTypeDeserializer":
         cls = self.__class__
+
+        schema_validator = None
+        if self.schema_validator is not None:
+            schema_validator = self.schema_validator.evolve(schema)
+
+        schema_caster = None
+        if self.schema_caster is not None:
+            schema_caster = self.schema_caster.evolve(schema)
 
         return cls(
             self.style_deserializers_factory,
             self.media_types_deserializer,
-            mimetype,
+            mimetype=mimetype or self.mimetype,
             schema=schema,
+            schema_validator=schema_validator,
+            schema_caster=schema_caster,
         )
 
-    def decode(self, location: Mapping[str, Any]) -> Mapping[str, Any]:
+    def decode(
+        self, location: Mapping[str, Any], schema_only: bool = False
+    ) -> Mapping[str, Any]:
         # schema is required for multipart
         assert self.schema is not None
-        properties = {}
+        properties: dict[str, Any] = {}
+
+        # For urlencoded/multipart, use caster for oneOf/anyOf detection if validator available
+        if self.schema_validator is not None:
+            one_of_schema = self.schema_validator.get_one_of_schema(
+                location, caster=self.schema_caster
+            )
+            if one_of_schema is not None:
+                one_of_properties = self.evolve(one_of_schema).decode(
+                    location, schema_only=True
+                )
+                properties.update(one_of_properties)
+
+            any_of_schemas = self.schema_validator.iter_any_of_schemas(
+                location, caster=self.schema_caster
+            )
+            for any_of_schema in any_of_schemas:
+                any_of_properties = self.evolve(any_of_schema).decode(
+                    location, schema_only=True
+                )
+                properties.update(any_of_properties)
+
+            all_of_schemas = self.schema_validator.iter_all_of_schemas(
+                location
+            )
+            for all_of_schema in all_of_schemas:
+                all_of_properties = self.evolve(all_of_schema).decode(
+                    location, schema_only=True
+                )
+                properties.update(all_of_properties)
+
         for prop_name, prop_schema in get_properties(self.schema).items():
             try:
                 properties[prop_name] = self.decode_property(
@@ -114,6 +170,9 @@ class MediaTypeDeserializer:
                 if "default" not in prop_schema:
                     continue
                 properties[prop_name] = prop_schema["default"]
+
+        if schema_only:
+            return properties
 
         return properties
 
@@ -175,8 +234,8 @@ class MediaTypeDeserializer:
     ) -> Any:
         prop_content_type = get_content_type(prop_schema, prop_encoding)
         prop_deserializer = self.evolve(
-            prop_content_type,
             prop_schema,
+            mimetype=prop_content_type,
         )
         prop_schema_type = prop_schema.getkey("type", "")
         if (
