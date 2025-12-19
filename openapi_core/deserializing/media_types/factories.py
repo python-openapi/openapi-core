@@ -17,6 +17,7 @@ from openapi_core.deserializing.styles.datatypes import StyleDeserializersDict
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
+from openapi_core.validation.schemas.validators import SchemaValidator
 
 
 class MediaTypeDeserializersFactory:
@@ -59,6 +60,7 @@ class MediaTypeDeserializersFactory:
         self,
         mimetype: str,
         schema: Optional[SchemaPath] = None,
+        schema_validator: Optional[SchemaValidator] = None,
         parameters: Optional[Mapping[str, str]] = None,
         encoding: Optional[SchemaPath] = None,
         extra_media_type_deserializers: Optional[
@@ -74,11 +76,30 @@ class MediaTypeDeserializersFactory:
             extra_media_type_deserializers,
         )
 
+        # Create schema caster for urlencoded/multipart content types
+        # Only create if both schema and schema_validator are provided
+        schema_caster = None
+        if (
+            schema is not None
+            and schema_validator is not None
+            and (
+                mimetype == "application/x-www-form-urlencoded"
+                or mimetype.startswith("multipart")
+            )
+        ):
+            schema_caster = (
+                self.style_deserializers_factory.schema_casters_factory.create(
+                    schema
+                )
+            )
+
         return MediaTypeDeserializer(
             self.style_deserializers_factory,
             media_types_deserializer,
             mimetype,
             schema=schema,
+            schema_validator=schema_validator,
+            schema_caster=schema_caster,
             encoding=encoding,
             **parameters,
         )

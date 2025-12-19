@@ -11,6 +11,7 @@ from openapi_core.deserializing.media_types import (
 from openapi_core.deserializing.media_types.factories import (
     MediaTypeDeserializersFactory,
 )
+from openapi_core.validation.schemas import oas31_schema_validators_factory
 
 
 class TestMediaTypeDeserializer:
@@ -19,6 +20,7 @@ class TestMediaTypeDeserializer:
         def create_deserializer(
             mimetype,
             schema=None,
+            schema_validator=None,
             encoding=None,
             parameters=None,
             media_type_deserializers=default_media_type_deserializers,
@@ -31,6 +33,7 @@ class TestMediaTypeDeserializer:
             ).create(
                 mimetype,
                 schema=schema,
+                schema_validator=schema_validator,
                 parameters=parameters,
                 encoding=encoding,
                 extra_media_type_deserializers=extra_media_type_deserializers,
@@ -479,3 +482,152 @@ class TestMediaTypeDeserializer:
         )
 
         assert result == deserialized
+
+    def test_urlencoded_oneof_integer_field(self, deserializer_factory):
+        """Test issue #932: oneOf with urlencoded should match schema with integer field"""
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "typeA": {"type": "string"},
+                        "fieldA": {"type": "string"},
+                    },
+                    "required": ["typeA", "fieldA"],
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "typeB": {"type": "string"},
+                        "fieldB": {"type": "integer"},
+                    },
+                    "required": ["typeB", "fieldB"],
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(schema)
+        deserializer = deserializer_factory(
+            mimetype, schema=schema, schema_validator=schema_validator
+        )
+        # String "123" should be cast to integer 123 to match the second oneOf option
+        value = b"typeB=test&fieldB=123"
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "typeB": "test",
+            "fieldB": 123,
+        }
+
+    def test_urlencoded_oneof_string_field(self, deserializer_factory):
+        """Test issue #932: oneOf with urlencoded should match schema with string fields"""
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "typeA": {"type": "string"},
+                        "fieldA": {"type": "string"},
+                    },
+                    "required": ["typeA", "fieldA"],
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "typeB": {"type": "string"},
+                        "fieldB": {"type": "integer"},
+                    },
+                    "required": ["typeB", "fieldB"],
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(schema)
+        deserializer = deserializer_factory(
+            mimetype, schema=schema, schema_validator=schema_validator
+        )
+        value = b"typeA=test&fieldA=value"
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "typeA": "test",
+            "fieldA": "value",
+        }
+
+    def test_urlencoded_anyof_with_types(self, deserializer_factory):
+        """Test anyOf with urlencoded and type coercion"""
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "count": {"type": "integer"},
+                        "active": {"type": "boolean"},
+                    },
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                    },
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(schema)
+        deserializer = deserializer_factory(
+            mimetype, schema=schema, schema_validator=schema_validator
+        )
+        # Should match both schemas after type coercion
+        value = b"count=42&active=true&name=test"
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "count": 42,
+            "active": True,
+            "name": "test",
+        }
+
+    def test_urlencoded_oneof_boolean_field(self, deserializer_factory):
+        """Test oneOf with boolean field requiring type coercion"""
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {"type": "boolean"},
+                        "mode": {"type": "string"},
+                    },
+                    "required": ["enabled"],
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "disabled": {"type": "boolean"},
+                        "reason": {"type": "string"},
+                    },
+                    "required": ["disabled"],
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(schema)
+        deserializer = deserializer_factory(
+            mimetype, schema=schema, schema_validator=schema_validator
+        )
+        # String "true" should be cast to boolean True
+        value = b"enabled=true&mode=auto"
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "enabled": True,
+            "mode": "auto",
+        }

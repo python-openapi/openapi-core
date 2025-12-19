@@ -1,6 +1,7 @@
 import logging
 from functools import cached_property
 from functools import partial
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterator
 from typing import Optional
@@ -12,6 +13,9 @@ from jsonschema_path import SchemaPath
 from openapi_core.validation.schemas.datatypes import FormatValidator
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.schemas.exceptions import ValidateError
+
+if TYPE_CHECKING:
+    from openapi_core.casting.schemas.casters import SchemaCaster
 
 log = logging.getLogger(__name__)
 
@@ -113,7 +117,15 @@ class SchemaValidator:
     def get_one_of_schema(
         self,
         value: Any,
+        caster: Optional["SchemaCaster"] = None,
     ) -> Optional[SchemaPath]:
+        """Find the matching oneOf schema.
+
+        Args:
+            value: The value to match against schemas
+            caster: Optional caster for type coercion during matching.
+                    Useful for form-encoded data where types need casting.
+        """
         if "oneOf" not in self.schema:
             return None
 
@@ -121,7 +133,23 @@ class SchemaValidator:
         for subschema in one_of_schemas:
             validator = self.evolve(subschema)
             try:
-                validator.validate(value)
+                test_value = value
+                # Only cast if caster provided (opt-in behavior)
+                if caster is not None:
+                    try:
+                        # Convert to dict if it's not exactly a plain dict
+                        # (e.g., ImmutableMultiDict from werkzeug)
+                        if type(value) is not dict:
+                            test_value = dict(value)
+                        else:
+                            test_value = value
+                        test_value = caster.evolve(subschema).cast(test_value)
+                    except (ValueError, TypeError, Exception):
+                        # If casting fails, try validation with original value
+                        # We catch generic Exception to handle CastError without circular import
+                        test_value = value
+
+                validator.validate(test_value)
             except ValidateError:
                 continue
             else:
@@ -133,7 +161,15 @@ class SchemaValidator:
     def iter_any_of_schemas(
         self,
         value: Any,
+        caster: Optional["SchemaCaster"] = None,
     ) -> Iterator[SchemaPath]:
+        """Iterate matching anyOf schemas.
+
+        Args:
+            value: The value to match against schemas
+            caster: Optional caster for type coercion during matching.
+                    Useful for form-encoded data where types need casting.
+        """
         if "anyOf" not in self.schema:
             return
 
@@ -141,7 +177,22 @@ class SchemaValidator:
         for subschema in any_of_schemas:
             validator = self.evolve(subschema)
             try:
-                validator.validate(value)
+                test_value = value
+                # Only cast if caster provided (opt-in behavior)
+                if caster is not None:
+                    try:
+                        # Convert to dict if it's not exactly a plain dict
+                        if type(value) is not dict:
+                            test_value = dict(value)
+                        else:
+                            test_value = value
+                        test_value = caster.evolve(subschema).cast(test_value)
+                    except (ValueError, TypeError, Exception):
+                        # If casting fails, try validation with original value
+                        # We catch generic Exception to handle CastError without circular import
+                        test_value = value
+
+                validator.validate(test_value)
             except ValidateError:
                 continue
             else:

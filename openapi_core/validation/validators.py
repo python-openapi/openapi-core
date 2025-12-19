@@ -134,9 +134,17 @@ class BaseValidator:
         encoding = None
         if "encoding" in media_type:
             encoding = media_type.get("encoding")
+        schema_validator = None
+        if schema is not None:
+            schema_validator = self.schema_validators_factory.create(
+                schema,
+                format_validators=self.format_validators,
+                extra_format_validators=self.extra_format_validators,
+            )
         deserializer = self.media_type_deserializers_factory.create(
             mimetype,
             schema=schema,
+            schema_validator=schema_validator,
             parameters=parameters,
             encoding=encoding,
             extra_media_type_deserializers=self.extra_media_type_deserializers,
