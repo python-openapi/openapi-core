@@ -850,14 +850,14 @@ test = ["pytest"]
 
 [[package]]
 name = "fastapi"
-version = "0.127.0"
+version = "0.128.0"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "fastapi-0.127.0-py3-none-any.whl", hash = "sha256:725aa2bb904e2eff8031557cf4b9b77459bfedd63cae8427634744fd199f6a49"},
-    {file = "fastapi-0.127.0.tar.gz", hash = "sha256:5a9246e03dcd1fdb19f1396db30894867c1d630f5107dc167dcbc5ed1ea7d259"},
+    {file = "fastapi-0.128.0-py3-none-any.whl", hash = "sha256:aebd93f9716ee3b4f4fcfe13ffb7cf308d99c9f3ab5622d8877441072561582d"},
+    {file = "fastapi-0.128.0.tar.gz", hash = "sha256:1cc179e1cef10a6be60ffe429f79b829dce99d8de32d7acb7e6c8dfdf7f2645a"},
 ]
 
 [package.dependencies]
@@ -3405,4 +3405,4 @@ starlette = ["aioitertools", "starlette"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.0"
-content-hash = "4fce8ffe4dc4e81be21963e4ccaa1a2c9cd3a2420f872b7254b271e278341659"
+content-hash = "46fec06aa2ade7139dcf379bf2c328f5b1c91ce7554eb90e4f52961f06f0481d"
