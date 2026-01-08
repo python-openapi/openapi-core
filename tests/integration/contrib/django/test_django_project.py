@@ -460,3 +460,7 @@ class TestStatusView(BaseTestDjangoProject):
             )
 
         assert response.status_code == 405  # Method Not Allowed
+        assert (
+            response.json()["errors"][0]["title"]
+            == "OPERATION POST NOT FOUND FOR HTTP://PETSTORE.SWAGGER.IO/STATUS"
+        )
