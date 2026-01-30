@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 from unittest import mock
 
@@ -9,7 +7,7 @@ if TYPE_CHECKING:
     from aiohttp.test_utils import TestClient
 
 
-async def test_aiohttp_integration_valid_input(client: TestClient):
+async def test_aiohttp_integration_valid_input(client: "TestClient"):
     # Given
     given_query_string = {
         "q": "string",
@@ -34,7 +32,9 @@ async def test_aiohttp_integration_valid_input(client: TestClient):
     assert response_data == expected_response_data
 
 
-async def test_aiohttp_integration_invalid_server(client: TestClient, request):
+async def test_aiohttp_integration_invalid_server(
+    client: "TestClient", request
+):
     if "no_validation" in request.node.name:
         pytest.skip("No validation for given handler.")
     # Given
@@ -71,7 +71,7 @@ async def test_aiohttp_integration_invalid_server(client: TestClient, request):
 
 
 async def test_aiohttp_integration_invalid_input(
-    client: TestClient, response_getter, request
+    client: "TestClient", response_getter, request
 ):
     if "no_validation" in request.node.name:
         pytest.skip("No validation for given handler.")
