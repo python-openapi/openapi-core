@@ -1,7 +1,5 @@
 """OpenAPI core validation request datatypes module"""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any

@@ -1,6 +1,3 @@
-# Allow writing union types as X | Y in Python 3.9
-from __future__ import annotations
-
 import re
 from dataclasses import dataclass
 
