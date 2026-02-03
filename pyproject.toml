@@ -88,7 +88,7 @@ aiohttp = ["aiohttp", "multidict"]
 starlette = ["starlette", "aioitertools"]
 
 [tool.poetry.group.dev.dependencies]
-black = ">=23.3,<26.0"
+black = ">=23.3,<27.0"
 django = ">=3.0"
 djangorestframework = "^3.11.2"
 falcon = ">=3.0"
