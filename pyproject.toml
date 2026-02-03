@@ -114,7 +114,7 @@ tbump = "^6.11.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.1"
-mkdocstrings = {extras = ["python"], version = ">=0.26.1,<0.31.0"}
+mkdocstrings = {extras = ["python"], version = ">=0.26.1,<1.1.0"}
 mkdocs-material = "^9.5.34"
 griffe-typingdoc = ">=0.2.7,<0.4.0"
 
