@@ -135,19 +135,25 @@ jobs:
         uses: actions/cache@v5
         id: cache
         with:
-          path: .venv
-          key: venv-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Ensure cache is healthy
-        if: steps.cache.outputs.cache-hit == 'true'
-        run: timeout 10s poetry run pip --version || rm -rf .venv
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: deps-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ matrix.target.label }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            deps-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ matrix.target.label }}-
+            deps-${{ runner.os }}-${{ matrix.python-version }}-
 
       - name: Install dependencies
-        run: poetry install --all-extras
+        run: poetry install --extras "${{ matrix.target.contrib }}"
 
       - name: Install framework variant
         if: matrix.target.spec != ''
-        run: poetry run pip install "${{ matrix.target.contrib }}${{ matrix.target.spec }}"
+        run: poetry run pip install --upgrade --force-reinstall --no-cache-dir "${{ matrix.target.contrib }}${{ matrix.target.spec }}"
+
+      - name: Validate environment
+        run: |
+          poetry run python -m pip check
+          poetry run python -c "import importlib; name='${{ matrix.target.contrib }}'; mod = importlib.import_module(name); print(name, getattr(mod, '__version__', 'unknown'))"
 
       - name: Test
         shell: bash
