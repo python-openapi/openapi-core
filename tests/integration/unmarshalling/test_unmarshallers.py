@@ -1719,7 +1719,6 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         "type,format,value",
         [
             ("string", "byte", "passwd"),
-            ("string", "binary", "test"),
         ],
     )
     def test_basic_type_oas30_formats_invalid(

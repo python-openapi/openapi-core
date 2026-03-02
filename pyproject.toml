@@ -67,11 +67,11 @@ aiohttp = {version = ">=3.0", optional = true}
 starlette = {version = ">=0.40.0,<0.60.0", optional = true}
 isodate = "*"
 more-itertools = "*"
-openapi-schema-validator = "^0.6.0"
-openapi-spec-validator = {version = "^0.8.0b3", allow-prereleases = true}
+openapi-schema-validator = ">=0.7.0,<0.9.0"
+openapi-spec-validator = "^0.8.0"
 requests = {version = "*", optional = true}
 werkzeug = ">=2.1.0"
-jsonschema-path = {version = "^0.4.0b8", allow-prereleases = true}
+jsonschema-path = "^0.4.2"
 jsonschema = "^4.23.0"
 multidict = {version = "^6.0.4", optional = true}
 aioitertools = {version = ">=0.11,<0.14", optional = true}
@@ -112,7 +112,7 @@ ipykernel = "^7.2.0"
 mkdocs = "^1.6.1"
 mkdocstrings = {extras = ["python"], version = ">=0.26.1,<1.1.0"}
 mkdocs-material = "^9.5.34"
-griffe-typingdoc = ">=0.2.7,<0.4.0"
+griffe-typingdoc = ">=0.2.7,<0.3.0"
 
 [tool.pytest.ini_options]
 addopts = """
