@@ -33,83 +33,11 @@ permissions:
 
 jobs:
   contrib_matrix:
-    name: "${{ matrix.target.label }} / py${{ matrix.python-version }}"
+    name: "py${{ matrix.python-version }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target:
-          - contrib: aiohttp
-            integration_path: tests/integration/contrib/aiohttp
-            unit_path: tests/unit/contrib/aiohttp
-            spec: ">=3.8,<4.0"
-            label: "aiohttp-3.x"
-          - contrib: aiohttp
-            integration_path: tests/integration/contrib/aiohttp
-            unit_path: tests/unit/contrib/aiohttp
-            spec: ">=3.11,<4.0"
-            label: "aiohttp-3.11+"
-          - contrib: django
-            integration_path: tests/integration/contrib/django
-            unit_path: tests/unit/contrib/django
-            spec: ">=4.0,<5.0"
-            label: "django-4.x"
-          - contrib: django
-            integration_path: tests/integration/contrib/django
-            unit_path: tests/unit/contrib/django
-            spec: ">=5.0,<6.0"
-            label: "django-5.x"
-          - contrib: django
-            integration_path: tests/integration/contrib/django
-            unit_path: tests/unit/contrib/django
-            spec: ">=6.0,<7.0"
-            label: "django-6.x"
-          - contrib: falcon
-            integration_path: tests/integration/contrib/falcon
-            spec: ">=4.0,<5.0"
-            label: "falcon-4.x"
-          - contrib: fastapi
-            integration_path: tests/integration/contrib/fastapi
-            spec: ">=0.111,<0.120"
-            label: "fastapi-0.11x"
-          - contrib: fastapi
-            integration_path: tests/integration/contrib/fastapi
-            spec: ">=0.120,<0.129"
-            label: "fastapi-0.12x"
-          - contrib: flask
-            integration_path: tests/integration/contrib/flask
-            unit_path: tests/unit/contrib/flask
-            spec: ">=2.0,<3.0"
-            label: "flask-2.x"
-          - contrib: flask
-            integration_path: tests/integration/contrib/flask
-            unit_path: tests/unit/contrib/flask
-            spec: ">=3.0,<4.0"
-            label: "flask-3.x"
-          - contrib: requests
-            integration_path: tests/integration/contrib/requests
-            unit_path: tests/unit/contrib/requests
-            spec: ""
-            label: "requests-default"
-          - contrib: starlette
-            integration_path: tests/integration/contrib/starlette
-            spec: ">=0.40.0,<0.50.0"
-            label: "starlette-0.4x"
-          - contrib: starlette
-            integration_path: tests/integration/contrib/starlette
-            spec: ">=0.50.0,<0.60.0"
-            label: "starlette-0.5x"
-          - contrib: werkzeug
-            integration_path: tests/integration/contrib/werkzeug
-            spec: ""
-            label: "werkzeug-default"
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        exclude:
-          - target:
-              label: "django-6.x"
-            python-version: "3.10"
-          - target:
-              label: "django-6.x"
-            python-version: "3.11"
       fail-fast: false
     steps:
       - uses: actions/checkout@v6
@@ -128,9 +56,6 @@ jobs:
         with:
           poetry-version: "2.3.1"
 
-      - name: Configure poetry
-        run: poetry config virtualenvs.in-project true
-
       - name: Set up cache
         uses: actions/cache@v5
         id: cache
@@ -138,37 +63,22 @@ jobs:
           path: |
             ~/.cache/pypoetry
             ~/.cache/pip
-          key: deps-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ matrix.target.label }}-${{ hashFiles('**/poetry.lock') }}
+          key: deps-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-contrib-${{ hashFiles('**/poetry.lock', 'pyproject.toml') }}
           restore-keys: |
-            deps-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ matrix.target.label }}-
+            deps-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-contrib-
             deps-${{ runner.os }}-${{ matrix.python-version }}-
 
-      - name: Install dependencies
-        run: poetry install --extras "${{ matrix.target.contrib }}"
-
-      - name: Install framework variant
-        if: matrix.target.spec != ''
-        run: poetry run pip install --upgrade --force-reinstall --no-cache-dir "${{ matrix.target.contrib }}${{ matrix.target.spec }}"
-
-      - name: Validate environment
-        run: |
-          poetry run python -m pip check
-          poetry run python -c "import importlib; name='${{ matrix.target.contrib }}'; mod = importlib.import_module(name); print(name, getattr(mod, '__version__', 'unknown'))"
+      - name: Install tox
+        run: python -m pip install tox
 
       - name: Test
-        shell: bash
         env:
-          PYTEST_ADDOPTS: "--color=yes"
-        run: |
-          paths=("${{ matrix.target.integration_path }}")
-          unit_path="${{ matrix.target.unit_path }}"
-          if [ -d "$unit_path" ]; then
-            paths+=("$unit_path")
-          fi
-          poetry run pytest "${paths[@]}"
+          TOX_SKIP_ENV: ${{ contains(fromJSON('["3.10", "3.11"]'), matrix.python-version) && '^contrib-django-6x$' || '' }}
+        run: tox -m contrib -p auto
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
-          flags: contrib,${{ matrix.target.contrib }},${{ matrix.target.label }},py${{ matrix.python-version }}
-          name: contrib-${{ matrix.target.contrib }}-${{ matrix.target.label }}-py${{ matrix.python-version }}
+          files: reports/coverage-*.xml
+          flags: contrib,py${{ matrix.python-version }}
+          name: contrib-py${{ matrix.python-version }}

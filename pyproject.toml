@@ -163,3 +163,81 @@ src = "openapi_core/__init__.py"
 
 [[tool.tbump.file]]
 src = "pyproject.toml"
+
+[tool.tox]
+min_version = "4.21"
+env_list = [
+    "contrib-aiohttp-3x",
+    "contrib-aiohttp-311plus",
+    "contrib-django-4x",
+    "contrib-django-5x",
+    "contrib-django-6x",
+    "contrib-falcon-4x",
+    "contrib-fastapi-011x",
+    "contrib-fastapi-012x",
+    "contrib-flask-2x",
+    "contrib-flask-3x",
+    "contrib-requests-default",
+    "contrib-starlette-04x",
+    "contrib-starlette-05x",
+    "contrib-werkzeug-default",
+]
+isolated_build = true
+skip_missing_interpreters = false
+
+[tool.tox.env_run_base]
+description = "Run contrib integration and unit tests for selected framework range."
+package = "skip"
+allowlist_externals = ["poetry"]
+labels = ["contrib"]
+commands_pre = [
+    ["python", "-c", "import os,subprocess; extra=os.environ.get('POETRY_EXTRA',''); cmd=['poetry','install','--with','dev','--without','docs','--no-interaction']; extra and cmd.extend(['--extras', extra]); env=dict(os.environ); env['POETRY_VIRTUALENVS_CREATE']='false'; env['POETRY_CACHE_DIR']='.tox/.poetry-cache/' + os.environ.get('TOX_ENV_NAME', 'default'); subprocess.check_call(cmd, env=env)"],
+    ["python", "-c", "import os,subprocess,sys; pkg=os.environ['CONTRIB_PACKAGE']; spec=os.environ.get('CONTRIB_SPEC',''); target=f'{pkg}{spec}'; label=target if spec else 'from-lock'; print(f'framework target: {label}'); spec and subprocess.check_call([sys.executable,'-m','pip','install','--upgrade','--force-reinstall','--no-cache-dir',target])"],
+    ["python", "-m", "pip", "check"],
+    ["python", "-c", "import importlib, os; name=os.environ['CONTRIB_PACKAGE']; mod=importlib.import_module(name); print(name, getattr(mod, '__version__', 'unknown'))"],
+]
+commands = [
+    ["python", "-c", "import os,shlex,subprocess,sys; paths=shlex.split(os.environ['CONTRIB_PATHS']); cmd=[sys.executable,'-m','pytest','--override-ini','addopts=','--capture=no','--verbose','--showlocals','--color=yes','--junitxml=reports/junit-{env_name}.xml','--cov=openapi_core','--cov-report=term-missing','--cov-report=xml:reports/coverage-{env_name}.xml',*paths]; env=dict(os.environ); env['COVERAGE_FILE']='.coverage.{env_name}'; raise SystemExit(subprocess.call(cmd, env=env))"],
+]
+
+[tool.tox.env."contrib-aiohttp-3x"]
+set_env = { POETRY_EXTRA = "aiohttp", CONTRIB_PACKAGE = "aiohttp", CONTRIB_SPEC = ">=3.8,<4.0", CONTRIB_PATHS = "tests/integration/contrib/aiohttp tests/unit/contrib/aiohttp" }
+
+[tool.tox.env."contrib-aiohttp-311plus"]
+set_env = { POETRY_EXTRA = "aiohttp", CONTRIB_PACKAGE = "aiohttp", CONTRIB_SPEC = ">=3.11,<4.0", CONTRIB_PATHS = "tests/integration/contrib/aiohttp tests/unit/contrib/aiohttp" }
+
+[tool.tox.env."contrib-django-4x"]
+set_env = { POETRY_EXTRA = "django", CONTRIB_PACKAGE = "django", CONTRIB_SPEC = ">=4.0,<5.0", CONTRIB_PATHS = "tests/integration/contrib/django tests/unit/contrib/django" }
+
+[tool.tox.env."contrib-django-5x"]
+set_env = { POETRY_EXTRA = "django", CONTRIB_PACKAGE = "django", CONTRIB_SPEC = ">=5.0,<6.0", CONTRIB_PATHS = "tests/integration/contrib/django tests/unit/contrib/django" }
+
+[tool.tox.env."contrib-django-6x"]
+set_env = { POETRY_EXTRA = "django", CONTRIB_PACKAGE = "django", CONTRIB_SPEC = ">=6.0,<7.0", CONTRIB_PATHS = "tests/integration/contrib/django tests/unit/contrib/django" }
+
+[tool.tox.env."contrib-falcon-4x"]
+set_env = { POETRY_EXTRA = "falcon", CONTRIB_PACKAGE = "falcon", CONTRIB_SPEC = ">=4.0,<5.0", CONTRIB_PATHS = "tests/integration/contrib/falcon" }
+
+[tool.tox.env."contrib-fastapi-011x"]
+set_env = { POETRY_EXTRA = "fastapi", CONTRIB_PACKAGE = "fastapi", CONTRIB_SPEC = ">=0.111,<0.120", CONTRIB_PATHS = "tests/integration/contrib/fastapi" }
+
+[tool.tox.env."contrib-fastapi-012x"]
+set_env = { POETRY_EXTRA = "fastapi", CONTRIB_PACKAGE = "fastapi", CONTRIB_SPEC = ">=0.120,<0.129", CONTRIB_PATHS = "tests/integration/contrib/fastapi" }
+
+[tool.tox.env."contrib-flask-2x"]
+set_env = { POETRY_EXTRA = "flask", CONTRIB_PACKAGE = "flask", CONTRIB_SPEC = ">=2.0,<3.0", CONTRIB_PATHS = "tests/integration/contrib/flask tests/unit/contrib/flask" }
+
+[tool.tox.env."contrib-flask-3x"]
+set_env = { POETRY_EXTRA = "flask", CONTRIB_PACKAGE = "flask", CONTRIB_SPEC = ">=3.0,<4.0", CONTRIB_PATHS = "tests/integration/contrib/flask tests/unit/contrib/flask" }
+
+[tool.tox.env."contrib-requests-default"]
+set_env = { POETRY_EXTRA = "requests", CONTRIB_PACKAGE = "requests", CONTRIB_SPEC = "", CONTRIB_PATHS = "tests/integration/contrib/requests tests/unit/contrib/requests" }
+
+[tool.tox.env."contrib-starlette-04x"]
+set_env = { POETRY_EXTRA = "starlette", CONTRIB_PACKAGE = "starlette", CONTRIB_SPEC = ">=0.40.0,<0.50.0", CONTRIB_PATHS = "tests/integration/contrib/starlette" }
+
+[tool.tox.env."contrib-starlette-05x"]
+set_env = { POETRY_EXTRA = "starlette", CONTRIB_PACKAGE = "starlette", CONTRIB_SPEC = ">=0.50.0,<0.60.0", CONTRIB_PATHS = "tests/integration/contrib/starlette" }
+
+[tool.tox.env."contrib-werkzeug-default"]
+set_env = { CONTRIB_PACKAGE = "werkzeug", CONTRIB_SPEC = "", CONTRIB_PATHS = "tests/integration/contrib/werkzeug" }
