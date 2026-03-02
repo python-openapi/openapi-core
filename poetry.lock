@@ -1296,19 +1296,33 @@ colorama = ">=0.4"
 
 [[package]]
 name = "griffe-typingdoc"
-version = "0.3.0"
+version = "0.3.1"
 description = "Griffe extension for PEP 727 – Documentation Metadata in Typing."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["docs"]
 files = [
-    {file = "griffe_typingdoc-0.3.0-py3-none-any.whl", hash = "sha256:4f6483fff7733a679d1dce142fb029f314125f3caaf0d620eb82e7390c8564bb"},
-    {file = "griffe_typingdoc-0.3.0.tar.gz", hash = "sha256:59d9ef98d02caa7aed88d8df1119c9e48c02ed049ea50ce4018ace9331d20f8b"},
+    {file = "griffe_typingdoc-0.3.1-py3-none-any.whl", hash = "sha256:ecbd457ef6883126b8b6023abf12e08c58e1c152238a2f0e2afdd67a64b07021"},
+    {file = "griffe_typingdoc-0.3.1.tar.gz", hash = "sha256:2ff4703115cb7f8a65b9fdcdd1f3c3a15f813b6554621b52eaad094c4782ce96"},
 ]
 
 [package.dependencies]
-griffe = ">=1.14"
+griffelib = ">=2.0"
 typing-extensions = ">=4.7"
+
+[[package]]
+name = "griffelib"
+version = "2.0.0"
+description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
+optional = false
+python-versions = ">=3.10"
+groups = ["docs"]
+files = [
+    {file = "griffelib-2.0.0-py3-none-any.whl", hash = "sha256:01284878c966508b6d6f1dbff9b6fa607bc062d8261c5c7253cb285b06422a7f"},
+]
+
+[package.extras]
+pypi = ["pip (>=24.0)", "platformdirs (>=4.2)", "wheel (>=0.42)"]
 
 [[package]]
 name = "h11"
