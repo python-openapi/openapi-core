@@ -91,7 +91,7 @@ werkzeug = []
 [tool.poetry.group.dev.dependencies]
 black = ">=23.3,<27.0"
 djangorestframework = "^3.11.2"
-isort = ">=5.11.5,<8.0.0"
+isort = ">=5.11.5,<9.0.0"
 pre-commit = "*"
 pytest = "^8"
 pytest-flake8 = "*"
