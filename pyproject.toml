@@ -124,7 +124,7 @@ addopts = """
 --cov-report=term-missing
 --cov-report=xml
 """
-asyncio_mode = "auto"
+asyncio_mode = "strict"
 filterwarnings = [
     "error",
     # falcon.media.handlers uses cgi to parse data

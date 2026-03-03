@@ -7,6 +7,9 @@ if TYPE_CHECKING:
     from aiohttp.test_utils import TestClient
 
 
+pytestmark = pytest.mark.asyncio
+
+
 async def test_aiohttp_integration_valid_input(client: "TestClient"):
     # Given
     given_query_string = {
