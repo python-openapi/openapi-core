@@ -45,13 +45,41 @@ The webhook request object should implement the OpenAPI WebhookRequest protocol 
 
 You can also define your own request validator (See [Request Validator](configuration.md#request-validator)).
 
+### Iterating request errors
+
+If you want to collect errors instead of raising on the first one, use iterator-based APIs:
+
+```python
+errors = list(openapi.iter_request_errors(request))
+if errors:
+    for error in errors:
+        print(type(error), str(error))
+```
+
+You can also call `iter_errors` directly on a validator class:
+
+```python
+from openapi_core import V31RequestValidator
+
+errors = list(V31RequestValidator(spec).iter_errors(request))
+```
+
+Some high-level errors wrap detailed schema errors. To access nested schema details:
+
+```python
+for error in openapi.iter_request_errors(request):
+    cause = getattr(error, "__cause__", None)
+    schema_errors = getattr(cause, "schema_errors", None)
+    if schema_errors:
+        for schema_error in schema_errors:
+            print(schema_error.message)
+```
+
 ## Response validation
 
 Use the `validate_response` function to validate response data against a given spec. By default, the OpenAPI spec version is detected:
 
 ```python
-from openapi_core import validate_response
-
 # raises error if response is invalid
 openapi.validate_response(request, response)
 ```
@@ -70,3 +98,11 @@ openapi.validate_response(webhook_request, response)
 ```
 
 You can also define your own response validator (See [Response Validator](configuration.md#response-validator)).
+
+### Iterating response errors
+
+Use `iter_response_errors` to collect validation errors for a response:
+
+```python
+errors = list(openapi.iter_response_errors(request, response))
+```
