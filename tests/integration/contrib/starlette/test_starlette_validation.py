@@ -43,7 +43,8 @@ class TestV30StarletteFactory:
 
     @pytest.fixture
     def client(self, app):
-        return TestClient(app, base_url="http://localhost")
+        with TestClient(app, base_url="http://localhost") as test_client:
+            yield test_client
 
     def test_request_validator_path_pattern(self, client, schema_path):
         response_data = {"data": "data"}
@@ -65,18 +66,18 @@ class TestV30StarletteFactory:
                 Route("/browse/12/", test_route, methods=["POST"]),
             ],
         )
-        client = TestClient(app, base_url="http://localhost")
-        query_string = {
-            "q": "string",
-        }
-        headers = {"content-type": "application/json"}
-        data = {"param1": 1}
-        response = client.post(
-            "/browse/12/",
-            params=query_string,
-            json=data,
-            headers=headers,
-        )
+        with TestClient(app, base_url="http://localhost") as client:
+            query_string = {
+                "q": "string",
+            }
+            headers = {"content-type": "application/json"}
+            data = {"param1": 1}
+            response = client.post(
+                "/browse/12/",
+                params=query_string,
+                json=data,
+                headers=headers,
+            )
 
         assert response.status_code == 200
         assert response.json() == response_data
@@ -104,18 +105,18 @@ class TestV30StarletteFactory:
                 Route("/browse/12/", test_route, methods=["POST"]),
             ],
         )
-        client = TestClient(app, base_url="http://localhost")
-        query_string = {
-            "q": "string",
-        }
-        headers = {"content-type": "application/json"}
-        data = {"param1": 1}
-        response = client.post(
-            "/browse/12/",
-            params=query_string,
-            json=data,
-            headers=headers,
-        )
+        with TestClient(app, base_url="http://localhost") as client:
+            query_string = {
+                "q": "string",
+            }
+            headers = {"content-type": "application/json"}
+            data = {"param1": 1}
+            response = client.post(
+                "/browse/12/",
+                params=query_string,
+                json=data,
+                headers=headers,
+            )
 
         assert response.status_code == 200
         assert response.json() == response_data

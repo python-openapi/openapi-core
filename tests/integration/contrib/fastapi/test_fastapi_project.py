@@ -24,7 +24,8 @@ def app():
 
 @pytest.fixture
 def client(app):
-    return TestClient(app, base_url="http://petstore.swagger.io")
+    with TestClient(app, base_url="http://petstore.swagger.io") as test_client:
+        yield test_client
 
 
 class BaseTestPetstore:

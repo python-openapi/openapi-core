@@ -1,9 +1,11 @@
 import asyncio
 import pathlib
+from collections.abc import AsyncGenerator
 from typing import Any
 from unittest import mock
 
 import pytest
+import pytest_asyncio
 from aiohttp import web
 from aiohttp.test_utils import TestClient
 
@@ -114,6 +116,10 @@ def app(router):
     return app
 
 
-@pytest.fixture
-async def client(app, aiohttp_client) -> TestClient:
-    return await aiohttp_client(app)
+@pytest_asyncio.fixture
+async def client(app, aiohttp_client) -> AsyncGenerator[TestClient, None]:
+    test_client = await aiohttp_client(app)
+    try:
+        yield test_client
+    finally:
+        await test_client.close()

@@ -10,13 +10,30 @@ The integration supports Falcon version 4.
 ## Middleware
 
 The Falcon API can be integrated using the `FalconOpenAPIMiddleware` middleware.
+For explicit transport classes, use `FalconWSGIOpenAPIMiddleware` for
+`falcon.App` and `FalconASGIOpenAPIMiddleware` for `falcon.asgi.App`.
 
 ``` python hl_lines="1 3 7"
-from openapi_core.contrib.falcon.middlewares import FalconOpenAPIMiddleware
+from openapi_core.contrib.falcon.middlewares import FalconWSGIOpenAPIMiddleware
 
-openapi_middleware = FalconOpenAPIMiddleware.from_spec(spec)
+openapi_middleware = FalconWSGIOpenAPIMiddleware.from_spec(spec)
 
 app = falcon.App(
+    # ...
+    middleware=[openapi_middleware],
+)
+```
+
+`FalconOpenAPIMiddleware` supports both WSGI and ASGI Falcon apps.
+For an explicit ASGI middleware class name, use
+`FalconASGIOpenAPIMiddleware`.
+
+``` python hl_lines="1 3 7"
+from openapi_core.contrib.falcon.middlewares import FalconASGIOpenAPIMiddleware
+
+openapi_middleware = FalconASGIOpenAPIMiddleware.from_spec(spec)
+
+app = falcon.asgi.App(
     # ...
     middleware=[openapi_middleware],
 )
