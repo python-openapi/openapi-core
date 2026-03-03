@@ -297,8 +297,7 @@ class OpenAPI:
         try:
             validate(
                 self.spec.read_value(),
-                base_uri=self.config.spec_base_uri
-                or self.spec.accessor.resolver._base_uri,  # type: ignore[attr-defined]
+                base_uri=self.config.spec_base_uri or self.spec.base_uri,
                 cls=cls,
             )
         except ValidatorDetectError:
