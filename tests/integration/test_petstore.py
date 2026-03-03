@@ -532,18 +532,15 @@ class TestPetstore:
         )
 
         with pytest.warns(
-            DeprecationWarning, match="limit parameter is deprecated"
+            DeprecationWarning,
+            match="Use of allowEmptyValue property is deprecated",
         ):
-            with pytest.warns(
-                DeprecationWarning,
-                match="Use of allowEmptyValue property is deprecated",
-            ):
-                with pytest.raises(MissingRequiredParameter):
-                    validate_request(
-                        request,
-                        spec=spec,
-                        cls=V30RequestParametersValidator,
-                    )
+            with pytest.raises(MissingRequiredParameter):
+                validate_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersValidator,
+                )
 
         result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
@@ -2165,10 +2162,7 @@ class TestPetstore:
         data = None
         response = MockResponse(data, status_code=200)
 
-        with pytest.warns(DeprecationWarning):
-            response_result = response_unmarshaller.unmarshal(
-                request, response
-            )
+        response_result = response_unmarshaller.unmarshal(request, response)
 
         assert response_result.errors == [
             MissingRequiredHeader(name="x-delete-confirm"),

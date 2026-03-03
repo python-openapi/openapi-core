@@ -19,6 +19,7 @@ from openapi_core.validation.response.exceptions import DataValidationError
 from openapi_core.validation.response.exceptions import InvalidData
 from openapi_core.validation.response.exceptions import InvalidHeader
 from openapi_core.validation.response.exceptions import MissingData
+from openapi_core.validation.response.exceptions import MissingRequiredHeader
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 
@@ -172,6 +173,35 @@ class TestResponseUnmarshaller:
         assert result.errors == [InvalidHeader(name="x-delete-date")]
         assert result.data is None
         assert result.headers == {"x-delete-confirm": True}
+
+    def test_missing_deprecated_required_header(self, response_unmarshaller):
+        request = MockRequest(
+            self.host_url,
+            "delete",
+            "/v1/tags",
+            path_pattern="/v1/tags",
+        )
+        response_json = {
+            "data": [
+                {
+                    "id": 1,
+                    "name": "Sparky",
+                    "ears": {
+                        "healthy": True,
+                    },
+                },
+            ],
+        }
+        response_data = json.dumps(response_json).encode()
+        response = MockResponse(response_data)
+
+        result = response_unmarshaller.unmarshal(request, response)
+
+        assert result.errors == [
+            MissingRequiredHeader(name="x-delete-confirm")
+        ]
+        assert result.data is None
+        assert result.headers == {}
 
     def test_get_pets(self, response_unmarshaller):
         request = MockRequest(self.host_url, "get", "/v1/pets")

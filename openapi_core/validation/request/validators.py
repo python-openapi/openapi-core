@@ -202,15 +202,14 @@ class BaseRequestValidator(BaseValidator):
         self, parameters: RequestParameters, param: SchemaPath
     ) -> Any:
         name = (param / "name").read_str()
+        param_location = (param / "in").read_str()
+        location = parameters[param_location]
         deprecated = (param / "deprecated").read_bool(default=False)
-        if deprecated:
+        if deprecated and name in location:
             warnings.warn(
                 f"{name} parameter is deprecated",
                 DeprecationWarning,
             )
-
-        param_location = (param / "in").read_str()
-        location = parameters[param_location]
 
         try:
             value, _ = self._get_param_or_header_and_schema(param, location)

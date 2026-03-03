@@ -2,6 +2,7 @@ from base64 import b64encode
 
 import pytest
 
+from openapi_core import OpenAPI
 from openapi_core import V30RequestValidator
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import OperationNotFound
@@ -62,6 +63,61 @@ class TestRequestValidator:
         with pytest.raises(MissingRequiredParameter):
             with pytest.warns(DeprecationWarning):
                 request_validator.validate(request)
+
+    def test_omitted_required_deprecated_parameter(self):
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "get": {
+                            "parameters": [
+                                {
+                                    "name": "foo",
+                                    "in": "query",
+                                    "schema": {},
+                                    "deprecated": True,
+                                    "required": True,
+                                },
+                            ]
+                        }
+                    }
+                },
+            }
+        )
+
+        request = MockRequest("http://localhost", "get", "/test")
+
+        with pytest.raises(MissingRequiredParameter):
+            spec.validate_request(request)
+
+    def test_omitted_optional_deprecated_parameter(self):
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "get": {
+                            "parameters": [
+                                {
+                                    "name": "foo",
+                                    "in": "query",
+                                    "schema": {},
+                                    "deprecated": True,
+                                },
+                            ]
+                        }
+                    }
+                },
+            }
+        )
+
+        request = MockRequest("http://localhost", "get", "/test")
+        result = spec.validate_request(request)
+
+        assert result is None
 
     def test_security_not_found(self, request_validator):
         request = MockRequest(
