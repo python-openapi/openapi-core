@@ -76,6 +76,9 @@ oas30_format_unmarshallers = {
     "uuid": format_uuid,
     "byte": format_byte,
 }
+# NOTE: Intentionally reuse OAS 3.0 format unmarshallers for OAS 3.1/3.2
+# to preserve backward compatibility for `byte`/`binary` formats.
+# See https://github.com/python-openapi/openapi-core/issues/506
 oas31_format_unmarshallers = oas30_format_unmarshallers
 oas32_format_unmarshallers = oas31_format_unmarshallers
 

@@ -13,6 +13,10 @@ Such valid formats can be further unmarshalled (See [Unmarshalling](unmarshallin
 
 Depending on the OpenAPI version, openapi-core comes with a set of built-in format validators such as: `date`, `date-time`, `binary`, `uuid`, or `byte`.
 
+!!! note
+
+    For backward compatibility, OpenAPI 3.1 validation in openapi-core currently accepts OpenAPI 3.0-style format checker behavior, including `byte` and `binary`.
+
 You can also define your own format validators (See [Extra Format Validators](configuration.md#extra-format-validators)).
 
 ## Request validation

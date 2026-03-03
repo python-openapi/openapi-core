@@ -41,7 +41,8 @@ oas31_schema_validators_factory = SchemaValidatorsFactory(
     Proxy(
         partial(build_strict_additional_properties_validator, OAS31Validator)
     ),
-    # FIXME: OpenAPI 3.1 schema validator uses OpenAPI 3.0 format checker.
+    # NOTE: Intentionally use OAS 3.0 format checker for OAS 3.1 to preserve
+    # backward compatibility for `byte`/`binary` formats.
     # See https://github.com/python-openapi/openapi-core/issues/506
     format_checker=OAS30ReadValidator.FORMAT_CHECKER,
 )

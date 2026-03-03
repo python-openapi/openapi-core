@@ -17,6 +17,10 @@ Openapi-core comes with a set of built-in format unmarshallers:
 - `uuid` - converts a string into a UUID object,
 - `byte` - decodes a Base64-encoded string.
 
+!!! note
+
+    For backward compatibility, OpenAPI 3.1 unmarshalling in openapi-core currently supports `byte` and `binary` format handling.
+
 You can also define your own format unmarshallers (See [Extra Format Unmarshallers](configuration.md#extra-format-unmarshallers)).
 
 ## Request unmarshalling
