@@ -7,6 +7,8 @@ from io import BytesIO
 import pytest
 import pytest_asyncio
 
+pytestmark = pytest.mark.asyncio
+
 
 @pytest.fixture(autouse=True, scope="session")
 def project_setup():
