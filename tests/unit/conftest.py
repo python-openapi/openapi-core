@@ -49,6 +49,20 @@ def spec_v31():
 
 
 @pytest.fixture
+def spec_v32():
+    return SchemaPath.from_dict(
+        {
+            "openapi": "3.2.0",
+            "info": {
+                "title": "Spec",
+                "version": "0.0.1",
+            },
+            "paths": {},
+        }
+    )
+
+
+@pytest.fixture
 def spec_invalid():
     return SchemaPath.from_dict({})
 

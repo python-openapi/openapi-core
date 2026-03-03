@@ -14,6 +14,9 @@ from openapi_core.unmarshalling.schemas import (
 from openapi_core.unmarshalling.schemas import (
     oas31_schema_unmarshallers_factory,
 )
+from openapi_core.unmarshalling.schemas import (
+    oas32_schema_unmarshallers_factory,
+)
 from openapi_core.unmarshalling.unmarshallers import BaseUnmarshaller
 from openapi_core.util import chainiters
 from openapi_core.validation.response.exceptions import DataValidationError
@@ -44,6 +47,22 @@ from openapi_core.validation.response.validators import (
 )
 from openapi_core.validation.response.validators import (
     V31WebhookResponseValidator,
+)
+from openapi_core.validation.response.validators import (
+    V32ResponseDataValidator,
+)
+from openapi_core.validation.response.validators import (
+    V32ResponseHeadersValidator,
+)
+from openapi_core.validation.response.validators import V32ResponseValidator
+from openapi_core.validation.response.validators import (
+    V32WebhookResponseDataValidator,
+)
+from openapi_core.validation.response.validators import (
+    V32WebhookResponseHeadersValidator,
+)
+from openapi_core.validation.response.validators import (
+    V32WebhookResponseValidator,
 )
 from openapi_core.validation.response.validators import (
     WebhookResponseValidator,
@@ -300,3 +319,39 @@ class V31WebhookResponseUnmarshaller(
     V31WebhookResponseValidator, WebhookResponseUnmarshaller
 ):
     schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
+
+
+class V32ResponseDataUnmarshaller(
+    V32ResponseDataValidator, APICallResponseDataUnmarshaller
+):
+    schema_unmarshallers_factory = oas32_schema_unmarshallers_factory
+
+
+class V32ResponseHeadersUnmarshaller(
+    V32ResponseHeadersValidator, APICallResponseHeadersUnmarshaller
+):
+    schema_unmarshallers_factory = oas32_schema_unmarshallers_factory
+
+
+class V32ResponseUnmarshaller(
+    V32ResponseValidator, APICallResponseUnmarshaller
+):
+    schema_unmarshallers_factory = oas32_schema_unmarshallers_factory
+
+
+class V32WebhookResponseDataUnmarshaller(
+    V32WebhookResponseDataValidator, WebhookResponseDataUnmarshaller
+):
+    schema_unmarshallers_factory = oas32_schema_unmarshallers_factory
+
+
+class V32WebhookResponseHeadersUnmarshaller(
+    V32WebhookResponseHeadersValidator, WebhookResponseHeadersUnmarshaller
+):
+    schema_unmarshallers_factory = oas32_schema_unmarshallers_factory
+
+
+class V32WebhookResponseUnmarshaller(
+    V32WebhookResponseValidator, WebhookResponseUnmarshaller
+):
+    schema_unmarshallers_factory = oas32_schema_unmarshallers_factory

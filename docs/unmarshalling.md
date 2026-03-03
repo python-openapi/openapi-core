@@ -32,7 +32,7 @@ The request object should implement the OpenAPI Request protocol (See [Integrati
 
 !!! note
 
-    The Webhooks feature is part of OpenAPI v3.1 only.
+    The Webhooks feature is part of OpenAPI v3.1+.
 
 Use the same method to validate and unmarshal webhook request data against a given spec.
 
@@ -72,7 +72,7 @@ The response object should implement the OpenAPI Response protocol (See [Integra
 
 !!! note
 
-    The Webhooks feature is part of OpenAPI v3.1 only.
+    The Webhooks feature is part of OpenAPI v3.1+.
 
 Use the same method to validate and unmarshal response data from a webhook request against a given spec.
 

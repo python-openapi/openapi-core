@@ -18,6 +18,12 @@ from openapi_core.unmarshalling.request.unmarshallers import (
 from openapi_core.unmarshalling.request.unmarshallers import (
     V31WebhookRequestUnmarshaller,
 )
+from openapi_core.unmarshalling.request.unmarshallers import (
+    V32RequestUnmarshaller,
+)
+from openapi_core.unmarshalling.request.unmarshallers import (
+    V32WebhookRequestUnmarshaller,
+)
 
 __all__ = [
     "UNMARSHALLERS",
@@ -27,17 +33,21 @@ __all__ = [
     "V30RequestUnmarshaller",
     "V31RequestUnmarshaller",
     "V31WebhookRequestUnmarshaller",
+    "V32RequestUnmarshaller",
+    "V32WebhookRequestUnmarshaller",
 ]
 
 # versions mapping
 UNMARSHALLERS: Mapping[SpecVersion, RequestUnmarshallerType] = {
     versions.OPENAPIV30: V30RequestUnmarshaller,
     versions.OPENAPIV31: V31RequestUnmarshaller,
+    versions.OPENAPIV32: V32RequestUnmarshaller,
 }
 WEBHOOK_UNMARSHALLERS: Mapping[SpecVersion, WebhookRequestUnmarshallerType] = {
     versions.OPENAPIV31: V31WebhookRequestUnmarshaller,
+    versions.OPENAPIV32: V32WebhookRequestUnmarshaller,
 }
 
 # alias to the latest v3 version
-V3RequestUnmarshaller = V31RequestUnmarshaller
-V3WebhookRequestUnmarshaller = V31WebhookRequestUnmarshaller
+V3RequestUnmarshaller = V32RequestUnmarshaller
+V3WebhookRequestUnmarshaller = V32WebhookRequestUnmarshaller

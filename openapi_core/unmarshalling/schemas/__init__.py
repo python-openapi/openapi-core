@@ -25,6 +25,7 @@ from openapi_core.validation.schemas import (
     oas30_write_schema_validators_factory,
 )
 from openapi_core.validation.schemas import oas31_schema_validators_factory
+from openapi_core.validation.schemas import oas32_schema_validators_factory
 
 __all__ = [
     "oas30_format_unmarshallers",
@@ -32,6 +33,7 @@ __all__ = [
     "oas30_write_schema_unmarshallers_factory",
     "oas30_read_schema_unmarshallers_factory",
     "oas31_schema_unmarshallers_factory",
+    "oas32_schema_unmarshallers_factory",
 ]
 
 oas30_unmarshallers_dict = OrderedDict(
@@ -44,19 +46,24 @@ oas30_unmarshallers_dict = OrderedDict(
         ("string", PrimitiveUnmarshaller),
     ]
 )
-oas31_unmarshallers_dict = oas30_unmarshallers_dict.copy()
-oas31_unmarshallers_dict.update(
-    {
-        "null": PrimitiveUnmarshaller,
-    }
+oas31_unmarshallers_dict = OrderedDict(
+    [
+        ("object", ObjectUnmarshaller),
+        ("array", ArrayUnmarshaller),
+        ("boolean", PrimitiveUnmarshaller),
+        ("integer", PrimitiveUnmarshaller),
+        ("number", PrimitiveUnmarshaller),
+        ("string", PrimitiveUnmarshaller),
+        ("null", PrimitiveUnmarshaller),
+    ]
 )
 
 oas30_types_unmarshaller = TypesUnmarshaller(
-    oas30_unmarshallers_dict,
+    dict(oas30_unmarshallers_dict),
     AnyUnmarshaller,
 )
 oas31_types_unmarshaller = TypesUnmarshaller(
-    oas31_unmarshallers_dict,
+    dict(oas31_unmarshallers_dict),
     AnyUnmarshaller,
     multi=MultiTypeUnmarshaller,
 )
@@ -70,6 +77,7 @@ oas30_format_unmarshallers = {
     "byte": format_byte,
 }
 oas31_format_unmarshallers = oas30_format_unmarshallers
+oas32_format_unmarshallers = oas31_format_unmarshallers
 
 oas30_write_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
     oas30_write_schema_validators_factory,
@@ -89,8 +97,20 @@ oas31_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
     format_unmarshallers=oas31_format_unmarshallers,
 )
 
+oas32_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
+    oas32_schema_validators_factory,
+    oas31_types_unmarshaller,
+    format_unmarshallers=oas32_format_unmarshallers,
+)
+
 # alias to v31 version (request/response are the same bcs no context needed)
 oas31_request_schema_unmarshallers_factory = oas31_schema_unmarshallers_factory
 oas31_response_schema_unmarshallers_factory = (
     oas31_schema_unmarshallers_factory
+)
+
+# alias to v32 version (request/response are the same bcs no context needed)
+oas32_request_schema_unmarshallers_factory = oas32_schema_unmarshallers_factory
+oas32_response_schema_unmarshallers_factory = (
+    oas32_schema_unmarshallers_factory
 )
