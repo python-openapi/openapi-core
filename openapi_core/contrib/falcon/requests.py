@@ -1,16 +1,17 @@
 """OpenAPI core contrib falcon responses module"""
 
-import warnings
 from json import dumps
 from typing import Any
 from typing import Dict
 from typing import Optional
+from typing import cast
 
 from falcon.request import Request
 from falcon.request import RequestOptions
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableMultiDict
 
+from openapi_core.contrib.falcon.util import serialize_body
 from openapi_core.contrib.falcon.util import unpack_params
 from openapi_core.datatypes import RequestParameters
 
@@ -27,6 +28,7 @@ class FalconOpenAPIRequest:
         if default_when_empty is None:
             default_when_empty = {}
         self.default_when_empty = default_when_empty
+        self._body: Optional[bytes] = None
 
         # Path gets deduced by path finder against spec
         self.parameters = RequestParameters(
@@ -52,30 +54,21 @@ class FalconOpenAPIRequest:
 
     @property
     def body(self) -> Optional[bytes]:
+        if self._body is not None:
+            return self._body
+
         # Falcon doesn't store raw request stream.
         # That's why we need to revert deserialized data
 
         # Support falcon-jsonify.
-        if hasattr(self.request, "json"):
-            return dumps(self.request.json).encode("utf-8")
+        request_json = getattr(cast(Any, self.request), "json", None)
+        if request_json is not None:
+            return dumps(request_json).encode("utf-8")
 
         media = self.request.get_media(
             default_when_empty=self.default_when_empty,
         )
-        handler, _, _ = self.request.options.media_handlers._resolve(
-            self.request.content_type, self.request.options.default_media_type
-        )
-        try:
-            body = handler.serialize(media, content_type=self.content_type)
-        # multipart form serialization is not supported
-        except NotImplementedError:
-            warnings.warn(
-                f"body serialization for {self.request.content_type} not supported"
-            )
-            return None
-        else:
-            assert isinstance(body, bytes)
-            return body
+        return serialize_body(self.request, media, self.content_type)
 
     @property
     def content_type(self) -> str:
@@ -86,3 +79,21 @@ class FalconOpenAPIRequest:
         assert isinstance(self.request.options, RequestOptions)
         assert isinstance(self.request.options.default_media_type, str)
         return self.request.options.default_media_type
+
+
+class FalconAsgiOpenAPIRequest(FalconOpenAPIRequest):
+    @classmethod
+    async def from_request(
+        cls,
+        request: Request,
+        default_when_empty: Optional[Dict[Any, Any]] = None,
+    ) -> "FalconAsgiOpenAPIRequest":
+        instance = cls(
+            request,
+            default_when_empty=default_when_empty,
+        )
+        media = await request.get_media(
+            default_when_empty=instance.default_when_empty
+        )
+        instance._body = serialize_body(request, media, instance.content_type)
+        return instance

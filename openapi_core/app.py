@@ -2,6 +2,7 @@
 
 from functools import cached_property
 from pathlib import Path
+from typing import Any
 from typing import Optional
 
 from jsonschema._utils import Unset
@@ -278,6 +279,51 @@ class OpenAPI:
         """
         sp = SchemaPath.from_file(fileobj, base_uri=base_uri)
         return cls(sp, config=config)
+
+    @classmethod
+    def build(
+        cls,
+        spec: Annotated[
+            SchemaPath,
+            Doc("""
+                OpenAPI specification schema path object.
+                """),
+        ],
+        request_unmarshaller_cls: Annotated[
+            Optional[RequestUnmarshallerType],
+            Doc("""
+                Custom request unmarshaller class.
+                """),
+        ] = None,
+        response_unmarshaller_cls: Annotated[
+            Optional[ResponseUnmarshallerType],
+            Doc("""
+                Custom response unmarshaller class.
+                """),
+        ] = None,
+    ) -> "OpenAPI":
+        """Builds an `OpenAPI` from a `SchemaPath` object with optional configuration parameters.
+
+        Example:
+        ```python
+        from openapi_core import OpenAPI
+        app = OpenAPI.build(spec, request_unmarshaller_cls=CustomRequestUnmarshaller)
+        ```
+
+        Returns:
+            OpenAPI: An instance of the OpenAPI class.
+        """
+        config_kwargs: dict[str, Any] = {}
+        if request_unmarshaller_cls is not None:
+            config_kwargs["request_unmarshaller_cls"] = (
+                request_unmarshaller_cls
+            )
+        if response_unmarshaller_cls is not None:
+            config_kwargs["response_unmarshaller_cls"] = (
+                response_unmarshaller_cls
+            )
+        config = Config(**config_kwargs)
+        return cls(spec, config=config)
 
     def _get_version(self) -> SpecVersion:
         try:

@@ -1,8 +1,12 @@
 """OpenAPI core contrib falcon responses module"""
 
+import inspect
 from io import BytesIO
 from itertools import tee
+from typing import Any
+from typing import AsyncIterator
 from typing import Iterable
+from typing import List
 
 from falcon.response import Response
 from werkzeug.datastructures import Headers
@@ -48,3 +52,70 @@ class FalconOpenAPIResponse:
     @property
     def headers(self) -> Headers:
         return Headers(self.response.headers)
+
+
+class FalconAsgiOpenAPIResponse(FalconOpenAPIResponse):
+    def __init__(self, response: Response, data: bytes):
+        super().__init__(response)
+        self._data = data
+
+    @classmethod
+    async def from_response(
+        cls,
+        response: Any,
+    ) -> "FalconAsgiOpenAPIResponse":
+        data = await cls._get_asgi_response_data(response)
+        return cls(response, data=data)
+
+    @classmethod
+    async def _get_asgi_response_data(cls, response: Any) -> bytes:
+        response_any = response
+        stream = response_any.stream
+        if stream is None:
+            data = await response_any.render_body()
+            if data is None:
+                return b""
+            assert isinstance(data, bytes)
+            return data
+
+        charset = response_any.charset or "utf-8"
+        chunks: List[bytes] = []
+        stream_any = stream
+
+        if hasattr(stream_any, "__aiter__"):
+            async for chunk in stream_any:
+                if chunk is None:
+                    break
+                if not isinstance(chunk, bytes):
+                    chunk = chunk.encode(charset)
+                chunks.append(chunk)
+        elif hasattr(stream_any, "read"):
+            while True:
+                chunk = stream_any.read()
+                if inspect.isawaitable(chunk):
+                    chunk = await chunk
+                if not chunk:
+                    break
+                if not isinstance(chunk, bytes):
+                    chunk = chunk.encode(charset)
+                chunks.append(chunk)
+        elif isinstance(stream_any, Iterable):
+            response_iter1, response_iter2 = tee(stream_any)
+            response_any.stream = response_iter1
+            for chunk in response_iter2:
+                if not isinstance(chunk, bytes):
+                    chunk = chunk.encode(charset)
+                chunks.append(chunk)
+            return b"".join(chunks)
+
+        response_any.stream = cls._iter_chunks(chunks)
+        return b"".join(chunks)
+
+    @staticmethod
+    async def _iter_chunks(chunks: Iterable[bytes]) -> AsyncIterator[bytes]:
+        for chunk in chunks:
+            yield chunk
+
+    @property
+    def data(self) -> bytes:
+        return self._data
