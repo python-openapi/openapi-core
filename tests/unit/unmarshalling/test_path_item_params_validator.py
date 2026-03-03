@@ -14,7 +14,7 @@ from openapi_core.validation.request.exceptions import ParameterValidationError
 
 
 class TestPathItemParamsValidator:
-    @pytest.fixture(scope="session")
+    @pytest.fixture
     def spec_dict(self):
         return {
             "openapi": "3.0.0",
@@ -43,11 +43,11 @@ class TestPathItemParamsValidator:
             },
         }
 
-    @pytest.fixture(scope="session")
+    @pytest.fixture
     def spec(self, spec_dict):
         return SchemaPath.from_dict(spec_dict)
 
-    @pytest.fixture(scope="session")
+    @pytest.fixture
     def request_unmarshaller(self, spec):
         return V30RequestUnmarshaller(spec)
 
