@@ -16,6 +16,7 @@ from openapi_core.validation.response.exceptions import DataValidationError
 from openapi_core.validation.response.exceptions import InvalidData
 from openapi_core.validation.response.exceptions import InvalidHeader
 from openapi_core.validation.response.exceptions import MissingData
+from openapi_core.validation.response.exceptions import MissingRequiredHeader
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 
@@ -134,6 +135,32 @@ class TestResponseValidator:
         with pytest.raises(InvalidHeader):
             with pytest.warns(DeprecationWarning):
                 response_validator.validate(request, response)
+
+    def test_missing_deprecated_required_header(self, response_validator):
+        request = MockRequest(
+            self.host_url,
+            "delete",
+            "/v1/tags",
+            path_pattern="/v1/tags",
+        )
+        response_json = {
+            "data": [
+                {
+                    "id": 1,
+                    "name": "Sparky",
+                    "ears": {
+                        "healthy": True,
+                    },
+                },
+            ],
+        }
+        response_data = json.dumps(response_json).encode()
+        response = MockResponse(response_data)
+
+        with pytest.raises(MissingRequiredHeader) as exc_info:
+            response_validator.validate(request, response)
+
+        assert exc_info.value == MissingRequiredHeader(name="x-delete-confirm")
 
     def test_valid(self, response_validator):
         request = MockRequest(self.host_url, "get", "/v1/pets")

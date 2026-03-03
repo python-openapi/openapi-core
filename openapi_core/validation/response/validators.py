@@ -175,7 +175,7 @@ class BaseResponseValidator(BaseValidator):
         self, headers: Mapping[str, Any], name: str, header: SchemaPath
     ) -> Any:
         deprecated = (header / "deprecated").read_bool(default=False)
-        if deprecated:
+        if deprecated and name in headers:
             warnings.warn(
                 f"{name} header is deprecated",
                 DeprecationWarning,
