@@ -15,6 +15,8 @@ from openapi_core.contrib.falcon.util import serialize_body
 from openapi_core.contrib.falcon.util import unpack_params
 from openapi_core.datatypes import RequestParameters
 
+_BODY_NOT_SET = object()
+
 
 class FalconOpenAPIRequest:
     def __init__(
@@ -28,7 +30,7 @@ class FalconOpenAPIRequest:
         if default_when_empty is None:
             default_when_empty = {}
         self.default_when_empty = default_when_empty
-        self._body: Optional[bytes] = None
+        self._body: Any = _BODY_NOT_SET
 
         # Path gets deduced by path finder against spec
         self.parameters = RequestParameters(
@@ -54,8 +56,8 @@ class FalconOpenAPIRequest:
 
     @property
     def body(self) -> Optional[bytes]:
-        if self._body is not None:
-            return self._body
+        if self._body is not _BODY_NOT_SET:
+            return cast(Optional[bytes], self._body)
 
         # Falcon doesn't store raw request stream.
         # That's why we need to revert deserialized data
@@ -63,12 +65,14 @@ class FalconOpenAPIRequest:
         # Support falcon-jsonify.
         request_json = getattr(cast(Any, self.request), "json", None)
         if request_json is not None:
-            return dumps(request_json).encode("utf-8")
+            self._body = dumps(request_json).encode("utf-8")
+            return cast(Optional[bytes], self._body)
 
         media = self.request.get_media(
             default_when_empty=self.default_when_empty,
         )
-        return serialize_body(self.request, media, self.content_type)
+        self._body = serialize_body(self.request, media, self.content_type)
+        return cast(Optional[bytes], self._body)
 
     @property
     def content_type(self) -> str:

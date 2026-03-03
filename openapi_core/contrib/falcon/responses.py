@@ -4,7 +4,6 @@ import inspect
 from io import BytesIO
 from itertools import tee
 from typing import Any
-from typing import AsyncIterator
 from typing import Iterable
 from typing import List
 
@@ -78,7 +77,7 @@ class FalconAsgiOpenAPIResponse(FalconOpenAPIResponse):
             assert isinstance(data, bytes)
             return data
 
-        charset = response_any.charset or "utf-8"
+        charset = getattr(response_any, "charset", None) or "utf-8"
         chunks: List[bytes] = []
         stream_any = stream
 
@@ -108,14 +107,26 @@ class FalconAsgiOpenAPIResponse(FalconOpenAPIResponse):
                 chunks.append(chunk)
             return b"".join(chunks)
 
-        response_any.stream = cls._iter_chunks(chunks)
+        response_any.stream = _AsyncChunksIterator(chunks)
         return b"".join(chunks)
-
-    @staticmethod
-    async def _iter_chunks(chunks: Iterable[bytes]) -> AsyncIterator[bytes]:
-        for chunk in chunks:
-            yield chunk
 
     @property
     def data(self) -> bytes:
         return self._data
+
+
+class _AsyncChunksIterator:
+    def __init__(self, chunks: List[bytes]):
+        self._chunks = chunks
+        self._index = 0
+
+    def __aiter__(self) -> "_AsyncChunksIterator":
+        return self
+
+    async def __anext__(self) -> bytes:
+        if self._index >= len(self._chunks):
+            raise StopAsyncIteration
+
+        chunk = self._chunks[self._index]
+        self._index += 1
+        return chunk
