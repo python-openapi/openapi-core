@@ -2,6 +2,12 @@
 
 from openapi_core.app import OpenAPI
 from openapi_core.configurations import Config
+from openapi_core.shortcuts import iter_apicall_request_errors
+from openapi_core.shortcuts import iter_apicall_response_errors
+from openapi_core.shortcuts import iter_request_errors
+from openapi_core.shortcuts import iter_response_errors
+from openapi_core.shortcuts import iter_webhook_request_errors
+from openapi_core.shortcuts import iter_webhook_response_errors
 from openapi_core.shortcuts import unmarshal_apicall_request
 from openapi_core.shortcuts import unmarshal_apicall_response
 from openapi_core.shortcuts import unmarshal_request
@@ -64,6 +70,12 @@ __all__ = [
     "validate_webhook_response",
     "validate_request",
     "validate_response",
+    "iter_apicall_request_errors",
+    "iter_webhook_request_errors",
+    "iter_apicall_response_errors",
+    "iter_webhook_response_errors",
+    "iter_request_errors",
+    "iter_response_errors",
     "V30RequestUnmarshaller",
     "V30ResponseUnmarshaller",
     "V31RequestUnmarshaller",

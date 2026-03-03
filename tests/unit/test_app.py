@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -9,6 +10,9 @@ from openapi_core import V3RequestValidator
 from openapi_core import V3ResponseUnmarshaller
 from openapi_core import V3ResponseValidator
 from openapi_core.exceptions import SpecError
+from openapi_core.protocols import Request
+from openapi_core.protocols import Response
+from openapi_core.protocols import WebhookRequest
 from openapi_core.unmarshalling.request import V32RequestUnmarshaller
 from openapi_core.unmarshalling.request import V32WebhookRequestUnmarshaller
 from openapi_core.unmarshalling.response import V32ResponseUnmarshaller
@@ -146,3 +150,67 @@ class TestOpenAPIVersion32:
             result.webhook_response_unmarshaller_cls
             is V32WebhookResponseUnmarshaller
         )
+
+
+class TestOpenAPIIterErrors:
+    @mock.patch(
+        "openapi_core.validation.request.validators.V32RequestValidator."
+        "iter_errors",
+    )
+    def test_iter_apicall_request_errors(self, mock_iter_errors, spec_v32):
+        openapi = OpenAPI(spec_v32)
+        request = mock.Mock(spec=Request)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = openapi.iter_apicall_request_errors(request)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request)
+
+    @mock.patch(
+        "openapi_core.validation.request.validators.V32WebhookRequestValidator."
+        "iter_errors",
+    )
+    def test_iter_request_errors_webhook(self, mock_iter_errors, spec_v32):
+        openapi = OpenAPI(spec_v32)
+        request = mock.Mock(spec=WebhookRequest)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = openapi.iter_request_errors(request)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request)
+
+    @mock.patch(
+        "openapi_core.validation.response.validators.V32ResponseValidator."
+        "iter_errors",
+    )
+    def test_iter_apicall_response_errors(self, mock_iter_errors, spec_v32):
+        openapi = OpenAPI(spec_v32)
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = openapi.iter_apicall_response_errors(request, response)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request, response)
+
+    @mock.patch(
+        "openapi_core.validation.response.validators.V32WebhookResponseValidator."
+        "iter_errors",
+    )
+    def test_iter_response_errors_webhook(self, mock_iter_errors, spec_v32):
+        openapi = OpenAPI(spec_v32)
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = openapi.iter_response_errors(request, response)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request, response)

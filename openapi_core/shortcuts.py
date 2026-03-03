@@ -1,6 +1,7 @@
 """OpenAPI core shortcuts module"""
 
 from typing import Any
+from typing import Iterator
 from typing import Optional
 from typing import Union
 
@@ -164,6 +165,22 @@ def validate_request(
     return OpenAPI(spec, config=config).validate_request(request)
 
 
+def iter_request_errors(
+    request: AnyRequest,
+    spec: SchemaPath,
+    base_url: Optional[str] = None,
+    cls: Optional[AnyRequestValidatorType] = None,
+    **validator_kwargs: Any,
+) -> Iterator[Exception]:
+    config = Config(
+        server_base_url=base_url,
+        request_validator_cls=cls or _UNSET,
+        webhook_request_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).iter_request_errors(request)
+
+
 def validate_response(
     request: Union[Request, WebhookRequest],
     response: Response,
@@ -181,6 +198,23 @@ def validate_response(
     return OpenAPI(spec, config=config).validate_response(request, response)
 
 
+def iter_response_errors(
+    request: Union[Request, WebhookRequest],
+    response: Response,
+    spec: SchemaPath,
+    base_url: Optional[str] = None,
+    cls: Optional[AnyResponseValidatorType] = None,
+    **validator_kwargs: Any,
+) -> Iterator[Exception]:
+    config = Config(
+        server_base_url=base_url,
+        response_validator_cls=cls or _UNSET,
+        webhook_response_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).iter_response_errors(request, response)
+
+
 def validate_apicall_request(
     request: Request,
     spec: SchemaPath,
@@ -196,6 +230,21 @@ def validate_apicall_request(
     return OpenAPI(spec, config=config).validate_apicall_request(request)
 
 
+def iter_apicall_request_errors(
+    request: Request,
+    spec: SchemaPath,
+    base_url: Optional[str] = None,
+    cls: Optional[RequestValidatorType] = None,
+    **validator_kwargs: Any,
+) -> Iterator[Exception]:
+    config = Config(
+        server_base_url=base_url,
+        request_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).iter_apicall_request_errors(request)
+
+
 def validate_webhook_request(
     request: WebhookRequest,
     spec: SchemaPath,
@@ -209,6 +258,21 @@ def validate_webhook_request(
         **validator_kwargs,
     )
     return OpenAPI(spec, config=config).validate_webhook_request(request)
+
+
+def iter_webhook_request_errors(
+    request: WebhookRequest,
+    spec: SchemaPath,
+    base_url: Optional[str] = None,
+    cls: Optional[WebhookRequestValidatorType] = None,
+    **validator_kwargs: Any,
+) -> Iterator[Exception]:
+    config = Config(
+        server_base_url=base_url,
+        webhook_request_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).iter_webhook_request_errors(request)
 
 
 def validate_apicall_response(
@@ -229,6 +293,24 @@ def validate_apicall_response(
     )
 
 
+def iter_apicall_response_errors(
+    request: Request,
+    response: Response,
+    spec: SchemaPath,
+    base_url: Optional[str] = None,
+    cls: Optional[ResponseValidatorType] = None,
+    **validator_kwargs: Any,
+) -> Iterator[Exception]:
+    config = Config(
+        server_base_url=base_url,
+        response_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).iter_apicall_response_errors(
+        request, response
+    )
+
+
 def validate_webhook_response(
     request: WebhookRequest,
     response: Response,
@@ -243,5 +325,23 @@ def validate_webhook_response(
         **validator_kwargs,
     )
     return OpenAPI(spec, config=config).validate_webhook_response(
+        request, response
+    )
+
+
+def iter_webhook_response_errors(
+    request: WebhookRequest,
+    response: Response,
+    spec: SchemaPath,
+    base_url: Optional[str] = None,
+    cls: Optional[WebhookResponseValidatorType] = None,
+    **validator_kwargs: Any,
+) -> Iterator[Exception]:
+    config = Config(
+        server_base_url=base_url,
+        webhook_response_validator_cls=cls or _UNSET,
+        **validator_kwargs,
+    )
+    return OpenAPI(spec, config=config).iter_webhook_response_errors(
         request, response
     )

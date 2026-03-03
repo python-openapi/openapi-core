@@ -3,6 +3,7 @@
 from functools import cached_property
 from pathlib import Path
 from typing import Any
+from typing import Iterator
 from typing import Optional
 
 from jsonschema._utils import Unset
@@ -590,6 +591,32 @@ class OpenAPI:
         else:
             self.validate_apicall_request(request)
 
+    def iter_request_errors(
+        self,
+        request: Annotated[
+            AnyRequest,
+            Doc("""
+                Request object to be validated.
+                """),
+        ],
+    ) -> Iterator[Exception]:
+        """Iterates over request validation errors.
+
+        Args:
+            request (AnyRequest): Request object to be validated.
+
+        Returns:
+            Iterator[Exception]: Iterator over request validation errors.
+
+        Raises:
+            TypeError: If the request object is not of the expected type.
+            SpecError: If the validator class is not found.
+        """
+        if isinstance(request, WebhookRequest):
+            return self.iter_webhook_request_errors(request)
+        else:
+            return self.iter_apicall_request_errors(request)
+
     def validate_response(
         self,
         request: Annotated[
@@ -620,6 +647,39 @@ class OpenAPI:
         else:
             self.validate_apicall_response(request, response)
 
+    def iter_response_errors(
+        self,
+        request: Annotated[
+            AnyRequest,
+            Doc("""
+                Request object associated with the response.
+                """),
+        ],
+        response: Annotated[
+            Response,
+            Doc("""
+                Response object to be validated.
+                """),
+        ],
+    ) -> Iterator[Exception]:
+        """Iterates over response validation errors.
+
+        Args:
+            request (AnyRequest): Request object associated with the response.
+            response (Response): Response object to be validated.
+
+        Returns:
+            Iterator[Exception]: Iterator over response validation errors.
+
+        Raises:
+            TypeError: If the request or response object is not of the expected type.
+            SpecError: If the validator class is not found.
+        """
+        if isinstance(request, WebhookRequest):
+            return self.iter_webhook_response_errors(request, response)
+        else:
+            return self.iter_apicall_response_errors(request, response)
+
     def validate_apicall_request(
         self,
         request: Annotated[
@@ -632,6 +692,19 @@ class OpenAPI:
         if not isinstance(request, Request):
             raise TypeError("'request' argument is not type of Request")
         self.request_validator.validate(request)
+
+    def iter_apicall_request_errors(
+        self,
+        request: Annotated[
+            Request,
+            Doc("""
+                API call request object to be validated.
+                """),
+        ],
+    ) -> Iterator[Exception]:
+        if not isinstance(request, Request):
+            raise TypeError("'request' argument is not type of Request")
+        return self.request_validator.iter_errors(request)
 
     def validate_apicall_response(
         self,
@@ -654,6 +727,27 @@ class OpenAPI:
             raise TypeError("'response' argument is not type of Response")
         self.response_validator.validate(request, response)
 
+    def iter_apicall_response_errors(
+        self,
+        request: Annotated[
+            Request,
+            Doc("""
+                API call request object associated with the response.
+                """),
+        ],
+        response: Annotated[
+            Response,
+            Doc("""
+                API call response object to be validated.
+                """),
+        ],
+    ) -> Iterator[Exception]:
+        if not isinstance(request, Request):
+            raise TypeError("'request' argument is not type of Request")
+        if not isinstance(response, Response):
+            raise TypeError("'response' argument is not type of Response")
+        return self.response_validator.iter_errors(request, response)
+
     def validate_webhook_request(
         self,
         request: Annotated[
@@ -666,6 +760,19 @@ class OpenAPI:
         if not isinstance(request, WebhookRequest):
             raise TypeError("'request' argument is not type of WebhookRequest")
         self.webhook_request_validator.validate(request)
+
+    def iter_webhook_request_errors(
+        self,
+        request: Annotated[
+            WebhookRequest,
+            Doc("""
+                Webhook request object to be validated.
+                """),
+        ],
+    ) -> Iterator[Exception]:
+        if not isinstance(request, WebhookRequest):
+            raise TypeError("'request' argument is not type of WebhookRequest")
+        return self.webhook_request_validator.iter_errors(request)
 
     def validate_webhook_response(
         self,
@@ -687,6 +794,27 @@ class OpenAPI:
         if not isinstance(response, Response):
             raise TypeError("'response' argument is not type of Response")
         self.webhook_response_validator.validate(request, response)
+
+    def iter_webhook_response_errors(
+        self,
+        request: Annotated[
+            WebhookRequest,
+            Doc("""
+                Webhook request object associated with the response.
+                """),
+        ],
+        response: Annotated[
+            Response,
+            Doc("""
+                Webhook response object to be validated.
+                """),
+        ],
+    ) -> Iterator[Exception]:
+        if not isinstance(request, WebhookRequest):
+            raise TypeError("'request' argument is not type of WebhookRequest")
+        if not isinstance(response, Response):
+            raise TypeError("'response' argument is not type of Response")
+        return self.webhook_response_validator.iter_errors(request, response)
 
     def unmarshal_request(
         self,

@@ -3,6 +3,12 @@ from unittest import mock
 import pytest
 from openapi_spec_validator import OpenAPIV31SpecValidator
 
+from openapi_core import iter_apicall_request_errors
+from openapi_core import iter_apicall_response_errors
+from openapi_core import iter_request_errors
+from openapi_core import iter_response_errors
+from openapi_core import iter_webhook_request_errors
+from openapi_core import iter_webhook_response_errors
 from openapi_core import unmarshal_apicall_request
 from openapi_core import unmarshal_apicall_response
 from openapi_core import unmarshal_request
@@ -540,6 +546,22 @@ class TestValidateAPICallRequest:
         mock_validate.assert_called_once_with(request)
 
 
+class TestIterAPICallRequestErrors:
+    @mock.patch(
+        "openapi_core.validation.request.validators.APICallRequestValidator."
+        "iter_errors",
+    )
+    def test_request(self, mock_iter_errors, spec_v31):
+        request = mock.Mock(spec=Request)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = iter_apicall_request_errors(request, spec=spec_v31)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request)
+
+
 class TestValidateWebhookRequest:
     def test_spec_not_detected(self, spec_invalid):
         request = mock.Mock(spec=WebhookRequest)
@@ -589,6 +611,22 @@ class TestValidateWebhookRequest:
 
         assert result is None
         mock_validate.assert_called_once_with(request)
+
+
+class TestIterWebhookRequestErrors:
+    @mock.patch(
+        "openapi_core.validation.request.validators.WebhookRequestValidator."
+        "iter_errors",
+    )
+    def test_request(self, mock_iter_errors, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = iter_webhook_request_errors(request, spec=spec_v31)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request)
 
 
 class TestValidateRequest:
@@ -752,6 +790,36 @@ class TestValidateRequest:
             validate_request(request, spec=spec_v31, cls=Exception)
 
 
+class TestIterRequestErrors:
+    @mock.patch(
+        "openapi_core.validation.request.validators.APICallRequestValidator."
+        "iter_errors",
+    )
+    def test_request(self, mock_iter_errors, spec_v31):
+        request = mock.Mock(spec=Request)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = iter_request_errors(request, spec=spec_v31)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request)
+
+    @mock.patch(
+        "openapi_core.validation.request.validators.V31WebhookRequestValidator."
+        "iter_errors",
+    )
+    def test_webhook_request(self, mock_iter_errors, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = iter_request_errors(request, spec=spec_v31)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request)
+
+
 class TestValidateAPICallResponse:
     def test_spec_not_detected(self, spec_invalid):
         request = mock.Mock(spec=Request)
@@ -810,6 +878,23 @@ class TestValidateAPICallResponse:
 
         assert result is None
         mock_validate.assert_called_once_with(request, response)
+
+
+class TestIterAPICallResponseErrors:
+    @mock.patch(
+        "openapi_core.validation.response.validators.APICallResponseValidator."
+        "iter_errors",
+    )
+    def test_request_response(self, mock_iter_errors, spec_v31):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = iter_apicall_response_errors(request, response, spec=spec_v31)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request, response)
 
 
 class TestValidateWebhookResponse:
@@ -877,6 +962,23 @@ class TestValidateWebhookResponse:
 
         assert result is None
         mock_validate.assert_called_once_with(request, response)
+
+
+class TestIterWebhookResponseErrors:
+    @mock.patch(
+        "openapi_core.validation.response.validators.WebhookResponseValidator."
+        "iter_errors",
+    )
+    def test_request_response(self, mock_iter_errors, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = iter_webhook_response_errors(request, response, spec=spec_v31)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request, response)
 
 
 class TestValidateResponse:
@@ -1012,3 +1114,35 @@ class TestValidateResponse:
 
         with pytest.raises(TypeError):
             validate_response(request, response, spec=spec_v31, cls=Exception)
+
+
+class TestIterResponseErrors:
+    @mock.patch(
+        "openapi_core.validation.response.validators.APICallResponseValidator."
+        "iter_errors",
+    )
+    def test_request_response(self, mock_iter_errors, spec_v31):
+        request = mock.Mock(spec=Request)
+        response = mock.Mock(spec=Response)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = iter_response_errors(request, response, spec=spec_v31)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request, response)
+
+    @mock.patch(
+        "openapi_core.validation.response.validators.V31WebhookResponseValidator."
+        "iter_errors",
+    )
+    def test_webhook_request(self, mock_iter_errors, spec_v31):
+        request = mock.Mock(spec=WebhookRequest)
+        response = mock.Mock(spec=Response)
+        errors_iter = iter([ValueError("oops")])
+        mock_iter_errors.return_value = errors_iter
+
+        result = iter_response_errors(request, response, spec=spec_v31)
+
+        assert result is errors_iter
+        mock_iter_errors.assert_called_once_with(request, response)
