@@ -1964,7 +1964,8 @@ class TestOAS31SchemaUnmarshallersFactory(
 
     @pytest.mark.xfail(
         reason=(
-            "OpenAPI 3.1 schema validator uses OpenAPI 3.0 format checker."
+            "Intentional backward compatibility: OAS 3.1 currently uses "
+            "OAS 3.0-style format checker behavior in openapi-core. "
             "See https://github.com/python-openapi/openapi-core/issues/506"
         ),
         strict=True,
