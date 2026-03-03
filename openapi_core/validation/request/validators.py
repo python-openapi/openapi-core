@@ -135,7 +135,7 @@ class BaseRequestValidator(BaseValidator):
         self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> Iterator[Exception]:
         try:
-            self._get_parameters(request.parameters, path, operation)
+            self._get_parameters(request.parameters, operation, path)
         except ParametersError as exc:
             yield from exc.errors
 

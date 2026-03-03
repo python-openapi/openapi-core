@@ -198,7 +198,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
         self, request: BaseRequest, operation: SchemaPath, path: SchemaPath
     ) -> RequestUnmarshalResult:
         try:
-            params = self._get_parameters(request.parameters, path, operation)
+            params = self._get_parameters(request.parameters, operation, path)
         except ParametersError as exc:
             params = exc.parameters
             params_errors = exc.errors

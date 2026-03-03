@@ -9,8 +9,14 @@ from openapi_core import validate_request
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.datatypes import Parameters
 from openapi_core.testing import MockRequest
+from openapi_core.unmarshalling.request.unmarshallers import (
+    V30RequestParametersUnmarshaller,
+)
 from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import ParameterValidationError
+from openapi_core.validation.request.validators import (
+    V30RequestParametersValidator,
+)
 
 
 class TestPathItemParamsValidator:
@@ -165,6 +171,73 @@ class TestPathItemParamsValidator:
 
         assert len(result.errors) == 0
         assert result.body is None
+        assert len(result.parameters.query) == 1
+        assert is_dataclass(result.parameters.query["paramObj"])
+        assert result.parameters.query["paramObj"].count == 2
+        assert result.parameters.query["paramObj"].name == "John"
+
+    def test_request_override_param_uniqueness_parameters_validator(
+        self, spec, spec_dict
+    ):
+        # add parameter on operation with same name as on path but
+        # different location
+        spec_dict["paths"]["/resource"]["get"]["parameters"] = [
+            {
+                # full valid parameter object required
+                "name": "resId",
+                "in": "header",
+                "required": False,
+                "schema": {
+                    "type": "integer",
+                },
+            }
+        ]
+        request = MockRequest("http://example.com", "get", "/resource")
+        with pytest.raises(MissingRequiredParameter):
+            validate_request(
+                request,
+                spec,
+                base_url="http://example.com",
+                cls=V30RequestParametersValidator,
+            )
+
+    def test_request_object_deep_object_params_parameters_unmarshaller(
+        self, spec, spec_dict
+    ):
+        # override path parameter on operation
+        spec_dict["paths"]["/resource"]["parameters"] = [
+            {
+                # full valid parameter object required
+                "name": "paramObj",
+                "in": "query",
+                "required": True,
+                "schema": {
+                    "x-model": "paramObj",
+                    "type": "object",
+                    "properties": {
+                        "count": {"type": "integer"},
+                        "name": {"type": "string"},
+                    },
+                },
+                "explode": True,
+                "style": "deepObject",
+            }
+        ]
+
+        request = MockRequest(
+            "http://example.com",
+            "get",
+            "/resource",
+            args={"paramObj[count]": 2, "paramObj[name]": "John"},
+        )
+        result = unmarshal_request(
+            request,
+            spec,
+            base_url="http://example.com",
+            cls=V30RequestParametersUnmarshaller,
+        )
+
+        assert len(result.errors) == 0
         assert len(result.parameters.query) == 1
         assert is_dataclass(result.parameters.query["paramObj"])
         assert result.parameters.query["paramObj"].count == 2
