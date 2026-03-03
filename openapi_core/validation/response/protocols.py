@@ -47,6 +47,7 @@ class ResponseValidator(Protocol):
         extra_media_type_deserializers: Optional[
             MediaTypeDeserializersDict
         ] = None,
+        strict_additional_properties: bool = False,
     ): ...
 
     def iter_errors(
@@ -83,6 +84,7 @@ class WebhookResponseValidator(Protocol):
         extra_media_type_deserializers: Optional[
             MediaTypeDeserializersDict
         ] = None,
+        strict_additional_properties: bool = False,
     ): ...
 
     def iter_errors(

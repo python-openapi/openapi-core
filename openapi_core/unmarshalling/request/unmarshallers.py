@@ -120,6 +120,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             MediaTypeDeserializersDict
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
+        strict_additional_properties: bool = False,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory
         ] = None,
@@ -139,6 +140,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
             extra_media_type_deserializers=extra_media_type_deserializers,
+            strict_additional_properties=strict_additional_properties,
             schema_unmarshallers_factory=schema_unmarshallers_factory,
             format_unmarshallers=format_unmarshallers,
             extra_format_unmarshallers=extra_format_unmarshallers,
@@ -157,6 +159,7 @@ class BaseRequestUnmarshaller(BaseRequestValidator, BaseUnmarshaller):
             extra_format_validators=extra_format_validators,
             extra_media_type_deserializers=extra_media_type_deserializers,
             security_provider_factory=security_provider_factory,
+            strict_additional_properties=strict_additional_properties,
         )
 
     def _unmarshal(

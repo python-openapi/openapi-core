@@ -49,6 +49,7 @@ class RequestValidator(Protocol):
             MediaTypeDeserializersDict
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
+        strict_additional_properties: bool = False,
     ): ...
 
     def iter_errors(
@@ -84,6 +85,7 @@ class WebhookRequestValidator(Protocol):
             MediaTypeDeserializersDict
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
+        strict_additional_properties: bool = False,
     ): ...
 
     def iter_errors(

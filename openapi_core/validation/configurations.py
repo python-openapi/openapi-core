@@ -43,6 +43,9 @@ class ValidatorConfig:
             Extra media type deserializers.
         security_provider_factory
             Security providers factory.
+        strict_additional_properties
+            If true, treat schemas that omit additionalProperties as if
+            additionalProperties: false.
     """
 
     server_base_url: Optional[str] = None
@@ -62,3 +65,4 @@ class ValidatorConfig:
     security_provider_factory: SecurityProviderFactory = (
         security_provider_factory
     )
+    strict_additional_properties: bool = False

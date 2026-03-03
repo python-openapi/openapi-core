@@ -85,6 +85,7 @@ class BaseRequestValidator(BaseValidator):
             MediaTypeDeserializersDict
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
+        strict_additional_properties: bool = False,
     ):
 
         BaseValidator.__init__(
@@ -100,6 +101,7 @@ class BaseRequestValidator(BaseValidator):
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
             extra_media_type_deserializers=extra_media_type_deserializers,
+            strict_additional_properties=strict_additional_properties,
         )
         self.security_provider_factory = security_provider_factory
 
