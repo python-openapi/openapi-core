@@ -30,6 +30,7 @@ To explicitly validate a:
 
 - OpenAPI 3.0 spec, import `V30RequestValidator`
 - OpenAPI 3.1 spec, import `V31RequestValidator` or `V31WebhookRequestValidator`
+- OpenAPI 3.2 spec, import `V32RequestValidator` or `V32WebhookRequestValidator`
 
 ``` python hl_lines="1 4"
 from openapi_core import V31RequestValidator
@@ -51,6 +52,7 @@ To explicitly validate a:
 
 - OpenAPI 3.0 spec, import `V30ResponseValidator`
 - OpenAPI 3.1 spec, import `V31ResponseValidator` or `V31WebhookResponseValidator`
+- OpenAPI 3.2 spec, import `V32ResponseValidator` or `V32WebhookResponseValidator`
 
 ``` python hl_lines="1 4"
 from openapi_core import V31ResponseValidator
@@ -72,6 +74,7 @@ To explicitly validate and unmarshal a request for:
 
 - OpenAPI 3.0 spec, import `V30RequestUnmarshaller`
 - OpenAPI 3.1 spec, import `V31RequestUnmarshaller` or `V31WebhookRequestUnmarshaller`
+- OpenAPI 3.2 spec, import `V32RequestUnmarshaller` or `V32WebhookRequestUnmarshaller`
 
 ``` python hl_lines="1 4"
 from openapi_core import V31RequestUnmarshaller
@@ -91,6 +94,7 @@ To explicitly validate and unmarshal a response:
 
 - For OpenAPI 3.0 spec, import `V30ResponseUnmarshaller`
 - For OpenAPI 3.1 spec, import `V31ResponseUnmarshaller` or `V31WebhookResponseUnmarshaller`
+- For OpenAPI 3.2 spec, import `V32ResponseUnmarshaller` or `V32WebhookResponseUnmarshaller`
 
 ``` python hl_lines="1 4"
 from openapi_core import V31ResponseUnmarshaller

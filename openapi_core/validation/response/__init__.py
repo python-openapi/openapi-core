@@ -30,6 +30,22 @@ from openapi_core.validation.response.validators import (
 from openapi_core.validation.response.validators import (
     V31WebhookResponseValidator,
 )
+from openapi_core.validation.response.validators import (
+    V32ResponseDataValidator,
+)
+from openapi_core.validation.response.validators import (
+    V32ResponseHeadersValidator,
+)
+from openapi_core.validation.response.validators import V32ResponseValidator
+from openapi_core.validation.response.validators import (
+    V32WebhookResponseDataValidator,
+)
+from openapi_core.validation.response.validators import (
+    V32WebhookResponseHeadersValidator,
+)
+from openapi_core.validation.response.validators import (
+    V32WebhookResponseValidator,
+)
 
 __all__ = [
     "VALIDATORS",
@@ -43,6 +59,12 @@ __all__ = [
     "V31WebhookResponseDataValidator",
     "V31WebhookResponseHeadersValidator",
     "V31WebhookResponseValidator",
+    "V32ResponseDataValidator",
+    "V32ResponseHeadersValidator",
+    "V32ResponseValidator",
+    "V32WebhookResponseDataValidator",
+    "V32WebhookResponseHeadersValidator",
+    "V32WebhookResponseValidator",
     "V3ResponseValidator",
     "V3WebhookResponseValidator",
 ]
@@ -51,11 +73,13 @@ __all__ = [
 VALIDATORS: Mapping[SpecVersion, ResponseValidatorType] = {
     versions.OPENAPIV30: V30ResponseValidator,
     versions.OPENAPIV31: V31ResponseValidator,
+    versions.OPENAPIV32: V32ResponseValidator,
 }
 WEBHOOK_VALIDATORS: Mapping[SpecVersion, WebhookResponseValidatorType] = {
     versions.OPENAPIV31: V31WebhookResponseValidator,
+    versions.OPENAPIV32: V32WebhookResponseValidator,
 }
 
 # alias to the latest v3 version
-V3ResponseValidator = V31ResponseValidator
-V3WebhookResponseValidator = V31WebhookResponseValidator
+V3ResponseValidator = V32ResponseValidator
+V3WebhookResponseValidator = V32WebhookResponseValidator

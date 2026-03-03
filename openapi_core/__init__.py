@@ -19,21 +19,29 @@ from openapi_core.unmarshalling.request import V3WebhookRequestUnmarshaller
 from openapi_core.unmarshalling.request import V30RequestUnmarshaller
 from openapi_core.unmarshalling.request import V31RequestUnmarshaller
 from openapi_core.unmarshalling.request import V31WebhookRequestUnmarshaller
+from openapi_core.unmarshalling.request import V32RequestUnmarshaller
+from openapi_core.unmarshalling.request import V32WebhookRequestUnmarshaller
 from openapi_core.unmarshalling.response import V3ResponseUnmarshaller
 from openapi_core.unmarshalling.response import V3WebhookResponseUnmarshaller
 from openapi_core.unmarshalling.response import V30ResponseUnmarshaller
 from openapi_core.unmarshalling.response import V31ResponseUnmarshaller
 from openapi_core.unmarshalling.response import V31WebhookResponseUnmarshaller
+from openapi_core.unmarshalling.response import V32ResponseUnmarshaller
+from openapi_core.unmarshalling.response import V32WebhookResponseUnmarshaller
 from openapi_core.validation.request import V3RequestValidator
 from openapi_core.validation.request import V3WebhookRequestValidator
 from openapi_core.validation.request import V30RequestValidator
 from openapi_core.validation.request import V31RequestValidator
 from openapi_core.validation.request import V31WebhookRequestValidator
+from openapi_core.validation.request import V32RequestValidator
+from openapi_core.validation.request import V32WebhookRequestValidator
 from openapi_core.validation.response import V3ResponseValidator
 from openapi_core.validation.response import V3WebhookResponseValidator
 from openapi_core.validation.response import V30ResponseValidator
 from openapi_core.validation.response import V31ResponseValidator
 from openapi_core.validation.response import V31WebhookResponseValidator
+from openapi_core.validation.response import V32ResponseValidator
+from openapi_core.validation.response import V32WebhookResponseValidator
 
 __author__ = "Artur Maciag"
 __email__ = "maciag.artur@gmail.com"
@@ -62,6 +70,10 @@ __all__ = [
     "V31ResponseUnmarshaller",
     "V31WebhookRequestUnmarshaller",
     "V31WebhookResponseUnmarshaller",
+    "V32RequestUnmarshaller",
+    "V32ResponseUnmarshaller",
+    "V32WebhookRequestUnmarshaller",
+    "V32WebhookResponseUnmarshaller",
     "V3RequestUnmarshaller",
     "V3ResponseUnmarshaller",
     "V3WebhookRequestUnmarshaller",
@@ -72,6 +84,10 @@ __all__ = [
     "V31ResponseValidator",
     "V31WebhookRequestValidator",
     "V31WebhookResponseValidator",
+    "V32RequestValidator",
+    "V32ResponseValidator",
+    "V32WebhookRequestValidator",
+    "V32WebhookResponseValidator",
     "V3RequestValidator",
     "V3ResponseValidator",
     "V3WebhookRequestValidator",

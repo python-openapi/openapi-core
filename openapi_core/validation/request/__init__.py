@@ -35,6 +35,26 @@ from openapi_core.validation.request.validators import (
 from openapi_core.validation.request.validators import (
     V31WebhookRequestValidator,
 )
+from openapi_core.validation.request.validators import V32RequestBodyValidator
+from openapi_core.validation.request.validators import (
+    V32RequestParametersValidator,
+)
+from openapi_core.validation.request.validators import (
+    V32RequestSecurityValidator,
+)
+from openapi_core.validation.request.validators import V32RequestValidator
+from openapi_core.validation.request.validators import (
+    V32WebhookRequestBodyValidator,
+)
+from openapi_core.validation.request.validators import (
+    V32WebhookRequestParametersValidator,
+)
+from openapi_core.validation.request.validators import (
+    V32WebhookRequestSecurityValidator,
+)
+from openapi_core.validation.request.validators import (
+    V32WebhookRequestValidator,
+)
 
 __all__ = [
     "VALIDATORS",
@@ -51,6 +71,14 @@ __all__ = [
     "V31WebhookRequestParametersValidator",
     "V31WebhookRequestSecurityValidator",
     "V31WebhookRequestValidator",
+    "V32RequestBodyValidator",
+    "V32RequestParametersValidator",
+    "V32RequestSecurityValidator",
+    "V32RequestValidator",
+    "V32WebhookRequestBodyValidator",
+    "V32WebhookRequestParametersValidator",
+    "V32WebhookRequestSecurityValidator",
+    "V32WebhookRequestValidator",
     "V3RequestValidator",
     "V3WebhookRequestValidator",
 ]
@@ -59,11 +87,13 @@ __all__ = [
 VALIDATORS: Mapping[SpecVersion, RequestValidatorType] = {
     versions.OPENAPIV30: V30RequestValidator,
     versions.OPENAPIV31: V31RequestValidator,
+    versions.OPENAPIV32: V32RequestValidator,
 }
 WEBHOOK_VALIDATORS: Mapping[SpecVersion, WebhookRequestValidatorType] = {
     versions.OPENAPIV31: V31WebhookRequestValidator,
+    versions.OPENAPIV32: V32WebhookRequestValidator,
 }
 
 # alias to the latest v3 version
-V3RequestValidator = V31RequestValidator
-V3WebhookRequestValidator = V31WebhookRequestValidator
+V3RequestValidator = V32RequestValidator
+V3WebhookRequestValidator = V32WebhookRequestValidator

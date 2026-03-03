@@ -23,7 +23,8 @@
 
 Openapi-core is a Python library that provides client-side and server-side support
 for the [OpenAPI v3.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md)
-and [OpenAPI v3.1](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md) specifications.
+and [OpenAPI v3.1](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md)
+and [OpenAPI v3.2](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.2.0.md) specifications.
 
 
 ## Key features
@@ -109,9 +110,9 @@ If you just want to validate your request/response data without unmarshalling, r
 ## Related projects
 
 - [openapi-spec-validator](https://github.com/python-openapi/openapi-spec-validator)
-  : A Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger), OpenAPI 3.0, and OpenAPI 3.1 specification. The validator aims to check for full compliance with the Specification.
+  : A Python library that validates OpenAPI Specs against the OpenAPI 2.0 (aka Swagger), OpenAPI 3.0, OpenAPI 3.1, and OpenAPI 3.2 specification. The validator aims to check for full compliance with the Specification.
 - [openapi-schema-validator](https://github.com/python-openapi/openapi-schema-validator)
-  : A Python library that validates schema against the OpenAPI Schema Specification v3.0 and OpenAPI Schema Specification v3.1.
+  : A Python library that validates schema against the OpenAPI Schema Specification v3.0, v3.1, and v3.2.
 - [bottle-openapi-3](https://github.com/cope-systems/bottle-openapi-3)
   : OpenAPI 3.0 Support for the Bottle Web Framework
 - [pyramid_openapi3](https://github.com/niteoweb/pyramid_openapi3)
