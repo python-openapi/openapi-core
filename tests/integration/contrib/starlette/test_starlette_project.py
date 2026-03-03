@@ -26,7 +26,11 @@ class BaseTestPetstore:
 
     @pytest.fixture
     def client(self, app):
-        return TestClient(app, base_url="http://petstore.swagger.io")
+        with TestClient(
+            app,
+            base_url="http://petstore.swagger.io",
+        ) as test_client:
+            yield test_client
 
     @property
     def api_key_encoded(self):
@@ -45,7 +49,11 @@ class BaseTestPetstoreSkipReponse:
 
     @pytest.fixture
     def client(self, app):
-        return TestClient(app, base_url="http://petstore.swagger.io")
+        with TestClient(
+            app,
+            base_url="http://petstore.swagger.io",
+        ) as test_client:
+            yield test_client
 
 
 class TestPetListEndpoint(BaseTestPetstore):

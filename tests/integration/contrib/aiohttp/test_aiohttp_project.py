@@ -1,9 +1,11 @@
 import os
 import sys
 from base64 import b64encode
+from collections.abc import AsyncGenerator
 from io import BytesIO
 
 import pytest
+import pytest_asyncio
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -22,9 +24,13 @@ def app(project_setup):
     return get_app()
 
 
-@pytest.fixture
-async def client(app, aiohttp_client):
-    return await aiohttp_client(app)
+@pytest_asyncio.fixture
+async def client(app, aiohttp_client) -> AsyncGenerator:
+    test_client = await aiohttp_client(app)
+    try:
+        yield test_client
+    finally:
+        await test_client.close()
 
 
 class BaseTestPetstore:

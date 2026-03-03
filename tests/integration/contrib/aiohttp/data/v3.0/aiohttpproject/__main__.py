@@ -6,8 +6,8 @@ routes = [
 ]
 
 
-def get_app(loop=None):
-    app = web.Application(loop=loop)
+def get_app():
+    app = web.Application()
     app.add_routes(routes)
     return app
 

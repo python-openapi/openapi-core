@@ -9,7 +9,7 @@ from falcon import status_codes
 from falcon.asgi import App
 from falcon.asgi import Response
 from falcon.constants import MEDIA_JSON
-from falcon.testing import TestClient
+from falcon.testing import ASGIConductor
 from jsonschema_path import SchemaPath
 
 from openapi_core.contrib.falcon.middlewares import FalconASGIOpenAPIMiddleware
@@ -75,18 +75,19 @@ class _AsyncStream:
         return chunk
 
 
-def test_dual_mode_sync_middleware_works_with_asgi_app(spec):
+@pytest.mark.asyncio
+async def test_dual_mode_sync_middleware_works_with_asgi_app(spec):
     middleware = FalconOpenAPIMiddleware.from_spec(spec)
     app = App(middleware=[middleware])
     app.add_route("/v1/pets", PetListResource())
-    client = TestClient(app)
 
-    with pytest.warns(DeprecationWarning):
-        response = client.simulate_get(
-            "/v1/pets",
-            host="petstore.swagger.io",
-            query_string="limit=12",
-        )
+    async with ASGIConductor(app) as conductor:
+        with pytest.warns(DeprecationWarning):
+            response = await conductor.simulate_get(
+                "/v1/pets",
+                host="petstore.swagger.io",
+                query_string="limit=12",
+            )
 
     assert response.status_code == 200
     assert response.json == {
@@ -102,17 +103,18 @@ def test_dual_mode_sync_middleware_works_with_asgi_app(spec):
     }
 
 
-def test_explicit_asgi_middleware_handles_request_validation(spec):
+@pytest.mark.asyncio
+async def test_explicit_asgi_middleware_handles_request_validation(spec):
     middleware = FalconASGIOpenAPIMiddleware.from_spec(spec)
     app = App(middleware=[middleware])
     app.add_route("/v1/pets", PetListResource())
-    client = TestClient(app)
 
-    with pytest.warns(DeprecationWarning):
-        response = client.simulate_get(
-            "/v1/pets",
-            host="petstore.swagger.io",
-        )
+    async with ASGIConductor(app) as conductor:
+        with pytest.warns(DeprecationWarning):
+            response = await conductor.simulate_get(
+                "/v1/pets",
+                host="petstore.swagger.io",
+            )
 
     assert response.status_code == 400
     assert response.json == {
@@ -129,18 +131,19 @@ def test_explicit_asgi_middleware_handles_request_validation(spec):
     }
 
 
-def test_explicit_asgi_middleware_validates_response(spec):
+@pytest.mark.asyncio
+async def test_explicit_asgi_middleware_validates_response(spec):
     middleware = FalconASGIOpenAPIMiddleware.from_spec(spec)
     app = App(middleware=[middleware])
     app.add_route("/v1/pets", InvalidPetListResource())
-    client = TestClient(app)
 
-    with pytest.warns(DeprecationWarning):
-        response = client.simulate_get(
-            "/v1/pets",
-            host="petstore.swagger.io",
-            query_string="limit=12",
-        )
+    async with ASGIConductor(app) as conductor:
+        with pytest.warns(DeprecationWarning):
+            response = await conductor.simulate_get(
+                "/v1/pets",
+                host="petstore.swagger.io",
+                query_string="limit=12",
+            )
 
     assert response.status_code == 400
     assert "errors" in response.json
