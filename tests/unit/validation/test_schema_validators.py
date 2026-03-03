@@ -213,3 +213,65 @@ class TestSchemaValidate:
         result = validator_factory(spec).validate(value)
 
         assert result is None
+
+    def test_additional_properties_omitted_default_allows_extra(self):
+        schema = {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+            },
+            "required": ["name"],
+        }
+        spec = SchemaPath.from_dict(schema)
+        value = {
+            "name": "openapi-core",
+            "extra": "allowed by default",
+        }
+
+        result = oas30_write_schema_validators_factory.create(spec).validate(
+            value
+        )
+
+        assert result is None
+
+    def test_additional_properties_omitted_strict_rejects_extra(self):
+        schema = {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+            },
+            "required": ["name"],
+        }
+        spec = SchemaPath.from_dict(schema)
+        value = {
+            "name": "openapi-core",
+            "extra": "not allowed in strict mode",
+        }
+
+        with pytest.raises(InvalidSchemaValue):
+            oas30_write_schema_validators_factory.create(
+                spec,
+                strict_additional_properties=True,
+            ).validate(value)
+
+    def test_additional_properties_true_strict_allows_extra(self):
+        schema = {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+            },
+            "required": ["name"],
+            "additionalProperties": True,
+        }
+        spec = SchemaPath.from_dict(schema)
+        value = {
+            "name": "openapi-core",
+            "extra": "explicitly allowed",
+        }
+
+        result = oas30_write_schema_validators_factory.create(
+            spec,
+            strict_additional_properties=True,
+        ).validate(value)
+
+        assert result is None

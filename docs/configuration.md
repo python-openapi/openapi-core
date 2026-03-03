@@ -132,6 +132,27 @@ openapi = OpenAPI.from_file_path('openapi.json', config=config)
 result = openapi.unmarshal_response(request, response)
 ```
 
+## Strict Additional Properties
+
+By default, OpenAPI follows JSON Schema behavior: when an object schema omits `additionalProperties`, extra keys are allowed.
+
+If you want stricter behavior, enable `strict_additional_properties`. In this mode, omitted `additionalProperties` is treated as `false`.
+
+``` python hl_lines="4"
+from openapi_core import Config
+from openapi_core import OpenAPI
+
+config = Config(
+    strict_additional_properties=True,
+)
+openapi = OpenAPI.from_file_path('openapi.json', config=config)
+```
+
+When strict mode is enabled:
+
+- object schema with omitted `additionalProperties` rejects unknown fields
+- object schema with `additionalProperties: true` still allows unknown fields
+
 ## Extra Format Validators
 
 OpenAPI defines a `format` keyword that hints at how a value should be interpreted. For example, a `string` with the format `date` should conform to the RFC 3339 date format.

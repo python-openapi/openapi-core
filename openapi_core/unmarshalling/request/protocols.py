@@ -55,6 +55,7 @@ class RequestUnmarshaller(Protocol):
             MediaTypeDeserializersDict
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
+        strict_additional_properties: bool = False,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory
         ] = None,
@@ -90,6 +91,7 @@ class WebhookRequestUnmarshaller(Protocol):
             MediaTypeDeserializersDict
         ] = None,
         security_provider_factory: SecurityProviderFactory = security_provider_factory,
+        strict_additional_properties: bool = False,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory
         ] = None,
