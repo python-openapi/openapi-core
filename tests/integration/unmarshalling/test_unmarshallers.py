@@ -74,6 +74,23 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         assert result == value
 
     @pytest.mark.parametrize(
+        "factory",
+        [
+            oas30_write_schema_unmarshallers_factory,
+            oas31_schema_unmarshallers_factory,
+        ],
+    )
+    def test_no_type_object_with_array_of_null(self, factory):
+        schema = {}
+        spec = SchemaPath.from_dict(schema)
+        unmarshaller = factory.create(spec)
+        value = {"foo": [None]}
+
+        result = unmarshaller.unmarshal(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize(
         "type,value",
         [
             ("string", "test"),
