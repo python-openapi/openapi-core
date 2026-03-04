@@ -163,6 +163,12 @@ class TestRequestUnmarshaller:
 
         assert len(result.errors) == 1
         assert type(result.errors[0]) == MissingRequiredRequestBody
+        assert result.errors[0].details == {
+            "message": "Missing required request body",
+            "error_type": "MissingRequiredRequestBody",
+            "cause_type": None,
+            "schema_errors": [],
+        }
         assert result.body is None
         assert result.parameters == Parameters(
             header={
