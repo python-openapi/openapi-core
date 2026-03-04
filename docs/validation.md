@@ -64,7 +64,17 @@ from openapi_core import V31RequestValidator
 errors = list(V31RequestValidator(spec).iter_errors(request))
 ```
 
-Some high-level errors wrap detailed schema errors. To access nested schema details:
+Validation errors expose structured details directly:
+
+```python
+for error in openapi.iter_request_errors(request):
+    details = getattr(error, "details", {})
+    print(details.get("message"))
+    for schema_error in details.get("schema_errors", []):
+        print(schema_error["message"], schema_error["path"])
+```
+
+Some high-level errors wrap detailed schema errors in `__cause__`. You can still access those low-level objects directly:
 
 ```python
 for error in openapi.iter_request_errors(request):
