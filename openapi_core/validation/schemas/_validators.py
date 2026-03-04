@@ -10,7 +10,7 @@ from jsonschema.protocols import Validator
 from jsonschema.validators import extend
 
 
-def build_strict_additional_properties_validator(
+def build_forbid_unspecified_additional_properties_validator(
     validator_class: type[Validator],
 ) -> type[Validator]:
     properties_validator = validator_class.VALIDATORS.get("properties")
@@ -81,3 +81,42 @@ def iter_missing_additional_properties_errors(
     if extras:
         error = "Additional properties are not allowed (%s %s unexpected)"
         yield ValidationError(error % extras_msg(extras))
+
+
+def build_enforce_properties_required_validator(
+    validator_class: type[Validator],
+) -> type[Validator]:
+    properties_validator = validator_class.VALIDATORS.get("properties")
+
+    def enforce_properties(
+        validator: Any,
+        properties: Any,
+        instance: Any,
+        schema: Mapping[str, Any],
+    ) -> Iterator[Any]:
+        if properties_validator is not None:
+            yield from properties_validator(
+                validator, properties, instance, schema
+            )
+
+        if not validator.is_type(instance, "object"):
+            return
+
+        for prop_name, prop_schema in properties.items():
+            if prop_name not in instance:
+                if (
+                    isinstance(prop_schema, dict)
+                    and prop_schema.get("writeOnly") is True
+                ):
+                    continue
+                yield ValidationError(f"'{prop_name}' is a required property")
+
+    return cast(
+        type[Validator],
+        extend(
+            validator_class,
+            validators={
+                "properties": enforce_properties,
+            },
+        ),
+    )

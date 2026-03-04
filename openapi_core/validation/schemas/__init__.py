@@ -7,7 +7,7 @@ from openapi_schema_validator import OAS31Validator
 from openapi_schema_validator import OAS32Validator
 
 from openapi_core.validation.schemas._validators import (
-    build_strict_additional_properties_validator,
+    build_forbid_unspecified_additional_properties_validator,
 )
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
@@ -22,7 +22,8 @@ oas30_write_schema_validators_factory = SchemaValidatorsFactory(
     OAS30WriteValidator,
     Proxy(
         partial(
-            build_strict_additional_properties_validator, OAS30WriteValidator
+            build_forbid_unspecified_additional_properties_validator,
+            OAS30WriteValidator,
         )
     ),
 )
@@ -31,7 +32,8 @@ oas30_read_schema_validators_factory = SchemaValidatorsFactory(
     OAS30ReadValidator,
     Proxy(
         partial(
-            build_strict_additional_properties_validator, OAS30ReadValidator
+            build_forbid_unspecified_additional_properties_validator,
+            OAS30ReadValidator,
         )
     ),
 )
@@ -39,7 +41,10 @@ oas30_read_schema_validators_factory = SchemaValidatorsFactory(
 oas31_schema_validators_factory = SchemaValidatorsFactory(
     OAS31Validator,
     Proxy(
-        partial(build_strict_additional_properties_validator, OAS31Validator)
+        partial(
+            build_forbid_unspecified_additional_properties_validator,
+            OAS31Validator,
+        )
     ),
     # NOTE: Intentionally use OAS 3.0 format checker for OAS 3.1 to preserve
     # backward compatibility for `byte`/`binary` formats.
@@ -50,6 +55,9 @@ oas31_schema_validators_factory = SchemaValidatorsFactory(
 oas32_schema_validators_factory = SchemaValidatorsFactory(
     OAS32Validator,
     Proxy(
-        partial(build_strict_additional_properties_validator, OAS32Validator)
+        partial(
+            build_forbid_unspecified_additional_properties_validator,
+            OAS32Validator,
+        )
     ),
 )

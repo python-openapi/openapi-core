@@ -64,7 +64,7 @@ class BaseValidator:
         extra_media_type_deserializers: Optional[
             MediaTypeDeserializersDict
         ] = None,
-        strict_additional_properties: bool = False,
+        forbid_unspecified_additional_properties: bool = False,
         enforce_properties_required: bool = False,
     ):
         self.spec = spec
@@ -103,7 +103,9 @@ class BaseValidator:
         self.format_validators = format_validators
         self.extra_format_validators = extra_format_validators
         self.extra_media_type_deserializers = extra_media_type_deserializers
-        self.strict_additional_properties = strict_additional_properties
+        self.forbid_unspecified_additional_properties = (
+            forbid_unspecified_additional_properties
+        )
         self.enforce_properties_required = enforce_properties_required
 
     @cached_property
@@ -144,7 +146,7 @@ class BaseValidator:
                 schema,
                 format_validators=self.format_validators,
                 extra_format_validators=self.extra_format_validators,
-                strict_additional_properties=self.strict_additional_properties,
+                forbid_unspecified_additional_properties=self.forbid_unspecified_additional_properties,
                 enforce_properties_required=self.enforce_properties_required,
             )
         deserializer = self.media_type_deserializers_factory.create(
@@ -176,7 +178,7 @@ class BaseValidator:
             schema,
             format_validators=self.format_validators,
             extra_format_validators=self.extra_format_validators,
-            strict_additional_properties=self.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.forbid_unspecified_additional_properties,
             enforce_properties_required=self.enforce_properties_required,
         )
         validator.validate(value)

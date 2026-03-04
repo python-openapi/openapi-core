@@ -251,7 +251,7 @@ class TestSchemaValidate:
         with pytest.raises(InvalidSchemaValue):
             oas30_write_schema_validators_factory.create(
                 spec,
-                strict_additional_properties=True,
+                forbid_unspecified_additional_properties=True,
             ).validate(value)
 
     def test_additional_properties_true_strict_allows_extra(self):
@@ -271,7 +271,7 @@ class TestSchemaValidate:
 
         result = oas30_write_schema_validators_factory.create(
             spec,
-            strict_additional_properties=True,
+            forbid_unspecified_additional_properties=True,
         ).validate(value)
 
         assert result is None

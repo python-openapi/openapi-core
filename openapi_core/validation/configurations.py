@@ -44,8 +44,8 @@ class ValidatorConfig:
             Extra media type deserializers.
         security_provider_factory
             Security providers factory.
-        strict_additional_properties
-            If true, treat schemas that omit additionalProperties as if
+        additional_properties_default_policy
+            If forbid, treat schemas that omit additionalProperties as if
             additionalProperties: false.
         response_properties_default_policy
             If true, response schema properties are treated as required during
@@ -70,7 +70,7 @@ class ValidatorConfig:
     security_provider_factory: SecurityProviderFactory = (
         security_provider_factory
     )
-    strict_additional_properties: bool = False
+    additional_properties_default_policy: Literal["allow", "forbid"] = "allow"
     response_properties_default_policy: Literal["optional", "required"] = (
         "optional"
     )

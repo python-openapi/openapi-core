@@ -38,7 +38,7 @@ class SchemaUnmarshallersFactory:
         format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
-        strict_additional_properties: bool = False,
+        forbid_unspecified_additional_properties: bool = False,
         enforce_properties_required: bool = False,
     ) -> SchemaUnmarshaller:
         """Create unmarshaller from the schema."""
@@ -54,7 +54,7 @@ class SchemaUnmarshallersFactory:
             schema,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
-            strict_additional_properties=strict_additional_properties,
+            forbid_unspecified_additional_properties=forbid_unspecified_additional_properties,
             enforce_properties_required=enforce_properties_required,
         )
 
