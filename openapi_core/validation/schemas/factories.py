@@ -59,7 +59,7 @@ class SchemaValidatorsFactory:
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
         strict_additional_properties: bool = False,
-        require_all_properties: bool = False,
+        enforce_properties_required: bool = False,
     ) -> SchemaValidator:
         validator_class: type[Validator] = self.schema_validator_class
         if strict_additional_properties:
@@ -74,7 +74,7 @@ class SchemaValidatorsFactory:
         )
         with schema.resolve() as resolved:
             schema_value = resolved.contents
-            if require_all_properties:
+            if enforce_properties_required:
                 schema_value = self._build_required_properties_schema(
                     schema_value
                 )

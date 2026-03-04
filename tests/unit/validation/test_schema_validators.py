@@ -276,7 +276,7 @@ class TestSchemaValidate:
 
         assert result is None
 
-    def test_require_all_properties_rejects_missing_property(self):
+    def test_enforce_properties_required_rejects_missing_property(self):
         schema = {
             "type": "object",
             "properties": {
@@ -290,10 +290,10 @@ class TestSchemaValidate:
         with pytest.raises(InvalidSchemaValue):
             oas30_write_schema_validators_factory.create(
                 spec,
-                require_all_properties=True,
+                enforce_properties_required=True,
             ).validate({"name": "openapi-core"})
 
-    def test_require_all_properties_ignores_write_only_fields(self):
+    def test_enforce_properties_required_ignores_write_only_fields(self):
         schema = {
             "type": "object",
             "properties": {
@@ -309,12 +309,14 @@ class TestSchemaValidate:
 
         result = oas30_write_schema_validators_factory.create(
             spec,
-            require_all_properties=True,
+            enforce_properties_required=True,
         ).validate({"name": "openapi-core"})
 
         assert result is None
 
-    def test_require_all_properties_applies_to_nested_composed_schemas(self):
+    def test_enforce_properties_required_applies_to_nested_composed_schemas(
+        self,
+    ):
         schema = {
             "allOf": [
                 {
@@ -341,5 +343,5 @@ class TestSchemaValidate:
         with pytest.raises(InvalidSchemaValue):
             oas30_write_schema_validators_factory.create(
                 spec,
-                require_all_properties=True,
+                enforce_properties_required=True,
             ).validate({"name": "openapi-core", "meta": {}})

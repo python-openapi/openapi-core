@@ -67,7 +67,7 @@ def test_response_unmarshal_default_allows_missing_optional_properties():
 
 
 def test_response_unmarshal_strict_rejects_missing_documented_properties():
-    config = Config(strict_response_properties=True)
+    config = Config(response_properties_default_policy="required")
     openapi = OpenAPI.from_dict(_spec_dict(), config=config)
     request = MockRequest("http://example.com", "get", "/resources")
     response = MockResponse(
@@ -83,7 +83,7 @@ def test_response_unmarshal_strict_rejects_missing_documented_properties():
 
 
 def test_response_unmarshal_strict_excludes_write_only_properties():
-    config = Config(strict_response_properties=True)
+    config = Config(response_properties_default_policy="required")
     openapi = OpenAPI.from_dict(_spec_dict(), config=config)
     request = MockRequest("http://example.com", "get", "/resources")
     response = MockResponse(

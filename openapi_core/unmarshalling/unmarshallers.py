@@ -51,7 +51,7 @@ class BaseUnmarshaller(BaseValidator):
             MediaTypeDeserializersDict
         ] = None,
         strict_additional_properties: bool = False,
-        strict_response_properties: bool = False,
+        enforce_properties_required: bool = False,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory
         ] = None,
@@ -76,7 +76,7 @@ class BaseUnmarshaller(BaseValidator):
             extra_format_validators=extra_format_validators,
             extra_media_type_deserializers=extra_media_type_deserializers,
             strict_additional_properties=strict_additional_properties,
-            strict_response_properties=strict_response_properties,
+            enforce_properties_required=enforce_properties_required,
         )
         self.schema_unmarshallers_factory = (
             schema_unmarshallers_factory or self.schema_unmarshallers_factory
@@ -94,7 +94,7 @@ class BaseUnmarshaller(BaseValidator):
             format_validators=self.format_validators,
             extra_format_validators=self.extra_format_validators,
             strict_additional_properties=self.strict_additional_properties,
-            require_all_properties=self.strict_response_properties,
+            enforce_properties_required=self.enforce_properties_required,
             format_unmarshallers=self.format_unmarshallers,
             extra_format_unmarshallers=self.extra_format_unmarshallers,
         )

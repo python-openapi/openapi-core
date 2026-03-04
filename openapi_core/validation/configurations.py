@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Literal
 from typing import Optional
 
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
@@ -46,7 +47,7 @@ class ValidatorConfig:
         strict_additional_properties
             If true, treat schemas that omit additionalProperties as if
             additionalProperties: false.
-        strict_response_properties
+        response_properties_default_policy
             If true, response schema properties are treated as required during
             response validation/unmarshalling, except properties marked as
             writeOnly.
@@ -70,4 +71,6 @@ class ValidatorConfig:
         security_provider_factory
     )
     strict_additional_properties: bool = False
-    strict_response_properties: bool = False
+    response_properties_default_policy: Literal["optional", "required"] = (
+        "optional"
+    )

@@ -38,7 +38,7 @@ class Config(UnmarshallerConfig):
         response_unmarshaller_cls: Response unmarshaller class.
         webhook_request_unmarshaller_cls: Webhook request unmarshaller class.
         webhook_response_unmarshaller_cls: Webhook response unmarshaller class.
-        strict_response_properties: If true, require documented response
+        response_properties_default_policy: If true, require documented response
             properties (except writeOnly properties) in response validation and
             unmarshalling.
     """

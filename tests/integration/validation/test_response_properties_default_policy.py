@@ -88,7 +88,7 @@ def test_response_validation_default_allows_missing_optional_properties():
 
 
 def test_response_validation_strict_rejects_missing_documented_properties():
-    config = Config(strict_response_properties=True)
+    config = Config(response_properties_default_policy="required")
     openapi = OpenAPI.from_dict(_spec_dict(), config=config)
     request = MockRequest("http://example.com", "get", "/resources")
     response = MockResponse(
@@ -102,7 +102,7 @@ def test_response_validation_strict_rejects_missing_documented_properties():
 
 
 def test_response_validation_strict_allows_nullable_properties_when_present():
-    config = Config(strict_response_properties=True)
+    config = Config(response_properties_default_policy="required")
     openapi = OpenAPI.from_dict(_spec_dict(), config=config)
     request = MockRequest("http://example.com", "get", "/resources")
     response = MockResponse(
@@ -121,7 +121,7 @@ def test_response_validation_strict_allows_nullable_properties_when_present():
 
 
 def test_response_validation_strict_excludes_write_only_properties():
-    config = Config(strict_response_properties=True)
+    config = Config(response_properties_default_policy="required")
     openapi = OpenAPI.from_dict(_spec_dict(), config=config)
     request = MockRequest("http://example.com", "get", "/resources")
     response = MockResponse(
@@ -139,8 +139,8 @@ def test_response_validation_strict_excludes_write_only_properties():
     openapi.validate_response(request, response)
 
 
-def test_request_validation_ignores_strict_response_properties_flag():
-    config = Config(strict_response_properties=True)
+def test_request_validation_ignores_response_properties_default_policy_flag():
+    config = Config(response_properties_default_policy="required")
     openapi = OpenAPI.from_dict(_spec_dict(), config=config)
     request = MockRequest(
         "http://example.com",
