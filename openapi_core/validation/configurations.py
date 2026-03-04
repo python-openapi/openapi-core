@@ -46,6 +46,10 @@ class ValidatorConfig:
         strict_additional_properties
             If true, treat schemas that omit additionalProperties as if
             additionalProperties: false.
+        strict_response_properties
+            If true, response schema properties are treated as required during
+            response validation/unmarshalling, except properties marked as
+            writeOnly.
     """
 
     server_base_url: Optional[str] = None
@@ -66,3 +70,4 @@ class ValidatorConfig:
         security_provider_factory
     )
     strict_additional_properties: bool = False
+    strict_response_properties: bool = False

@@ -153,6 +153,24 @@ When strict mode is enabled:
 - object schema with omitted `additionalProperties` rejects unknown fields
 - object schema with `additionalProperties: true` still allows unknown fields
 
+## Strict Response Properties
+
+By default, OpenAPI follows JSON Schema behavior for `required`: response object properties are optional unless explicitly listed in `required`.
+
+If you want stricter response checks, enable `strict_response_properties`. In this mode, response object schemas are validated as if all documented properties were required, except properties marked as `writeOnly`.
+
+``` python hl_lines="4"
+from openapi_core import Config
+from openapi_core import OpenAPI
+
+config = Config(
+    strict_response_properties=True,
+)
+openapi = OpenAPI.from_file_path('openapi.json', config=config)
+```
+
+This mode is intentionally stricter than the OpenAPI default and is useful for contract completeness checks in tests.
+
 ## Extra Format Validators
 
 OpenAPI defines a `format` keyword that hints at how a value should be interpreted. For example, a `string` with the format `date` should conform to the RFC 3339 date format.

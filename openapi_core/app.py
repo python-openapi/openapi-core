@@ -447,6 +447,7 @@ class OpenAPI:
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
             strict_additional_properties=self.config.strict_additional_properties,
+            strict_response_properties=self.config.strict_response_properties,
         )
 
     @cached_property
@@ -484,6 +485,7 @@ class OpenAPI:
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
             strict_additional_properties=self.config.strict_additional_properties,
+            strict_response_properties=self.config.strict_response_properties,
         )
 
     @cached_property
@@ -523,6 +525,7 @@ class OpenAPI:
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
             strict_additional_properties=self.config.strict_additional_properties,
+            strict_response_properties=self.config.strict_response_properties,
             schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
             extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )
@@ -564,6 +567,7 @@ class OpenAPI:
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
             strict_additional_properties=self.config.strict_additional_properties,
+            strict_response_properties=self.config.strict_response_properties,
             schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
             extra_format_unmarshallers=self.config.extra_format_unmarshallers,
         )

@@ -39,6 +39,7 @@ class SchemaUnmarshallersFactory:
         extra_format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
         strict_additional_properties: bool = False,
+        require_all_properties: bool = False,
     ) -> SchemaUnmarshaller:
         """Create unmarshaller from the schema."""
         if schema is None:
@@ -54,6 +55,7 @@ class SchemaUnmarshallersFactory:
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
             strict_additional_properties=strict_additional_properties,
+            require_all_properties=require_all_properties,
         )
 
         schema_format = (schema / "format").read_str(None)

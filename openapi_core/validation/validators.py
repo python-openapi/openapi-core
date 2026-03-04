@@ -65,6 +65,7 @@ class BaseValidator:
             MediaTypeDeserializersDict
         ] = None,
         strict_additional_properties: bool = False,
+        strict_response_properties: bool = False,
     ):
         self.spec = spec
         self.base_url = base_url
@@ -103,6 +104,7 @@ class BaseValidator:
         self.extra_format_validators = extra_format_validators
         self.extra_media_type_deserializers = extra_media_type_deserializers
         self.strict_additional_properties = strict_additional_properties
+        self.strict_response_properties = strict_response_properties
 
     @cached_property
     def path_finder(self) -> BasePathFinder:
@@ -143,6 +145,7 @@ class BaseValidator:
                 format_validators=self.format_validators,
                 extra_format_validators=self.extra_format_validators,
                 strict_additional_properties=self.strict_additional_properties,
+                require_all_properties=self.strict_response_properties,
             )
         deserializer = self.media_type_deserializers_factory.create(
             mimetype,
@@ -174,6 +177,7 @@ class BaseValidator:
             format_validators=self.format_validators,
             extra_format_validators=self.extra_format_validators,
             strict_additional_properties=self.strict_additional_properties,
+            require_all_properties=self.strict_response_properties,
         )
         validator.validate(value)
 
