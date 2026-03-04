@@ -21,6 +21,8 @@ class RequestValidationError(ValidationError):
 
 class RequestBodyValidationError(RequestValidationError):
     def __str__(self) -> str:
+        if self.__cause__ is not None:
+            return f"Request body validation error: {self.__cause__}"
         return "Request body validation error"
 
 

@@ -167,6 +167,31 @@ def test_request_validator_urlencoded_json_part_strict() -> None:
         validator.validate(request)
 
 
+def test_request_validator_error_message_includes_cause_details() -> None:
+    spec = _spec_schema_path()
+    validator = V30RequestValidator(spec)
+
+    request_json = {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "username": "Test User",
+        "age": "30",
+    }
+    request = MockRequest(
+        "http://example.com",
+        "post",
+        "/users",
+        content_type="application/json",
+        data=json.dumps(request_json).encode("utf-8"),
+    )
+
+    with pytest.raises(InvalidRequestBody) as exc_info:
+        validator.validate(request)
+
+    error_message = str(exc_info.value)
+    assert error_message.startswith("Request body validation error:")
+    assert "'30' is not of type 'integer'" in error_message
+
+
 def test_response_validator_strict_json_nested_types() -> None:
     """Test that nested JSON structures (arrays, objects) remain strict."""
     spec_dict = {
