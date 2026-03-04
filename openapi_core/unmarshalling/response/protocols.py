@@ -56,6 +56,7 @@ class ResponseUnmarshaller(Protocol):
             MediaTypeDeserializersDict
         ] = None,
         strict_additional_properties: bool = False,
+        enforce_properties_required: bool = False,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory
         ] = None,
@@ -92,6 +93,7 @@ class WebhookResponseUnmarshaller(Protocol):
             MediaTypeDeserializersDict
         ] = None,
         strict_additional_properties: bool = False,
+        enforce_properties_required: bool = False,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory
         ] = None,

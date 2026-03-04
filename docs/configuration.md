@@ -138,6 +138,11 @@ By default, OpenAPI follows JSON Schema behavior: when an object schema omits `a
 
 If you want stricter behavior, enable `strict_additional_properties`. In this mode, omitted `additionalProperties` is treated as `false`.
 
+This mode is particularly useful for:
+- **Preventing data leaks**: Ensuring your API doesn't accidentally expose internal or sensitive fields in responses that aren't explicitly documented.
+- **Strict client validation**: Rejecting client requests that contain typos, extraneous data, or unsupported fields, forcing clients to adhere exactly to the defined schema.
+- **Contract tightening**: Enforcing the exact shape of objects across your API boundaries.
+
 ``` python hl_lines="4"
 from openapi_core import Config
 from openapi_core import OpenAPI
@@ -152,6 +157,27 @@ When strict mode is enabled:
 
 - object schema with omitted `additionalProperties` rejects unknown fields
 - object schema with `additionalProperties: true` still allows unknown fields
+
+## Response Properties Policy
+
+By default, OpenAPI follows JSON Schema behavior for `required`: response object properties are optional unless explicitly listed in `required`.
+
+If you want stricter response checks, change `response_properties_default_policy` to `required`. In this mode, response object schemas are validated as if all documented properties were required (except properties marked as `writeOnly` in OpenAPI 3.0).
+
+This mode is intentionally stricter than the OpenAPI default. It is particularly useful for:
+- **Contract completeness checks in tests**: Ensuring that the backend actually returns all the properties documented in the OpenAPI specification.
+- **Detecting API drift**: Catching bugs where a database schema change or serializer update inadvertently drops fields from the response.
+- **Preventing silent failures**: Making sure clients aren't broken by missing data that they expect to be present according to the API documentation.
+
+``` python hl_lines="4"
+from openapi_core import Config
+from openapi_core import OpenAPI
+
+config = Config(
+    response_properties_default_policy="required",
+)
+openapi = OpenAPI.from_file_path('openapi.json', config=config)
+```
 
 ## Extra Format Validators
 
