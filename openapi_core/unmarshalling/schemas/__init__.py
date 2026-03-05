@@ -30,6 +30,7 @@ from openapi_core.validation.schemas import oas32_schema_validators_factory
 __all__ = [
     "oas30_format_unmarshallers",
     "oas31_format_unmarshallers",
+    "oas32_format_unmarshallers",
     "oas30_write_schema_unmarshallers_factory",
     "oas30_read_schema_unmarshallers_factory",
     "oas31_schema_unmarshallers_factory",
@@ -67,6 +68,7 @@ oas31_types_unmarshaller = TypesUnmarshaller(
     AnyUnmarshaller,
     multi=MultiTypeUnmarshaller,
 )
+oas32_types_unmarshaller = oas31_types_unmarshaller
 
 oas30_format_unmarshallers = {
     # string compatible
@@ -102,7 +104,7 @@ oas31_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
 
 oas32_schema_unmarshallers_factory = SchemaUnmarshallersFactory(
     oas32_schema_validators_factory,
-    oas31_types_unmarshaller,
+    oas32_types_unmarshaller,
     format_unmarshallers=oas32_format_unmarshallers,
 )
 
