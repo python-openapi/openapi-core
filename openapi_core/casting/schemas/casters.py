@@ -40,6 +40,32 @@ class PrimitiveCaster:
         return value
 
 
+class AnyCaster(PrimitiveCaster):
+    def cast(self, value: Any) -> Any:
+        if "allOf" in self.schema:
+            for subschema in self.schema / "allOf":
+                try:
+                    value = self.schema_caster.evolve(subschema).cast(value)
+                except (ValueError, TypeError, CastError):
+                    pass
+
+        if "oneOf" in self.schema:
+            for subschema in self.schema / "oneOf":
+                try:
+                    return self.schema_caster.evolve(subschema).cast(value)
+                except (ValueError, TypeError, CastError):
+                    pass
+
+        if "anyOf" in self.schema:
+            for subschema in self.schema / "anyOf":
+                try:
+                    return self.schema_caster.evolve(subschema).cast(value)
+                except (ValueError, TypeError, CastError):
+                    pass
+
+        return value
+
+
 PrimitiveType = TypeVar("PrimitiveType")
 
 

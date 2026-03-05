@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from openapi_core.casting.schemas.casters import AnyCaster
 from openapi_core.casting.schemas.casters import ArrayCaster
 from openapi_core.casting.schemas.casters import BooleanCaster
 from openapi_core.casting.schemas.casters import IntegerCaster
@@ -43,11 +44,11 @@ oas31_casters_dict.update(
 
 oas30_types_caster = TypesCaster(
     oas30_casters_dict,
-    PrimitiveCaster,
+    AnyCaster,
 )
 oas31_types_caster = TypesCaster(
     oas31_casters_dict,
-    PrimitiveCaster,
+    AnyCaster,
     multi=PrimitiveCaster,
 )
 oas32_types_caster = oas31_types_caster

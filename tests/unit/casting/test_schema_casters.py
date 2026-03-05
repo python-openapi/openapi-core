@@ -66,3 +66,24 @@ class TestSchemaCaster:
             CastError, match=f"Failed to cast value to array type: {value}"
         ):
             caster_factory(schema).cast(value)
+
+    @pytest.mark.parametrize(
+        "composite_type,schema_type,value,expected",
+        [
+            ("allOf", "integer", "2", 2),
+            ("anyOf", "number", "3.14", 3.14),
+            ("oneOf", "boolean", "false", False),
+            ("oneOf", "boolean", "true", True),
+        ],
+    )
+    def test_composite_primitive(
+        self, caster_factory, composite_type, schema_type, value, expected
+    ):
+        spec = {
+            composite_type: [{"type": schema_type}],
+        }
+        schema = SchemaPath.from_dict(spec)
+
+        result = caster_factory(schema).cast(value)
+
+        assert result == expected
