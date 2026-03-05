@@ -66,6 +66,7 @@ class MediaTypesDeserializer:
 class MediaTypeDeserializer:
     def __init__(
         self,
+        spec: SchemaPath,
         style_deserializers_factory: StyleDeserializersFactory,
         media_types_deserializer: MediaTypesDeserializer,
         mimetype: str,
@@ -75,6 +76,7 @@ class MediaTypeDeserializer:
         encoding: Optional[SchemaPath] = None,
         **parameters: str,
     ):
+        self.spec = spec
         self.style_deserializers_factory = style_deserializers_factory
         self.media_types_deserializer = media_types_deserializer
         self.mimetype = mimetype
@@ -117,6 +119,7 @@ class MediaTypeDeserializer:
             schema_caster = self.schema_caster.evolve(schema)
 
         return cls(
+            self.spec,
             self.style_deserializers_factory,
             self.media_types_deserializer,
             mimetype=mimetype or self.mimetype,
@@ -221,7 +224,7 @@ class MediaTypeDeserializer:
             prep_encoding, default_location="query"
         )
         prop_deserializer = self.style_deserializers_factory.create(
-            prop_style, prop_explode, prop_schema, name=prop_name
+            self.spec, prop_schema, prop_style, prop_explode, name=prop_name
         )
         return prop_deserializer.deserialize(location)
 

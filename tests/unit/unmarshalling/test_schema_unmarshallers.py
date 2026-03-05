@@ -19,7 +19,13 @@ from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
 
 @pytest.fixture
-def schema_unmarshaller_factory():
+def spec():
+    spec_dict = {}
+    return SchemaPath.from_dict(spec_dict)
+
+
+@pytest.fixture
+def schema_unmarshaller_factory(spec):
     def create_unmarshaller(
         validators_factory,
         schema,
@@ -31,6 +37,7 @@ def schema_unmarshaller_factory():
             validators_factory,
             oas30_types_unmarshaller,
         ).create(
+            spec,
             schema,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,

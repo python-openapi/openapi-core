@@ -58,6 +58,7 @@ class MediaTypeDeserializersFactory:
 
     def create(
         self,
+        spec: SchemaPath,
         mimetype: str,
         schema: Optional[SchemaPath] = None,
         schema_validator: Optional[SchemaValidator] = None,
@@ -89,11 +90,12 @@ class MediaTypeDeserializersFactory:
         ):
             schema_caster = (
                 self.style_deserializers_factory.schema_casters_factory.create(
-                    schema
+                    spec, schema
                 )
             )
 
         return MediaTypeDeserializer(
+            spec,
             self.style_deserializers_factory,
             media_types_deserializer,
             mimetype,

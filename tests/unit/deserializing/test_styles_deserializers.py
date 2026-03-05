@@ -13,7 +13,12 @@ from openapi_core.schema.parameters import get_style_and_explode
 
 class TestParameterStyleDeserializer:
     @pytest.fixture
-    def deserializer_factory(self):
+    def spec(self):
+        spec_dict = {}
+        return SchemaPath.from_dict(spec_dict)
+
+    @pytest.fixture
+    def deserializer_factory(self, spec):
         style_deserializers_factory = StyleDeserializersFactory(
             oas31_schema_casters_factory,
             style_deserializers=style_deserializers,
@@ -24,7 +29,7 @@ class TestParameterStyleDeserializer:
             style, explode = get_style_and_explode(param)
             schema = param / "schema"
             return style_deserializers_factory.create(
-                style, explode, schema, name=name
+                spec, schema, style, explode, name=name
             )
 
         return create_deserializer

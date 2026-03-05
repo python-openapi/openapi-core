@@ -143,6 +143,7 @@ class BaseValidator:
         schema_validator = None
         if schema is not None:
             schema_validator = self.schema_validators_factory.create(
+                self.spec,
                 schema,
                 format_validators=self.format_validators,
                 extra_format_validators=self.extra_format_validators,
@@ -150,6 +151,7 @@ class BaseValidator:
                 enforce_properties_required=self.enforce_properties_required,
             )
         deserializer = self.media_type_deserializers_factory.create(
+            self.spec,
             mimetype,
             schema=schema,
             schema_validator=schema_validator,
@@ -169,12 +171,13 @@ class BaseValidator:
         style, explode = get_style_and_explode(param_or_header)
         schema = param_or_header / "schema"
         deserializer = self.style_deserializers_factory.create(
-            style, explode, schema, name=name
+            self.spec, schema, style, explode, name=name
         )
         return deserializer.deserialize(location)
 
     def _validate_schema(self, schema: SchemaPath, value: Any) -> None:
         validator = self.schema_validators_factory.create(
+            self.spec,
             schema,
             format_validators=self.format_validators,
             extra_format_validators=self.extra_format_validators,

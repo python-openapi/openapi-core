@@ -33,6 +33,7 @@ class SchemaUnmarshallersFactory:
 
     def create(
         self,
+        spec: SchemaPath,
         schema: SchemaPath,
         format_validators: Optional[FormatValidatorsDict] = None,
         format_unmarshallers: Optional[FormatUnmarshallersDict] = None,
@@ -51,6 +52,7 @@ class SchemaUnmarshallersFactory:
         if extra_format_validators is None:
             extra_format_validators = {}
         schema_validator = self.schema_validators_factory.create(
+            spec,
             schema,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,
