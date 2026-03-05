@@ -87,3 +87,48 @@ class TestSchemaCaster:
         result = caster_factory(schema).cast(value)
 
         assert result == expected
+
+    @pytest.mark.parametrize(
+        "schemas,value,expected",
+        [
+            # If string is evaluated first, it succeeds and returns string
+            ([{"type": "string"}, {"type": "integer"}], "123", "123"),
+            # If integer is evaluated first, it succeeds and returns int
+            ([{"type": "integer"}, {"type": "string"}], "123", 123),
+        ],
+    )
+    def test_oneof_greedy_casting_edge_case(
+        self, caster_factory, schemas, value, expected
+    ):
+        """
+        Documents the edge case that AnyCaster's oneOf/anyOf logic is greedy.
+        It returns the first successfully casted value based on the order in the list.
+        """
+        spec = {
+            "oneOf": schemas,
+        }
+        schema = SchemaPath.from_dict(spec)
+
+        result = caster_factory(schema).cast(value)
+
+        assert result == expected
+        # Ensure exact type matches to prevent 123 == "123" test bypass issues
+        assert type(result) is type(expected)
+
+    def test_allof_sequential_mutation_edge_case(self, caster_factory):
+        """
+        Documents the edge case that AnyCaster's allOf logic sequentially mutates the value.
+        The first schema casts "2" to an int (2). The second schema (number)
+        receives the int 2, casts it to float (2.0), and returns the float.
+        """
+        spec = {
+            "allOf": [{"type": "integer"}, {"type": "number"}],
+        }
+        schema = SchemaPath.from_dict(spec)
+        value = "2"
+
+        result = caster_factory(schema).cast(value)
+
+        # "2" -> int(2) -> float(2.0)
+        assert result == 2.0
+        assert type(result) is float
