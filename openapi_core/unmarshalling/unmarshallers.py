@@ -90,6 +90,7 @@ class BaseUnmarshaller(BaseValidator):
 
     def _unmarshal_schema(self, schema: SchemaPath, value: Any) -> Any:
         unmarshaller = self.schema_unmarshallers_factory.create(
+            self.spec,
             schema,
             format_validators=self.format_validators,
             extra_format_validators=self.extra_format_validators,

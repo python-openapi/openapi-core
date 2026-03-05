@@ -1,13 +1,12 @@
-from functools import partial
-
-from lazy_object_proxy import Proxy
+from openapi_schema_validator import OAS31_BASE_DIALECT_ID
+from openapi_schema_validator import OAS32_BASE_DIALECT_ID
 from openapi_schema_validator import OAS30ReadValidator
 from openapi_schema_validator import OAS30WriteValidator
 from openapi_schema_validator import OAS31Validator
 from openapi_schema_validator import OAS32Validator
 
-from openapi_core.validation.schemas._validators import (
-    build_forbid_unspecified_additional_properties_validator,
+from openapi_core.validation.schemas.factories import (
+    DialectSchemaValidatorsFactory,
 )
 from openapi_core.validation.schemas.factories import SchemaValidatorsFactory
 
@@ -20,44 +19,22 @@ __all__ = [
 
 oas30_write_schema_validators_factory = SchemaValidatorsFactory(
     OAS30WriteValidator,
-    Proxy(
-        partial(
-            build_forbid_unspecified_additional_properties_validator,
-            OAS30WriteValidator,
-        )
-    ),
 )
 
 oas30_read_schema_validators_factory = SchemaValidatorsFactory(
     OAS30ReadValidator,
-    Proxy(
-        partial(
-            build_forbid_unspecified_additional_properties_validator,
-            OAS30ReadValidator,
-        )
-    ),
 )
 
-oas31_schema_validators_factory = SchemaValidatorsFactory(
+oas31_schema_validators_factory = DialectSchemaValidatorsFactory(
     OAS31Validator,
-    Proxy(
-        partial(
-            build_forbid_unspecified_additional_properties_validator,
-            OAS31Validator,
-        )
-    ),
+    OAS31_BASE_DIALECT_ID,
     # NOTE: Intentionally use OAS 3.0 format checker for OAS 3.1 to preserve
     # backward compatibility for `byte`/`binary` formats.
     # See https://github.com/python-openapi/openapi-core/issues/506
     format_checker=OAS30ReadValidator.FORMAT_CHECKER,
 )
 
-oas32_schema_validators_factory = SchemaValidatorsFactory(
+oas32_schema_validators_factory = DialectSchemaValidatorsFactory(
     OAS32Validator,
-    Proxy(
-        partial(
-            build_forbid_unspecified_additional_properties_validator,
-            OAS32Validator,
-        )
-    ),
+    OAS32_BASE_DIALECT_ID,
 )

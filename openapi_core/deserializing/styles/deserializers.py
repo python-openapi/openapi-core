@@ -3,8 +3,6 @@ from typing import Any
 from typing import Mapping
 from typing import Optional
 
-from jsonschema_path import SchemaPath
-
 from openapi_core.casting.schemas.casters import SchemaCaster
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.deserializing.exceptions import DeserializeError
@@ -17,15 +15,14 @@ class StyleDeserializer:
         style: str,
         explode: bool,
         name: str,
-        schema: SchemaPath,
+        schema_type: str,
         caster: SchemaCaster,
         deserializer_callable: Optional[DeserializerCallable] = None,
     ):
         self.style = style
         self.explode = explode
         self.name = name
-        self.schema = schema
-        self.schema_type = (schema / "type").read_str("")
+        self.schema_type = schema_type
         self.caster = caster
         self.deserializer_callable = deserializer_callable
 

@@ -1,13 +1,19 @@
 from copy import deepcopy
+from functools import lru_cache
+from typing import Any
 from typing import Optional
 from typing import cast
 
 from jsonschema._format import FormatChecker
 from jsonschema.protocols import Validator
+from jsonschema.validators import validator_for
 from jsonschema_path import SchemaPath
 
 from openapi_core.validation.schemas._validators import (
     build_enforce_properties_required_validator,
+)
+from openapi_core.validation.schemas._validators import (
+    build_forbid_unspecified_additional_properties_validator,
 )
 from openapi_core.validation.schemas.datatypes import FormatValidatorsDict
 from openapi_core.validation.schemas.validators import SchemaValidator
@@ -16,16 +22,19 @@ from openapi_core.validation.schemas.validators import SchemaValidator
 class SchemaValidatorsFactory:
     def __init__(
         self,
-        schema_validator_class: type[Validator],
-        strict_schema_validator_class: Optional[type[Validator]] = None,
+        schema_validator_cls: type[Validator],
         format_checker: Optional[FormatChecker] = None,
     ):
-        self.schema_validator_class = schema_validator_class
-        self.strict_schema_validator_class = strict_schema_validator_class
+        self.schema_validator_cls = schema_validator_cls
         if format_checker is None:
-            format_checker = self.schema_validator_class.FORMAT_CHECKER
+            format_checker = self.schema_validator_cls.FORMAT_CHECKER
         assert format_checker is not None
         self.format_checker = format_checker
+
+    def get_validator_cls(
+        self, spec: SchemaPath, schema: SchemaPath
+    ) -> type[Validator]:
+        return self.schema_validator_cls
 
     def get_format_checker(
         self,
@@ -57,34 +66,82 @@ class SchemaValidatorsFactory:
 
     def create(
         self,
+        spec: SchemaPath,
         schema: SchemaPath,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
         forbid_unspecified_additional_properties: bool = False,
         enforce_properties_required: bool = False,
     ) -> SchemaValidator:
-        validator_class: type[Validator] = self.schema_validator_class
-        if forbid_unspecified_additional_properties:
-            if self.strict_schema_validator_class is None:
-                raise ValueError(
-                    "Strict additional properties validation is not supported "
-                    "by this factory."
-                )
-            validator_class = self.strict_schema_validator_class
-
+        validator_cls: type[Validator] = self.get_validator_cls(spec, schema)
         if enforce_properties_required:
-            validator_class = build_enforce_properties_required_validator(
-                validator_class
+            validator_cls = build_enforce_properties_required_validator(
+                validator_cls
+            )
+        if forbid_unspecified_additional_properties:
+            validator_cls = (
+                build_forbid_unspecified_additional_properties_validator(
+                    validator_cls
+                )
             )
 
         format_checker = self.get_format_checker(
             format_validators, extra_format_validators
         )
         with schema.resolve() as resolved:
-            jsonschema_validator = validator_class(
+            jsonschema_validator = validator_cls(
                 resolved.contents,
                 _resolver=resolved.resolver,
                 format_checker=format_checker,
             )
 
         return SchemaValidator(schema, jsonschema_validator)
+
+
+class DialectSchemaValidatorsFactory(SchemaValidatorsFactory):
+    def __init__(
+        self,
+        schema_validator_cls: type[Validator],
+        default_jsonschema_dialect_id: str,
+        format_checker: Optional[FormatChecker] = None,
+    ):
+        super().__init__(schema_validator_cls, format_checker)
+        self.default_jsonschema_dialect_id = default_jsonschema_dialect_id
+
+    def get_validator_cls(
+        self, spec: SchemaPath, schema: SchemaPath
+    ) -> type[Validator]:
+        dialect_id = self._get_dialect_id(spec, schema)
+
+        validator_cls = self._get_validator_class_for_dialect(dialect_id)
+        if validator_cls is None:
+            raise ValueError(f"Unknown JSON Schema dialect: {dialect_id!r}")
+
+        return validator_cls
+
+    def _get_dialect_id(
+        self,
+        spec: SchemaPath,
+        schema: SchemaPath,
+    ) -> str:
+        try:
+            return (schema / "$schema").read_str()
+        except KeyError:
+            return self._get_default_jsonschema_dialect_id(spec)
+
+    def _get_default_jsonschema_dialect_id(self, spec: SchemaPath) -> str:
+        return (spec / "jsonSchemaDialect").read_str(
+            default=self.default_jsonschema_dialect_id
+        )
+
+    @lru_cache
+    def _get_validator_class_for_dialect(
+        self, dialect_id: str
+    ) -> type[Validator] | None:
+        return cast(
+            type[Validator] | None,
+            validator_for(
+                {"$schema": dialect_id},
+                default=cast(Any, None),
+            ),
+        )

@@ -20,13 +20,15 @@ class StyleDeserializersFactory:
 
     def create(
         self,
+        spec: SchemaPath,
+        schema: SchemaPath,
         style: str,
         explode: bool,
-        schema: SchemaPath,
         name: str,
     ) -> StyleDeserializer:
         deserialize_callable = self.style_deserializers.get(style)
-        caster = self.schema_casters_factory.create(schema)
+        caster = self.schema_casters_factory.create(spec, schema)
+        schema_type = (schema / "type").read_str("")
         return StyleDeserializer(
-            style, explode, name, schema, caster, deserialize_callable
+            style, explode, name, schema_type, caster, deserialize_callable
         )

@@ -7,9 +7,14 @@ from openapi_core.casting.schemas.exceptions import CastError
 
 class TestSchemaCaster:
     @pytest.fixture
-    def caster_factory(self):
+    def spec(self):
+        spec_dict = {}
+        return SchemaPath.from_dict(spec_dict)
+
+    @pytest.fixture
+    def caster_factory(self, spec):
         def create_caster(schema):
-            return oas31_schema_casters_factory.create(schema)
+            return oas31_schema_casters_factory.create(spec, schema)
 
         return create_caster
 

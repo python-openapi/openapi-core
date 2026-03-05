@@ -26,31 +26,36 @@ from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 
 class BaseTestOASSchemaUnmarshallersFactoryCall:
-    def test_create_no_schema(self, unmarshallers_factory):
+    @pytest.fixture
+    def spec(self):
+        spec_dict = {}
+        return SchemaPath.from_dict(spec_dict)
+
+    def test_create_no_schema(self, spec, unmarshallers_factory):
         with pytest.raises(TypeError):
             unmarshallers_factory.create(None)
 
-    def test_create_schema_deprecated(self, unmarshallers_factory):
-        schema = {
+    def test_create_schema_deprecated(self, spec, unmarshallers_factory):
+        schema_dict = {
             "deprecated": True,
         }
-        spec = SchemaPath.from_dict(schema)
+        schema = SchemaPath.from_dict(schema_dict)
         with pytest.warns(DeprecationWarning):
-            unmarshallers_factory.create(spec)
+            unmarshallers_factory.create(spec, schema)
 
-    def test_create_formatter_not_found(self, unmarshallers_factory):
+    def test_create_formatter_not_found(self, spec, unmarshallers_factory):
         custom_format = "custom"
-        schema = {
+        schema_dict = {
             "type": "string",
             "format": custom_format,
         }
-        spec = SchemaPath.from_dict(schema)
+        schema = SchemaPath.from_dict(schema_dict)
 
         with pytest.raises(
             FormatterNotFoundError,
             match="Formatter not found for custom format",
         ):
-            unmarshallers_factory.create(spec)
+            unmarshallers_factory.create(spec, schema)
 
     @pytest.mark.parametrize(
         "value",
@@ -64,10 +69,10 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             False,
         ],
     )
-    def test_no_type(self, unmarshallers_factory, value):
-        schema = {}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_no_type(self, spec, unmarshallers_factory, value):
+        schema_dict = {}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -80,10 +85,10 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             oas31_schema_unmarshallers_factory,
         ],
     )
-    def test_no_type_object_with_array_of_null(self, factory):
-        schema = {}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = factory.create(spec)
+    def test_no_type_object_with_array_of_null(self, spec, factory):
+        schema_dict = {}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = factory.create(spec, schema)
         value = {"foo": [None]}
 
         result = unmarshaller.unmarshal(value)
@@ -102,12 +107,12 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ("boolean", False),
         ],
     )
-    def test_basic_types(self, unmarshallers_factory, type, value):
-        schema = {
+    def test_basic_types(self, spec, unmarshallers_factory, type, value):
+        schema_dict = {
             "type": type,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -157,12 +162,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ("object", ["one", "two"]),
         ],
     )
-    def test_basic_types_invalid(self, unmarshallers_factory, type, value):
-        schema = {
+    def test_basic_types_invalid(
+        self, spec, unmarshallers_factory, type, value
+    ):
+        schema_dict = {
             "type": type,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(
             InvalidSchemaValue,
@@ -202,13 +209,13 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_basic_formats(
-        self, unmarshallers_factory, format, value, unmarshalled
+        self, spec, unmarshallers_factory, format, value, unmarshalled
     ):
-        schema = {
+        schema_dict = {
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -244,14 +251,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_basic_type_formats(
-        self, unmarshallers_factory, type, format, value, unmarshalled
+        self, spec, unmarshallers_factory, type, format, value, unmarshalled
     ):
-        schema = {
+        schema_dict = {
             "type": type,
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -268,14 +275,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_basic_type_formats_ignored(
-        self, unmarshallers_factory, type, format, value
+        self, spec, unmarshallers_factory, type, format, value
     ):
-        schema = {
+        schema_dict = {
             "type": type,
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -290,14 +297,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_basic_type_formats_invalid(
-        self, unmarshallers_factory, type, format, value
+        self, spec, unmarshallers_factory, type, format, value
     ):
-        schema = {
+        schema_dict = {
             "type": type,
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -312,25 +319,25 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ("dGVzdA==", "test"),
         ],
     )
-    def test_string_byte(self, unmarshallers_factory, value, expected):
-        schema = {
+    def test_string_byte(self, spec, unmarshallers_factory, value, expected):
+        schema_dict = {
             "type": "string",
             "format": "byte",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
         assert result == expected
 
-    def test_string_date(self, unmarshallers_factory):
-        schema = {
+    def test_string_date(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "string",
             "format": "date",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = "2018-01-02"
 
         result = unmarshaller.unmarshal(value)
@@ -347,25 +354,27 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ),
         ],
     )
-    def test_string_datetime(self, unmarshallers_factory, value, expected):
-        schema = {
+    def test_string_datetime(
+        self, spec, unmarshallers_factory, value, expected
+    ):
+        schema_dict = {
             "type": "string",
             "format": "date-time",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
         assert result == expected
 
-    def test_string_datetime_invalid(self, unmarshallers_factory):
-        schema = {
+    def test_string_datetime_invalid(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "string",
             "format": "date-time",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = "2018-01-02T00:00:00"
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
@@ -375,39 +384,39 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             "is not a 'date-time'" in exc_info.value.schema_errors[0].message
         )
 
-    def test_string_password(self, unmarshallers_factory):
-        schema = {
+    def test_string_password(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "string",
             "format": "password",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = "passwd"
 
         result = unmarshaller.unmarshal(value)
 
         assert result == value
 
-    def test_string_uuid(self, unmarshallers_factory):
-        schema = {
+    def test_string_uuid(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "string",
             "format": "uuid",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = str(uuid4())
 
         result = unmarshaller.unmarshal(value)
 
         assert result == UUID(value)
 
-    def test_string_uuid_invalid(self, unmarshallers_factory):
-        schema = {
+    def test_string_uuid_invalid(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "string",
             "format": "uuid",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = "test"
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
@@ -429,27 +438,27 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_formats_ignored(
-        self, unmarshallers_factory, type, format, value, expected
+        self, spec, unmarshallers_factory, type, format, value, expected
     ):
-        schema = {
+        schema_dict = {
             "type": type,
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
         assert result == expected
 
     @pytest.mark.parametrize("value", ["bar", "foobar"])
-    def test_string_pattern(self, unmarshallers_factory, value):
-        schema = {
+    def test_string_pattern(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "string",
             "pattern": "bar",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -463,14 +472,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_string_pattern_invalid(
-        self, unmarshallers_factory, value, pattern
+        self, spec, unmarshallers_factory, value, pattern
     ):
-        schema = {
+        schema_dict = {
             "type": "string",
             "pattern": pattern,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -481,26 +490,28 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         )
 
     @pytest.mark.parametrize("value", ["abc", "abcd"])
-    def test_string_min_length(self, unmarshallers_factory, value):
-        schema = {
+    def test_string_min_length(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "string",
             "minLength": 3,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
         assert result == value
 
     @pytest.mark.parametrize("value", ["", "a", "ab"])
-    def test_string_min_length_invalid(self, unmarshallers_factory, value):
-        schema = {
+    def test_string_min_length_invalid(
+        self, spec, unmarshallers_factory, value
+    ):
+        schema_dict = {
             "type": "string",
             "minLength": 3,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -511,26 +522,28 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         )
 
     @pytest.mark.parametrize("value", ["", "a"])
-    def test_string_max_length(self, unmarshallers_factory, value):
-        schema = {
+    def test_string_max_length(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "string",
             "maxLength": 1,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
         assert result == value
 
     @pytest.mark.parametrize("value", ["ab", "abc"])
-    def test_string_max_length_invalid(self, unmarshallers_factory, value):
-        schema = {
+    def test_string_max_length_invalid(
+        self, spec, unmarshallers_factory, value
+    ):
+        schema_dict = {
             "type": "string",
             "maxLength": 1,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -546,39 +559,39 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_string_max_length_invalid_schema(
-        self, unmarshallers_factory, value
+        self, spec, unmarshallers_factory, value
     ):
-        schema = {
+        schema_dict = {
             "type": "string",
             "maxLength": -1,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
 
-    def test_integer_enum(self, unmarshallers_factory):
-        schema = {
+    def test_integer_enum(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "integer",
             "enum": [1, 2, 3],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = 2
 
         result = unmarshaller.unmarshal(value)
 
         assert result == int(value)
 
-    def test_integer_enum_invalid(self, unmarshallers_factory):
+    def test_integer_enum_invalid(self, spec, unmarshallers_factory):
         enum = [1, 2, 3]
-        schema = {
+        schema_dict = {
             "type": "integer",
             "enum": enum,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = 12
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
@@ -601,15 +614,15 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ("boolean", False),
         ],
     )
-    def test_array(self, unmarshallers_factory, type, value):
-        schema = {
+    def test_array(self, spec, unmarshallers_factory, type, value):
+        schema_dict = {
             "type": "array",
             "items": {
                 "type": type,
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value_list = [value] * 3
 
         result = unmarshaller.unmarshal(value_list)
@@ -627,15 +640,15 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ("boolean", "123"),
         ],
     )
-    def test_array_invalid(self, unmarshallers_factory, type, value):
-        schema = {
+    def test_array_invalid(self, spec, unmarshallers_factory, type, value):
+        schema_dict = {
             "type": "array",
             "items": {
                 "type": type,
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal([value])
@@ -646,16 +659,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         )
 
     @pytest.mark.parametrize("value", [[], [1], [1, 2]])
-    def test_array_min_items_invalid(self, unmarshallers_factory, value):
-        schema = {
+    def test_array_min_items_invalid(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "array",
             "items": {
                 "type": "number",
             },
             "minItems": 3,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -665,16 +678,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         )
 
     @pytest.mark.parametrize("value", [[], [1], [1, 2]])
-    def test_array_min_items(self, unmarshallers_factory, value):
-        schema = {
+    def test_array_min_items(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "array",
             "items": {
                 "type": "number",
             },
             "minItems": 0,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -687,32 +700,32 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_array_max_items_invalid_schema(
-        self, unmarshallers_factory, value
+        self, spec, unmarshallers_factory, value
     ):
-        schema = {
+        schema_dict = {
             "type": "array",
             "items": {
                 "type": "number",
             },
             "maxItems": -1,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
 
     @pytest.mark.parametrize("value", [[1, 2], [2, 3, 4]])
-    def test_array_max_items_invalid(self, unmarshallers_factory, value):
-        schema = {
+    def test_array_max_items_invalid(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "array",
             "items": {
                 "type": "number",
             },
             "maxItems": 1,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -722,16 +735,18 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         )
 
     @pytest.mark.parametrize("value", [[1, 2, 1], [2, 2]])
-    def test_array_unique_items_invalid(self, unmarshallers_factory, value):
-        schema = {
+    def test_array_unique_items_invalid(
+        self, spec, unmarshallers_factory, value
+    ):
+        schema_dict = {
             "type": "array",
             "items": {
                 "type": "number",
             },
             "uniqueItems": True,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -741,8 +756,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             in exc_info.value.schema_errors[0].message
         )
 
-    def test_object_any_of(self, unmarshallers_factory):
-        schema = {
+    def test_object_any_of(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "anyOf": [
                 {
@@ -757,16 +772,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = {"someint": 1}
 
         result = unmarshaller.unmarshal(value)
 
         assert result == value
 
-    def test_object_any_of_invalid(self, unmarshallers_factory):
-        schema = {
+    def test_object_any_of_invalid(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "anyOf": [
                 {
@@ -781,14 +796,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal({"someint": "1"})
 
-    def test_object_one_of_default(self, unmarshallers_factory):
-        schema = {
+    def test_object_one_of_default(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "oneOf": [
                 {
@@ -816,16 +831,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         assert unmarshaller.unmarshal({"someint": 1}) == {
             "someint": 1,
             "somestr": "defaultstring",
         }
 
-    def test_object_any_of_default(self, unmarshallers_factory):
-        schema = {
+    def test_object_any_of_default(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "anyOf": [
                 {
@@ -847,16 +862,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         assert unmarshaller.unmarshal({"someint": "1"}) == {
             "someint": "1",
             "somestr": "defaultstring",
         }
 
-    def test_object_all_of_default(self, unmarshallers_factory):
-        schema = {
+    def test_object_all_of_default(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "allOf": [
                 {
@@ -879,8 +894,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         assert unmarshaller.unmarshal({}) == {
             "someint": 1,
@@ -902,8 +917,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             },
         ],
     )
-    def test_object_with_properties(self, unmarshallers_factory, value):
-        schema = {
+    def test_object_with_properties(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "object",
             "properties": {
                 "somestr": {
@@ -914,8 +929,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -944,9 +959,9 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_object_with_properties_invalid(
-        self, unmarshallers_factory, value
+        self, spec, unmarshallers_factory, value
     ):
-        schema = {
+        schema_dict = {
             "type": "object",
             "properties": {
                 "somestr": {
@@ -958,8 +973,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             },
             "additionalProperties": False,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -970,8 +985,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {},
         ],
     )
-    def test_object_default_property(self, unmarshallers_factory, value):
-        schema = {
+    def test_object_default_property(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "object",
             "properties": {
                 "prop": {
@@ -980,8 +995,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 }
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -994,14 +1009,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_object_additional_properties_false(
-        self, unmarshallers_factory, value
+        self, spec, unmarshallers_factory, value
     ):
-        schema = {
+        schema_dict = {
             "type": "object",
             "additionalProperties": False,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1016,23 +1031,25 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
     )
     @pytest.mark.parametrize("additional_properties", [True, {}])
     def test_object_additional_properties_free_form_object(
-        self, value, additional_properties, unmarshallers_factory
+        self, value, additional_properties, spec, unmarshallers_factory
     ):
-        schema = {
+        schema_dict = {
             "type": "object",
             "additionalProperties": additional_properties,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
         assert result == value
 
-    def test_object_additional_properties_list(self, unmarshallers_factory):
-        schema = {"type": "object"}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_object_additional_properties_list(
+        self, spec, unmarshallers_factory
+    ):
+        schema_dict = {"type": "object"}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal({"user_ids": [1, 2, 3, 4]})
 
@@ -1046,12 +1063,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {"additional": 1},
         ],
     )
-    def test_object_additional_properties(self, unmarshallers_factory, value):
-        schema = {
+    def test_object_additional_properties(
+        self, spec, unmarshallers_factory, value
+    ):
+        schema_dict = {
             "type": "object",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -1064,17 +1083,17 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_object_additional_properties_object(
-        self, unmarshallers_factory, value
+        self, spec, unmarshallers_factory, value
     ):
         additional_properties = {
             "type": "integer",
         }
-        schema = {
+        schema_dict = {
             "type": "object",
             "additionalProperties": additional_properties,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -1088,14 +1107,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {"a": 1, "b": 2, "c": 3},
         ],
     )
-    def test_object_min_properties(self, unmarshallers_factory, value):
-        schema = {
+    def test_object_min_properties(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "object",
             "properties": {k: {"type": "number"} for k in ["a", "b", "c"]},
             "minProperties": 1,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -1109,14 +1128,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {"a": 1, "b": 2, "c": 3},
         ],
     )
-    def test_object_min_properties_invalid(self, unmarshallers_factory, value):
-        schema = {
+    def test_object_min_properties_invalid(
+        self, spec, unmarshallers_factory, value
+    ):
+        schema_dict = {
             "type": "object",
             "properties": {k: {"type": "number"} for k in ["a", "b", "c"]},
             "minProperties": 4,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1128,14 +1149,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_object_min_properties_invalid_schema(
-        self, unmarshallers_factory, value
+        self, spec, unmarshallers_factory, value
     ):
-        schema = {
+        schema_dict = {
             "type": "object",
             "minProperties": 2,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1148,14 +1169,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {"a": 1, "b": 2, "c": 3},
         ],
     )
-    def test_object_max_properties(self, unmarshallers_factory, value):
-        schema = {
+    def test_object_max_properties(self, spec, unmarshallers_factory, value):
+        schema_dict = {
             "type": "object",
             "properties": {k: {"type": "number"} for k in ["a", "b", "c"]},
             "maxProperties": 3,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -1169,14 +1190,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {"a": 1, "b": 2, "c": 3},
         ],
     )
-    def test_object_max_properties_invalid(self, unmarshallers_factory, value):
-        schema = {
+    def test_object_max_properties_invalid(
+        self, spec, unmarshallers_factory, value
+    ):
+        schema_dict = {
             "type": "object",
             "properties": {k: {"type": "number"} for k in ["a", "b", "c"]},
             "maxProperties": 0,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1188,20 +1211,20 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
         ],
     )
     def test_object_max_properties_invalid_schema(
-        self, unmarshallers_factory, value
+        self, spec, unmarshallers_factory, value
     ):
-        schema = {
+        schema_dict = {
             "type": "object",
             "maxProperties": -1,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
 
-    def test_any_one_of(self, unmarshallers_factory):
-        schema = {
+    def test_any_one_of(self, spec, unmarshallers_factory):
+        schema_dict = {
             "oneOf": [
                 {
                     "type": "string",
@@ -1214,16 +1237,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = ["hello"]
 
         result = unmarshaller.unmarshal(value)
 
         assert result == value
 
-    def test_any_any_of(self, unmarshallers_factory):
-        schema = {
+    def test_any_any_of(self, spec, unmarshallers_factory):
+        schema_dict = {
             "anyOf": [
                 {
                     "type": "string",
@@ -1236,16 +1259,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = ["hello"]
 
         result = unmarshaller.unmarshal(value)
 
         assert result == value
 
-    def test_any_all_of(self, unmarshallers_factory):
-        schema = {
+    def test_any_all_of(self, spec, unmarshallers_factory):
+        schema_dict = {
             "allOf": [
                 {
                     "type": "array",
@@ -1255,8 +1278,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 }
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = ["hello"]
 
         result = unmarshaller.unmarshal(value)
@@ -1285,8 +1308,10 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             },
         ],
     )
-    def test_any_all_of_invalid_properties(self, value, unmarshallers_factory):
-        schema = {
+    def test_any_all_of_invalid_properties(
+        self, value, spec, unmarshallers_factory
+    ):
+        schema_dict = {
             "allOf": [
                 {
                     "type": "object",
@@ -1309,14 +1334,14 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             ],
             "additionalProperties": False,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
 
-    def test_any_format_one_of(self, unmarshallers_factory):
-        schema = {
+    def test_any_format_one_of(self, spec, unmarshallers_factory):
+        schema_dict = {
             "format": "date",
             "oneOf": [
                 {"type": "integer"},
@@ -1325,16 +1350,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = "2018-01-02"
 
         result = unmarshaller.unmarshal(value)
 
         assert result == date(2018, 1, 2)
 
-    def test_any_one_of_any(self, unmarshallers_factory):
-        schema = {
+    def test_any_one_of_any(self, spec, unmarshallers_factory):
+        schema_dict = {
             "oneOf": [
                 {"type": "integer"},
                 {
@@ -1343,16 +1368,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = "2018-01-02"
 
         result = unmarshaller.unmarshal(value)
 
         assert result == date(2018, 1, 2)
 
-    def test_any_any_of_any(self, unmarshallers_factory):
-        schema = {
+    def test_any_any_of_any(self, spec, unmarshallers_factory):
+        schema_dict = {
             "anyOf": [
                 {},
                 {
@@ -1361,16 +1386,16 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = "2018-01-02"
 
         result = unmarshaller.unmarshal(value)
 
         assert result == date(2018, 1, 2)
 
-    def test_any_all_of_any(self, unmarshallers_factory):
-        schema = {
+    def test_any_all_of_any(self, spec, unmarshallers_factory):
+        schema_dict = {
             "allOf": [
                 {},
                 {
@@ -1379,8 +1404,8 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             ],
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = "2018-01-02"
 
         result = unmarshaller.unmarshal(value)
@@ -1393,7 +1418,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {},
         ],
     )
-    def test_any_of_no_valid(self, unmarshallers_factory, value):
+    def test_any_of_no_valid(self, spec, unmarshallers_factory, value):
         any_of = [
             {
                 "type": "object",
@@ -1414,11 +1439,11 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             },
         ]
-        schema = {
+        schema_dict = {
             "anyOf": any_of,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1429,7 +1454,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {},
         ],
     )
-    def test_any_one_of_no_valid(self, unmarshallers_factory, value):
+    def test_any_one_of_no_valid(self, spec, unmarshallers_factory, value):
         one_of = [
             {
                 "type": "object",
@@ -1454,11 +1479,11 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 },
             },
         ]
-        schema = {
+        schema_dict = {
             "oneOf": one_of,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1469,13 +1494,15 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {},
         ],
     )
-    def test_any_any_of_different_type(self, unmarshallers_factory, value):
+    def test_any_any_of_different_type(
+        self, spec, unmarshallers_factory, value
+    ):
         any_of = [{"type": "integer"}, {"type": "string"}]
-        schema = {
+        schema_dict = {
             "anyOf": any_of,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1486,7 +1513,9 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {},
         ],
     )
-    def test_any_one_of_different_type(self, unmarshallers_factory, value):
+    def test_any_one_of_different_type(
+        self, spec, unmarshallers_factory, value
+    ):
         one_of = [
             {
                 "type": "integer",
@@ -1495,11 +1524,11 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 "type": "string",
             },
         ]
-        schema = {
+        schema_dict = {
             "oneOf": one_of,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1516,7 +1545,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             },
         ],
     )
-    def test_any_any_of_unambiguous(self, unmarshallers_factory, value):
+    def test_any_any_of_unambiguous(self, spec, unmarshallers_factory, value):
         any_of = [
             {
                 "type": "object",
@@ -1542,11 +1571,11 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 "additionalProperties": False,
             },
         ]
-        schema = {
+        schema_dict = {
             "anyOf": any_of,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -1558,7 +1587,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             {},
         ],
     )
-    def test_object_multiple_any_of(self, unmarshallers_factory, value):
+    def test_object_multiple_any_of(self, spec, unmarshallers_factory, value):
         any_of = [
             {
                 "type": "object",
@@ -1567,12 +1596,12 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 "type": "object",
             },
         ]
-        schema = {
+        schema_dict = {
             "type": "object",
             "anyOf": any_of,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -1584,7 +1613,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             dict(),
         ],
     )
-    def test_object_multiple_one_of(self, unmarshallers_factory, value):
+    def test_object_multiple_one_of(self, spec, unmarshallers_factory, value):
         one_of = [
             {
                 "type": "object",
@@ -1593,12 +1622,12 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 "type": "object",
             },
         ]
-        schema = {
+        schema_dict = {
             "type": "object",
             "oneOf": one_of,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue):
             unmarshaller.unmarshal(value)
@@ -1615,7 +1644,7 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
             },
         ],
     )
-    def test_any_one_of_unambiguous(self, unmarshallers_factory, value):
+    def test_any_one_of_unambiguous(self, spec, unmarshallers_factory, value):
         one_of = [
             {
                 "type": "object",
@@ -1643,11 +1672,11 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
                 "additionalProperties": False,
             },
         ]
-        schema = {
+        schema_dict = {
             "oneOf": one_of,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -1655,10 +1684,10 @@ class BaseTestOASSchemaUnmarshallersFactoryCall:
 
 
 class BaseTestOASS30chemaUnmarshallersFactoryCall:
-    def test_null_undefined(self, unmarshallers_factory):
-        schema = {"type": "null"}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_null_undefined(self, spec, unmarshallers_factory):
+        schema_dict = {"type": "null"}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(UnknownType):
             unmarshaller.unmarshal(None)
@@ -1673,10 +1702,10 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
             "string",
         ],
     )
-    def test_nullable(self, unmarshallers_factory, type):
-        schema = {"type": type, "nullable": True}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_nullable(self, spec, unmarshallers_factory, type):
+        schema_dict = {"type": type, "nullable": True}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(None)
 
@@ -1692,10 +1721,10 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
             "string",
         ],
     )
-    def test_not_nullable(self, unmarshallers_factory, type):
-        schema = {"type": type}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_not_nullable(self, spec, unmarshallers_factory, type):
+        schema_dict = {"type": type}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(
             InvalidSchemaValue,
@@ -1719,14 +1748,14 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         ],
     )
     def test_basic_type_oas30_formats(
-        self, unmarshallers_factory, type, format, value, unmarshalled
+        self, spec, unmarshallers_factory, type, format, value, unmarshalled
     ):
-        schema = {
+        schema_dict = {
             "type": type,
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -1739,14 +1768,14 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         ],
     )
     def test_basic_type_oas30_formats_invalid(
-        self, unmarshallers_factory, type, format, value
+        self, spec, unmarshallers_factory, type, format, value
     ):
-        schema = {
+        schema_dict = {
             "type": type,
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(
             InvalidSchemaValue,
@@ -1765,12 +1794,12 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         ),
         strict=True,
     )
-    def test_string_format_binary_invalid(self, unmarshallers_factory):
-        schema = {
+    def test_string_format_binary_invalid(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "string",
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = b"true"
 
         with pytest.raises(
@@ -1798,48 +1827,48 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
         ],
     )
     def test_nultiple_types_undefined(
-        self, unmarshallers_factory, types, value
+        self, spec, unmarshallers_factory, types, value
     ):
-        schema = {"type": types}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema_dict = {"type": types}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(SchemaError):
             unmarshaller.unmarshal(value)
 
-    def test_integer_default_nullable(self, unmarshallers_factory):
+    def test_integer_default_nullable(self, spec, unmarshallers_factory):
         default_value = 123
-        schema = {
+        schema_dict = {
             "type": "integer",
             "default": default_value,
             "nullable": True,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = None
 
         result = unmarshaller.unmarshal(value)
 
         assert result is None
 
-    def test_array_nullable(self, unmarshallers_factory):
-        schema = {
+    def test_array_nullable(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "array",
             "items": {
                 "type": "integer",
             },
             "nullable": True,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = None
 
         result = unmarshaller.unmarshal(value)
 
         assert result is None
 
-    def test_object_property_nullable(self, unmarshallers_factory):
-        schema = {
+    def test_object_property_nullable(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "properties": {
                 "foo": {
@@ -1848,16 +1877,16 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
                 }
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = {"foo": None}
 
         result = unmarshaller.unmarshal(value)
 
         assert result == value
 
-    def test_subschema_nullable(self, unmarshallers_factory):
-        schema = {
+    def test_subschema_nullable(self, spec, unmarshallers_factory):
+        schema_dict = {
             "oneOf": [
                 {
                     "type": "integer",
@@ -1867,8 +1896,8 @@ class BaseTestOASS30chemaUnmarshallersFactoryCall:
                 },
             ]
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = None
 
         result = unmarshaller.unmarshal(value)
@@ -1884,8 +1913,8 @@ class TestOAS30RequestSchemaUnmarshallersFactory(
     def unmarshallers_factory(self):
         return oas30_write_schema_unmarshallers_factory
 
-    def test_write_only_properties(self, unmarshallers_factory):
-        schema = {
+    def test_write_only_properties(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "required": ["id"],
             "properties": {
@@ -1895,8 +1924,8 @@ class TestOAS30RequestSchemaUnmarshallersFactory(
                 }
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = {"id": 10}
 
         # readOnly properties may be admitted in a Response context
@@ -1904,8 +1933,8 @@ class TestOAS30RequestSchemaUnmarshallersFactory(
 
         assert result == value
 
-    def test_read_only_properties_invalid(self, unmarshallers_factory):
-        schema = {
+    def test_read_only_properties_invalid(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "required": ["id"],
             "properties": {
@@ -1915,8 +1944,8 @@ class TestOAS30RequestSchemaUnmarshallersFactory(
                 }
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = {"id": 10}
 
         # readOnly properties are not admitted on a Request context
@@ -1932,8 +1961,8 @@ class TestOAS30ResponseSchemaUnmarshallersFactory(
     def unmarshallers_factory(self):
         return oas30_read_schema_unmarshallers_factory
 
-    def test_read_only_properties(self, unmarshallers_factory):
-        schema = {
+    def test_read_only_properties(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "required": ["id"],
             "properties": {
@@ -1943,8 +1972,8 @@ class TestOAS30ResponseSchemaUnmarshallersFactory(
                 }
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         # readOnly properties may be admitted in a Response context
         result = unmarshaller.unmarshal({"id": 10})
@@ -1953,8 +1982,8 @@ class TestOAS30ResponseSchemaUnmarshallersFactory(
             "id": 10,
         }
 
-    def test_write_only_properties_invalid(self, unmarshallers_factory):
-        schema = {
+    def test_write_only_properties_invalid(self, spec, unmarshallers_factory):
+        schema_dict = {
             "type": "object",
             "required": ["id"],
             "properties": {
@@ -1964,8 +1993,8 @@ class TestOAS30ResponseSchemaUnmarshallersFactory(
                 }
             },
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         # readOnly properties are not admitted on a Request context
         with pytest.raises(InvalidSchemaValue):
@@ -1995,16 +2024,16 @@ class TestOAS31SchemaUnmarshallersFactory(
         ],
     )
     def test_create_oas30_formatter_not_found(
-        self, unmarshallers_factory, type, format
+        self, spec, unmarshallers_factory, type, format
     ):
-        schema = {
+        schema_dict = {
             "type": type,
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
+        schema = SchemaPath.from_dict(schema_dict)
 
         with pytest.raises(FormatterNotFoundError):
-            unmarshallers_factory.create(spec)
+            unmarshallers_factory.create(spec, schema)
 
     @pytest.mark.parametrize(
         "type,value",
@@ -2017,12 +2046,14 @@ class TestOAS31SchemaUnmarshallersFactory(
             ("object", b"test"),
         ],
     )
-    def test_basic_types_invalid(self, unmarshallers_factory, type, value):
-        schema = {
+    def test_basic_types_invalid(
+        self, spec, unmarshallers_factory, type, value
+    ):
+        schema_dict = {
             "type": type,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(
             InvalidSchemaValue,
@@ -2030,20 +2061,20 @@ class TestOAS31SchemaUnmarshallersFactory(
         ):
             unmarshaller.unmarshal(value)
 
-    def test_null(self, unmarshallers_factory):
-        schema = {"type": "null"}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_null(self, spec, unmarshallers_factory):
+        schema_dict = {"type": "null"}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(None)
 
         assert result is None
 
     @pytest.mark.parametrize("value", ["string", 2, 3.14, True, [1, 2], {}])
-    def test_null_invalid(self, unmarshallers_factory, value):
-        schema = {"type": "null"}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_null_invalid(self, spec, unmarshallers_factory, value):
+        schema_dict = {"type": "null"}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -2063,10 +2094,10 @@ class TestOAS31SchemaUnmarshallersFactory(
             (["object", "null"], {}),
         ],
     )
-    def test_nultiple_types(self, unmarshallers_factory, types, value):
-        schema = {"type": types}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_nultiple_types(self, spec, unmarshallers_factory, types, value):
+        schema_dict = {"type": types}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
@@ -2083,10 +2114,12 @@ class TestOAS31SchemaUnmarshallersFactory(
             (["object", "null"], [1, 2]),
         ],
     )
-    def test_nultiple_types_invalid(self, unmarshallers_factory, types, value):
-        schema = {"type": types}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_nultiple_types_invalid(
+        self, spec, unmarshallers_factory, types, value
+    ):
+        schema_dict = {"type": types}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         with pytest.raises(InvalidSchemaValue) as exc_info:
             unmarshaller.unmarshal(value)
@@ -2101,30 +2134,30 @@ class TestOAS31SchemaUnmarshallersFactory(
         ],
     )
     def test_multiple_types_format_valid_or_ignored(
-        self, unmarshallers_factory, types, format, value, expected
+        self, spec, unmarshallers_factory, types, format, value, expected
     ):
-        schema = {
+        schema_dict = {
             "type": types,
             "format": format,
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(value)
 
         assert result == expected
 
-    def test_any_null(self, unmarshallers_factory):
-        schema = {}
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+    def test_any_null(self, spec, unmarshallers_factory):
+        schema_dict = {}
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
 
         result = unmarshaller.unmarshal(None)
 
         assert result is None
 
-    def test_subschema_null(self, unmarshallers_factory):
-        schema = {
+    def test_subschema_null(self, spec, unmarshallers_factory):
+        schema_dict = {
             "oneOf": [
                 {
                     "type": "integer",
@@ -2134,8 +2167,8 @@ class TestOAS31SchemaUnmarshallersFactory(
                 },
             ]
         }
-        spec = SchemaPath.from_dict(schema)
-        unmarshaller = unmarshallers_factory.create(spec)
+        schema = SchemaPath.from_dict(schema_dict)
+        unmarshaller = unmarshallers_factory.create(spec, schema)
         value = None
 
         result = unmarshaller.unmarshal(value)

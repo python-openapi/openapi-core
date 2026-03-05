@@ -19,11 +19,13 @@ class SchemaCastersFactory:
 
     def create(
         self,
+        spec: SchemaPath,
         schema: SchemaPath,
         format_validators: Optional[FormatValidatorsDict] = None,
         extra_format_validators: Optional[FormatValidatorsDict] = None,
     ) -> SchemaCaster:
         schema_validator = self.schema_validators_factory.create(
+            spec,
             schema,
             format_validators=format_validators,
             extra_format_validators=extra_format_validators,

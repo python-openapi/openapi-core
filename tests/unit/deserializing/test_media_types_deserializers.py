@@ -16,7 +16,12 @@ from openapi_core.validation.schemas import oas31_schema_validators_factory
 
 class TestMediaTypeDeserializer:
     @pytest.fixture
-    def deserializer_factory(self):
+    def spec(self):
+        spec_dict = {}
+        return SchemaPath.from_dict(spec_dict)
+
+    @pytest.fixture
+    def deserializer_factory(self, spec):
         def create_deserializer(
             mimetype,
             schema=None,
@@ -31,6 +36,7 @@ class TestMediaTypeDeserializer:
                 oas31_schema_casters_factory,
                 media_type_deserializers=media_type_deserializers,
             ).create(
+                spec,
                 mimetype,
                 schema=schema,
                 schema_validator=schema_validator,
@@ -483,7 +489,7 @@ class TestMediaTypeDeserializer:
 
         assert result == deserialized
 
-    def test_urlencoded_oneof_integer_field(self, deserializer_factory):
+    def test_urlencoded_oneof_integer_field(self, spec, deserializer_factory):
         """Test issue #932: oneOf with urlencoded should match schema with integer field"""
         mimetype = "application/x-www-form-urlencoded"
         schema_dict = {
@@ -507,7 +513,7 @@ class TestMediaTypeDeserializer:
             ]
         }
         schema = SchemaPath.from_dict(schema_dict)
-        schema_validator = oas31_schema_validators_factory.create(schema)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
         deserializer = deserializer_factory(
             mimetype, schema=schema, schema_validator=schema_validator
         )
@@ -521,7 +527,7 @@ class TestMediaTypeDeserializer:
             "fieldB": 123,
         }
 
-    def test_urlencoded_oneof_string_field(self, deserializer_factory):
+    def test_urlencoded_oneof_string_field(self, spec, deserializer_factory):
         """Test issue #932: oneOf with urlencoded should match schema with string fields"""
         mimetype = "application/x-www-form-urlencoded"
         schema_dict = {
@@ -545,7 +551,7 @@ class TestMediaTypeDeserializer:
             ]
         }
         schema = SchemaPath.from_dict(schema_dict)
-        schema_validator = oas31_schema_validators_factory.create(schema)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
         deserializer = deserializer_factory(
             mimetype, schema=schema, schema_validator=schema_validator
         )
@@ -558,7 +564,7 @@ class TestMediaTypeDeserializer:
             "fieldA": "value",
         }
 
-    def test_urlencoded_anyof_with_types(self, deserializer_factory):
+    def test_urlencoded_anyof_with_types(self, spec, deserializer_factory):
         """Test anyOf with urlencoded and type coercion"""
         mimetype = "application/x-www-form-urlencoded"
         schema_dict = {
@@ -579,7 +585,7 @@ class TestMediaTypeDeserializer:
             ]
         }
         schema = SchemaPath.from_dict(schema_dict)
-        schema_validator = oas31_schema_validators_factory.create(schema)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
         deserializer = deserializer_factory(
             mimetype, schema=schema, schema_validator=schema_validator
         )
@@ -594,7 +600,7 @@ class TestMediaTypeDeserializer:
             "name": "test",
         }
 
-    def test_urlencoded_oneof_boolean_field(self, deserializer_factory):
+    def test_urlencoded_oneof_boolean_field(self, spec, deserializer_factory):
         """Test oneOf with boolean field requiring type coercion"""
         mimetype = "application/x-www-form-urlencoded"
         schema_dict = {
@@ -618,7 +624,7 @@ class TestMediaTypeDeserializer:
             ]
         }
         schema = SchemaPath.from_dict(schema_dict)
-        schema_validator = oas31_schema_validators_factory.create(schema)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
         deserializer = deserializer_factory(
             mimetype, schema=schema, schema_validator=schema_validator
         )
