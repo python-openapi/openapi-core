@@ -45,6 +45,9 @@ class AnyCaster(PrimitiveCaster):
         if "allOf" in self.schema:
             for subschema in self.schema / "allOf":
                 try:
+                    # Note: Mutates `value` iteratively. This sequentially
+                    # resolves standard overlapping types but can cause edge cases
+                    # if a string is casted to an int and passed to a string schema.
                     value = self.schema_caster.evolve(subschema).cast(value)
                 except (ValueError, TypeError, CastError):
                     pass
@@ -52,6 +55,8 @@ class AnyCaster(PrimitiveCaster):
         if "oneOf" in self.schema:
             for subschema in self.schema / "oneOf":
                 try:
+                    # Note: Greedy resolution. Will return the first successful
+                    # cast based on the order of the oneOf array.
                     return self.schema_caster.evolve(subschema).cast(value)
                 except (ValueError, TypeError, CastError):
                     pass
@@ -59,6 +64,8 @@ class AnyCaster(PrimitiveCaster):
         if "anyOf" in self.schema:
             for subschema in self.schema / "anyOf":
                 try:
+                    # Note: Greedy resolution. Will return the first successful
+                    # cast based on the order of the anyOf array.
                     return self.schema_caster.evolve(subschema).cast(value)
                 except (ValueError, TypeError, CastError):
                     pass
