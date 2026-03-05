@@ -14,6 +14,7 @@ from openapi_spec_validator.validation.types import SpecValidatorType
 
 from openapi_core.casting.schemas import oas30_write_schema_casters_factory
 from openapi_core.casting.schemas import oas31_schema_casters_factory
+from openapi_core.casting.schemas import oas32_schema_casters_factory
 from openapi_core.casting.schemas.factories import SchemaCastersFactory
 from openapi_core.datatypes import Parameters
 from openapi_core.datatypes import RequestParameters
@@ -482,47 +483,47 @@ class V31WebhookRequestValidator(WebhookRequestValidator):
 
 class V32RequestBodyValidator(APICallRequestBodyValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32RequestParametersValidator(APICallRequestParametersValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32RequestSecurityValidator(APICallRequestSecurityValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32RequestValidator(APICallRequestValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32WebhookRequestBodyValidator(WebhookRequestBodyValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32WebhookRequestParametersValidator(WebhookRequestParametersValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32WebhookRequestSecurityValidator(WebhookRequestSecurityValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32WebhookRequestValidator(WebhookRequestValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory

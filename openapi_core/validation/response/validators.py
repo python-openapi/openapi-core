@@ -15,6 +15,7 @@ from openapi_spec_validator import OpenAPIV32SpecValidator
 
 from openapi_core.casting.schemas import oas30_read_schema_casters_factory
 from openapi_core.casting.schemas import oas31_schema_casters_factory
+from openapi_core.casting.schemas import oas32_schema_casters_factory
 from openapi_core.exceptions import OpenAPIError
 from openapi_core.protocols import HeadersType
 from openapi_core.protocols import Request
@@ -410,35 +411,35 @@ class V31WebhookResponseValidator(WebhookResponseValidator):
 
 class V32ResponseDataValidator(APICallResponseDataValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32ResponseHeadersValidator(APICallResponseHeadersValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32ResponseValidator(APICallResponseValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32WebhookResponseDataValidator(WebhookResponseDataValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32WebhookResponseHeadersValidator(WebhookResponseHeadersValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
 
 
 class V32WebhookResponseValidator(WebhookResponseValidator):
     spec_validator_cls = OpenAPIV32SpecValidator
-    schema_casters_factory = oas31_schema_casters_factory
+    schema_casters_factory = oas32_schema_casters_factory
     schema_validators_factory = oas32_schema_validators_factory
