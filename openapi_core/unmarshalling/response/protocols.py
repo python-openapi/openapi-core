@@ -55,7 +55,7 @@ class ResponseUnmarshaller(Protocol):
         extra_media_type_deserializers: Optional[
             MediaTypeDeserializersDict
         ] = None,
-        strict_additional_properties: bool = False,
+        forbid_unspecified_additional_properties: bool = False,
         enforce_properties_required: bool = False,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory
@@ -92,7 +92,7 @@ class WebhookResponseUnmarshaller(Protocol):
         extra_media_type_deserializers: Optional[
             MediaTypeDeserializersDict
         ] = None,
-        strict_additional_properties: bool = False,
+        forbid_unspecified_additional_properties: bool = False,
         enforce_properties_required: bool = False,
         schema_unmarshallers_factory: Optional[
             SchemaUnmarshallersFactory

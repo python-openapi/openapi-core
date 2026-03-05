@@ -136,7 +136,7 @@ result = openapi.unmarshal_response(request, response)
 
 By default, OpenAPI follows JSON Schema behavior: when an object schema omits `additionalProperties`, extra keys are allowed.
 
-If you want stricter behavior, enable `strict_additional_properties`. In this mode, omitted `additionalProperties` is treated as `false`.
+If you want stricter behavior, change `additional_properties_default_policy` to `forbid`. In this mode, omitted `additionalProperties` is treated as `false`.
 
 This mode is particularly useful for:
 - **Preventing data leaks**: Ensuring your API doesn't accidentally expose internal or sensitive fields in responses that aren't explicitly documented.
@@ -148,7 +148,7 @@ from openapi_core import Config
 from openapi_core import OpenAPI
 
 config = Config(
-    strict_additional_properties=True,
+    additional_properties_default_policy="forbid",
 )
 openapi = OpenAPI.from_file_path('openapi.json', config=config)
 ```

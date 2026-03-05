@@ -47,7 +47,7 @@ class ResponseValidator(Protocol):
         extra_media_type_deserializers: Optional[
             MediaTypeDeserializersDict
         ] = None,
-        strict_additional_properties: bool = False,
+        forbid_unspecified_additional_properties: bool = False,
         enforce_properties_required: bool = False,
     ): ...
 
@@ -85,7 +85,7 @@ class WebhookResponseValidator(Protocol):
         extra_media_type_deserializers: Optional[
             MediaTypeDeserializersDict
         ] = None,
-        strict_additional_properties: bool = False,
+        forbid_unspecified_additional_properties: bool = False,
         enforce_properties_required: bool = False,
     ): ...
 

@@ -427,7 +427,8 @@ class OpenAPI:
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
-            strict_additional_properties=self.config.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.config.additional_properties_default_policy
+            == "forbid",
             security_provider_factory=self.config.security_provider_factory,
         )
 
@@ -446,7 +447,8 @@ class OpenAPI:
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
-            strict_additional_properties=self.config.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.config.additional_properties_default_policy
+            == "forbid",
             enforce_properties_required=self.config.response_properties_default_policy
             == "required",
         )
@@ -466,7 +468,8 @@ class OpenAPI:
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
-            strict_additional_properties=self.config.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.config.additional_properties_default_policy
+            == "forbid",
             security_provider_factory=self.config.security_provider_factory,
         )
 
@@ -485,7 +488,8 @@ class OpenAPI:
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
-            strict_additional_properties=self.config.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.config.additional_properties_default_policy
+            == "forbid",
             enforce_properties_required=self.config.response_properties_default_policy
             == "required",
         )
@@ -505,7 +509,8 @@ class OpenAPI:
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
-            strict_additional_properties=self.config.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.config.additional_properties_default_policy
+            == "forbid",
             security_provider_factory=self.config.security_provider_factory,
             schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
             extra_format_unmarshallers=self.config.extra_format_unmarshallers,
@@ -526,7 +531,8 @@ class OpenAPI:
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
-            strict_additional_properties=self.config.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.config.additional_properties_default_policy
+            == "forbid",
             enforce_properties_required=self.config.response_properties_default_policy
             == "required",
             schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
@@ -548,7 +554,8 @@ class OpenAPI:
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
-            strict_additional_properties=self.config.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.config.additional_properties_default_policy
+            == "forbid",
             security_provider_factory=self.config.security_provider_factory,
             schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,
             extra_format_unmarshallers=self.config.extra_format_unmarshallers,
@@ -569,7 +576,8 @@ class OpenAPI:
             spec_validator_cls=self.config.spec_validator_cls,
             extra_format_validators=self.config.extra_format_validators,
             extra_media_type_deserializers=self.config.extra_media_type_deserializers,
-            strict_additional_properties=self.config.strict_additional_properties,
+            forbid_unspecified_additional_properties=self.config.additional_properties_default_policy
+            == "forbid",
             enforce_properties_required=self.config.response_properties_default_policy
             == "required",
             schema_unmarshallers_factory=self.config.schema_unmarshallers_factory,

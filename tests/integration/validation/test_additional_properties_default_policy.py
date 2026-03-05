@@ -79,7 +79,7 @@ def test_request_validation_default_allows_extra_properties():
 
 
 def test_request_validation_strict_rejects_extra_properties():
-    config = Config(strict_additional_properties=True)
+    config = Config(additional_properties_default_policy="forbid")
     openapi = OpenAPI.from_dict(_spec_dict(), config=config)
     request = MockRequest(
         "http://example.com",
@@ -116,7 +116,7 @@ def test_response_validation_default_allows_extra_properties():
 
 
 def test_response_validation_strict_rejects_extra_properties():
-    config = Config(strict_additional_properties=True)
+    config = Config(additional_properties_default_policy="forbid")
     openapi = OpenAPI.from_dict(_spec_dict(), config=config)
     request = MockRequest("http://example.com", "get", "/tags")
     response = MockResponse(
@@ -138,7 +138,7 @@ def test_response_validation_strict_allows_explicit_additional_properties_true()
     spec_dict = _spec_dict()
     spec_dict["components"]["schemas"]["Tag"]["additionalProperties"] = True
 
-    config = Config(strict_additional_properties=True)
+    config = Config(additional_properties_default_policy="forbid")
     openapi = OpenAPI.from_dict(spec_dict, config=config)
     request = MockRequest("http://example.com", "get", "/tags")
     response = MockResponse(
