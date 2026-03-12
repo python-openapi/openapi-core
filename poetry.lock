@@ -2392,21 +2392,23 @@ ecma-regex = ["regress (>=2025.10.1)"]
 
 [[package]]
 name = "openapi-spec-validator"
-version = "0.8.2"
+version = "0.8.4"
 description = "OpenAPI 2.0 (aka Swagger) and OpenAPI 3 spec validator"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "openapi_spec_validator-0.8.2-py3-none-any.whl", hash = "sha256:18eab9b76aac364ca677581bd95b693a5964923e29cd89c5b457ac3e697adf25"},
-    {file = "openapi_spec_validator-0.8.2.tar.gz", hash = "sha256:f12c9fe77d78ea0a04fe931573cfe4b86478db12f09f7f3a08a41da59b005458"},
+    {file = "openapi_spec_validator-0.8.4-py3-none-any.whl", hash = "sha256:cf905117063d7c4d495c8a5a167a1f2a8006da6ffa8ba234a7ed0d0f11454d51"},
+    {file = "openapi_spec_validator-0.8.4.tar.gz", hash = "sha256:8bb324b9b08b9b368b1359dec14610c60a8f3a3dd63237184eb04456d4546f49"},
 ]
 
 [package.dependencies]
 jsonschema = ">=4.24.0,<4.25.0"
-jsonschema-path = ">=0.4.2,<0.5.0"
+jsonschema-path = ">=0.4.3,<0.5.0"
 lazy-object-proxy = ">=1.7.1,<2.0"
 openapi-schema-validator = ">=0.7.3,<0.9.0"
+pydantic = ">=2.0.0,<3.0.0"
+pydantic-settings = ">=2.0.0,<3.0.0"
 
 [[package]]
 name = "packaging"
