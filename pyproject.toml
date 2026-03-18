@@ -75,7 +75,7 @@ jsonschema-path = "^0.4.5"
 jsonschema = "^4.23.0"
 multidict = {version = "^6.0.4", optional = true}
 aioitertools = {version = ">=0.11,<0.14", optional = true}
-fastapi = {version = ">=0.111,<0.130", optional = true}
+fastapi = {version = ">=0.111,<0.140", optional = true}
 typing-extensions = "^4.8.0"
 
 [tool.poetry.extras]
@@ -175,6 +175,7 @@ env_list = [
     "contrib-falcon-4x",
     "contrib-fastapi-011x",
     "contrib-fastapi-012x",
+    "contrib-fastapi-013x",
     "contrib-flask-2x",
     "contrib-flask-3x",
     "contrib-requests-default",
@@ -222,7 +223,10 @@ set_env = { POETRY_EXTRA = "falcon", CONTRIB_PACKAGE = "falcon", CONTRIB_SPEC = 
 set_env = { POETRY_EXTRA = "fastapi", CONTRIB_PACKAGE = "fastapi", CONTRIB_SPEC = ">=0.111,<0.120", CONTRIB_PATHS = "tests/integration/contrib/fastapi" }
 
 [tool.tox.env."contrib-fastapi-012x"]
-set_env = { POETRY_EXTRA = "fastapi", CONTRIB_PACKAGE = "fastapi", CONTRIB_SPEC = ">=0.120,<0.129", CONTRIB_PATHS = "tests/integration/contrib/fastapi" }
+set_env = { POETRY_EXTRA = "fastapi", CONTRIB_PACKAGE = "fastapi", CONTRIB_SPEC = ">=0.120,<0.130", CONTRIB_PATHS = "tests/integration/contrib/fastapi" }
+
+[tool.tox.env."contrib-fastapi-013x"]
+set_env = { POETRY_EXTRA = "fastapi", CONTRIB_PACKAGE = "fastapi", CONTRIB_SPEC = ">=0.130,<0.140", CONTRIB_PATHS = "tests/integration/contrib/fastapi" }
 
 [tool.tox.env."contrib-flask-2x"]
 set_env = { POETRY_EXTRA = "flask", CONTRIB_PACKAGE = "flask", CONTRIB_SPEC = ">=2.0,<3.0", CONTRIB_PATHS = "tests/integration/contrib/flask tests/unit/contrib/flask" }
