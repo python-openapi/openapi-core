@@ -1,6 +1,6 @@
 # FastAPI
 
-This section describes integration with [FastAPI](https://fastapi.tiangolo.com) ASGI framework. The integration supports FastAPI versions 0.11x and 0.12x.
+This section describes integration with [FastAPI](https://fastapi.tiangolo.com) ASGI framework. The integration supports FastAPI versions 0.11x, 0.12x and 0.13x.
 
 !!! note
 

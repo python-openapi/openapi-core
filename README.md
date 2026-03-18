@@ -48,7 +48,7 @@ Supported [Integrations](https://openapi-core.readthedocs.io/en/latest/integrati
 | [AIOHTTP](https://openapi-core.readthedocs.io/en/latest/integrations/aiohttp/) | versions 3.8+ and 3.11+ tracks | Low-level request and response classes |
 | [Django](https://openapi-core.readthedocs.io/en/latest/integrations/django/) | versions 4, 5, and 6 | Middleware, decorator and low level |
 | [Falcon](https://openapi-core.readthedocs.io/en/latest/integrations/falcon/) | version 4 | Middleware and low-level classes |
-| [FastAPI](https://openapi-core.readthedocs.io/en/latest/integrations/fastapi/) | versions 0.11x and 0.12x | Middleware (low-level via Starlette integration) |
+| [FastAPI](https://openapi-core.readthedocs.io/en/latest/integrations/fastapi/) | versions 0.11x, 0.12x, and 0.13x | Middleware (low-level via Starlette integration) |
 | [Flask](https://openapi-core.readthedocs.io/en/latest/integrations/flask/) | versions 2 and 3 | View decorator, class-based view, and low-level classes |
 | [Requests](https://openapi-core.readthedocs.io/en/latest/integrations/requests/) | default dependency set | Low-level request, webhook request, and response classes |
 | [Starlette](https://openapi-core.readthedocs.io/en/latest/integrations/starlette/) | versions 0.4x and 0.5x | Middleware and low-level classes |
