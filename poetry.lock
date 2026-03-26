@@ -3730,15 +3730,15 @@ tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
 name = "starlette"
-version = "0.50.0"
+version = "1.0.0"
 description = "The little ASGI library that shines."
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
 markers = "extra == \"fastapi\" or extra == \"starlette\""
 files = [
-    {file = "starlette-0.50.0-py3-none-any.whl", hash = "sha256:9e5391843ec9b6e472eed1365a78c8098cfceb7a74bfd4d6b1c0c0095efb3bca"},
-    {file = "starlette-0.50.0.tar.gz", hash = "sha256:a2a17b22203254bcbc2e1f926d2d55f3f9497f769416b3190768befe598fa3ca"},
+    {file = "starlette-1.0.0-py3-none-any.whl", hash = "sha256:d3ec55e0bb321692d275455ddfd3df75fff145d009685eb40dc91fc66b03d38b"},
+    {file = "starlette-1.0.0.tar.gz", hash = "sha256:6a4beaf1f81bb472fd19ea9b918b50dc3a77a6f2e190a12954b25e6ed5eea149"},
 ]
 
 [package.dependencies]
@@ -4154,4 +4154,4 @@ werkzeug = []
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10.0"
-content-hash = "f5eaf014a5df4938aa3dceebad513c86554551b7116c5d94fe3adb12e97d9452"
+content-hash = "d7e0dda94eff30865daa9fe709e2d396bf6f1fa9a96ce049a577aa5f94b2e5f2"
