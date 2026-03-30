@@ -77,7 +77,7 @@ jobs:
         run: tox -m contrib -p auto
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: reports/coverage-*.xml
           flags: contrib,py${{ matrix.python-version }}
