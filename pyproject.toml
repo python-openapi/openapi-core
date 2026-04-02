@@ -112,7 +112,7 @@ ipykernel = "^7.2.0"
 mkdocs = "^1.6.1"
 mkdocstrings = {extras = ["python"], version = ">=0.26.1,<1.1.0"}
 mkdocs-material = "^9.5.34"
-griffe-typingdoc = ">=0.2.7,<0.3.0"
+griffe-typingdoc = ">=0.2.7,<0.4.0"
 
 [tool.pytest.ini_options]
 addopts = """
