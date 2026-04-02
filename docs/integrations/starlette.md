@@ -1,6 +1,6 @@
 # Starlette
 
-This section describes integration with the [Starlette](https://www.starlette.io) ASGI framework. The integration supports Flask versions 0.4x and 0.5x.
+This section describes integration with the [Starlette](https://www.starlette.io) ASGI framework. The integration supports Starlette versions 0.4x, 0.5x, and 1.x.
 
 ## Middleware
 
