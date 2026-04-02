@@ -3,6 +3,7 @@ from base64 import b64encode
 import pytest
 from jsonschema_path import SchemaPath
 
+from openapi_core.schema.servers import get_server_default_variables
 from openapi_core.schema.servers import get_server_url
 from openapi_core.schema.specs import get_spec_url
 
@@ -352,3 +353,18 @@ class TestWebhook:
         schemas = components.get("schemas", {})
         for schema_name, schema in schemas.items():
             assert spec_dict["components"]["schemas"][schema_name] is not None
+
+
+def test_get_server_default_variables():
+    server_spec = {
+        "url": "https://{host}.example.com:{port}/v1",
+        "variables": {
+            "host": {"default": "api"},
+            "port": {"default": "8080"},
+        },
+    }
+    server = SchemaPath.from_dict(server_spec)
+
+    defaults = get_server_default_variables(server)
+
+    assert defaults == {"host": "api", "port": "8080"}

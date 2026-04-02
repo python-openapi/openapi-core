@@ -100,7 +100,7 @@ class ObjectUnmarshaller(PrimitiveUnmarshaller):
             except KeyError:
                 if "default" not in prop_schema:
                     continue
-                prop_value = prop_schema["default"]
+                prop_value = (prop_schema / "default").read_value()
 
             properties[prop_name] = self.schema_unmarshaller.evolve(
                 prop_schema

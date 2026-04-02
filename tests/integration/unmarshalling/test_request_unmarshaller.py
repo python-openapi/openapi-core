@@ -423,3 +423,47 @@ class TestRequestUnmarshaller:
         assert result.security == {
             "petstore_auth": self.api_key_encoded,
         }
+
+    def test_request_body_with_object_default(self):
+        from openapi_core import OpenAPI
+
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "tags": {
+                                                    "type": "array",
+                                                    "default": [],
+                                                }
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                            "responses": {"200": {"description": ""}},
+                        },
+                    }
+                },
+            }
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type="application/json",
+            data=b"{}",
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert result.errors == []
+        assert result.body == {"tags": []}

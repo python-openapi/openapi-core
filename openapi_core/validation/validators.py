@@ -232,7 +232,7 @@ class BaseValidator:
         except KeyError:
             if "default" not in schema:
                 raise
-            return schema["default"], schema
+            return (schema / "default").read_value(), schema
         if allow_empty_values is not None:
             warnings.warn(
                 "Use of allowEmptyValue property is deprecated",

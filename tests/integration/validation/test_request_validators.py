@@ -184,3 +184,60 @@ class TestRequestValidator:
         result = request_validator.validate(request)
 
         assert result is None
+
+    def test_array_parameter_with_empty_default(self):
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "get": {
+                            "parameters": [
+                                {
+                                    "name": "foo",
+                                    "in": "query",
+                                    "schema": {"type": "array", "default": []},
+                                }
+                            ],
+                            "responses": {"200": {"description": ""}},
+                        },
+                    }
+                },
+            }
+        )
+        request = MockRequest("http://localhost", "get", "/test")
+
+        result = spec.validate_request(request)
+
+        assert result is None
+
+    def test_array_parameter_with_populated_default(self):
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "get": {
+                            "parameters": [
+                                {
+                                    "name": "foo",
+                                    "in": "query",
+                                    "schema": {
+                                        "type": "array",
+                                        "default": ["a", "b", "c"],
+                                    },
+                                }
+                            ],
+                            "responses": {"200": {"description": ""}},
+                        },
+                    }
+                },
+            }
+        )
+        request = MockRequest("http://localhost", "get", "/test")
+
+        result = spec.validate_request(request)
+
+        assert result is None
