@@ -134,6 +134,43 @@ def test_response_validation_strict_rejects_extra_properties():
         openapi.validate_response(request, response)
 
 
+def test_request_validation_strict_error_message_is_stable():
+    """Test that error messages are deterministic when multiple extra properties exist."""
+    config = Config(additional_properties_default_policy="forbid")
+    openapi = OpenAPI.from_dict(_spec_dict(), config=config)
+
+    request = MockRequest(
+        "http://example.com",
+        "post",
+        "/tags",
+        content_type="application/json",
+        data=json.dumps(
+            {
+                "tag_name": "my-tag",
+                "zebra": "z data",
+                "apple": "a data",
+                "mango": "m data",
+            }
+        ).encode("utf-8"),
+    )
+
+    # Collect error messages from multiple validation attempts
+    messages = []
+    for _ in range(10):
+        with pytest.raises(InvalidRequestBody) as exc_info:
+            openapi.validate_request(request)
+        messages.append(str(exc_info.value))
+
+    assert (
+        len(set(messages)) == 1
+    ), f"Error messages are not stable: {messages}"
+
+    error_message = messages[0]
+    assert (
+        "'apple', 'mango', 'zebra'" in error_message
+    ), f"Properties not in alphabetical order: {error_message}"
+
+
 def test_response_validation_strict_allows_explicit_additional_properties_true():
     spec_dict = _spec_dict()
     spec_dict["components"]["schemas"]["Tag"]["additionalProperties"] = True

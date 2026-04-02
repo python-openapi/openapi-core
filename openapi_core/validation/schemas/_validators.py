@@ -76,7 +76,7 @@ def iter_missing_additional_properties_errors(
     if "additionalProperties" in schema:
         return
 
-    extras = set(find_additional_properties(instance, schema))
+    extras = sorted(set(find_additional_properties(instance, schema)))
 
     if extras:
         error = "Additional properties are not allowed (%s %s unexpected)"
