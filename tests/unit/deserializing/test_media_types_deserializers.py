@@ -637,3 +637,22 @@ class TestMediaTypeDeserializer:
             "enabled": True,
             "mode": "auto",
         }
+
+    def test_urlencoded_form_with_array_default(self, deserializer_factory):
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "default": [],
+                },
+            },
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        deserializer = deserializer_factory(mimetype, schema=schema)
+        value = b""
+
+        result = deserializer.deserialize(value)
+
+        assert result == {"tags": []}

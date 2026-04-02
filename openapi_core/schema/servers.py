@@ -15,12 +15,13 @@ def get_server_default_variables(server: SchemaPath) -> Dict[str, Any]:
     defaults = {}
     variables = server / "variables"
     for name, variable in list(variables.str_items()):
-        defaults[name] = variable["default"]
+        defaults[name] = (variable / "default").read_value()
     return defaults
 
 
 def get_server_url(server: SchemaPath, **variables: Any) -> str:
     if not variables:
         variables = get_server_default_variables(server)
-    assert isinstance(server["url"], str)
-    return server["url"].format(**variables)
+    url = (server / "url").read_value()
+    assert isinstance(url, str)
+    return url.format(**variables)

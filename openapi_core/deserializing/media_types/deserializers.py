@@ -172,7 +172,7 @@ class MediaTypeDeserializer:
             except KeyError:
                 if "default" not in prop_schema:
                     continue
-                properties[prop_name] = prop_schema["default"]
+                properties[prop_name] = (prop_schema / "default").read_value()
 
         if schema_only:
             return properties
