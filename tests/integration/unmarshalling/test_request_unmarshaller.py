@@ -1,6 +1,5 @@
 import json
 from base64 import b64encode
-from email.generator import _make_boundary
 
 import pytest
 
@@ -12,6 +11,7 @@ from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.validation.request.exceptions import InvalidParameter
+from openapi_core.validation.request.exceptions import InvalidRequestBody
 from openapi_core.validation.request.exceptions import MissingRequiredParameter
 from openapi_core.validation.request.exceptions import (
     MissingRequiredRequestBody,
@@ -469,16 +469,248 @@ class TestRequestUnmarshaller:
         assert result.errors == []
         assert result.body == {"tags": []}
 
+    def test_request_body_urlencoded_oneof_does_not_match_defaults_only(self):
+        from openapi_core import OpenAPI
+
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "application/x-www-form-urlencoded": {
+                                        "schema": {
+                                            "oneOf": [
+                                                {
+                                                    "type": "object",
+                                                    "required": ["x"],
+                                                    "properties": {
+                                                        "x": {
+                                                            "type": "integer",
+                                                            "default": 1,
+                                                        }
+                                                    },
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": ["y"],
+                                                    "properties": {
+                                                        "y": {"type": "string"}
+                                                    },
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type="application/x-www-form-urlencoded",
+            data=b"=",
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidRequestBody
+        assert result.body is None
+
+    def test_request_body_urlencoded_allof_typeless_fragments(self):
+        from openapi_core import OpenAPI
+
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "application/x-www-form-urlencoded": {
+                                        "schema": {
+                                            "type": "object",
+                                            "allOf": [
+                                                {
+                                                    "properties": {
+                                                        "a": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "properties": {
+                                                        "b": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                },
+                                            ],
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type="application/x-www-form-urlencoded",
+            data=b"a=1&b=true",
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert result.errors == []
+        assert result.body == {"a": 1, "b": True}
+
     @pytest.mark.xfail(
         reason=(
-            "multipart composed-schema branch selection is not binary-aware"
+            "Form-media oneOf behavior is greedy and selects the first "
+            "matching branch instead of enforcing oneOf exclusivity"
         ),
         strict=True,
     )
+    def test_request_body_urlencoded_oneof_rejects_ambiguous_matches(self):
+        from openapi_core import OpenAPI
+
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "application/x-www-form-urlencoded": {
+                                        "schema": {
+                                            "oneOf": [
+                                                {
+                                                    "type": "object",
+                                                    "required": ["a"],
+                                                    "properties": {
+                                                        "a": {"type": "string"}
+                                                    },
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": ["b"],
+                                                    "properties": {
+                                                        "b": {"type": "string"}
+                                                    },
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type="application/x-www-form-urlencoded",
+            data=b"a=x&b=y",
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidRequestBody
+        assert result.body is None
+
+    @pytest.mark.xfail(
+        reason=(
+            "Form-media validation accepts typeless allOf object "
+            "fragments without rejecting invalid submitted fields"
+        ),
+        strict=True,
+    )
+    def test_request_body_urlencoded_allof_does_not_drop_invalid_fields(self):
+        from openapi_core import OpenAPI
+
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "application/x-www-form-urlencoded": {
+                                        "schema": {
+                                            "type": "object",
+                                            "allOf": [
+                                                {
+                                                    "properties": {
+                                                        "a": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "properties": {
+                                                        "b": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                },
+                                            ],
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type="application/x-www-form-urlencoded",
+            data=b"a=abc&b=true",
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidRequestBody
+        assert result.body is None
+
     def test_request_body_multipart_oneof_binary_field(self):
         from openapi_core import OpenAPI
 
-        boundary = _make_boundary()
+        boundary = "testboundary"
         spec = OpenAPI.from_dict(
             {
                 "openapi": "3.1.0",
@@ -544,3 +776,357 @@ class TestRequestUnmarshaller:
 
         assert result.errors == []
         assert result.body == {"file": b"\xff\xfe"}
+
+    def test_request_body_multipart_oneof_binary_field_over_plain_string_field(
+        self,
+    ):
+        from openapi_core import OpenAPI
+
+        boundary = "testboundary"
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "multipart/form-data": {
+                                        "schema": {
+                                            "oneOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "file": {
+                                                            "type": "string",
+                                                            "format": "binary",
+                                                        }
+                                                    },
+                                                    "required": ["file"],
+                                                    "additionalProperties": False,
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "file": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": ["file"],
+                                                    "additionalProperties": False,
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        data = (
+            (
+                f"--{boundary}\n"
+                "Content-Type: application/octet-stream\n"
+                "MIME-Version: 1.0\n"
+                'Content-Disposition: form-data; name="file"\n\n'
+            ).encode("ascii")
+            + b"\xff\xfe\n"
+            + (f"--{boundary}--\n").encode("ascii")
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type=f"multipart/form-data; boundary={boundary}",
+            data=data,
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert result.errors == []
+        assert result.body == {"file": b"\xff\xfe"}
+
+    def test_request_body_multipart_anyof_binary_field_over_plain_string_field(
+        self,
+    ):
+        from openapi_core import OpenAPI
+
+        boundary = "testboundary"
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "multipart/form-data": {
+                                        "schema": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "file": {
+                                                            "type": "string",
+                                                            "format": "binary",
+                                                        }
+                                                    },
+                                                    "required": ["file"],
+                                                    "additionalProperties": False,
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "file": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": ["file"],
+                                                    "additionalProperties": False,
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        data = (
+            (
+                f"--{boundary}\n"
+                "Content-Type: application/octet-stream\n"
+                "MIME-Version: 1.0\n"
+                'Content-Disposition: form-data; name="file"\n\n'
+            ).encode("ascii")
+            + b"\xff\xfe\n"
+            + (f"--{boundary}--\n").encode("ascii")
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type=f"multipart/form-data; boundary={boundary}",
+            data=data,
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert result.errors == []
+        assert result.body == {"file": b"\xff\xfe"}
+
+    @pytest.mark.xfail(
+        reason=(
+            "Form-media composed-schema decoding drops fields matched only "
+            "through typed additionalProperties"
+        ),
+        strict=True,
+    )
+    def test_request_body_urlencoded_oneof_typed_additional_properties_keeps_matching_fields(
+        self,
+    ):
+        from openapi_core import OpenAPI
+
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "application/x-www-form-urlencoded": {
+                                        "schema": {
+                                            "oneOf": [
+                                                {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "integer"
+                                                    },
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": ["name"],
+                                                    "additionalProperties": False,
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type="application/x-www-form-urlencoded",
+            data=b"x=1",
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert result.errors == []
+        assert result.body == {"x": 1}
+
+    def test_request_body_multipart_oneof_rejects_mixed_fields(self):
+        from openapi_core import OpenAPI
+
+        boundary = "testboundary"
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "multipart/form-data": {
+                                        "schema": {
+                                            "oneOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "label": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": ["label"],
+                                                    "additionalProperties": False,
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "file": {
+                                                            "type": "string",
+                                                            "format": "binary",
+                                                        }
+                                                    },
+                                                    "required": ["file"],
+                                                    "additionalProperties": False,
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        data = (
+            (
+                f"--{boundary}\n"
+                'Content-Disposition: form-data; name="label"\n\n'
+                "report\n"
+                f"--{boundary}\n"
+                "Content-Type: application/octet-stream\n"
+                "MIME-Version: 1.0\n"
+                'Content-Disposition: form-data; name="file"\n\n'
+            ).encode("ascii")
+            + b"\xff\xfe\n"
+            + (f"--{boundary}--\n").encode("ascii")
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type=f"multipart/form-data; boundary={boundary}",
+            data=data,
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert len(result.errors) == 1
+        assert type(result.errors[0]) == InvalidRequestBody
+        assert result.body is None
+
+    def test_request_body_multipart_oneof_falls_through_decode_errors(self):
+        from openapi_core import OpenAPI
+
+        boundary = "testboundary"
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "multipart/form-data": {
+                                        "schema": {
+                                            "oneOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "value": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": ["value"],
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "value": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": ["value"],
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        data = (
+            f"--{boundary}\n"
+            'Content-Disposition: form-data; name="value"\n\n'
+            "abc\n"
+            f"--{boundary}--\n"
+        ).encode("ascii")
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type=f"multipart/form-data; boundary={boundary}",
+            data=data,
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert result.errors == []
+        assert result.body == {"value": "abc"}

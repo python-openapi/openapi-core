@@ -1,11 +1,14 @@
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Iterator
 from typing import Mapping
 from typing import Optional
 from xml.etree.ElementTree import ParseError
 
 from jsonschema_path import SchemaPath
 
+from openapi_core.deserializing.exceptions import DeserializeError
 from openapi_core.deserializing.media_types.datatypes import (
     DeserializerCallable,
 )
@@ -23,6 +26,7 @@ from openapi_core.schema.parameters import get_style_and_explode
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList
 from openapi_core.schema.schemas import get_properties
+from openapi_core.validation.schemas.exceptions import ValidateError
 from openapi_core.validation.schemas.validators import SchemaValidator
 
 if TYPE_CHECKING:
@@ -63,6 +67,12 @@ class MediaTypesDeserializer:
         return self.media_type_deserializers[mimetype]
 
 
+@dataclass(frozen=True)
+class FormMediaSchemaMatch:
+    schema: SchemaPath
+    decoded_candidate: Mapping[str, Any]
+
+
 class MediaTypeDeserializer:
     def __init__(
         self,
@@ -97,7 +107,7 @@ class MediaTypeDeserializer:
         ):
             return deserialized
 
-        # decode multipart request bodies if schema provided
+        # Decode form-media bodies only when a schema is available.
         if self.schema is not None:
             return self.decode(deserialized)
 
@@ -126,43 +136,42 @@ class MediaTypeDeserializer:
             schema=schema,
             schema_validator=schema_validator,
             schema_caster=schema_caster,
+            encoding=self.encoding,
+            **self.parameters,
         )
 
     def decode(
-        self, location: Mapping[str, Any], schema_only: bool = False
+        self,
+        location: Mapping[str, Any],
+        schema_only: bool = False,
+        use_defaults: bool = True,
     ) -> Mapping[str, Any]:
-        # schema is required for multipart
+        # Form-media decoding always needs a schema to resolve properties.
         assert self.schema is not None
         properties: dict[str, Any] = {}
 
-        # For urlencoded/multipart, use caster for oneOf/anyOf detection if validator available
+        # For form media, select composed branches from decoded candidates.
         if self.schema_validator is not None:
-            one_of_schema = self.schema_validator.get_one_of_schema(
-                location, caster=self.schema_caster
-            )
-            if one_of_schema is not None:
-                one_of_properties = self.evolve(one_of_schema).decode(
-                    location, schema_only=True
+            one_of_match = self.get_form_media_one_of_match(location)
+            if one_of_match is not None:
+                self.update_decoded_properties(
+                    properties,
+                    one_of_match.decoded_candidate,
                 )
-                properties.update(one_of_properties)
 
-            any_of_schemas = self.schema_validator.iter_any_of_schemas(
-                location, caster=self.schema_caster
-            )
-            for any_of_schema in any_of_schemas:
-                any_of_properties = self.evolve(any_of_schema).decode(
-                    location, schema_only=True
+            any_of_matches = self.iter_form_media_any_of_matches(location)
+            for any_of_match in any_of_matches:
+                self.update_decoded_properties(
+                    properties,
+                    any_of_match.decoded_candidate,
                 )
-                properties.update(any_of_properties)
 
-            all_of_schemas = self.schema_validator.iter_all_of_schemas(
-                location
-            )
-            for all_of_schema in all_of_schemas:
-                all_of_properties = self.evolve(all_of_schema).decode(
-                    location, schema_only=True
+            all_of_matches = self.iter_form_media_all_of_matches(location)
+            for all_of_match in all_of_matches:
+                self.update_decoded_properties(
+                    properties,
+                    all_of_match.decoded_candidate,
                 )
-                properties.update(all_of_properties)
 
         for prop_name, prop_schema in get_properties(self.schema).items():
             try:
@@ -170,7 +179,7 @@ class MediaTypeDeserializer:
                     prop_name, prop_schema, location
                 )
             except KeyError:
-                if "default" not in prop_schema:
+                if not use_defaults or "default" not in prop_schema:
                     continue
                 properties[prop_name] = (prop_schema / "default").read_value()
 
@@ -178,6 +187,108 @@ class MediaTypeDeserializer:
             return properties
 
         return properties
+
+    def update_decoded_properties(
+        self,
+        properties: dict[str, Any],
+        candidate: Mapping[str, Any],
+    ) -> None:
+        for prop_name, prop_value in candidate.items():
+            if prop_name not in properties:
+                properties[prop_name] = prop_value
+                continue
+
+            properties[prop_name] = self.merge_decoded_property_value(
+                properties[prop_name],
+                prop_value,
+            )
+
+    def merge_decoded_property_value(self, current: Any, new: Any) -> Any:
+        if current == new:
+            return current
+
+        # Prefer lossless binary values over surrogate-decoded text when
+        # overlapping composed branches describe the same multipart field.
+        if isinstance(current, bytes) and isinstance(new, str):
+            return current
+        if isinstance(current, str) and isinstance(new, bytes):
+            return new
+
+        return new
+
+    def get_form_media_one_of_match(
+        self,
+        location: Mapping[str, Any],
+    ) -> Optional[FormMediaSchemaMatch]:
+        if self.schema is None or "oneOf" not in self.schema:
+            return None
+
+        for subschema in self.schema / "oneOf":
+            match = self.get_form_media_schema_match(subschema, location)
+            if match is not None:
+                return match
+
+        return None
+
+    def iter_form_media_any_of_matches(
+        self,
+        location: Mapping[str, Any],
+    ) -> list[FormMediaSchemaMatch]:
+        if self.schema is None or "anyOf" not in self.schema:
+            return []
+
+        return list(self.iter_form_media_schema_matches("anyOf", location))
+
+    def iter_form_media_all_of_matches(
+        self,
+        location: Mapping[str, Any],
+    ) -> list[FormMediaSchemaMatch]:
+        if self.schema is None or "allOf" not in self.schema:
+            return []
+
+        return list(self.iter_form_media_schema_matches("allOf", location))
+
+    def iter_form_media_schema_matches(
+        self,
+        keyword: str,
+        location: Mapping[str, Any],
+    ) -> Iterator[FormMediaSchemaMatch]:
+        assert self.schema is not None
+
+        for subschema in self.schema / keyword:
+            match = self.get_form_media_schema_match(subschema, location)
+            if match is not None:
+                yield match
+
+    def get_form_media_schema_match(
+        self,
+        subschema: SchemaPath,
+        location: Mapping[str, Any],
+    ) -> Optional[FormMediaSchemaMatch]:
+        assert self.schema_validator is not None
+
+        deserializer = self.evolve(subschema)
+        try:
+            validation_decoded_candidate = deserializer.decode(
+                location,
+                schema_only=True,
+                use_defaults=False,
+            )
+        except DeserializeError:
+            return None
+
+        validator = self.schema_validator.evolve(subschema)
+        validation_candidate = dict(location)
+        validation_candidate.update(validation_decoded_candidate)
+
+        try:
+            validator.validate(validation_candidate)
+        except ValidateError:
+            return None
+
+        decoded_candidate = deserializer.decode(location, schema_only=True)
+
+        return FormMediaSchemaMatch(subschema, decoded_candidate)
 
     def decode_property(
         self,

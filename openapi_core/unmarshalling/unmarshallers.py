@@ -117,7 +117,7 @@ class BaseUnmarshaller(BaseValidator):
     def _get_content_and_schema(
         self, raw: Any, content: SchemaPath, mimetype: Optional[str] = None
     ) -> Tuple[Any, Optional[SchemaPath]]:
-        casted, schema = super()._get_content_and_schema(
+        casted, schema = self._get_content_schema_value_and_schema(
             raw, content, mimetype
         )
         if schema is None:
