@@ -11,6 +11,7 @@ from jsonschema.protocols import Validator
 from jsonschema_path import SchemaPath
 
 from openapi_core.validation.schemas.datatypes import FormatValidator
+from openapi_core.validation.schemas.datatypes import ValidationState
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.schemas.exceptions import ValidateError
 
@@ -38,6 +39,71 @@ class SchemaValidator:
         if errors:
             schema_type = (self.schema / "type").read_str_or_list("any")
             raise InvalidSchemaValue(value, schema_type, schema_errors=errors)
+
+    def validate_state(self, value: Any) -> ValidationState:
+        self.validate(value)
+        return self._build_trusted_state(value)
+
+    def _build_trusted_state(self, value: Any) -> ValidationState:
+        primitive_type = self.get_primitive_type(value)
+        property_states = {}
+        additional_property_states = {}
+        item_states: tuple[ValidationState, ...] = ()
+        one_of_state = None
+        any_of_states: tuple[ValidationState, ...] = ()
+        all_of_states: tuple[ValidationState, ...] = ()
+
+        if "oneOf" in self.schema:
+            one_of_schema = self.get_one_of_schema(value)
+            if one_of_schema is not None:
+                one_of_state = self.evolve(one_of_schema)._build_trusted_state(
+                    value
+                )
+
+        if "anyOf" in self.schema:
+            any_of_schemas = tuple(self.iter_any_of_schemas(value))
+            if any_of_schemas:
+                any_of_states = tuple(
+                    self.evolve(any_of_schema)._build_trusted_state(value)
+                    for any_of_schema in any_of_schemas
+                )
+
+        if "allOf" in self.schema:
+            all_of_schemas = tuple(self.iter_all_of_schemas(value))
+            if all_of_schemas:
+                all_of_states = tuple(
+                    self.evolve(all_of_schema)._build_trusted_state(value)
+                    for all_of_schema in all_of_schemas
+                )
+
+        if primitive_type == "object" and isinstance(value, dict):
+            for prop_name, prop_schema in self._get_input_properties(
+                value
+            ).items():
+                property_states[prop_name] = self.evolve(
+                    prop_schema
+                )._build_trusted_state(value[prop_name])
+            for (
+                prop_name,
+                additional_prop_schema,
+            ) in self._get_input_additional_properties(value).items():
+                additional_property_states[prop_name] = self.evolve(
+                    additional_prop_schema
+                )._build_trusted_state(value[prop_name])
+        elif primitive_type == "array" and isinstance(value, list):
+            item_states = tuple(self.iter_item_states(value))
+
+        return ValidationState(
+            self.schema,
+            value,
+            primitive_type=primitive_type,
+            property_states=property_states,
+            additional_property_states=additional_property_states,
+            item_states=item_states,
+            one_of_state=one_of_state,
+            any_of_states=any_of_states,
+            all_of_states=all_of_states,
+        )
 
     def evolve(self, schema: SchemaPath) -> "SchemaValidator":
         cls = self.__class__
@@ -103,6 +169,54 @@ class SchemaValidator:
             return schema_type
         # OpenAPI 3.0: None is not a primitive type so None value will not find any type
         return None
+
+    def iter_item_states(self, value: list[Any]) -> Iterator[ValidationState]:
+        if "items" not in self.schema:
+            any_schema = SchemaPath.from_dict({})
+            any_validator = self.evolve(any_schema)
+            for item in value:
+                yield any_validator._build_trusted_state(item)
+            return
+
+        items_schema = self.schema / "items"
+        item_validator = self.evolve(items_schema)
+        for item in value:
+            yield item_validator._build_trusted_state(item)
+
+    def _get_input_properties(
+        self, value: dict[str, Any]
+    ) -> dict[str, SchemaPath]:
+        if "properties" not in self.schema:
+            return {}
+
+        properties: dict[str, SchemaPath] = {}
+        for prop_name, prop_schema in (self.schema / "properties").items():
+            if not isinstance(prop_name, str):
+                continue
+            if prop_name not in value:
+                continue
+            properties[prop_name] = prop_schema
+
+        return properties
+
+    def _get_input_additional_properties(
+        self, value: dict[str, Any]
+    ) -> dict[str, SchemaPath]:
+        additional_properties = self.schema.get("additionalProperties", True)
+        if additional_properties is False:
+            return {}
+
+        property_names = set(self._get_input_properties(value))
+        if additional_properties is True:
+            additional_prop_schema = SchemaPath.from_dict({"nullable": True})
+        else:
+            additional_prop_schema = self.schema / "additionalProperties"
+
+        return {
+            prop_name: additional_prop_schema
+            for prop_name in value
+            if prop_name not in property_names
+        }
 
     def iter_valid_schemas(self, value: Any) -> Iterator[SchemaPath]:
         yield self.schema

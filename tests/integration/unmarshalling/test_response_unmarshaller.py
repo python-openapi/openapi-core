@@ -227,3 +227,57 @@ class TestResponseUnmarshaller:
         assert result.data.data[0].id == 1
         assert result.data.data[0].name == "Sparky"
         assert result.headers == {}
+
+    def test_get_pets_validates_response_schema_once(
+        self, response_unmarshaller
+    ):
+        request = MockRequest(self.host_url, "get", "/v1/pets")
+        response_json = {
+            "data": [
+                {
+                    "id": 1,
+                    "name": "Sparky",
+                    "ears": {
+                        "healthy": True,
+                    },
+                },
+            ],
+        }
+        response_data = json.dumps(response_json).encode()
+        response = MockResponse(response_data)
+
+        calls = []
+        monkeypatch = pytest.MonkeyPatch()
+        original_create = (
+            response_unmarshaller.schema_unmarshallers_factory.create
+        )
+
+        def spy_create(*args, **kwargs):
+            schema_unmarshaller = original_create(*args, **kwargs)
+            original_method = (
+                schema_unmarshaller.schema_validator.validate_state
+            )
+
+            def spy_validate_state(value):
+                calls.append(schema_unmarshaller.schema)
+                return original_method(value)
+
+            monkeypatch.setattr(
+                schema_unmarshaller.schema_validator,
+                "validate_state",
+                spy_validate_state,
+            )
+            return schema_unmarshaller
+
+        monkeypatch.setattr(
+            response_unmarshaller.schema_unmarshallers_factory,
+            "create",
+            spy_create,
+        )
+        try:
+            result = response_unmarshaller.unmarshal(request, response)
+        finally:
+            monkeypatch.undo()
+
+        assert result.errors == []
+        assert len(calls) == 1
