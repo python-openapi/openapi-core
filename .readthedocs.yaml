@@ -13,6 +13,7 @@ build:
   os: ubuntu-24.04
   tools:
     python: "3.12"
+    nodejs: "20"
   jobs:
     post_system_dependencies:
       - asdf plugin-add poetry
@@ -20,3 +21,6 @@ build:
       - asdf global poetry 2.2.1
     post_install:
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --no-interaction --with docs
+    post_build:
+      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry run make docs-publish
+      - mkdir -p $READTHEDOCS_OUTPUT/html && cp -r docs_build/* $READTHEDOCS_OUTPUT/html/
