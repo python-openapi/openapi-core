@@ -1,13 +1,20 @@
 # Read the Docs configuration file
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+# https://docs.readthedocs.io/en/stable/config-file/v2.html
+#
+# Pipeline: builds the docs (MkDocs Material), then runs Pagefind over the
+# output and copies docs/manifest.json next to it. The published artifact is
+# consumed by the python-openapi.org website shell, which proxies docs paths
+# from the shell origin to RTD and merges the per-project Pagefind bundles
+# in the browser at search time. See ../web/specs/001-openapi-website for
+# the website plan and the docs-theme-contract.md.
 version: 2
 
-# Build documentation with Mkdocs
 mkdocs:
-   configuration: mkdocs.yml
+  configuration: mkdocs.yml
 
-# Optionally build your docs in additional formats such as PDF and ePub
-formats: all
+# HTML only — the website shell consumes HTML + manifest + Pagefind. PDF/ePub
+# builds are not supported by the current MkDocs plugin set.
+formats: []
 
 build:
   os: ubuntu-24.04
@@ -21,6 +28,11 @@ build:
       - asdf global poetry 2.2.1
     post_install:
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --no-interaction --with docs
+    # Replaces RTD's declarative MkDocs output: `make docs-publish` rebuilds
+    # the docs into docs_build/, runs Pagefind into docs_build/pagefind/, and
+    # copies docs/manifest.json into docs_build/. We then move docs_build/*
+    # into $READTHEDOCS_OUTPUT/html/ so the published artifact contains both
+    # the manifest and the Pagefind bundle expected by the website shell.
     post_build:
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry run make docs-publish
       - mkdir -p $READTHEDOCS_OUTPUT/html && cp -r docs_build/* $READTHEDOCS_OUTPUT/html/

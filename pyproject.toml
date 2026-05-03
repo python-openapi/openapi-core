@@ -111,9 +111,8 @@ ipykernel = "^7.2.0"
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.1"
 mkdocstrings = {extras = ["python"], version = ">=0.26.1,<1.1.0"}
-mkdocstrings-python = ">=1.16.2,<2.0.0"
+mkdocstrings-python = ">=2.0.0,<3.0.0"
 mkdocs-material = "^9.5.34"
-griffe = ">=1.14,<2.0"
 griffe-typingdoc = ">=0.2.7,<0.4.0"
 
 [tool.pytest.ini_options]

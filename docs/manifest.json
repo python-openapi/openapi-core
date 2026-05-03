@@ -3,7 +3,7 @@
   "projectSlug": "openapi-core",
   "displayName": "openapi-core",
   "themeContractVersion": 1,
-  "latestStableVersion": "0.23.1",
+  "latestStableVersion": "latest",
   "routes": {
     "publicProjectPath": "/openapi-core",
     "latestDocsPath": "/openapi-core/docs/",
@@ -11,26 +11,15 @@
   },
   "versions": [
     {
-      "version": "0.23.1",
-      "label": "0.23.1",
+      "version": "latest",
+      "label": "latest",
       "channel": "stable",
       "isLatestStable": true,
-      "publicBasePath": "/openapi-core/docs/0.23.1/",
-      "originUrl": "https://openapi-core.readthedocs.io/en/spike-pagefind-smoke/",
-      "sitemapUrl": "https://openapi-core.readthedocs.io/en/spike-pagefind-smoke/sitemap.xml",
-      "searchBundleUrl": "https://openapi-core.readthedocs.io/en/spike-pagefind-smoke/pagefind/",
-      "publishedAt": "2026-04-29T00:00:00Z"
-    },
-    {
-      "version": "next",
-      "label": "next",
-      "channel": "next",
-      "isLatestStable": false,
-      "publicBasePath": "/openapi-core/docs/next/",
-      "originUrl": "https://openapi-core.readthedocs.io/en/spike-pagefind-smoke/",
-      "sitemapUrl": "https://openapi-core.readthedocs.io/en/spike-pagefind-smoke/sitemap.xml",
-      "searchBundleUrl": "https://openapi-core.readthedocs.io/en/spike-pagefind-smoke/pagefind/",
-      "publishedAt": "2026-04-29T00:00:00Z"
+      "publicBasePath": "/openapi-core/docs/latest/",
+      "originUrl": "https://openapi-core.readthedocs.io/en/latest/",
+      "sitemapUrl": "https://openapi-core.readthedocs.io/en/latest/sitemap.xml",
+      "searchBundleUrl": "https://openapi-core.readthedocs.io/en/latest/pagefind/",
+      "publishedAt": "2026-05-03T00:00:00Z"
     }
   ]
 }
