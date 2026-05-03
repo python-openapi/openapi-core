@@ -1,8 +1,9 @@
 site_name: OpenAPI-core
 site_description: OpenAPI for Python
-site_url: https://openapi-core.readthedocs.io/
+site_url: https://python-openapi.org/openapi-core/docs/latest/
 theme:
   name: material
+  custom_dir: docs/overrides
   icon:
     repo: fontawesome/brands/github-alt
   palette:

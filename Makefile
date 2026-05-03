@@ -34,6 +34,14 @@ test-cleanup: test-cache-cleanup reports-cleanup
 docs-html:
 	python -m mkdocs build --clean --site-dir docs_build --config-file mkdocs.yml
 
+docs-pagefind: docs-html
+	@npx --yes pagefind --site docs_build
+
+docs-manifest:
+	@cp docs/manifest.json docs_build/manifest.json
+
+docs-publish: docs-html docs-pagefind docs-manifest
+
 docs-cleanup:
 	@rm -rf docs_build
 

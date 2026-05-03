@@ -1,0 +1,25 @@
+{
+  "manifestVersion": 1,
+  "projectSlug": "openapi-core",
+  "displayName": "openapi-core",
+  "themeContractVersion": 1,
+  "latestStableVersion": "latest",
+  "routes": {
+    "publicProjectPath": "/openapi-core",
+    "latestDocsPath": "/openapi-core/docs/",
+    "versionedDocsPrefix": "/openapi-core/docs/"
+  },
+  "versions": [
+    {
+      "version": "latest",
+      "label": "latest",
+      "channel": "stable",
+      "isLatestStable": true,
+      "publicBasePath": "/openapi-core/docs/latest/",
+      "originUrl": "https://openapi-core.readthedocs.io/en/latest/",
+      "sitemapUrl": "https://openapi-core.readthedocs.io/en/latest/sitemap.xml",
+      "searchBundleUrl": "https://openapi-core.readthedocs.io/en/latest/pagefind/",
+      "publishedAt": "2026-05-03T00:00:00Z"
+    }
+  ]
+}
