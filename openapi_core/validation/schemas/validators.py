@@ -294,31 +294,15 @@ class SchemaValidator:
         if "oneOf" not in self.schema:
             return None
 
-        one_of_schemas = self.schema / "oneOf"
-        for subschema in one_of_schemas:
-            validator = self.evolve(subschema)
-            try:
-                test_value = value
-                # Only cast if caster provided (opt-in behavior)
-                if caster is not None:
-                    try:
-                        # Convert to dict if it's not exactly a plain dict
-                        # (e.g., ImmutableMultiDict from werkzeug)
-                        if type(value) is not dict:
-                            test_value = dict(value)
-                        else:
-                            test_value = value
-                        test_value = caster.evolve(subschema).cast(test_value)
-                    except (ValueError, TypeError, Exception):
-                        # If casting fails, try validation with original value
-                        # We catch generic Exception to handle CastError without circular import
-                        test_value = value
-
-                validator.validate(test_value)
-            except ValidateError:
-                continue
-            else:
-                return subschema
+        matched_schemas = list(
+            self.iter_matching_composed_schemas(
+                "oneOf",
+                value,
+                caster=caster,
+            )
+        )
+        if len(matched_schemas) == 1:
+            return matched_schemas[0]
 
         log.warning("valid oneOf schema not found")
         return None

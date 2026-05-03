@@ -223,10 +223,68 @@ class MediaTypeDeserializer:
         if self.schema is None or "oneOf" not in self.schema:
             return None
 
+        matches: list[FormMediaSchemaMatch] = []
         for subschema in self.schema / "oneOf":
             match = self.get_form_media_schema_match(subschema, location)
             if match is not None:
-                return match
+                matches.append(match)
+
+        if len(matches) == 1:
+            return matches[0]
+
+        return self.get_preferred_form_media_one_of_match(matches)
+
+    def get_preferred_form_media_one_of_match(
+        self,
+        matches: list[FormMediaSchemaMatch],
+    ) -> Optional[FormMediaSchemaMatch]:
+        if len(matches) < 2:
+            return None
+
+        preferred_match = matches[0]
+        for match in matches[1:]:
+            preferred_match = self.prefer_form_media_one_of_match(
+                preferred_match,
+                match,
+            )
+            if preferred_match is None:
+                return None
+
+        return preferred_match
+
+    def prefer_form_media_one_of_match(
+        self,
+        current: FormMediaSchemaMatch,
+        new: FormMediaSchemaMatch,
+    ) -> Optional[FormMediaSchemaMatch]:
+        current_keys = set(current.decoded_candidate)
+        new_keys = set(new.decoded_candidate)
+        if current_keys != new_keys:
+            return None
+
+        preferred = current
+        preferred_has_binary = False
+
+        for prop_name in current_keys:
+            current_value = current.decoded_candidate[prop_name]
+            new_value = new.decoded_candidate[prop_name]
+
+            if current_value == new_value:
+                continue
+
+            if isinstance(current_value, bytes) and isinstance(new_value, str):
+                preferred_has_binary = True
+                continue
+
+            if isinstance(current_value, str) and isinstance(new_value, bytes):
+                preferred = new
+                preferred_has_binary = True
+                continue
+
+            return None
+
+        if preferred_has_binary:
+            return preferred
 
         return None
 

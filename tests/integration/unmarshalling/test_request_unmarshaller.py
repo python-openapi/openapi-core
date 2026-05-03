@@ -582,13 +582,6 @@ class TestRequestUnmarshaller:
         assert result.errors == []
         assert result.body == {"a": 1, "b": True}
 
-    @pytest.mark.xfail(
-        reason=(
-            "Form-media oneOf behavior is greedy and selects the first "
-            "matching branch instead of enforcing oneOf exclusivity"
-        ),
-        strict=True,
-    )
     def test_request_body_urlencoded_oneof_rejects_ambiguous_matches(self):
         from openapi_core import OpenAPI
 

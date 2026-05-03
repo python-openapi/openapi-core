@@ -721,6 +721,38 @@ class TestMediaTypeDeserializer:
             "b": True,
         }
 
+    def test_urlencoded_oneof_does_not_match_ambiguous_fields(
+        self, spec, deserializer_factory
+    ):
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": ["a"],
+                    "properties": {
+                        "a": {"type": "string"},
+                    },
+                },
+                {
+                    "type": "object",
+                    "required": ["b"],
+                    "properties": {
+                        "b": {"type": "string"},
+                    },
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
+        deserializer = deserializer_factory(
+            mimetype, schema=schema, schema_validator=schema_validator
+        )
+
+        result = deserializer.deserialize(b"a=x&b=y")
+
+        assert result == {}
+
     def test_multipart_oneof_binary_field(self, spec, deserializer_factory):
         mimetype = "multipart/form-data"
         schema_dict = {
