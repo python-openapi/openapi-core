@@ -15,7 +15,7 @@ class StyleDeserializer:
         style: str,
         explode: bool,
         name: str,
-        schema_type: str,
+        schema_type: str | list[str],
         caster: SchemaCaster,
         deserializer_callable: Optional[DeserializerCallable] = None,
     ):

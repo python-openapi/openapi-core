@@ -9,7 +9,7 @@ class CastError(DeserializeError):
     """Schema cast operation error"""
 
     value: Any
-    type: str | None
+    type: str | list[str] | None
 
     def __str__(self) -> str:
         return f"Failed to cast value to {self.type} type: {self.value}"

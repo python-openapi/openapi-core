@@ -235,7 +235,7 @@ class SchemaCaster:
         ):
             return value
 
-        schema_type = (self.schema / "type").read_str(None)
+        schema_type = (self.schema / "type").read_str_or_list(None)
         type_caster = self.get_type_caster(schema_type)
 
         if value is None:
