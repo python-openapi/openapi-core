@@ -68,6 +68,26 @@ class TestSchemaCaster:
             caster_factory(schema).cast(value)
 
     @pytest.mark.parametrize(
+        "schema_types,value",
+        [
+            (["string", "number", "boolean"], "12567"),
+            (["integer", "string"], "42"),
+            (["number", "string"], "3.14"),
+            (["boolean", "string"], "true"),
+        ],
+    )
+    def test_oas31_multi_type(self, caster_factory, schema_types, value):
+        """Test OAS 3.1 list-style `type`."""
+        spec = {
+            "type": schema_types,
+        }
+        schema = SchemaPath.from_dict(spec)
+
+        result = caster_factory(schema).cast(value)
+
+        assert result == value
+
+    @pytest.mark.parametrize(
         "composite_type,schema_type,value,expected",
         [
             ("allOf", "integer", "2", 2),

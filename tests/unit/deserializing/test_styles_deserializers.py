@@ -444,6 +444,34 @@ class TestParameterStyleDeserializer:
 
         assert result == expected
 
+    @pytest.mark.parametrize(
+        "schema_types,value,expected",
+        [
+            (["string", "number", "boolean"], "12567", "12567"),
+            (["integer", "string"], "42", "42"),
+        ],
+    )
+    def test_oas31_multi_type_form(
+        self, deserializer_factory, schema_types, value, expected
+    ):
+        """Test OAS 3.1 multi-type support for form style parameters."""
+        name = "param"
+        spec = {
+            "name": name,
+            "in": "query",
+            "explode": True,
+            "schema": {
+                "type": schema_types,
+            },
+        }
+        param = SchemaPath.from_dict(spec)
+        deserializer = deserializer_factory(param)
+        location = {name: value}
+
+        result = deserializer.deserialize(location)
+
+        assert result == expected
+
     def test_deep_object_valid(self, deserializer_factory):
         name = "param"
         spec = {

@@ -25,7 +25,7 @@ def split(value: str, separator: str = ",", step: int = 1) -> List[str]:
 def delimited_loads(
     explode: bool,
     name: str,
-    schema_type: str,
+    schema_type: str | list[str],
     location: Mapping[str, Any],
     delimiter: str,
 ) -> Any:
@@ -46,7 +46,10 @@ def delimited_loads(
 
 
 def matrix_loads(
-    explode: bool, name: str, schema_type: str, location: Mapping[str, Any]
+    explode: bool,
+    name: str,
+    schema_type: str | list[str],
+    location: Mapping[str, Any],
 ) -> Any:
     if explode == False:
         m = re.match(rf"^;{name}=(.*)$", location[f";{name}"])
@@ -83,7 +86,10 @@ def matrix_loads(
 
 
 def label_loads(
-    explode: bool, name: str, schema_type: str, location: Mapping[str, Any]
+    explode: bool,
+    name: str,
+    schema_type: str | list[str],
+    location: Mapping[str, Any],
 ) -> Any:
     if explode == False:
         value = location[f".{name}"]
@@ -113,7 +119,10 @@ def label_loads(
 
 
 def form_loads(
-    explode: bool, name: str, schema_type: str, location: Mapping[str, Any]
+    explode: bool,
+    name: str,
+    schema_type: str | list[str],
+    location: Mapping[str, Any],
 ) -> Any:
     explode_type = (explode, schema_type)
     # color=blue,black,brown
@@ -144,7 +153,10 @@ def form_loads(
 
 
 def simple_loads(
-    explode: bool, name: str, schema_type: str, location: Mapping[str, Any]
+    explode: bool,
+    name: str,
+    schema_type: str | list[str],
+    location: Mapping[str, Any],
 ) -> Any:
     value = location[name]
 
@@ -167,7 +179,10 @@ def simple_loads(
 
 
 def space_delimited_loads(
-    explode: bool, name: str, schema_type: str, location: Mapping[str, Any]
+    explode: bool,
+    name: str,
+    schema_type: str | list[str],
+    location: Mapping[str, Any],
 ) -> Any:
     return delimited_loads(
         explode, name, schema_type, location, delimiter="%20"
@@ -175,13 +190,19 @@ def space_delimited_loads(
 
 
 def pipe_delimited_loads(
-    explode: bool, name: str, schema_type: str, location: Mapping[str, Any]
+    explode: bool,
+    name: str,
+    schema_type: str | list[str],
+    location: Mapping[str, Any],
 ) -> Any:
     return delimited_loads(explode, name, schema_type, location, delimiter="|")
 
 
 def deep_object_loads(
-    explode: bool, name: str, schema_type: str, location: Mapping[str, Any]
+    explode: bool,
+    name: str,
+    schema_type: str | list[str],
+    location: Mapping[str, Any],
 ) -> Any:
     explode_type = (explode, schema_type)
 

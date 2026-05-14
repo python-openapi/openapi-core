@@ -28,7 +28,7 @@ class StyleDeserializersFactory:
     ) -> StyleDeserializer:
         deserialize_callable = self.style_deserializers.get(style)
         caster = self.schema_casters_factory.create(spec, schema)
-        schema_type = (schema / "type").read_str("")
+        schema_type = (schema / "type").read_str_or_list("")
         return StyleDeserializer(
             style, explode, name, schema_type, caster, deserialize_callable
         )
