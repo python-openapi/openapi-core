@@ -23,6 +23,7 @@ from openapi_core.schema.parameters import get_style_and_explode
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList
 from openapi_core.schema.schemas import get_properties
+from openapi_core.schema.types import pick_style_type
 from openapi_core.validation.schemas.exceptions import ValidateError
 from openapi_core.validation.schemas.validators import SchemaValidator
 
@@ -319,7 +320,12 @@ class MediaTypeDeserializer:
             prop_schema,
             mimetype=prop_content_type,
         )
-        prop_schema_type = (prop_schema / "type").read_str("")
+        # Use ``read_str_or_list`` so OAS 3.1/3.2 multi-type properties
+        # (e.g. ``type: ["array", "null"]``) still trigger the multipart
+        # fan-out branch.
+        prop_schema_type = pick_style_type(
+            (prop_schema / "type").read_str_or_list("")
+        )
         if (
             self.mimetype.startswith("multipart")
             and prop_schema_type == "array"

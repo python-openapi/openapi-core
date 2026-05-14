@@ -186,6 +186,35 @@ class ObjectCaster(PrimitiveCaster):
         return value
 
 
+class MultiTypeCaster(PrimitiveCaster):
+    """Cast a value against a multi-type schema (OAS 3.1/3.2 ``type: [..]``).
+
+    Tries each declared type in order and returns the first cast that
+    succeeds. ``"null"`` entries are skipped — null values are short-circuited
+    upstream by ``SchemaCaster.cast`` before this caster is dispatched.
+
+    Raises ``CastError`` with the full type list when no candidate succeeds,
+    so callers see one failure with the complete declared set rather than a
+    storm of per-candidate errors.
+    """
+
+    def cast(self, value: Any) -> Any:
+        schema_types = (self.schema / "type").read_str_or_list([])
+        if isinstance(schema_types, str):
+            schema_types = [schema_types]
+        for candidate in schema_types:
+            if candidate == "null":
+                continue
+            try:
+                candidate_caster = self.schema_caster.get_type_caster(
+                    candidate
+                )
+                return candidate_caster(value)
+            except (CastError, ValueError, TypeError):
+                continue
+        raise CastError(value, list(schema_types))
+
+
 class TypesCaster:
     casters: Mapping[str, Type[PrimitiveCaster]] = {}
     multi: Optional[Type[PrimitiveCaster]] = None

@@ -1,7 +1,9 @@
 import pytest
 from jsonschema_path import SchemaPath
 
+from openapi_core.casting.schemas import oas30_write_schema_casters_factory
 from openapi_core.casting.schemas import oas31_schema_casters_factory
+from openapi_core.casting.schemas import oas32_schema_casters_factory
 from openapi_core.casting.schemas.exceptions import CastError
 
 
@@ -68,16 +70,26 @@ class TestSchemaCaster:
             caster_factory(schema).cast(value)
 
     @pytest.mark.parametrize(
-        "schema_types,value",
+        "schema_types,value,expected",
         [
-            (["string", "number", "boolean"], "12567"),
-            (["integer", "string"], "42"),
-            (["number", "string"], "3.14"),
-            (["boolean", "string"], "true"),
+            # First candidate wins when it succeeds.
+            (["string", "number", "boolean"], "12567", "12567"),
+            (["integer", "string"], "42", 42),
+            (["number", "string"], "3.14", 3.14),
+            (["boolean", "string"], "true", True),
+            # Second candidate wins when the first one cannot coerce.
+            (["integer", "string"], "abc", "abc"),
+            (["boolean", "string"], "maybe", "maybe"),
+            # ``null`` entries are skipped — they are short-circuited
+            # upstream by ``SchemaCaster.cast`` before MultiTypeCaster runs.
+            (["integer", "null"], "42", 42),
+            (["null", "integer"], "42", 42),
         ],
     )
-    def test_oas31_multi_type(self, caster_factory, schema_types, value):
-        """Test OAS 3.1 list-style `type`."""
+    def test_oas31_multi_type(
+        self, caster_factory, schema_types, value, expected
+    ):
+        """OAS 3.1 list-style ``type`` coerces to the first matching candidate."""
         spec = {
             "type": schema_types,
         }
@@ -85,7 +97,91 @@ class TestSchemaCaster:
 
         result = caster_factory(schema).cast(value)
 
-        assert result == value
+        assert result == expected
+        assert type(result) is type(expected)
+
+    def test_oas31_multi_type_no_candidate_raises(self, caster_factory):
+        """When no candidate succeeds, raise once with the full type list."""
+        spec = {"type": ["integer", "boolean"]}
+        schema = SchemaPath.from_dict(spec)
+
+        with pytest.raises(CastError) as excinfo:
+            caster_factory(schema).cast("not-a-number")
+
+        # ``CastError.type`` carries the full declared list, not just the
+        # last attempted candidate.
+        assert excinfo.value.type == ["integer", "boolean"]
+
+    def test_oas31_multi_type_null_value(self, caster_factory):
+        """``None`` is short-circuited by SchemaCaster.cast, regardless of
+        whether MultiTypeCaster is dispatched."""
+        spec = {"type": ["integer", "null"]}
+        schema = SchemaPath.from_dict(spec)
+
+        assert caster_factory(schema).cast(None) is None
+
+    def test_oas31_multi_type_nested_object(self, caster_factory):
+        """A property declared multi-type is recursively coerced inside an
+        object."""
+        spec = {
+            "type": "object",
+            "properties": {
+                "count": {"type": ["integer", "null"]},
+                "name": {"type": ["string", "null"]},
+            },
+        }
+        schema = SchemaPath.from_dict(spec)
+
+        result = caster_factory(schema).cast({"count": "5", "name": "foo"})
+
+        assert result == {"count": 5, "name": "foo"}
+        assert type(result["count"]) is int
+
+    def test_oas31_multi_type_nested_array_items(self, caster_factory):
+        """Array items declared multi-type are coerced per element."""
+        spec = {
+            "type": "array",
+            "items": {"type": ["integer", "string"]},
+        }
+        schema = SchemaPath.from_dict(spec)
+
+        result = caster_factory(schema).cast(["1", "2", "abc"])
+
+        assert result == [1, 2, "abc"]
+
+    def test_oas31_multi_type_object_or_null(self, caster_factory):
+        """An ``object``-or-null schema still walks properties when the value
+        is an object."""
+        spec = {
+            "type": ["object", "null"],
+            "properties": {"count": {"type": "integer"}},
+        }
+        schema = SchemaPath.from_dict(spec)
+
+        result = caster_factory(schema).cast({"count": "7"})
+
+        assert result == {"count": 7}
+
+    def test_oas32_multi_type(self):
+        """OAS 3.2 inherits the OAS 3.1 multi-type behavior."""
+        spec_dict = {}
+        spec = SchemaPath.from_dict(spec_dict)
+        schema = SchemaPath.from_dict({"type": ["integer", "string"]})
+
+        result = oas32_schema_casters_factory.create(spec, schema).cast("42")
+
+        assert result == 42
+
+    def test_oas30_rejects_multi_type(self):
+        """OAS 3.0 has no notion of multi-type — dispatch must raise."""
+        spec_dict = {}
+        spec = SchemaPath.from_dict(spec_dict)
+        schema = SchemaPath.from_dict({"type": ["string", "null"]})
+
+        with pytest.raises(TypeError, match="multiple types"):
+            oas30_write_schema_casters_factory.create(spec, schema).cast(
+                "anything"
+            )
 
     @pytest.mark.parametrize(
         "composite_type,schema_type,value,expected",
