@@ -23,6 +23,7 @@ from openapi_core.schema.parameters import get_style_and_explode
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList
 from openapi_core.schema.schemas import get_properties
+from openapi_core.validation.schemas.exceptions import ValidateError
 from openapi_core.validation.schemas.validators import SchemaValidator
 
 if TYPE_CHECKING:
@@ -126,6 +127,8 @@ class MediaTypeDeserializer:
             schema=schema,
             schema_validator=schema_validator,
             schema_caster=schema_caster,
+            encoding=self.encoding,
+            **self.parameters,
         )
 
     def decode(
@@ -137,27 +140,21 @@ class MediaTypeDeserializer:
 
         # For urlencoded/multipart, use caster for oneOf/anyOf detection if validator available
         if self.schema_validator is not None:
-            one_of_schema = self.schema_validator.get_one_of_schema(
-                location, caster=self.schema_caster
-            )
+            one_of_schema = self.get_composed_one_of_schema(location)
             if one_of_schema is not None:
                 one_of_properties = self.evolve(one_of_schema).decode(
                     location, schema_only=True
                 )
                 properties.update(one_of_properties)
 
-            any_of_schemas = self.schema_validator.iter_any_of_schemas(
-                location, caster=self.schema_caster
-            )
+            any_of_schemas = self.iter_composed_any_of_schemas(location)
             for any_of_schema in any_of_schemas:
                 any_of_properties = self.evolve(any_of_schema).decode(
                     location, schema_only=True
                 )
                 properties.update(any_of_properties)
 
-            all_of_schemas = self.schema_validator.iter_all_of_schemas(
-                location
-            )
+            all_of_schemas = self.iter_composed_all_of_schemas(location)
             for all_of_schema in all_of_schemas:
                 all_of_properties = self.evolve(all_of_schema).decode(
                     location, schema_only=True
@@ -220,6 +217,13 @@ class MediaTypeDeserializer:
         location: Mapping[str, Any],
         prep_encoding: SchemaPath,
     ) -> Any:
+        if self.mimetype.startswith("multipart"):
+            location = self.normalize_multipart_form_location(
+                prop_name,
+                prop_schema,
+                location,
+            )
+
         prop_style, prop_explode = get_style_and_explode(
             prep_encoding, default_location="query"
         )
@@ -227,6 +231,81 @@ class MediaTypeDeserializer:
             self.spec, prop_schema, prop_style, prop_explode, name=prop_name
         )
         return prop_deserializer.deserialize(location)
+
+    def normalize_multipart_form_location(
+        self,
+        prop_name: str,
+        prop_schema: SchemaPath,
+        location: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        if not self.should_decode_multipart_form_value(prop_schema):
+            return location
+
+        if prop_name not in location:
+            return location
+
+        normalized = dict(location)
+        value = location[prop_name]
+
+        if isinstance(value, bytes):
+            normalized[prop_name] = self.decode_multipart_form_value(value)
+            return normalized
+
+        if isinstance(value, list):
+            normalized[prop_name] = [
+                (
+                    self.decode_multipart_form_value(item)
+                    if isinstance(item, bytes)
+                    else item
+                )
+                for item in value
+            ]
+            return normalized
+
+        if isinstance(location, SuportsGetAll):
+            values = location.getall(prop_name)
+            if any(isinstance(item, bytes) for item in values):
+                normalized[prop_name] = [
+                    (
+                        self.decode_multipart_form_value(item)
+                        if isinstance(item, bytes)
+                        else item
+                    )
+                    for item in values
+                ]
+                return normalized
+
+        if isinstance(location, SuportsGetList):
+            values = location.getlist(prop_name)
+            if any(isinstance(item, bytes) for item in values):
+                normalized[prop_name] = [
+                    (
+                        self.decode_multipart_form_value(item)
+                        if isinstance(item, bytes)
+                        else item
+                    )
+                    for item in values
+                ]
+
+        return normalized
+
+    def should_decode_multipart_form_value(
+        self,
+        prop_schema: SchemaPath,
+    ) -> bool:
+        schema_type = (prop_schema / "type").read_str(None)
+        schema_format = (prop_schema / "format").read_str(None)
+
+        if schema_type in ["integer", "number", "boolean"]:
+            return True
+
+        return schema_type == "string" and schema_format != "binary"
+
+    def decode_multipart_form_value(self, value: bytes) -> str:
+        try:
+            return value.decode("utf-8")
+        except UnicodeDecodeError:
+            return value.decode("ASCII", errors="surrogateescape")
 
     def decode_property_content_type(
         self,
@@ -253,3 +332,76 @@ class MediaTypeDeserializer:
                 return list(map(prop_deserializer.deserialize, value))
 
         return prop_deserializer.deserialize(location[prop_name])
+
+    def get_composed_one_of_schema(
+        self, location: Mapping[str, Any]
+    ) -> Optional[SchemaPath]:
+        assert self.schema_validator is not None
+
+        if not self.mimetype.startswith("multipart"):
+            return self.schema_validator.get_one_of_schema(
+                location, caster=self.schema_caster
+            )
+
+        if self.schema is None or "oneOf" not in self.schema:
+            return None
+
+        for subschema in self.schema / "oneOf":
+            if self.is_decoded_subschema_valid(subschema, location):
+                return subschema
+
+        return None
+
+    def iter_composed_any_of_schemas(
+        self, location: Mapping[str, Any]
+    ) -> list[SchemaPath]:
+        assert self.schema_validator is not None
+
+        if not self.mimetype.startswith("multipart"):
+            return list(
+                self.schema_validator.iter_any_of_schemas(
+                    location, caster=self.schema_caster
+                )
+            )
+
+        if self.schema is None or "anyOf" not in self.schema:
+            return []
+
+        return [
+            subschema
+            for subschema in self.schema / "anyOf"
+            if self.is_decoded_subschema_valid(subschema, location)
+        ]
+
+    def iter_composed_all_of_schemas(
+        self, location: Mapping[str, Any]
+    ) -> list[SchemaPath]:
+        assert self.schema_validator is not None
+
+        if not self.mimetype.startswith("multipart"):
+            return list(self.schema_validator.iter_all_of_schemas(location))
+
+        if self.schema is None or "allOf" not in self.schema:
+            return []
+
+        return [
+            subschema
+            for subschema in self.schema / "allOf"
+            if self.is_decoded_subschema_valid(subschema, location)
+        ]
+
+    def is_decoded_subschema_valid(
+        self,
+        subschema: SchemaPath,
+        location: Mapping[str, Any],
+    ) -> bool:
+        assert self.schema_validator is not None
+
+        deserializer = self.evolve(subschema)
+        candidate = deserializer.decode(location)
+        validator = self.schema_validator.evolve(subschema)
+        try:
+            validator.validate(candidate)
+        except ValidateError:
+            return False
+        return True

@@ -15,6 +15,7 @@ from openapi_core.unmarshalling.schemas.datatypes import FormatUnmarshaller
 from openapi_core.unmarshalling.schemas.datatypes import (
     FormatUnmarshallersDict,
 )
+from openapi_core.validation.schemas.datatypes import ValidationState
 from openapi_core.validation.schemas.validators import SchemaValidator
 
 log = logging.getLogger(__name__)
@@ -39,6 +40,25 @@ class ArrayUnmarshaller(PrimitiveUnmarshaller):
     def __call__(self, value: Any) -> Optional[List[Any]]:
         return list(map(self.items_unmarshaller.unmarshal, value))
 
+    def unmarshal_state(self, state: ValidationState) -> Optional[List[Any]]:
+        if state.item_states:
+            return [
+                self.items_unmarshaller.unmarshal_state(item_state)
+                for item_state in state.item_states
+            ]
+        # No per-item states means the item schema didn't need state
+        # (predicate said so). The outer validate() has already covered
+        # each item, so go through unmarshal_state with a bare state
+        # rather than unmarshal (which would re-validate).
+        items_unmarshaller = self.items_unmarshaller
+        items_schema = items_unmarshaller.schema
+        return [
+            items_unmarshaller.unmarshal_state(
+                ValidationState(schema=items_schema, value=item)
+            )
+            for item in state.value
+        ]
+
     @property
     def items_unmarshaller(self) -> "SchemaUnmarshaller":
         # sometimes we don't have any schema i.e. free-form objects
@@ -49,6 +69,14 @@ class ArrayUnmarshaller(PrimitiveUnmarshaller):
 class ObjectUnmarshaller(PrimitiveUnmarshaller):
     def __call__(self, value: Any) -> Any:
         properties = self._unmarshal_properties(value)
+
+        fields: Iterable[str] = properties and properties.keys() or []
+        object_class = self.object_class_factory.create(self.schema, fields)
+
+        return object_class(**properties)
+
+    def unmarshal_state(self, state: ValidationState) -> Any:
+        properties = self._unmarshal_properties_from_state(state)
 
         fields: Iterable[str] = properties and properties.keys() or []
         object_class = self.object_class_factory.create(self.schema, fields)
@@ -131,6 +159,105 @@ class ObjectUnmarshaller(PrimitiveUnmarshaller):
 
         return properties
 
+    def _unmarshal_properties_from_state(
+        self,
+        state: ValidationState,
+        schema_only: bool = False,
+    ) -> Any:
+        value = state.value
+        properties = {}
+
+        if state.one_of_state is not None:
+            one_of_properties = self.evolve(
+                state.one_of_state.schema
+            )._unmarshal_properties_from_state(
+                state.one_of_state,
+                schema_only=True,
+            )
+            properties.update(one_of_properties)
+
+        for any_of_state in state.any_of_states:
+            any_of_properties = self.evolve(
+                any_of_state.schema
+            )._unmarshal_properties_from_state(
+                any_of_state,
+                schema_only=True,
+            )
+            properties.update(any_of_properties)
+
+        for all_of_state in state.all_of_states:
+            all_of_properties = self.evolve(
+                all_of_state.schema
+            )._unmarshal_properties_from_state(
+                all_of_state,
+                schema_only=True,
+            )
+            properties.update(all_of_properties)
+
+        for prop_name, prop_schema in get_properties(self.schema).items():
+            child_state = state.property_states.get(prop_name)
+            if child_state is not None:
+                properties[prop_name] = self.schema_unmarshaller.evolve(
+                    prop_schema
+                ).unmarshal_state(child_state)
+                continue
+
+            try:
+                prop_value = value[prop_name]
+            except KeyError:
+                if "default" not in prop_schema:
+                    continue
+                # Default values were not part of the validated input,
+                # so they must go through full unmarshal (revalidates).
+                prop_value = (prop_schema / "default").read_value()
+                properties[prop_name] = self.schema_unmarshaller.evolve(
+                    prop_schema
+                ).unmarshal(prop_value)
+                continue
+            # Present-but-state-skipped: validate() already covered it,
+            # so a bare-state unmarshal_state avoids re-validation.
+            properties[prop_name] = self.schema_unmarshaller.evolve(
+                prop_schema
+            ).unmarshal_state(
+                ValidationState(schema=prop_schema, value=prop_value)
+            )
+
+        if schema_only:
+            return properties
+
+        additional_properties = self.schema.get("additionalProperties", True)
+        if additional_properties is not False:
+            if additional_properties is True:
+                additional_prop_schema = SchemaPath.from_dict(
+                    {"nullable": True}
+                )
+            else:
+                additional_prop_schema = self.schema / "additionalProperties"
+            additional_prop_unmarshaler = self.schema_unmarshaller.evolve(
+                additional_prop_schema
+            )
+            for prop_name, prop_value in value.items():
+                if prop_name in properties:
+                    continue
+                child_state = state.additional_property_states.get(prop_name)
+                if child_state is not None:
+                    properties[prop_name] = (
+                        additional_prop_unmarshaler.unmarshal_state(
+                            child_state
+                        )
+                    )
+                    continue
+                # State skipped for trivial child; validate() covered it.
+                properties[prop_name] = (
+                    additional_prop_unmarshaler.unmarshal_state(
+                        ValidationState(
+                            schema=additional_prop_schema, value=prop_value
+                        )
+                    )
+                )
+
+        return properties
+
 
 class MultiTypeUnmarshaller(PrimitiveUnmarshaller):
     def __call__(self, value: Any) -> Any:
@@ -142,6 +269,43 @@ class MultiTypeUnmarshaller(PrimitiveUnmarshaller):
             primitive_type
         )
         return unmarshaller(value)
+
+    def unmarshal_state(self, state: ValidationState) -> Any:
+        primitive_type = state.primitive_type
+        # Bare-state fast paths (used for sub-trees that didn't need
+        # full state-building) carry primitive_type=None. Fall back to
+        # computing it from the value -- it's the same work
+        # MultiTypeUnmarshaller.__call__ does, only when actually
+        # needed, and only for sub-trees too trivial to cache.
+        if primitive_type is None:
+            primitive_type = self.schema_validator.get_primitive_type(
+                state.value
+            )
+            if primitive_type is None:
+                return None
+        # If the matched validation result lives in a composed branch
+        # (oneOf / first anyOf), the type unmarshaller must be bound
+        # to THAT branch's schema -- not to ours -- so nested keywords
+        # like `items` / `properties` resolve against the matched
+        # branch. Without this, an outer "pure-oneOf" schema would
+        # dispatch to an ArrayUnmarshaller bound to a schema with no
+        # `items` keyword. Walk the chain to its leaf.
+        target_state = state
+        while target_state.one_of_state is not None:
+            target_state = target_state.one_of_state
+        if target_state is state and state.any_of_states:
+            target_state = state.any_of_states[0]
+        if target_state is not state:
+            target_unmarshaller = self.schema_unmarshaller.evolve(
+                target_state.schema
+            )
+            return target_unmarshaller.unmarshal_state(target_state)
+        unmarshaller = self.schema_unmarshaller.get_type_unmarshaller(
+            primitive_type
+        )
+        if hasattr(unmarshaller, "unmarshal_state"):
+            return unmarshaller.unmarshal_state(state)
+        return unmarshaller(state.value)
 
 
 class AnyUnmarshaller(MultiTypeUnmarshaller):
@@ -239,7 +403,11 @@ class SchemaUnmarshaller:
         self.formats_unmarshaller = formats_unmarshaller
 
     def unmarshal(self, value: Any) -> Any:
-        self.schema_validator.validate(value)
+        state = self.schema_validator.validate_state(value)
+        return self.unmarshal_state(state)
+
+    def unmarshal_state(self, state: ValidationState) -> Any:
+        value = state.value
 
         # skip unmarshalling for nullable in OpenAPI 3.0
         if value is None and (self.schema / "nullable").read_bool(
@@ -249,11 +417,14 @@ class SchemaUnmarshaller:
 
         schema_type = (self.schema / "type").read_str_or_list(None)
         type_unmarshaller = self.get_type_unmarshaller(schema_type)
-        typed = type_unmarshaller(value)
+        if hasattr(type_unmarshaller, "unmarshal_state"):
+            typed = type_unmarshaller.unmarshal_state(state)
+        else:
+            typed = type_unmarshaller(value)
         # skip finding format for None
         if typed is None:
             return None
-        schema_format = self.find_format(value)
+        schema_format = self.find_format(value, state=state)
         if schema_format is None:
             return typed
         # ignore incompatible formats
@@ -300,7 +471,21 @@ class SchemaUnmarshaller:
             self.formats_unmarshaller,
         )
 
-    def find_format(self, value: Any) -> Optional[str]:
+    def find_format(
+        self,
+        value: Any,
+        state: Optional[ValidationState] = None,
+    ) -> Optional[str]:
+        if state is not None:
+            for schema in self.iter_valid_schemas_from_state(state):
+                schema_validator = self.schema_validator.evolve(schema)
+                primitive_type = schema_validator.get_primitive_type(value)
+                if primitive_type != "string":
+                    continue
+                if "format" in schema:
+                    return (schema / "format").read_str()
+            return None
+
         for schema in self.schema_validator.iter_valid_schemas(value):
             schema_validator = self.schema_validator.evolve(schema)
             primitive_type = schema_validator.get_primitive_type(value)
@@ -309,3 +494,18 @@ class SchemaUnmarshaller:
             if "format" in schema:
                 return (schema / "format").read_str()
         return None
+
+    def iter_valid_schemas_from_state(
+        self,
+        state: ValidationState,
+    ) -> Iterable[SchemaPath]:
+        yield state.schema
+
+        if state.one_of_state is not None:
+            yield state.one_of_state.schema
+
+        for any_of_state in state.any_of_states:
+            yield any_of_state.schema
+
+        for all_of_state in state.all_of_states:
+            yield all_of_state.schema

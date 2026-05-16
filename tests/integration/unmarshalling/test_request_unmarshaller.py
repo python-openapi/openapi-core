@@ -544,3 +544,78 @@ class TestRequestUnmarshaller:
 
         assert result.errors == []
         assert result.body == {"file": b"\xff\xfe"}
+
+    def test_post_pets_validates_request_schema_once(
+        self, request_unmarshaller
+    ):
+        pet_name = "Cat"
+        pet_tag = "cats"
+        pet_street = "Piekna"
+        pet_city = "Warsaw"
+        data_json = {
+            "name": pet_name,
+            "tag": pet_tag,
+            "position": 2,
+            "address": {
+                "street": pet_street,
+                "city": pet_city,
+            },
+            "ears": {
+                "healthy": True,
+            },
+        }
+        data = json.dumps(data_json).encode()
+        headers = {
+            "api-key": self.api_key_encoded,
+        }
+        cookies = {
+            "user": "123",
+        }
+        request = MockRequest(
+            "https://development.gigantic-server.com",
+            "post",
+            "/v1/pets",
+            path_pattern="/v1/pets",
+            data=data,
+            headers=headers,
+            cookies=cookies,
+        )
+
+        calls = []
+        monkeypatch = pytest.MonkeyPatch()
+        original_create = (
+            request_unmarshaller.schema_unmarshallers_factory.create
+        )
+
+        def spy_create(*args, **kwargs):
+            schema_unmarshaller = original_create(*args, **kwargs)
+            original_method = (
+                schema_unmarshaller.schema_validator.validate_state
+            )
+
+            def spy_validate_state(value):
+                calls.append(schema_unmarshaller.schema)
+                return original_method(value)
+
+            monkeypatch.setattr(
+                schema_unmarshaller.schema_validator,
+                "validate_state",
+                spy_validate_state,
+            )
+            return schema_unmarshaller
+
+        monkeypatch.setattr(
+            request_unmarshaller.schema_unmarshallers_factory,
+            "create",
+            spy_create,
+        )
+        try:
+            result = request_unmarshaller.unmarshal(request)
+        finally:
+            monkeypatch.undo()
+
+        assert result.errors == []
+        body_calls = [
+            schema for schema in calls if "requestBody#content" in str(schema)
+        ]
+        assert len(body_calls) == 1

@@ -192,6 +192,21 @@ class BaseValidator:
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Tuple[Any, Optional[SchemaPath]]:
+        casted, schema = self._get_param_or_header_value_and_schema(
+            param_or_header, location, name=name
+        )
+
+        if schema is None:
+            return casted, None
+        self._validate_schema(schema, casted)
+        return casted, schema
+
+    def _get_param_or_header_value_and_schema(
+        self,
+        param_or_header: SchemaPath,
+        location: Mapping[str, Any],
+        name: Optional[str] = None,
+    ) -> Tuple[Any, Optional[SchemaPath]]:
         schema: Optional[SchemaPath] = None
         # Simple scenario
         if "content" not in param_or_header:
@@ -203,10 +218,6 @@ class BaseValidator:
             casted, schema = self._get_complex_param_or_header(
                 param_or_header, location, name=name
             )
-
-        if schema is None:
-            return casted, None
-        self._validate_schema(schema, casted)
         return casted, schema
 
     def _get_simple_param_or_header(

@@ -707,6 +707,56 @@ class TestMediaTypeDeserializer:
             "file": b"\xff\xfe",
         }
 
+    def test_multipart_oneof_string_field(self, spec, deserializer_factory):
+        mimetype = "multipart/form-data"
+        schema_dict = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "typeA": {"type": "string"},
+                        "fieldA": {"type": "string"},
+                    },
+                    "required": ["typeA", "fieldA"],
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "typeB": {"type": "string"},
+                        "fieldB": {"type": "string"},
+                    },
+                    "required": ["typeB", "fieldB"],
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
+        parameters = {
+            "boundary": "===============2872712225071193122==",
+        }
+        deserializer = deserializer_factory(
+            mimetype,
+            schema=schema,
+            schema_validator=schema_validator,
+            parameters=parameters,
+        )
+        value = (
+            b"--===============2872712225071193122==\n"
+            b"Content-Type: text/plain\nMIME-Version: 1.0\n"
+            b'Content-Disposition: form-data; name="typeA"\n\ntest\n'
+            b"--===============2872712225071193122==\n"
+            b"Content-Type: text/plain\nMIME-Version: 1.0\n"
+            b'Content-Disposition: form-data; name="fieldA"\n\nvalue\n'
+            b"--===============2872712225071193122==--\n"
+        )
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "typeA": "test",
+            "fieldA": "value",
+        }
+
     @pytest.mark.xfail(
         reason=(
             "multipart composed-schema branch selection is not binary-aware"
@@ -740,6 +790,167 @@ class TestMediaTypeDeserializer:
             mimetype,
             schema=schema,
             schema_validator=schema_validator,
+            parameters=parameters,
+        )
+        value = (
+            b"--===============2872712225071193122==\n"
+            b"Content-Type: application/octet-stream\nMIME-Version: 1.0\n"
+            b'Content-Disposition: form-data; name="file"\n\n\xff\xfe\n'
+            b"--===============2872712225071193122==--\n"
+        )
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "file": b"\xff\xfe",
+        }
+
+    def test_multipart_oneof_integer_field_with_form_encoding(
+        self, spec, deserializer_factory
+    ):
+        mimetype = "multipart/form-data"
+        schema_dict = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "typeA": {"type": "string"},
+                        "fieldA": {"type": "string"},
+                    },
+                    "required": ["typeA", "fieldA"],
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "typeB": {"type": "string"},
+                        "fieldB": {"type": "integer"},
+                    },
+                    "required": ["typeB", "fieldB"],
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
+        encoding = SchemaPath.from_dict(
+            {
+                "typeB": {"style": "form"},
+                "fieldB": {"style": "form"},
+            }
+        )
+        parameters = {
+            "boundary": "===============2872712225071193122==",
+        }
+        deserializer = deserializer_factory(
+            mimetype,
+            schema=schema,
+            schema_validator=schema_validator,
+            encoding=encoding,
+            parameters=parameters,
+        )
+        value = (
+            b"--===============2872712225071193122==\n"
+            b"Content-Type: text/plain\nMIME-Version: 1.0\n"
+            b'Content-Disposition: form-data; name="typeB"\n\ntest\n'
+            b"--===============2872712225071193122==\n"
+            b"Content-Type: text/plain\nMIME-Version: 1.0\n"
+            b'Content-Disposition: form-data; name="fieldB"\n\n123\n'
+            b"--===============2872712225071193122==--\n"
+        )
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "typeB": "test",
+            "fieldB": 123,
+        }
+
+    def test_multipart_anyof_with_form_types(self, spec, deserializer_factory):
+        mimetype = "multipart/form-data"
+        schema_dict = {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "count": {"type": "integer"},
+                        "active": {"type": "boolean"},
+                    },
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                    },
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
+        encoding = SchemaPath.from_dict(
+            {
+                "count": {"style": "form"},
+                "active": {"style": "form"},
+                "name": {"style": "form"},
+            }
+        )
+        parameters = {
+            "boundary": "===============2872712225071193122==",
+        }
+        deserializer = deserializer_factory(
+            mimetype,
+            schema=schema,
+            schema_validator=schema_validator,
+            encoding=encoding,
+            parameters=parameters,
+        )
+        value = (
+            b"--===============2872712225071193122==\n"
+            b"Content-Type: text/plain\nMIME-Version: 1.0\n"
+            b'Content-Disposition: form-data; name="count"\n\n42\n'
+            b"--===============2872712225071193122==\n"
+            b"Content-Type: text/plain\nMIME-Version: 1.0\n"
+            b'Content-Disposition: form-data; name="active"\n\ntrue\n'
+            b"--===============2872712225071193122==\n"
+            b"Content-Type: text/plain\nMIME-Version: 1.0\n"
+            b'Content-Disposition: form-data; name="name"\n\ntest\n'
+            b"--===============2872712225071193122==--\n"
+        )
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "count": 42,
+            "active": True,
+            "name": "test",
+        }
+
+    def test_multipart_form_binary_with_form_encoding_stays_bytes(
+        self, spec, deserializer_factory
+    ):
+        mimetype = "multipart/form-data"
+        schema_dict = {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "type": "string",
+                    "format": "binary",
+                },
+            },
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(spec, schema)
+        encoding = SchemaPath.from_dict(
+            {
+                "file": {"style": "form"},
+            }
+        )
+        parameters = {
+            "boundary": "===============2872712225071193122==",
+        }
+        deserializer = deserializer_factory(
+            mimetype,
+            schema=schema,
+            schema_validator=schema_validator,
+            encoding=encoding,
             parameters=parameters,
         )
         value = (

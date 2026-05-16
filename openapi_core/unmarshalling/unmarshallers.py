@@ -101,25 +101,41 @@ class BaseUnmarshaller(BaseValidator):
         )
         return unmarshaller.unmarshal(value)
 
+    def _unmarshal_validated_schema(
+        self, schema: SchemaPath, value: Any
+    ) -> Any:
+        unmarshaller = self.schema_unmarshallers_factory.create(
+            self.spec,
+            schema,
+            format_validators=self.format_validators,
+            extra_format_validators=self.extra_format_validators,
+            forbid_unspecified_additional_properties=self.forbid_unspecified_additional_properties,
+            enforce_properties_required=self.enforce_properties_required,
+            format_unmarshallers=self.format_unmarshallers,
+            extra_format_unmarshallers=self.extra_format_unmarshallers,
+        )
+        state = unmarshaller.schema_validator.validate_state(value)
+        return unmarshaller.unmarshal_state(state)
+
     def _get_param_or_header_and_schema(
         self,
         param_or_header: SchemaPath,
         location: Mapping[str, Any],
         name: Optional[str] = None,
     ) -> Tuple[Any, Optional[SchemaPath]]:
-        casted, schema = super()._get_param_or_header_and_schema(
+        casted, schema = self._get_param_or_header_value_and_schema(
             param_or_header, location, name=name
         )
         if schema is None:
             return casted, None
-        return self._unmarshal_schema(schema, casted), schema
+        return self._unmarshal_validated_schema(schema, casted), schema
 
     def _get_content_and_schema(
         self, raw: Any, content: SchemaPath, mimetype: Optional[str] = None
     ) -> Tuple[Any, Optional[SchemaPath]]:
-        casted, schema = super()._get_content_and_schema(
+        casted, schema = self._get_content_schema_value_and_schema(
             raw, content, mimetype
         )
         if schema is None:
             return casted, None
-        return self._unmarshal_schema(schema, casted), schema
+        return self._unmarshal_validated_schema(schema, casted), schema
