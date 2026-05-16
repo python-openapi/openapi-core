@@ -22,6 +22,12 @@ from openapi_core.validation.schemas.datatypes import ValidationState
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.schemas.exceptions import ValidateError
 
+# OpenAPI ``format`` values whose *type: string* schemas are permitted to
+# carry a raw ``bytes`` payload end-to-end -- ``binary`` for opaque file
+# bodies (multipart/form-data, application/octet-stream) and ``byte`` for
+# base64 strings that callers may still hand in as ``bytes``.
+_BINARY_STRING_FORMATS = frozenset({"binary", "byte"})
+
 if TYPE_CHECKING:
     from openapi_core.casting.schemas.casters import SchemaCaster
 
@@ -41,11 +47,155 @@ class SchemaValidator:
         return schema_format in self.validator.format_checker.checkers
 
     def validate(self, value: Any) -> None:
-        errors_iter = self.validator.iter_errors(value)
+        # OpenAPI allows ``bytes`` to flow through ``string`` schemas
+        # whose ``format`` is ``binary`` or ``byte`` (file uploads,
+        # base64-encoded blobs). jsonschema only validates ``string``
+        # against text, so we present it a decoded view while keeping
+        # the original ``value`` for downstream unmarshalling and error
+        # reporting.
+        normalized = self._normalize_for_validation(value)
+        errors_iter = self.validator.iter_errors(normalized)
         errors = tuple(errors_iter)
         if errors:
             schema_type = (self.schema / "type").read_str_or_list("any")
             raise InvalidSchemaValue(value, schema_type, schema_errors=errors)
+
+    @staticmethod
+    def _decode_binary_value(value: bytes) -> str:
+        """Decode raw ``bytes`` into the text view jsonschema expects.
+
+        ``utf-8`` first because that's what the vast majority of byte
+        bodies actually are; falling back to ASCII + ``surrogateescape``
+        guarantees the call never raises for arbitrary binary payloads
+        (a real file upload may contain any byte sequence).
+        """
+        try:
+            return value.decode("utf-8")
+        except UnicodeDecodeError:
+            return value.decode("ASCII", errors="surrogateescape")
+
+    def _accepts_binary_string(self, value: Any) -> bool:
+        """True when ``value`` is ``bytes`` and the schema at this
+        position is a ``string`` whose ``format`` allows raw bytes.
+        """
+        if not isinstance(value, bytes):
+            return False
+        schema_format = (self.schema / "format").read_str(None)
+        if schema_format not in _BINARY_STRING_FORMATS:
+            return False
+        schema_types = (self.schema / "type").read_str_or_list(None)
+        if schema_types is None:
+            # No declared type: OAS 3.1 lets any value flow; treat the
+            # binary/byte format as authoritative.
+            return True
+        if isinstance(schema_types, str):
+            return schema_types == "string"
+        return "string" in schema_types
+
+    def _normalize_for_validation(self, value: Any) -> Any:
+        """Return a view of ``value`` with ``bytes`` decoded to text
+        wherever the schema-at-this-position is a binary/byte string.
+
+        The original ``value`` is never mutated. Containers are only
+        copied when a descendant actually changes, so the unchanged
+        fast path returns ``value`` itself -- callers can use object
+        identity to detect a no-op.
+
+        Recursion is driven by the schema, not by introspecting the
+        value: a ``dict`` is only descended when the schema declares
+        ``properties``/``additionalProperties``, a ``list`` only when
+        it declares ``items``, and composition (``oneOf``/``anyOf``/
+        ``allOf``) is descended unconditionally because that's where
+        a multipart binary branch typically lives.
+        """
+        if self._accepts_binary_string(value):
+            return self._decode_binary_value(value)
+
+        normalized: Any
+        if isinstance(value, dict):
+            normalized = self._normalize_mapping_for_validation(value)
+        elif isinstance(value, list) and "items" in self.schema:
+            normalized = self._normalize_array_for_validation(value)
+        else:
+            normalized = value
+
+        # Composition keywords are where the binary branch actually
+        # lives in real specs (a multipart oneOf with a file branch and
+        # a non-file branch, for example). We apply each sub-schema's
+        # normalization in turn -- idempotent because a sub-schema that
+        # doesn't touch a position returns the same object, and once a
+        # bytes value has been decoded to ``str`` no other sub-schema
+        # treats it as binary.
+        for keyword in ("oneOf", "anyOf", "allOf"):
+            if keyword not in self.schema:
+                continue
+            for subschema in self.schema / keyword:
+                normalized = self.evolve(subschema)._normalize_for_validation(
+                    normalized
+                )
+
+        return normalized
+
+    def _normalize_mapping_for_validation(
+        self, value: dict[str, Any]
+    ) -> dict[str, Any]:
+        normalized: dict[str, Any] = value
+
+        if "properties" in self.schema:
+            for prop_name, prop_schema in (self.schema / "properties").items():
+                if not isinstance(prop_name, str) or prop_name not in value:
+                    continue
+                prop_validator = self.evolve(prop_schema)
+                new_value = prop_validator._normalize_for_validation(
+                    value[prop_name]
+                )
+                if new_value is value[prop_name]:
+                    continue
+                if normalized is value:
+                    normalized = dict(value)
+                normalized[prop_name] = new_value
+
+        additional = self.schema.get("additionalProperties", True)
+        if additional in (True, False):
+            return normalized
+
+        property_names: set[str] = set()
+        if "properties" in self.schema:
+            property_names = {
+                name
+                for name in (self.schema / "properties").keys()
+                if isinstance(name, str)
+            }
+        additional_validator = self.evolve(
+            self.schema / "additionalProperties"
+        )
+        for prop_name, prop_value in value.items():
+            if prop_name in property_names:
+                continue
+            new_value = additional_validator._normalize_for_validation(
+                prop_value
+            )
+            if new_value is prop_value:
+                continue
+            if normalized is value:
+                normalized = dict(value)
+            normalized[prop_name] = new_value
+
+        return normalized
+
+    def _normalize_array_for_validation(self, value: list[Any]) -> list[Any]:
+        items_validator = self.evolve(self.schema / "items")
+        normalized: Optional[list[Any]] = None
+        for idx, item in enumerate(value):
+            new_item = items_validator._normalize_for_validation(item)
+            if new_item is item:
+                continue
+            if normalized is None:
+                normalized = list(value)
+            normalized[idx] = new_item
+        if normalized is None:
+            return value
+        return normalized
 
     # Cache the recursive "does this schema benefit from a ValidationState?"
     # check, keyed on the SchemaPath. Under jsonschema-path 0.5 (pathable
@@ -272,6 +422,12 @@ class SchemaValidator:
             schema_types = sorted(self.validator.TYPE_CHECKER._type_checkers)
         assert isinstance(schema_types, list)
         for schema_type in schema_types:
+            if schema_type == "string" and self._accepts_binary_string(value):
+                # Bytes value, binary/byte format, ``string`` is in the
+                # declared type list: treat it as string without asking
+                # jsonschema's type checker (which doesn't know about
+                # OpenAPI's binary convention).
+                return "string"
             result = self.type_validator(value, type_override=schema_type)
             if not result:
                 continue
