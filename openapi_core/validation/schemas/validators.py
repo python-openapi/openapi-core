@@ -17,6 +17,7 @@ from openapi_core.validation.schemas.datatypes import (
 from openapi_core.validation.schemas.datatypes import (
     _EMPTY_STATES as _EMPTY_STATES_MAP,
 )
+from openapi_core.validation.schemas._caches import cache_for as _cache_for
 from openapi_core.validation.schemas.datatypes import FormatValidator
 from openapi_core.validation.schemas.datatypes import ValidationState
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
@@ -47,60 +48,78 @@ class SchemaValidator:
             schema_type = (self.schema / "type").read_str_or_list("any")
             raise InvalidSchemaValue(value, schema_type, schema_errors=errors)
 
-    # Cache the recursive "does this schema benefit from a ValidationState?"
-    # check, keyed on the SchemaPath. SchemaPath is hashed by content, so
-    # two SchemaPaths pointing at the same spec location share a cache
-    # slot regardless of identity -- safe across GC, bounded by the number
-    # of distinct schema shapes in the spec rather than by input volume.
-    _needs_state_cache: dict[SchemaPath, bool] = {}
-
     @classmethod
     def _schema_needs_state(cls, schema: SchemaPath) -> bool:
         """True if building a ValidationState for ``schema`` carries
         information the unmarshaller can reuse: either composition
         (oneOf/anyOf/allOf) on this node, or a descendant that does.
 
-        Cycle-safe: a False sentinel is stored before recursing, so a
-        $ref loop terminates and the real answer overwrites the
-        sentinel once the recursion completes.
+        The answer is purely a function of the resolved schema contents,
+        so we cache it per-resolver (i.e. per OpenAPI spec) keyed on
+        the content dict's identity. See ``_caches.py`` for why a
+        SchemaPath-keyed cache would be unsafe across specs.
         """
-        cache = cls._needs_state_cache
-        cached = cache.get(schema)
+        with schema.resolve() as resolved:
+            return cls._contents_need_state(
+                resolved.contents, _cache_for(resolved.resolver), set()
+            )
+
+    @classmethod
+    def _contents_need_state(
+        cls,
+        contents: Any,
+        cache: Any,
+        seen: set,
+    ) -> bool:
+        # Boolean schemas (True/False) and other non-dict shapes can't
+        # introduce composition.
+        if not isinstance(contents, dict):
+            return False
+
+        marker = id(contents)
+        cached = cache.needs_state.get(marker)
         if cached is not None:
             return cached
-        # Self-composition is the strongest signal; check it first to
-        # short-circuit the cheap case.
-        if "oneOf" in schema or "anyOf" in schema or "allOf" in schema:
-            cache[schema] = True
+        # Cycle protection: a $ref loop resolves back to the same dict.
+        # ``seen`` is per-call (not shared across calls), so a True
+        # result downstream still propagates back up correctly.
+        if marker in seen:
+            return False
+        seen.add(marker)
+
+        # Self-composition: strongest signal, short-circuit.
+        if (
+            "oneOf" in contents
+            or "anyOf" in contents
+            or "allOf" in contents
+        ):
+            cache.needs_state[marker] = True
             return True
-        # Seed the in-progress sentinel for cycle protection.
-        cache[schema] = False
-        # Recurse into children. We only need to find one descendant
-        # that needs state to flip our own answer.
+
         result = False
-        if "properties" in schema:
-            prop_iter = (schema / "properties").items()
-            for prop_name, prop_schema in prop_iter:
-                if not isinstance(prop_name, str):
-                    continue
-                if cls._schema_needs_state(prop_schema):
+
+        properties = contents.get("properties")
+        if isinstance(properties, dict):
+            for prop_schema in properties.values():
+                if cls._contents_need_state(prop_schema, cache, seen):
                     result = True
                     break
-        if not result and "additionalProperties" in schema:
-            try:
-                ap = schema / "additionalProperties"
-            except Exception:
-                ap = None
-            if ap is not None and cls._schema_needs_state(ap):
+
+        if not result:
+            additional = contents.get("additionalProperties")
+            if isinstance(additional, dict) and cls._contents_need_state(
+                additional, cache, seen
+            ):
                 result = True
-        if not result and "items" in schema:
-            try:
-                items = schema / "items"
-            except Exception:
-                items = None
-            if items is not None and cls._schema_needs_state(items):
+
+        if not result:
+            items = contents.get("items")
+            if isinstance(items, dict) and cls._contents_need_state(
+                items, cache, seen
+            ):
                 result = True
-        cache[schema] = result
+
+        cache.needs_state[marker] = result
         return result
 
     def validate_state(self, value: Any) -> ValidationState:

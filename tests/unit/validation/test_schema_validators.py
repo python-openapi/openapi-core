@@ -356,3 +356,105 @@ class TestSchemaValidate:
                 schema,
                 enforce_properties_required=True,
             ).validate({"name": "openapi-core", "meta": {}})
+
+
+
+class TestSchemaValidatorCacheIsolation:
+    """The per-resolver cache must keep ``_schema_needs_state`` answers
+    independent across distinct OpenAPI specs that happen to share
+    JSON-pointer paths.
+
+    Regression test for the ``SchemaPath``-keyed cache: ``SchemaPath``
+    equality is path-only (inherited from ``pathable.BasePath``), so a
+    ``dict``-keyed cache would collide on identical paths regardless of
+    what the paths actually resolve to. The bug is silent in production
+    because all evolved schemas come from one spec, but bites in any
+    process that loads more than one.
+    """
+
+    def test_disjoint_specs_with_colliding_paths(self):
+        # Both specs have a value at ``anyOf/0`` but one is a leaf
+        # string and the other carries oneOf -- only the second should
+        # report needs_state=True.
+        from openapi_core.validation.schemas.validators import SchemaValidator
+
+        spec_simple = SchemaPath.from_dict(
+            {"anyOf": [{"type": "string"}, {"type": "integer"}]}
+        )
+        spec_composed = SchemaPath.from_dict(
+            {
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "x": {
+                                "oneOf": [
+                                    {"type": "string"},
+                                    {"type": "integer"},
+                                ]
+                            }
+                        },
+                    },
+                    {"type": "integer"},
+                ]
+            }
+        )
+
+        # Each branch's value at anyOf/0 has the SAME SchemaPath
+        # (anyOf#0) but disjoint contents.
+        simple_branch = spec_simple / "anyOf" / 0
+        composed_branch = spec_composed / "anyOf" / 0
+        assert simple_branch == composed_branch  # path-only equality
+        assert hash(simple_branch) == hash(composed_branch)
+
+        # The cache must distinguish them by spec.
+        assert SchemaValidator._schema_needs_state(simple_branch) is False
+        assert SchemaValidator._schema_needs_state(composed_branch) is True
+        # And the order doesn't matter -- ask in reverse.
+        spec_simple_2 = SchemaPath.from_dict(
+            {"anyOf": [{"type": "string"}, {"type": "integer"}]}
+        )
+        spec_composed_2 = SchemaPath.from_dict(
+            {
+                "anyOf": [
+                    {"oneOf": [{"type": "string"}]},
+                    {"type": "integer"},
+                ]
+            }
+        )
+        assert (
+            SchemaValidator._schema_needs_state(
+                spec_composed_2 / "anyOf" / 0
+            )
+            is True
+        )
+        assert (
+            SchemaValidator._schema_needs_state(
+                spec_simple_2 / "anyOf" / 0
+            )
+            is False
+        )
+
+    def test_cache_evicts_on_resolver_collection(self):
+        # When a spec's resolver is garbage-collected, its cache slot
+        # is dropped. This both prevents the cache from pinning the
+        # spec in memory and forecloses on the classic id()-reuse
+        # hazard (a freshly allocated resolver cannot inherit stale
+        # answers from a collected one at the same address).
+        import gc
+
+        from openapi_core.validation.schemas._caches import _caches
+        from openapi_core.validation.schemas.validators import SchemaValidator
+
+        before = len(_caches)
+        spec = SchemaPath.from_dict(
+            {"oneOf": [{"type": "string"}, {"type": "integer"}]}
+        )
+        SchemaValidator._schema_needs_state(spec)
+        # Capturing one extra slot is what we expect.
+        assert len(_caches) == before + 1
+
+        # Drop the only outside reference; the cache slot must follow.
+        del spec
+        gc.collect()
+        assert len(_caches) == before
