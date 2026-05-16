@@ -46,7 +46,18 @@ class ArrayUnmarshaller(PrimitiveUnmarshaller):
                 self.items_unmarshaller.unmarshal_state(item_state)
                 for item_state in state.item_states
             ]
-        return self(value=state.value)
+        # No per-item states means the item schema didn't need state
+        # (predicate said so). The outer validate() has already covered
+        # each item, so go through unmarshal_state with a bare state
+        # rather than unmarshal (which would re-validate).
+        items_unmarshaller = self.items_unmarshaller
+        items_schema = items_unmarshaller.schema
+        return [
+            items_unmarshaller.unmarshal_state(
+                ValidationState(schema=items_schema, value=item)
+            )
+            for item in state.value
+        ]
 
     @property
     def items_unmarshaller(self) -> "SchemaUnmarshaller":
@@ -196,10 +207,20 @@ class ObjectUnmarshaller(PrimitiveUnmarshaller):
             except KeyError:
                 if "default" not in prop_schema:
                     continue
+                # Default values were not part of the validated input,
+                # so they must go through full unmarshal (revalidates).
                 prop_value = (prop_schema / "default").read_value()
+                properties[prop_name] = self.schema_unmarshaller.evolve(
+                    prop_schema
+                ).unmarshal(prop_value)
+                continue
+            # Present-but-state-skipped: validate() already covered it,
+            # so a bare-state unmarshal_state avoids re-validation.
             properties[prop_name] = self.schema_unmarshaller.evolve(
                 prop_schema
-            ).unmarshal(prop_value)
+            ).unmarshal_state(
+                ValidationState(schema=prop_schema, value=prop_value)
+            )
 
         if schema_only:
             return properties
@@ -226,8 +247,13 @@ class ObjectUnmarshaller(PrimitiveUnmarshaller):
                         )
                     )
                     continue
-                properties[prop_name] = additional_prop_unmarshaler.unmarshal(
-                    prop_value
+                # State skipped for trivial child; validate() covered it.
+                properties[prop_name] = (
+                    additional_prop_unmarshaler.unmarshal_state(
+                        ValidationState(
+                            schema=additional_prop_schema, value=prop_value
+                        )
+                    )
                 )
 
         return properties
@@ -246,8 +272,34 @@ class MultiTypeUnmarshaller(PrimitiveUnmarshaller):
 
     def unmarshal_state(self, state: ValidationState) -> Any:
         primitive_type = state.primitive_type
+        # Bare-state fast paths (used for sub-trees that didn't need
+        # full state-building) carry primitive_type=None. Fall back to
+        # computing it from the value -- it's the same work
+        # MultiTypeUnmarshaller.__call__ does, only when actually
+        # needed, and only for sub-trees too trivial to cache.
         if primitive_type is None:
-            return None
+            primitive_type = self.schema_validator.get_primitive_type(
+                state.value
+            )
+            if primitive_type is None:
+                return None
+        # If the matched validation result lives in a composed branch
+        # (oneOf / first anyOf), the type unmarshaller must be bound
+        # to THAT branch's schema -- not to ours -- so nested keywords
+        # like `items` / `properties` resolve against the matched
+        # branch. Without this, an outer "pure-oneOf" schema would
+        # dispatch to an ArrayUnmarshaller bound to a schema with no
+        # `items` keyword. Walk the chain to its leaf.
+        target_state = state
+        while target_state.one_of_state is not None:
+            target_state = target_state.one_of_state
+        if target_state is state and state.any_of_states:
+            target_state = state.any_of_states[0]
+        if target_state is not state:
+            target_unmarshaller = self.schema_unmarshaller.evolve(
+                target_state.schema
+            )
+            return target_unmarshaller.unmarshal_state(target_state)
         unmarshaller = self.schema_unmarshaller.get_type_unmarshaller(
             primitive_type
         )
