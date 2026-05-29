@@ -122,6 +122,9 @@ class SimpleServersIterator:
 
 
 class TemplateServersIterator:
+    def __init__(self, default_server: SchemaPath):
+        self.default_server = default_server
+
     def __call__(
         self,
         name: str,
@@ -136,7 +139,7 @@ class TemplateServersIterator:
                 or spec.get("servers", None)
             )
             if not servers:
-                servers = [SchemaPath.from_dict({"url": "/"})]
+                servers = [self.default_server]
             for server in servers:
                 server_url_pattern = name.rsplit(path_result.resolved, 1)[0]
                 server_url = server["url"]
