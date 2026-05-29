@@ -6,6 +6,7 @@ from typing import Mapping
 
 from openapi_core.schema.protocols import SuportsGetAll
 from openapi_core.schema.protocols import SuportsGetList
+from openapi_core.schema.types import pick_style_type
 
 
 def split(value: str, separator: str = ",", step: int = 1) -> List[str]:
@@ -31,7 +32,7 @@ def delimited_loads(
 ) -> Any:
     value = location[name]
 
-    explode_type = (explode, schema_type)
+    explode_type = (explode, pick_style_type(schema_type))
     if explode_type == (False, "array"):
         return split(value, separator=delimiter)
     if explode_type == (False, "object"):
@@ -51,25 +52,26 @@ def matrix_loads(
     schema_type: str | list[str],
     location: Mapping[str, Any],
 ) -> Any:
+    structural_type = pick_style_type(schema_type)
     if explode == False:
         m = re.match(rf"^;{name}=(.*)$", location[f";{name}"])
         if m is None:
             raise KeyError(name)
         value = m.group(1)
         # ;color=blue,black,brown
-        if schema_type == "array":
+        if structural_type == "array":
             return split(value)
         # ;color=R,100,G,200,B,150
-        if schema_type == "object":
+        if structural_type == "object":
             return dict(map(split, split(value, step=2)))
         # .;color=blue
         return value
     else:
         # ;color=blue;color=black;color=brown
-        if schema_type == "array":
+        if structural_type == "array":
             return re.findall(rf";{name}=([^;]*)", location[f";{name}*"])
         # ;R=100;G=200;B=150
-        if schema_type == "object":
+        if structural_type == "object":
             value = location[f";{name}*"]
             return dict(
                 map(
@@ -91,23 +93,24 @@ def label_loads(
     schema_type: str | list[str],
     location: Mapping[str, Any],
 ) -> Any:
+    structural_type = pick_style_type(schema_type)
     if explode == False:
         value = location[f".{name}"]
         # .blue,black,brown
-        if schema_type == "array":
+        if structural_type == "array":
             return split(value[1:])
         # .R,100,G,200,B,150
-        if schema_type == "object":
+        if structural_type == "object":
             return dict(map(split, split(value[1:], separator=",", step=2)))
         # .blue
         return value[1:]
     else:
         value = location[f".{name}*"]
         # .blue.black.brown
-        if schema_type == "array":
+        if structural_type == "array":
             return split(value[1:], separator=".")
         # .R=100.G=200.B=150
-        if schema_type == "object":
+        if structural_type == "object":
             return dict(
                 map(
                     partial(split, separator="="),
@@ -124,7 +127,7 @@ def form_loads(
     schema_type: str | list[str],
     location: Mapping[str, Any],
 ) -> Any:
-    explode_type = (explode, schema_type)
+    explode_type = (explode, pick_style_type(schema_type))
     # color=blue,black,brown
     if explode_type == (False, "array"):
         return split(location[name], separator=",")
@@ -159,12 +162,13 @@ def simple_loads(
     location: Mapping[str, Any],
 ) -> Any:
     value = location[name]
+    structural_type = pick_style_type(schema_type)
 
     # blue,black,brown
-    if schema_type == "array":
+    if structural_type == "array":
         return split(value, separator=",")
 
-    explode_type = (explode, schema_type)
+    explode_type = (explode, structural_type)
     # R,100,G,200,B,150
     if explode_type == (False, "object"):
         return dict(map(split, split(value, separator=",", step=2)))
@@ -204,7 +208,7 @@ def deep_object_loads(
     schema_type: str | list[str],
     location: Mapping[str, Any],
 ) -> Any:
-    explode_type = (explode, schema_type)
+    explode_type = (explode, pick_style_type(schema_type))
 
     if explode_type != (True, "object"):
         raise ValueError("not available")

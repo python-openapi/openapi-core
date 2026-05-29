@@ -447,8 +447,10 @@ class TestParameterStyleDeserializer:
     @pytest.mark.parametrize(
         "schema_types,value,expected",
         [
+            # ``string`` is first → identity wins.
             (["string", "number", "boolean"], "12567", "12567"),
-            (["integer", "string"], "42", "42"),
+            # ``integer`` is first → coerced to int.
+            (["integer", "string"], "42", 42),
         ],
     )
     def test_oas31_multi_type_form(
@@ -499,3 +501,87 @@ class TestParameterStyleDeserializer:
             "G": "200",
             "B": "150",
         }
+
+    def test_simple_array_or_null(self, deserializer_factory):
+        """OAS 3.1 ``type: ["array", "null"]`` is parsed as an array."""
+        name = "param"
+        spec = {
+            "name": name,
+            "in": "path",
+            "style": "simple",
+            "schema": {
+                "type": ["array", "null"],
+                "items": {"type": "integer"},
+            },
+        }
+        param = SchemaPath.from_dict(spec)
+        deserializer = deserializer_factory(param)
+        location = {name: "1,2,3"}
+
+        result = deserializer.deserialize(location)
+
+        assert result == [1, 2, 3]
+
+    def test_form_array_or_null_explode(self, deserializer_factory):
+        """OAS 3.1 ``type: ["array", "null"]`` with form/explode fans out."""
+        name = "param"
+        spec = {
+            "name": name,
+            "in": "query",
+            "style": "form",
+            "explode": True,
+            "schema": {
+                "type": ["array", "null"],
+                "items": {"type": "integer"},
+            },
+        }
+        param = SchemaPath.from_dict(spec)
+        deserializer = deserializer_factory(param)
+        location = ImmutableMultiDict([(name, "1"), (name, "2"), (name, "3")])
+
+        result = deserializer.deserialize(location)
+
+        assert result == [1, 2, 3]
+
+    def test_form_object_or_null(self, deserializer_factory):
+        """OAS 3.1 ``type: ["object", "null"]`` is parsed as an object."""
+        name = "param"
+        spec = {
+            "name": name,
+            "in": "query",
+            "style": "form",
+            "explode": False,
+            "schema": {
+                "type": ["object", "null"],
+                "properties": {
+                    "R": {"type": "integer"},
+                    "G": {"type": "integer"},
+                    "B": {"type": "integer"},
+                },
+            },
+        }
+        param = SchemaPath.from_dict(spec)
+        deserializer = deserializer_factory(param)
+        location = {name: "R,100,G,200,B,150"}
+
+        result = deserializer.deserialize(location)
+
+        assert result == {"R": 100, "G": 200, "B": 150}
+
+    def test_simple_primitive_or_null(self, deserializer_factory):
+        """OAS 3.1 ``type: ["integer", "null"]`` simple style coerces."""
+        name = "param"
+        spec = {
+            "name": name,
+            "in": "path",
+            "style": "simple",
+            "schema": {"type": ["integer", "null"]},
+        }
+        param = SchemaPath.from_dict(spec)
+        deserializer = deserializer_factory(param)
+        location = {name: "42"}
+
+        result = deserializer.deserialize(location)
+
+        assert result == 42
+        assert type(result) is int

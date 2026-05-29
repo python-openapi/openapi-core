@@ -4,6 +4,7 @@ from openapi_core.casting.schemas.casters import AnyCaster
 from openapi_core.casting.schemas.casters import ArrayCaster
 from openapi_core.casting.schemas.casters import BooleanCaster
 from openapi_core.casting.schemas.casters import IntegerCaster
+from openapi_core.casting.schemas.casters import MultiTypeCaster
 from openapi_core.casting.schemas.casters import NumberCaster
 from openapi_core.casting.schemas.casters import ObjectCaster
 from openapi_core.casting.schemas.casters import PrimitiveCaster
@@ -46,10 +47,14 @@ oas30_types_caster = TypesCaster(
     oas30_casters_dict,
     AnyCaster,
 )
+# OAS 3.1/3.2: ``type`` may be a list. ``multi=MultiTypeCaster`` enables the
+# real coercion path. ``multi`` is intentionally left ``None`` for OAS 3.0 so
+# any ``type: [..]`` in a 3.0 spec still raises
+# ``TypeError("caster does not accept multiple types")`` at dispatch time.
 oas31_types_caster = TypesCaster(
     oas31_casters_dict,
     AnyCaster,
-    multi=PrimitiveCaster,
+    multi=MultiTypeCaster,
 )
 oas32_types_caster = oas31_types_caster
 
