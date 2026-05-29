@@ -48,10 +48,15 @@ class SchemaValidator:
             raise InvalidSchemaValue(value, schema_type, schema_errors=errors)
 
     # Cache the recursive "does this schema benefit from a ValidationState?"
-    # check, keyed on the SchemaPath. SchemaPath is hashed by content, so
-    # two SchemaPaths pointing at the same spec location share a cache
-    # slot regardless of identity -- safe across GC, bounded by the number
-    # of distinct schema shapes in the spec rather than by input volume.
+    # check, keyed on the SchemaPath. Under jsonschema-path 0.5 (pathable
+    # 0.6) SchemaPath is an AccessorPath whose identity is
+    # (parts, accessor), and SchemaAccessor in turn hashes/compares on
+    # id(node) and id(path_resolver). The key is therefore effectively
+    # per-resolver: two SchemaPaths share a cache slot only when they
+    # address the same location *within the same loaded spec*, never
+    # across distinct specs that merely share a JSON-pointer path.
+    # Entries are bounded by the number of distinct schema shapes per
+    # spec and become collectable once the owning resolver is GC'd.
     _needs_state_cache: dict[SchemaPath, bool] = {}
 
     @classmethod
