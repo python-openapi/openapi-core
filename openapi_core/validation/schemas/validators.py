@@ -10,6 +10,7 @@ from typing import Optional
 from jsonschema.exceptions import FormatError
 from jsonschema.protocols import Validator
 from jsonschema_path import SchemaPath
+from referencing.exceptions import Unresolvable
 
 from openapi_core.validation.schemas.datatypes import (
     _EMPTY_STATE_TUPLE as _EMPTY_STATES_TUPLE,
@@ -26,6 +27,11 @@ if TYPE_CHECKING:
     from openapi_core.casting.schemas.casters import SchemaCaster
 
 log = logging.getLogger(__name__)
+
+# Feature-detect jsonschema-path SchemaPath.canonical(). When present
+# the needs_state cache keys on the resolved (canonical) location; otherwise it
+# degrades to per-route keying.
+_HAS_CANONICAL = hasattr(SchemaPath, "canonical")
 
 
 class SchemaValidator:
@@ -48,16 +54,49 @@ class SchemaValidator:
             raise InvalidSchemaValue(value, schema_type, schema_errors=errors)
 
     # Cache the recursive "does this schema benefit from a ValidationState?"
-    # check, keyed on the SchemaPath. Under jsonschema-path 0.5 (pathable
-    # 0.6) SchemaPath is an AccessorPath whose identity is
-    # (parts, accessor), and SchemaAccessor in turn hashes/compares on
-    # id(node) and id(path_resolver). The key is therefore effectively
-    # per-resolver: two SchemaPaths share a cache slot only when they
-    # address the same location *within the same loaded spec*, never
-    # across distinct specs that merely share a JSON-pointer path.
-    # Entries are bounded by the number of distinct schema shapes per
-    # spec and become collectable once the owning resolver is GC'd.
+    # check, keyed on the schema's *canonical* SchemaPath -- the location the
+    # $ref chain ultimately resolves to (jsonschema-path SchemaPath.canonical).
+    # Canonical keying buys two properties at once:
+    #
+    #   * Cross-route dedup -- every $ref alias of one target collapses to a
+    #     single slot, so the recursive walk runs once per distinct resolved
+    #     shape instead of once per navigation path.
+    #   * Cross-spec safety -- SchemaPath identity is (parts, accessor), and
+    #     canonical() hands back a shared accessor per resolved document, so
+    #     two independently loaded specs that merely share a JSON pointer
+    #     never collide.
+    #
+    # Entries are bounded by the number of distinct resolved schema shapes
+    # across loaded specs. On jsonschema-path builds without canonical(), or
+    # for a node whose $ref is unresolvable, keying degrades to the navigation
+    # path. A $dynamicRef-only node yields no cross-target dedup either, since
+    # canonical() returns it as-is rather than following the dynamic ref. None
+    # of these cases raise.
     _needs_state_cache: dict[SchemaPath, bool] = {}
+
+    # Memoise the (cheap-keyed) navigation-path -> canonical-path mapping so a
+    # warm needs_state lookup pays one cheap SchemaPath hash instead of
+    # re-walking the $ref chain every call.
+    _canonical_key_cache: dict[SchemaPath, SchemaPath] = {}
+
+    @classmethod
+    def _needs_state_key(cls, schema: SchemaPath) -> SchemaPath:
+        """Cache key for ``schema``: its canonical SchemaPath when available
+        (collapsing $ref aliases, correct across specs), else the navigation
+        path. Never raises -- an unresolvable/$dynamicRef-only node falls back
+        to ``schema``. Canonical resolution is memoised on the cheap path key.
+        """
+        if not _HAS_CANONICAL:
+            return schema
+        cached = cls._canonical_key_cache.get(schema)
+        if cached is not None:
+            return cached
+        try:
+            canonical = schema.canonical()
+        except Unresolvable:
+            canonical = schema
+        cls._canonical_key_cache[schema] = canonical
+        return canonical
 
     @classmethod
     def _schema_needs_state(cls, schema: SchemaPath) -> bool:
@@ -70,42 +109,46 @@ class SchemaValidator:
         sentinel once the recursion completes.
         """
         cache = cls._needs_state_cache
-        cached = cache.get(schema)
+        key = cls._needs_state_key(schema)
+        cached = cache.get(key)
         if cached is not None:
             return cached
+        # Walk the canonical target so composition behind a $ref is seen even
+        # when the source node only carries "$ref"; identical for non-$ref.
+        node = key
         # Self-composition is the strongest signal; check it first to
         # short-circuit the cheap case.
-        if "oneOf" in schema or "anyOf" in schema or "allOf" in schema:
-            cache[schema] = True
+        if "oneOf" in node or "anyOf" in node or "allOf" in node:
+            cache[key] = True
             return True
         # Seed the in-progress sentinel for cycle protection.
-        cache[schema] = False
+        cache[key] = False
         # Recurse into children. We only need to find one descendant
         # that needs state to flip our own answer.
         result = False
-        if "properties" in schema:
-            prop_iter = (schema / "properties").items()
+        if "properties" in node:
+            prop_iter = (node / "properties").items()
             for prop_name, prop_schema in prop_iter:
                 if not isinstance(prop_name, str):
                     continue
                 if cls._schema_needs_state(prop_schema):
                     result = True
                     break
-        if not result and "additionalProperties" in schema:
+        if not result and "additionalProperties" in node:
             try:
-                ap = schema / "additionalProperties"
+                ap = node / "additionalProperties"
             except Exception:
                 ap = None
             if ap is not None and cls._schema_needs_state(ap):
                 result = True
-        if not result and "items" in schema:
+        if not result and "items" in node:
             try:
-                items = schema / "items"
+                items = node / "items"
             except Exception:
                 items = None
             if items is not None and cls._schema_needs_state(items):
                 result = True
-        cache[schema] = result
+        cache[key] = result
         return result
 
     def validate_state(self, value: Any) -> ValidationState:
