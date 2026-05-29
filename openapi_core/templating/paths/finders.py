@@ -18,6 +18,8 @@ from openapi_core.templating.paths.protocols import OperationsIterator
 from openapi_core.templating.paths.protocols import PathsIterator
 from openapi_core.templating.paths.protocols import ServersIterator
 
+DEFAULT_SERVER = SchemaPath.from_dict({"url": "/"})
+
 
 class BasePathFinder:
     paths_iterator: PathsIterator = NotImplemented
@@ -63,7 +65,7 @@ class BasePathFinder:
 class APICallPathFinder(BasePathFinder):
     paths_iterator: PathsIterator = TemplatePathsIterator("paths")
     operations_iterator: OperationsIterator = SimpleOperationsIterator()
-    servers_iterator: ServersIterator = TemplateServersIterator()
+    servers_iterator: ServersIterator = TemplateServersIterator(DEFAULT_SERVER)
 
 
 class WebhookPathFinder(APICallPathFinder):

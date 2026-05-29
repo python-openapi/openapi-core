@@ -6,6 +6,7 @@ from openapi_core.templating.paths.exceptions import OperationNotFound
 from openapi_core.templating.paths.exceptions import PathNotFound
 from openapi_core.templating.paths.exceptions import PathsNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
+from openapi_core.templating.paths.finders import DEFAULT_SERVER
 from openapi_core.templating.paths.finders import APICallPathFinder
 
 
@@ -195,13 +196,12 @@ class BaseTestDefaultServer:
 
         path = spec / "paths" / self.path_name
         operation = spec / "paths" / self.path_name / method
-        server = SchemaPath.from_dict({"url": "/"})
         path_result = TemplateResult(self.path_name, {})
         server_result = TemplateResult("/", {})
         assert result == (
             path,
             operation,
-            server,
+            DEFAULT_SERVER,
             path_result,
             server_result,
         )
