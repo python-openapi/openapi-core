@@ -657,12 +657,6 @@ class TestMediaTypeDeserializer:
 
         assert result == {"tags": []}
 
-    @pytest.mark.xfail(
-        reason=(
-            "multipart composed-schema branch selection is not binary-aware"
-        ),
-        strict=True,
-    )
     def test_multipart_oneof_binary_field(self, spec, deserializer_factory):
         mimetype = "multipart/form-data"
         schema_dict = {
@@ -757,12 +751,6 @@ class TestMediaTypeDeserializer:
             "fieldA": "value",
         }
 
-    @pytest.mark.xfail(
-        reason=(
-            "multipart composed-schema branch selection is not binary-aware"
-        ),
-        strict=True,
-    )
     def test_multipart_anyof_binary_field(self, spec, deserializer_factory):
         mimetype = "multipart/form-data"
         schema_dict = {

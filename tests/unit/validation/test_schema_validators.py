@@ -359,6 +359,169 @@ class TestSchemaValidate:
             ).validate({"name": "openapi-core", "meta": {}})
 
 
+class TestSchemaValidateBinary:
+    """Bytes-aware validation for OpenAPI ``string`` schemas whose
+    ``format`` is ``binary`` or ``byte``.
+
+    OpenAPI lets multipart and octet-stream payloads flow end-to-end as
+    raw ``bytes``, but jsonschema's ``string`` type only accepts text.
+    The validator decodes ``bytes`` to text just for the validator's
+    consumption, leaving the value untouched for downstream
+    unmarshalling.
+    """
+
+    @pytest.fixture
+    def spec(self):
+        return SchemaPath.from_dict({})
+
+    @pytest.fixture
+    def validator_factory(self, spec):
+        def create_validator(schema_dict):
+            schema = SchemaPath.from_dict(schema_dict)
+            return oas30_write_schema_validators_factory.create(spec, schema)
+
+        return create_validator
+
+    def test_bytes_against_string_binary(self, validator_factory):
+        validator_factory({"type": "string", "format": "binary"}).validate(
+            b"\xff\xfe\x00 binary payload"
+        )
+
+    def test_bytes_against_string_byte(self, validator_factory):
+        validator_factory({"type": "string", "format": "byte"}).validate(
+            b"aGVsbG8gd29ybGQ="
+        )
+
+    def test_bytes_against_string_without_format_still_rejected(
+        self, validator_factory
+    ):
+        # No binary/byte format -- the bytes-is-string convention does
+        # NOT apply, so the value is correctly rejected.
+        with pytest.raises(InvalidSchemaValue):
+            validator_factory({"type": "string"}).validate(b"hello")
+
+    def test_bytes_against_string_date_format_still_rejected(
+        self, validator_factory
+    ):
+        with pytest.raises(InvalidSchemaValue):
+            validator_factory({"type": "string", "format": "date"}).validate(
+                b"2024-01-01"
+            )
+
+    def test_bytes_nested_in_object_property(self, validator_factory):
+        schema = {
+            "type": "object",
+            "properties": {
+                "file": {"type": "string", "format": "binary"},
+                "name": {"type": "string"},
+            },
+            "required": ["file"],
+        }
+        validator_factory(schema).validate(
+            {"file": b"\xff\xfe", "name": "report"}
+        )
+
+    def test_bytes_nested_in_array_items(self, validator_factory):
+        schema = {
+            "type": "array",
+            "items": {"type": "string", "format": "binary"},
+        }
+        validator_factory(schema).validate([b"\xff", b"\x00\x01", b"a"])
+
+    def test_bytes_nested_in_object_under_array(self, validator_factory):
+        schema = {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"blob": {"type": "string", "format": "binary"}},
+            },
+        }
+        validator_factory(schema).validate(
+            [{"blob": b"\xff"}, {"blob": b"\x00"}]
+        )
+
+    def test_bytes_under_oneof_binary_branch(self, validator_factory):
+        schema = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {"label": {"type": "string"}},
+                    "required": ["label"],
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "file": {"type": "string", "format": "binary"}
+                    },
+                    "required": ["file"],
+                },
+            ]
+        }
+        validator_factory(schema).validate({"file": b"\xff\xfe"})
+
+    def test_bytes_under_anyof_binary_branch(self, validator_factory):
+        schema = {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": {"note": {"type": "string"}},
+                    "required": ["note"],
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "blob": {"type": "string", "format": "binary"}
+                    },
+                    "required": ["blob"],
+                },
+            ]
+        }
+        validator_factory(schema).validate({"blob": b"\x00\x01\x02"})
+
+    def test_bytes_under_allof_binary_branch(self, validator_factory):
+        schema = {
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {"label": {"type": "string"}},
+                    "required": ["label"],
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "file": {"type": "string", "format": "binary"}
+                    },
+                    "required": ["file"],
+                },
+            ]
+        }
+        validator_factory(schema).validate({"label": "x", "file": b"\xff\xfe"})
+
+    def test_bytes_in_additionalproperties_schema(self, validator_factory):
+        schema = {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string",
+                "format": "binary",
+            },
+        }
+        validator_factory(schema).validate({"a": b"\xff", "b": b"\x00\x01"})
+
+    def test_validate_does_not_mutate_input(self, validator_factory):
+        schema = {
+            "type": "object",
+            "properties": {
+                "file": {"type": "string", "format": "binary"},
+            },
+        }
+        value = {"file": b"\xff\xfe"}
+        validator_factory(schema).validate(value)
+        # The original mapping is unchanged; bytes value survives intact
+        # for downstream unmarshalling.
+        assert value == {"file": b"\xff\xfe"}
+        assert isinstance(value["file"], bytes)
+
+
 class TestSchemaValidateState:
     SCHEMA_DICT = {
         "type": "object",

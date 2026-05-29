@@ -1,6 +1,5 @@
 import json
 from base64 import b64encode
-from email.generator import _make_boundary
 
 import pytest
 
@@ -469,16 +468,14 @@ class TestRequestUnmarshaller:
         assert result.errors == []
         assert result.body == {"tags": []}
 
-    @pytest.mark.xfail(
-        reason=(
-            "multipart composed-schema branch selection is not binary-aware"
-        ),
-        strict=True,
-    )
     def test_request_body_multipart_oneof_binary_field(self):
         from openapi_core import OpenAPI
 
-        boundary = _make_boundary()
+        # email.generator._make_boundary() returns strings like
+        # ``===============1234==`` whose ``=`` chars trip the mimetype
+        # parameter parser. That's a separate bug; here we just want a
+        # legal boundary that round-trips the binary oneOf branch.
+        boundary = "openapicoreboundary1234567890"
         spec = OpenAPI.from_dict(
             {
                 "openapi": "3.1.0",
@@ -544,6 +541,152 @@ class TestRequestUnmarshaller:
 
         assert result.errors == []
         assert result.body == {"file": b"\xff\xfe"}
+
+    def test_request_body_multipart_anyof_binary_field(self):
+        # anyOf with a text-only branch and a binary branch: a posted file
+        # should match the binary branch (and only the binary branch).
+        from openapi_core import OpenAPI
+
+        boundary = "openapicoreboundary1234567890"
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "multipart/form-data": {
+                                        "schema": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "note": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": ["note"],
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "blob": {
+                                                            "type": "string",
+                                                            "format": "binary",
+                                                        }
+                                                    },
+                                                    "required": ["blob"],
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        data = (
+            (
+                f"--{boundary}\n"
+                "Content-Type: application/octet-stream\n"
+                "MIME-Version: 1.0\n"
+                'Content-Disposition: form-data; name="blob"\n\n'
+            ).encode("ascii")
+            + b"\x00\x01\x02binary\xff"
+            + (f"\n--{boundary}--\n").encode("ascii")
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type=f"multipart/form-data; boundary={boundary}",
+            data=data,
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert result.errors == []
+        assert result.body == {"blob": b"\x00\x01\x02binary\xff"}
+
+    def test_request_body_multipart_allof_binary_field(self):
+        # allOf: every branch must validate. Binary normalization has to
+        # be visible to all of them.
+        from openapi_core import OpenAPI
+
+        boundary = "openapicoreboundary1234567890"
+        spec = OpenAPI.from_dict(
+            {
+                "openapi": "3.1.0",
+                "info": {"version": "0", "title": "test"},
+                "paths": {
+                    "/test": {
+                        "post": {
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "multipart/form-data": {
+                                        "schema": {
+                                            "allOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "label": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": ["label"],
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "file": {
+                                                            "type": "string",
+                                                            "format": "binary",
+                                                        }
+                                                    },
+                                                    "required": ["file"],
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {"200": {"description": ""}},
+                        }
+                    }
+                },
+            }
+        )
+        data = (
+            (
+                f"--{boundary}\n"
+                'Content-Disposition: form-data; name="label"\n\n'
+                "report"
+                f"\n--{boundary}\n"
+                "Content-Type: application/octet-stream\n"
+                'Content-Disposition: form-data; name="file"\n\n'
+            ).encode("ascii")
+            + b"\xff\xfe"
+            + (f"\n--{boundary}--\n").encode("ascii")
+        )
+        request = MockRequest(
+            "http://localhost",
+            "post",
+            "/test",
+            content_type=f"multipart/form-data; boundary={boundary}",
+            data=data,
+        )
+
+        result = spec.unmarshal_request(request)
+
+        assert result.errors == []
+        assert result.body == {"label": "report", "file": b"\xff\xfe"}
 
     def test_post_pets_validates_request_schema_once(
         self, request_unmarshaller
