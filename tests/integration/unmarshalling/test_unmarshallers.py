@@ -2174,3 +2174,66 @@ class TestOAS31SchemaUnmarshallersFactory(
         result = unmarshaller.unmarshal(value)
 
         assert result is None
+
+
+class TestCrossSpecUnmarshalling:
+    """Unmarshalling two separately-loaded specs in the same process must
+    produce independent, correct results even when the specs share
+    JSON-pointer paths.
+    """
+
+    @pytest.fixture
+    def root(self):
+        return SchemaPath.from_dict({})
+
+    def test_composed_and_plain_specs_unmarshal_independently(self, root):
+        # Composed: oneOf selects the object branch, whose date format
+        # must be applied -> created_at becomes a date object.
+        composed = SchemaPath.from_dict(
+            {
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "created_at": {
+                                "type": "string",
+                                "format": "date",
+                            }
+                        },
+                    },
+                    {"type": "integer"},
+                ]
+            }
+        )
+        # Plain: same JSON-pointer shape but no composition and no
+        # format -> created_at stays a string.
+        plain = SchemaPath.from_dict(
+            {
+                "type": "object",
+                "properties": {"created_at": {"type": "string"}},
+            }
+        )
+
+        value = {"created_at": "2020-01-02"}
+
+        composed_result = oas31_schema_unmarshallers_factory.create(
+            root, composed
+        ).unmarshal(value)
+        plain_result = oas31_schema_unmarshallers_factory.create(
+            root, plain
+        ).unmarshal(value)
+
+        assert composed_result == {"created_at": date(2020, 1, 2)}
+        assert plain_result == {"created_at": "2020-01-02"}
+
+        # Order independence: re-run in reverse to ensure neither spec's
+        # cached answer poisoned the other.
+        plain_again = oas31_schema_unmarshallers_factory.create(
+            root, plain
+        ).unmarshal(value)
+        composed_again = oas31_schema_unmarshallers_factory.create(
+            root, composed
+        ).unmarshal(value)
+
+        assert plain_again == {"created_at": "2020-01-02"}
+        assert composed_again == {"created_at": date(2020, 1, 2)}
