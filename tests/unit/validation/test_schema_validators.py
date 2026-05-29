@@ -5,6 +5,7 @@ from openapi_core.validation.schemas import (
     oas30_write_schema_validators_factory,
 )
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
+from openapi_core.validation.schemas.validators import _HAS_CANONICAL
 from openapi_core.validation.schemas.validators import SchemaValidator
 
 
@@ -478,11 +479,12 @@ class TestSchemaValidateStateRefDedup:
         return _build
 
     @pytest.mark.xfail(
+        condition=not _HAS_CANONICAL,
         strict=True,
         reason=(
-            "The cache keys on the navigation path, so each $ref "
-            "alias gets its own slot. Once the cache keys on canonical "
-            "the aliases collapse to a single entry."
+            "Without SchemaPath.canonical the cache keys on the navigation "
+            "path, so each $ref alias gets its own slot. With canonical "
+            "keying the aliases collapse to a single entry."
         ),
     )
     def test_aliases_to_same_node_share_one_cache_slot(
