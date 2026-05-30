@@ -469,12 +469,6 @@ class TestRequestUnmarshaller:
         assert result.errors == []
         assert result.body == {"tags": []}
 
-    @pytest.mark.xfail(
-        reason=(
-            "multipart composed-schema branch selection is not binary-aware"
-        ),
-        strict=True,
-    )
     def test_request_body_multipart_oneof_binary_field(self):
         from openapi_core import OpenAPI
 

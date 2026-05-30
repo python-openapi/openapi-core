@@ -10,6 +10,9 @@ from jsonschema.validators import validator_for
 from jsonschema_path import SchemaPath
 
 from openapi_core.validation.schemas._validators import (
+    build_binary_aware_validator,
+)
+from openapi_core.validation.schemas._validators import (
     build_enforce_properties_required_validator,
 )
 from openapi_core.validation.schemas._validators import (
@@ -74,6 +77,11 @@ class SchemaValidatorsFactory:
         enforce_properties_required: bool = False,
     ) -> SchemaValidator:
         validator_cls: type[Validator] = self.get_validator_cls(spec, schema)
+        # Always binary-aware: a ``bytes`` payload must validate against a
+        # binary string schema (file uploads, octet-stream bodies). Applied
+        # first so the conditional extensions below chain their own ``type``
+        # override on top of the binary-aware one.
+        validator_cls = build_binary_aware_validator(validator_cls)
         if enforce_properties_required:
             validator_cls = build_enforce_properties_required_validator(
                 validator_cls

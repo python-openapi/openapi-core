@@ -18,6 +18,7 @@ from openapi_core.deserializing.media_types.exceptions import (
 from openapi_core.deserializing.styles.factories import (
     StyleDeserializersFactory,
 )
+from openapi_core.schema.binary import is_binary_schema
 from openapi_core.schema.encodings import get_content_type
 from openapi_core.schema.parameters import get_style_and_explode
 from openapi_core.schema.protocols import SuportsGetAll
@@ -294,12 +295,15 @@ class MediaTypeDeserializer:
         prop_schema: SchemaPath,
     ) -> bool:
         schema_type = (prop_schema / "type").read_str(None)
-        schema_format = (prop_schema / "format").read_str(None)
 
         if schema_type in ["integer", "number", "boolean"]:
             return True
 
-        return schema_type == "string" and schema_format != "binary"
+        # A string part is decoded to text unless it is an opaque binary
+        # payload. Routing through the canonical predicate means OAS 3.1
+        # ``contentMediaType`` binary parts are left as raw bytes too --
+        # keying on ``format != "binary"`` alone would wrongly decode them.
+        return schema_type == "string" and not is_binary_schema(prop_schema)
 
     def decode_multipart_form_value(self, value: bytes) -> str:
         try:

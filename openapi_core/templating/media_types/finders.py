@@ -61,7 +61,10 @@ class MediaTypeFinder:
                 except "charset" which is case-insensitive
                 https://www.rfc-editor.org/rfc/rfc2046#section-4.1.2
         """
-        name, value = parameter.split("=")
+        # Split on the first "=" only: a parameter value may itself
+        # contain "=" (e.g. a multipart ``boundary`` like
+        # ``===============123==``), which RFC 9110 permits.
+        name, value = parameter.split("=", 1)
         name = name.lower().lstrip()
         # remove surrounding quotes from value
         value = re.sub('^"(.*)"$', r"\1", value, count=1)
