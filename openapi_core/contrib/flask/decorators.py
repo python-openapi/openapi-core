@@ -34,12 +34,14 @@ class FlaskOpenAPIViewDecorator(FlaskIntegration):
         errors_handler_cls: Type[
             FlaskOpenAPIErrorsHandler
         ] = FlaskOpenAPIErrorsHandler,
+        error_handler_params: dict = None
     ):
         super().__init__(openapi)
         self.request_cls = request_cls
         self.response_cls = response_cls
         self.request_provider = request_provider
         self.errors_handler_cls = errors_handler_cls
+        self.error_handler_params = error_handler_params
 
     def __call__(self, view: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(view)
@@ -48,7 +50,10 @@ class FlaskOpenAPIViewDecorator(FlaskIntegration):
             valid_request_handler = self.valid_request_handler_cls(
                 request, view, *args, **kwargs
             )
-            errors_handler = self.errors_handler_cls()
+            if self.error_handler_params is None:
+                errors_handler = self.errors_handler_cls()
+            else:
+                errors_handler = self.errors_handler_cls(self.error_handler_params)
             response = self.handle_request(
                 request, valid_request_handler, errors_handler
             )
@@ -69,6 +74,7 @@ class FlaskOpenAPIViewDecorator(FlaskIntegration):
         errors_handler_cls: Type[
             FlaskOpenAPIErrorsHandler
         ] = FlaskOpenAPIErrorsHandler,
+        error_handler_params: dict = None
     ) -> "FlaskOpenAPIViewDecorator":
         openapi = OpenAPI(spec)
         return cls(
@@ -77,4 +83,5 @@ class FlaskOpenAPIViewDecorator(FlaskIntegration):
             response_cls=response_cls,
             request_provider=request_provider,
             errors_handler_cls=errors_handler_cls,
+            error_handler_params=error_handler_params
         )
