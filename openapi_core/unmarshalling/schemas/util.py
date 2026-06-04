@@ -18,8 +18,8 @@ def format_uuid(value: Any) -> UUID:
     return UUID(value)
 
 
-def format_byte(value: str, encoding: str = "utf8") -> str:
-    return str(b64decode(value), encoding)
+def format_byte(value: str, encoding: str = "utf8") -> bytes:
+    return b64decode(value)
 
 
 def format_number(value: str) -> Union[int, float]:
