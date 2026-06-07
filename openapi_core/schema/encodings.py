@@ -3,6 +3,8 @@ from typing import cast
 
 from jsonschema_path import SchemaPath
 
+from openapi_core.schema.binary import is_binary_schema
+
 
 def get_content_type(
     prop_schema: SchemaPath, encoding: Optional[SchemaPath]
@@ -26,8 +28,11 @@ def get_default_content_type(
     if prop_type is None:
         return "text/plain" if encoding else "application/octet-stream"
 
-    prop_format = (prop_schema / "format").read_str(None)
-    if prop_type == "string" and prop_format in ["binary", "base64"]:
+    if prop_type == "string" and is_binary_schema(prop_schema):
+        # Opaque binary (OAS 3.0 ``format: binary`` or OAS 3.1
+        # ``contentMediaType``) defaults to octet-stream. base64 text
+        # (``byte``/``base64``/``contentEncoding``) is NOT binary and
+        # falls through to ``text/plain`` below.
         return "application/octet-stream"
 
     if prop_type == "object":

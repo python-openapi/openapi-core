@@ -11,6 +11,7 @@ from jsonschema.exceptions import FormatError
 from jsonschema.protocols import Validator
 from jsonschema_path import SchemaPath
 
+from openapi_core.schema.binary import is_binary_schema
 from openapi_core.validation.schemas.datatypes import (
     _EMPTY_STATE_TUPLE as _EMPTY_STATES_TUPLE,
 )
@@ -272,6 +273,14 @@ class SchemaValidator:
             schema_types = sorted(self.validator.TYPE_CHECKER._type_checkers)
         assert isinstance(schema_types, list)
         for schema_type in schema_types:
+            if schema_type == "string" and isinstance(value, bytes):
+                # OpenAPI lets raw ``bytes`` satisfy a binary string
+                # schema. jsonschema's type checker doesn't know that
+                # convention, so resolve it here to keep primitive-type
+                # detection (and downstream format discovery) consistent
+                # with the binary-aware validator.
+                if is_binary_schema(self.schema):
+                    return "string"
             result = self.type_validator(value, type_override=schema_type)
             if not result:
                 continue

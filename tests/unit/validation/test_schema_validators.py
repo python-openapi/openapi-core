@@ -1,9 +1,13 @@
 import pytest
 from jsonschema_path import SchemaPath
+from openapi_schema_validator import OAS31_BASE_DIALECT_ID
+from openapi_schema_validator import OAS32_BASE_DIALECT_ID
 
 from openapi_core.validation.schemas import (
     oas30_write_schema_validators_factory,
 )
+from openapi_core.validation.schemas import oas31_schema_validators_factory
+from openapi_core.validation.schemas import oas32_schema_validators_factory
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 from openapi_core.validation.schemas.validators import SchemaValidator
 
@@ -498,3 +502,150 @@ class TestSchemaValidateStateRefDedup:
         assert prop_a not in cache
         assert prop_b not in cache
         assert cache[canonical] is True
+
+
+class TestBinaryAwareValidate:
+    """A ``bytes`` payload validates against a binary string schema,
+    while plain (non-binary) string schemas still reject ``bytes``.
+    """
+
+    @pytest.fixture
+    def spec(self):
+        return SchemaPath.from_dict({})
+
+    @pytest.fixture(
+        params=[
+            oas30_write_schema_validators_factory,
+            oas31_schema_validators_factory,
+            oas32_schema_validators_factory,
+        ],
+        ids=["oas30", "oas31", "oas32"],
+    )
+    def factory(self, request):
+        return request.param
+
+    def _validate(self, factory, spec, schema_dict, value):
+        schema = SchemaPath.from_dict(schema_dict)
+        factory.create(spec, schema).validate(value)
+
+    def test_bytes_valid_against_binary_format(self, factory, spec):
+        self._validate(
+            factory, spec, {"type": "string", "format": "binary"}, b"\xff\xfe"
+        )
+
+    def test_bytes_valid_against_content_media_type(self, factory, spec):
+        self._validate(
+            factory,
+            spec,
+            {"type": "string", "contentMediaType": "application/octet-stream"},
+            b"\xff\xfe",
+        )
+
+    def test_bytes_rejected_against_plain_string(self, factory, spec):
+        with pytest.raises(InvalidSchemaValue):
+            self._validate(factory, spec, {"type": "string"}, b"\xff\xfe")
+
+    def test_bytes_rejected_against_byte_base64_format(self, factory, spec):
+        # ``byte`` is base64 *text*, not opaque binary: arbitrary bytes
+        # must not slip through as a string.
+        with pytest.raises(InvalidSchemaValue):
+            self._validate(
+                factory,
+                spec,
+                {"type": "string", "format": "byte"},
+                b"\xff\xfe",
+            )
+
+    def test_bytes_valid_in_oneof_binary_branch(self, factory, spec):
+        schema_dict = {
+            "oneOf": [
+                {"type": "string", "format": "binary"},
+                {"type": "object"},
+            ]
+        }
+        self._validate(factory, spec, schema_dict, b"\xff\xfe")
+
+    def test_bytes_valid_in_anyof_binary_branch(self, factory, spec):
+        schema_dict = {
+            "anyOf": [
+                {"type": "string", "format": "binary"},
+                {"type": "integer"},
+            ]
+        }
+        self._validate(factory, spec, schema_dict, b"\xff\xfe")
+
+    def test_bytes_valid_in_nested_object_property(self, factory, spec):
+        schema_dict = {
+            "type": "object",
+            "properties": {
+                "file": {"type": "string", "format": "binary"},
+            },
+            "required": ["file"],
+        }
+        self._validate(factory, spec, schema_dict, {"file": b"\xff\xfe"})
+
+    def test_string_assertion_keywords_do_not_crash_on_bytes(
+        self, factory, spec
+    ):
+        # ``pattern`` raises TypeError on bytes in plain jsonschema; the
+        # binary node treats the payload as opaque and skips it.
+        schema_dict = {
+            "type": "string",
+            "format": "binary",
+            "pattern": "^a",
+            "minLength": 100,
+            "maxLength": 1,
+        }
+        self._validate(factory, spec, schema_dict, b"\xff\xfe")
+
+    def test_plain_string_still_validates_normally(self, factory, spec):
+        self._validate(factory, spec, {"type": "string"}, "hello")
+
+    def test_input_value_not_mutated(self, factory, spec):
+        schema_dict = {
+            "type": "object",
+            "properties": {
+                "file": {"type": "string", "format": "binary"},
+            },
+        }
+        value = {"file": b"\xff\xfe"}
+        self._validate(factory, spec, schema_dict, value)
+        assert value == {"file": b"\xff\xfe"}
+        assert isinstance(value["file"], bytes)
+
+    @pytest.mark.parametrize(
+        "dialect_factory, dialect_id",
+        [
+            (oas31_schema_validators_factory, OAS31_BASE_DIALECT_ID),
+            (oas32_schema_validators_factory, OAS32_BASE_DIALECT_ID),
+        ],
+        ids=["oas31", "oas32"],
+    )
+    def test_bytes_valid_with_explicit_dialect_in_schema(
+        self, spec, dialect_factory, dialect_id
+    ):
+        # The fixture-driven tests rely on the *default* dialect; here
+        # the schema declares its own dialect via ``$schema`` so the
+        # ``_get_dialect_id`` read-from-schema branch is covered too.
+        schema_dict = {
+            "$schema": dialect_id,
+            "type": "string",
+            "format": "binary",
+        }
+        self._validate(dialect_factory, spec, schema_dict, b"\xff\xfe")
+
+    def test_bytes_on_non_oas_dialect_keeps_binary_handling(self, spec):
+        # Boundary characterization: a schema opting into a *stock* JSON
+        # Schema dialect (not an OAS dialect) still accepts opaque bytes
+        # today, because binary handling wraps whatever validator class
+        # the dialect resolves to. If binary handling is ever delegated
+        # to the per-dialect validator classes, this path needs its own
+        # coverage -- so pin the current behaviour explicitly.
+        schema_dict = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "string",
+            "format": "binary",
+        }
+        self._validate(
+            oas31_schema_validators_factory, spec, schema_dict, b"\xff\xfe"
+        )
