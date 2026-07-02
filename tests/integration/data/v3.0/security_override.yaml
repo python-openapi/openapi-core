@@ -30,6 +30,13 @@ paths:
       responses:
         default:
           description: Remove security.
+    patch:
+      security:
+        - api_key: []
+        - {}
+      responses:
+        default:
+          description: Optional security.
 components:
   securitySchemes:
     api_key:

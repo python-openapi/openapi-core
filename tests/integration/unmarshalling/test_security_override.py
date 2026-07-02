@@ -6,18 +6,23 @@ from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.testing import MockRequest
 from openapi_core.unmarshalling.request.unmarshallers import (
     V30RequestUnmarshaller,
+    V31RequestUnmarshaller,
 )
 from openapi_core.validation.request.exceptions import SecurityValidationError
 
 
-@pytest.fixture(scope="class")
-def schema_path(schema_path_factory):
-    return schema_path_factory.from_file("data/v3.0/security_override.yaml")
-
-
-@pytest.fixture(scope="class")
-def request_unmarshaller(schema_path):
-    return V30RequestUnmarshaller(schema_path)
+@pytest.fixture(
+    scope="class",
+    params=[
+        ("data/v3.0/security_override.yaml", V30RequestUnmarshaller),
+        ("data/v3.1/security_override.yaml", V31RequestUnmarshaller),
+    ],
+    ids=["openapi-3.0", "openapi-3.1"],
+)
+def request_unmarshaller(schema_path_factory, request):
+    schema_file, unmarshaller_cls = request.param
+    schema_path = schema_path_factory.from_file(schema_file)
+    return unmarshaller_cls(schema_path)
 
 
 class TestSecurityOverride:
@@ -85,3 +90,22 @@ class TestSecurityOverride:
 
         assert not result.errors
         assert result.security == {}
+
+    def test_optional_without_security(self, request_unmarshaller):
+        request = MockRequest(self.host_url, "patch", "/resource/one")
+
+        result = request_unmarshaller.unmarshal(request)
+
+        assert not result.errors
+        assert result.security == {}
+
+    def test_optional_with_security(self, request_unmarshaller):
+        args = {"api_key": self.api_key}
+        request = MockRequest(self.host_url, "patch", "/resource/one", args=args)
+
+        result = request_unmarshaller.unmarshal(request)
+
+        assert not result.errors
+        assert result.security == {
+            "api_key": self.api_key,
+        }
