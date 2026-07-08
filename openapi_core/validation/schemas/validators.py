@@ -428,6 +428,7 @@ class SchemaValidator:
     def iter_all_of_schemas(
         self,
         value: Any,
+        caster: Optional["SchemaCaster"] = None,
     ) -> Iterator[SchemaPath]:
         if "allOf" not in self.schema:
             return
@@ -438,7 +439,23 @@ class SchemaValidator:
                 continue
             validator = self.evolve(subschema)
             try:
-                validator.validate(value)
+                test_value = value
+                # Only cast if caster provided (opt-in behavior). Useful for
+                # form-encoded data where scalar values arrive as strings and
+                # need casting before validation against non-string schemas.
+                if caster is not None:
+                    try:
+                        # Convert to dict if it's not exactly a plain dict
+                        if type(value) is not dict:
+                            test_value = dict(value)
+                        else:
+                            test_value = value
+                        test_value = caster.evolve(subschema).cast(test_value)
+                    except (ValueError, TypeError, Exception):
+                        # If casting fails, validate with the original value
+                        test_value = value
+
+                validator.validate(test_value)
             except ValidateError:
                 log.warning("invalid allOf schema found")
             else:

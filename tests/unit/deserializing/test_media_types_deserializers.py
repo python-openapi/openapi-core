@@ -564,6 +564,44 @@ class TestMediaTypeDeserializer:
             "fieldA": "value",
         }
 
+    def test_urlencoded_allof_non_string_field(
+        self, spec, deserializer_factory
+    ):
+        """Test issue #1212: allOf with urlencoded must not drop a subschema
+        that has a non-string (e.g. boolean) field."""
+        mimetype = "application/x-www-form-urlencoded"
+        schema_dict = {
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {"type": "boolean"},
+                        "label": {"type": "string"},
+                    },
+                },
+                {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                },
+            ]
+        }
+        schema = SchemaPath.from_dict(schema_dict)
+        schema_validator = oas31_schema_validators_factory.create(
+            spec, schema
+        )
+        deserializer = deserializer_factory(
+            mimetype, schema=schema, schema_validator=schema_validator
+        )
+        value = b"name=widget&label=hello&enabled=true"
+
+        result = deserializer.deserialize(value)
+
+        assert result == {
+            "name": "widget",
+            "label": "hello",
+            "enabled": True,
+        }
+
     def test_urlencoded_anyof_with_types(self, spec, deserializer_factory):
         """Test anyOf with urlencoded and type coercion"""
         mimetype = "application/x-www-form-urlencoded"
