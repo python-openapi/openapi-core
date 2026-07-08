@@ -379,7 +379,11 @@ class MediaTypeDeserializer:
         assert self.schema_validator is not None
 
         if not self.mimetype.startswith("multipart"):
-            return list(self.schema_validator.iter_all_of_schemas(location))
+            return list(
+                self.schema_validator.iter_all_of_schemas(
+                    location, caster=self.schema_caster
+                )
+            )
 
         if self.schema is None or "allOf" not in self.schema:
             return []
