@@ -8,7 +8,8 @@ from openapi_core.templating.responses.finders import ResponseFinder
 
 class TestResponses:
     @pytest.fixture(scope="class")
-    def spec(self):
+    @classmethod
+    def spec(cls):
         return {
             "200": mock.sentinel.response_200,
             "299": mock.sentinel.response_299,
@@ -17,11 +18,13 @@ class TestResponses:
         }
 
     @pytest.fixture(scope="class")
-    def responses(self, spec):
+    @classmethod
+    def responses(cls, spec):
         return SchemaPath.from_dict(spec)
 
     @pytest.fixture(scope="class")
-    def finder(self, responses):
+    @classmethod
+    def finder(cls, responses):
         return ResponseFinder(responses)
 
     def test_default(self, finder, responses):

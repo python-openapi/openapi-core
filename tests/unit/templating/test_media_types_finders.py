@@ -7,18 +7,21 @@ from openapi_core.templating.media_types.finders import MediaTypeFinder
 
 class TestMediaTypes:
     @pytest.fixture(scope="class")
-    def spec(self):
+    @classmethod
+    def spec(cls):
         return {
             "application/json": {"schema": {"type": "object"}},
             "text/*": {"schema": {"type": "object"}},
         }
 
     @pytest.fixture(scope="class")
-    def content(self, spec):
+    @classmethod
+    def content(cls, spec):
         return SchemaPath.from_dict(spec)
 
     @pytest.fixture(scope="class")
-    def finder(self, content):
+    @classmethod
+    def finder(cls, content):
         return MediaTypeFinder(content)
 
     @pytest.mark.parametrize(
