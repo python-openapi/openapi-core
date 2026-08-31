@@ -249,7 +249,7 @@ class BaseValidator:
                 "Use of allowEmptyValue property is deprecated",
                 DeprecationWarning,
             )
-        if allow_empty_values is None or not allow_empty_values:
+        if allow_empty_values is False:
             # if "in" not defined then it's a Header
             location_name = (param_or_header / "in").read_str("header")
             if (

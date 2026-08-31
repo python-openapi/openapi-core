@@ -14,9 +14,6 @@ from openapi_core import validate_request
 from openapi_core import validate_response
 from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.datatypes import Parameters
-from openapi_core.deserializing.styles.exceptions import (
-    EmptyQueryParameterValue,
-)
 from openapi_core.templating.media_types.exceptions import MediaTypeNotFound
 from openapi_core.templating.paths.exceptions import ServerNotFound
 from openapi_core.templating.security.exceptions import SecurityNotFound
@@ -548,7 +545,7 @@ class TestPetstore:
 
         assert result.body is None
 
-    def test_get_pets_empty_value(self, spec):
+    def test_get_pets_empty_value_allowed_by_schema(self, spec):
         host_url = "http://petstore.swagger.io/v1"
         path_pattern = "/v1/pets"
         query_params = {
@@ -571,13 +568,12 @@ class TestPetstore:
                 DeprecationWarning,
                 match="Use of allowEmptyValue property is deprecated",
             ):
-                with pytest.raises(ParameterValidationError) as exc_info:
-                    validate_request(
-                        request,
-                        spec=spec,
-                        cls=V30RequestParametersValidator,
-                    )
-        assert type(exc_info.value.__cause__) is EmptyQueryParameterValue
+                result = validate_request(
+                    request,
+                    spec=spec,
+                    cls=V30RequestParametersValidator,
+                )
+        assert result is None
 
         result = unmarshal_request(
             request, spec=spec, cls=V30RequestBodyUnmarshaller
