@@ -4204,4 +4204,4 @@ werkzeug = []
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10.0"
-content-hash = "92cfd0d7a67eb7832f54f7fee9ddf550c983bd27e0f219e3db1450c9b9787712"
+content-hash = "05de40dd22677c7849cb09f6b407fffdd27499a33e29a0d34c802d9a22b866a1"
